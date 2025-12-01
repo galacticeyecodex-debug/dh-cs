@@ -53,8 +53,12 @@ export default function DiceOverlay() {
     boxInstanceRef.current = box;
     
     const handleResize = () => {
-      if (boxInstanceRef.current) {
-        boxInstanceRef.current.resize();
+      if (boxInstanceRef.current && typeof boxInstanceRef.current.resize === 'function') {
+        try {
+          boxInstanceRef.current.resize();
+        } catch (e) {
+          console.warn('DiceBox resize failed:', e);
+        }
       }
     };
     window.addEventListener('resize', handleResize);
@@ -82,13 +86,19 @@ export default function DiceOverlay() {
 
   // Trigger resize when overlay opens to ensure physics bounds are correct
   useEffect(() => {
-    if (isDiceOverlayOpen && boxInstanceRef.current) {
+    if (isDiceOverlayOpen && boxInstanceRef.current && isReady) {
       // Small timeout to ensure layout is stable if transition affects it (though opacity shouldn't)
       setTimeout(() => {
-        boxInstanceRef.current.resize();
+        if (boxInstanceRef.current && typeof boxInstanceRef.current.resize === 'function') {
+          try {
+            boxInstanceRef.current.resize();
+          } catch (e) {
+            console.warn('DiceBox resize on overlay open failed:', e);
+          }
+        }
       }, 50);
     }
-  }, [isDiceOverlayOpen]);
+  }, [isDiceOverlayOpen, isReady]);
 
   const rollDuality = async () => {
     if (!boxInstanceRef.current || !isReady) {
