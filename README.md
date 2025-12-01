@@ -54,10 +54,38 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-4. Set up the database:
-   - Run the SQL in `supabase/schema.sql` in your Supabase SQL Editor
-   - Run `node scripts/parse_srd.js` to generate seed data
-   - Run the generated `supabase/seed_library.sql` in Supabase SQL Editor
+4. **Supabase Setup**:
+
+   This project leverages Supabase for its backend, including the PostgreSQL database and authentication. Follow these detailed steps to set up your own Supabase instance:
+
+   *   **Create a New Supabase Project**:
+       1.  Go to [Supabase](https://supabase.com/) and sign up or log in.
+       2.  Click "New project" to create a new project.
+       3.  Remember your project's **Project URL** and **Anon Key**; these will be needed for your `.env.local` file (Step 3).
+
+   *   **Apply Initial Schema**:
+       1.  In your Supabase project dashboard, navigate to the **SQL Editor** (usually found under "Database" -> "SQL Editor").
+       2.  Open the local file `supabase/schema.sql` from your cloned repository.
+       3.  Copy the *entire content* of `supabase/schema.sql` and paste it into the Supabase SQL Editor.
+       4.  Execute the SQL. This script creates core tables like `profiles`, `character_cards`, `character_inventory` and sets up their initial Row Level Security (RLS) policies.
+
+   *   **Generate Game Data (Seed)**:
+       1.  Game data (classes, abilities, etc.) is sourced from JSON files in `srd/json/`.
+       2.  In your local project directory, run the parser script:
+           ```bash
+           node scripts/parse_json_srd.js
+           ```
+       3.  This command generates a new SQL file: `supabase/seed_library.sql`.
+       4.  **Important**: Always examine the output of the parser script for "Total entries" to ensure data was parsed correctly. If "Total entries: 0" appears, there's an issue with the SRD JSON files or the script itself.
+
+   *   **Seed Database with Game Data and Core Tables**:
+       1.  Open the *newly generated* local file `supabase/seed_library.sql`.
+       2.  Copy its entire content and paste it into the Supabase SQL Editor.
+       3.  Execute this SQL. This script will create the `public.characters` and `public.library` tables (along with their RLS policies as defined in the seed script) and populate the `public.library` table with game data.
+
+   *   **Configure Google OAuth (Optional, but Recommended)**:
+       1.  In your Supabase project dashboard, navigate to "Authentication" -> "Providers".
+       2.  Enable the "Google" provider and follow the instructions to set up your Google OAuth credentials. This is essential for the application's authentication flow.
 
 5. Start the development server:
 ```bash
