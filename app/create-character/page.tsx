@@ -26,6 +26,9 @@ interface CharacterFormData {
     knowledge: number;
   };
   experiences: [string, string];
+  selectedPrimaryWeaponId: string | null;
+  selectedSecondaryWeaponId: string | null;
+  selectedArmorId: string | null;
 }
 
 // Minimal Library Item type for dropdowns and lookup
@@ -48,7 +51,10 @@ export default function CreateCharacterPage() {
     stats: { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 },
     experiences: ['', ''],
     domains: ['', ''],
-    selectedCards: []
+    selectedCards: [],
+    selectedPrimaryWeaponId: null,
+    selectedSecondaryWeaponId: null,
+    selectedArmorId: null,
   });
   const [calculatedVitals, setCalculatedVitals] = useState({ hp: 0, stress: 0, armor: 0, evasion: 10 });
   const [startingItemsAndCards, setStartingItemsAndCards] = useState<{ cards: string[], weapons: string[], armor: string[], misc: string[], gold: { handfuls: number, bags: number, chests: number } }>({
@@ -258,23 +264,32 @@ export default function CreateCharacterPage() {
         }
 
 
-        if (defaultPrimaryWeaponId) initialWeapons.push(defaultPrimaryWeaponId);
-        if (defaultSecondaryWeaponId) initialWeapons.push(defaultSecondaryWeaponId); // Allow for two weapons
-        if (defaultArmorId) initialArmor.push(defaultArmorId);
-
         // Cards are now selected manually in steps 4 and 5
 
         setStartingItemsAndCards({
           cards: [], // Will be populated from formData.selectedCards on submit
-          weapons: initialWeapons,
-          armor: initialArmor,
+          weapons: [],
+          armor: [],
           misc: initialMiscItems,
           gold: initialGold
         });
+        // Clear selected equipment when class changes, as previous selections might be invalid
+        setFormData(prev => ({
+          ...prev,
+          selectedPrimaryWeaponId: null,
+          selectedSecondaryWeaponId: null,
+          selectedArmorId: null,
+        }));
       }
     } else {
       setCalculatedVitals({ hp: 0, stress: 0, armor: 0, evasion: 10 });
       setStartingItemsAndCards({ cards: [], weapons: [], armor: [], misc: [], gold: { handfuls: 0, bags: 0, chests: 0 } });
+      setFormData(prev => ({ // Also clear selected equipment if class is unselected
+        ...prev,
+        selectedPrimaryWeaponId: null,
+        selectedSecondaryWeaponId: null,
+        selectedArmorId: null,
+      }));
     }
   }, [formData.class_id, formData.ancestry_id, libraryData]);
 
@@ -378,7 +393,7 @@ export default function CreateCharacterPage() {
         return !!formData.class_id && !!formData.subclass_id && !!formData.domains?.[0] && !!formData.domains?.[1];
       case 4: // Domain Cards
         return (formData.selectedCards?.length || 0) === 2;
-      case 5: // Assign Traits
+      case 6: // Assign Traits
         const assignedStatValues = Object.values(formData.stats || {});
         const counts: { [key: number]: number } = {};
         TRAIT_ASSIGNMENT_POOL.forEach(val => counts[val] = (counts[val] || 0) + 1);
@@ -391,6 +406,8 @@ export default function CreateCharacterPage() {
         return allAssigned;
       case 6: // Experiences
         return !!formData.experiences && formData.experiences.length === 2 && formData.experiences.every(e => e.trim().length > 0);
+      case 7: // Equipment
+        return !!formData.selectedPrimaryWeaponId && !!formData.selectedArmorId;
       default:
         return true;
     }
@@ -480,6 +497,10 @@ export default function CreateCharacterPage() {
     const selectedClassName = libraryData.classes.find(cl => cl.id === formData.class_id)?.name;
     const selectedSubclassName = libraryData.subclasses.find(sc => sc.id === formData.subclass_id)?.name;
 
+    const finalPrimaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedPrimaryWeaponId);
+    const finalSecondaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedSecondaryWeaponId);
+    const finalArmor = libraryData.armor.find(a => a.id === formData.selectedArmorId);
+
     const newCharacterData: Omit<Character, 'id' | 'character_cards' | 'character_inventory'> = {
       user_id: user.id,
       name: formData.name,
@@ -542,23 +563,40 @@ export default function CreateCharacterPage() {
 
     // Insert initial character inventory
     const inventoryToInsert = [];
-    // const weaponOrder = 0; // Not strictly needed for a single primary weapon insertion
 
-    for (const itemId of startingItemsAndCards.weapons) {
-      const item = libraryData.weapons.find(w => w.id === itemId);
+    // Add primary weapon
+    if (formData.selectedPrimaryWeaponId) {
+      const item = libraryData.weapons.find(w => w.id === formData.selectedPrimaryWeaponId);
       if (item) {
         inventoryToInsert.push({
           character_id: characterId,
           item_id: item.id,
           name: item.name,
           description: item.data.markdown || '',
-          location: item.data.burden === 'Two-Handed' ? 'equipped_primary' : 'equipped_primary', // Assuming one primary for now
+          location: 'equipped_primary',
           quantity: 1,
         });
       }
     }
-    for (const itemId of startingItemsAndCards.armor) {
-      const item = libraryData.armor.find(a => a.id === itemId);
+
+    // Add secondary weapon if selected
+    if (formData.selectedSecondaryWeaponId) {
+      const item = libraryData.weapons.find(w => w.id === formData.selectedSecondaryWeaponId);
+      if (item) {
+        inventoryToInsert.push({
+          character_id: characterId,
+          item_id: item.id,
+          name: item.name,
+          description: item.data.markdown || '',
+          location: 'equipped_secondary',
+          quantity: 1,
+        });
+      }
+    }
+
+    // Add armor
+    if (formData.selectedArmorId) {
+      const item = libraryData.armor.find(a => a.id === formData.selectedArmorId);
       if (item) {
         inventoryToInsert.push({
           character_id: characterId,
@@ -671,8 +709,8 @@ export default function CreateCharacterPage() {
               <button type="button" onClick={() => setCurrentStep(1)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
               <button
                 type="button"
-                onClick={() => setCurrentStep(3)}
-                disabled={!validateStep(2)}
+                onClick={() => setCurrentStep(4)}
+                disabled={!validateStep(3)}
                 className={clsx(
                   "px-4 py-2 font-bold rounded-full shadow-md transition-all",
                   validateStep(2)
@@ -685,7 +723,7 @@ export default function CreateCharacterPage() {
             </div>
           </div>
         );
-      case 3: // Class & Subclass & Domains
+      case 4: // Class & Subclass & Domains
         return (
           <div className="space-y-4">
             <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Sparkle size={20} /> Step 3: Class & Domains</h2>
@@ -754,7 +792,7 @@ export default function CreateCharacterPage() {
             </div>
           </div>
         );
-      case 4: // Choose Domain Cards (Consolidated)
+      case 5: // Choose Domain Cards (Consolidated)
         const domain1 = formData.domains?.[0];
         const domain2 = formData.domains?.[1];
 
@@ -834,11 +872,11 @@ export default function CreateCharacterPage() {
             </div>
 
             <div className="flex justify-between pt-4">
-              <button type="button" onClick={() => setCurrentStep(3)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
+              <button type="button" onClick={() => setCurrentStep(4)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
               <button
                 type="button"
-                onClick={() => setCurrentStep(5)}
-                disabled={!validateStep(4)}
+                onClick={() => setCurrentStep(6)}
+                disabled={!validateStep(5)}
                 className={clsx(
                   "px-4 py-2 font-bold rounded-full shadow-md transition-all",
                   validateStep(4)
@@ -934,11 +972,11 @@ export default function CreateCharacterPage() {
               })}
             </div>
             <div className="flex justify-between mt-4">
-              <button type="button" onClick={() => setCurrentStep(4)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
+              <button type="button" onClick={() => setCurrentStep(5)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
               <button
                 type="button"
-                onClick={() => setCurrentStep(6)}
-                disabled={!validateStep(5)}
+                onClick={() => setCurrentStep(7)}
+                disabled={!validateStep(6)}
                 className={clsx(
                   "px-4 py-2 font-bold rounded-full shadow-md transition-all",
                   validateStep(5)
@@ -976,15 +1014,95 @@ export default function CreateCharacterPage() {
                 className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
               />
             </div>
+          </div>
+        );
+      case 6: // Equipment Selection
+        // Filter Tier 1 weapons and armor
+        const tier1PrimaryWeapons = libraryData.weapons.filter(w => w.tier === 1 && w.data.primary_or_secondary === 'Primary');
+        const tier1SecondaryWeapons = libraryData.weapons.filter(w => w.tier === 1 && w.data.primary_or_secondary === 'Secondary');
+        const tier1Armor = libraryData.armor.filter(a => a.tier === 1);
+
+        const selectedPrimaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedPrimaryWeaponId);
+        const selectedSecondaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedSecondaryWeaponId);
+        const selectedArmor = libraryData.armor.find(a => a.id === formData.selectedArmorId);
+
+        // Determine if secondary weapon selection should be enabled
+        const isSecondaryWeaponEnabled = selectedPrimaryWeapon?.data.burden !== 'Two-Handed';
+
+        return (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Shield size={20} /> Step 6: Starting Equipment</h2>
+            <p className="text-sm text-gray-400">Choose your primary weapon, an optional secondary weapon, and your armor.</p>
+
+            {/* Primary Weapon Selection */}
+            <div>
+              <label htmlFor="primary_weapon_id" className="block text-sm font-medium text-gray-400">Primary Weapon</label>
+              <select
+                id="primary_weapon_id"
+                name="selectedPrimaryWeaponId"
+                value={formData.selectedPrimaryWeaponId || ''}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
+                required
+              >
+                <option value="">Select Primary Weapon</option>
+                {tier1PrimaryWeapons.map(weapon => (
+                  <option key={weapon.id} value={weapon.id}>
+                    {weapon.name} ({weapon.data.burden})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Secondary Weapon Selection */}
+            <div>
+              <label htmlFor="secondary_weapon_id" className="block text-sm font-medium text-gray-400">Secondary Weapon (Optional)</label>
+              <select
+                id="secondary_weapon_id"
+                name="selectedSecondaryWeaponId"
+                value={formData.selectedSecondaryWeaponId || ''}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
+                disabled={!isSecondaryWeaponEnabled}
+              >
+                <option value="">Select Secondary Weapon</option>
+                {tier1SecondaryWeapons.map(weapon => (
+                  <option key={weapon.id} value={weapon.id}>
+                    {weapon.name} ({weapon.data.burden})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Armor Selection */}
+            <div>
+              <label htmlFor="armor_id" className="block text-sm font-medium text-gray-400">Armor</label>
+              <select
+                id="armor_id"
+                name="selectedArmorId"
+                value={formData.selectedArmorId || ''}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
+                required
+              >
+                <option value="">Select Armor</option>
+                {tier1Armor.map(armor => (
+                  <option key={armor.id} value={armor.id}>
+                    {armor.name} (Score: {armor.data.base_score})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex justify-between mt-4">
-              <button type="button" onClick={() => setCurrentStep(5)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
+              <button type="button" onClick={() => setCurrentStep(6)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
               <button
                 type="button"
-                onClick={() => setCurrentStep(7)}
-                disabled={!validateStep(6)}
+                onClick={() => setCurrentStep(8)}
+                disabled={!validateStep(7)}
                 className={clsx(
                   "px-4 py-2 font-bold rounded-full shadow-md transition-all",
-                  validateStep(6)
+                  validateStep(7)
                     ? "bg-dagger-gold text-black hover:scale-[1.02]"
                     : "bg-gray-600 text-gray-400 cursor-not-allowed"
                 )}
@@ -994,11 +1112,14 @@ export default function CreateCharacterPage() {
             </div>
           </div>
         );
-      case 7: // Confirm & Create
+      case 8: // Confirm & Create
         const currentClassSummary = formData.class_id ? libraryData.classes.find(c => c.id === formData.class_id) : null;
         const currentSubclassSummary = formData.subclass_id ? libraryData.subclasses.find(s => s.id === formData.subclass_id) : null;
         const currentAncestrySummary = formData.ancestry_id ? libraryData.ancestries.find(a => a.id === formData.ancestry_id) : null;
         const currentCommunitySummary = formData.community_id ? libraryData.communities.find(c => c.id === formData.community_id) : null;
+        const finalPrimaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedPrimaryWeaponId);
+        const finalSecondaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedSecondaryWeaponId);
+        const finalArmor = libraryData.armor.find(a => a.id === formData.selectedArmorId);
 
         return (
           <div className="space-y-4">
@@ -1016,14 +1137,9 @@ export default function CreateCharacterPage() {
               <p className="flex items-center gap-1">
                 <Coins size={16} /> <strong>Starting Gold:</strong> {startingItemsAndCards.gold.handfuls}h, {startingItemsAndCards.gold.bags}b, {startingItemsAndCards.gold.chests}c
               </p>
-              <p><strong>Starting Weapons ({startingItemsAndCards.weapons.length}):</strong></p>
-              <ul className="list-disc pl-5">
-                {startingItemsAndCards.weapons.map(id => <li key={id}>{libraryData.weapons.find(w => w.id === id)?.name}</li>)}
-              </ul>
-              <p><strong>Starting Armor ({startingItemsAndCards.armor.length}):</strong></p>
-              <ul className="list-disc pl-5">
-                {startingItemsAndCards.armor.map(id => <li key={id}>{libraryData.armor.find(a => a.id === id)?.name}</li>)}
-              </ul>
+              <p><strong>Primary Weapon:</strong> {finalPrimaryWeapon?.name || 'N/A'}</p>
+              {finalSecondaryWeapon && <p><strong>Secondary Weapon:</strong> {finalSecondaryWeapon.name}</p>}
+              <p><strong>Armor:</strong> {finalArmor?.name || 'N/A'}</p>
               <p><strong>Starting Cards ({formData.selectedCards?.length}):</strong></p>
               <ul className="list-disc pl-5">
                 {formData.selectedCards?.map(id => {
@@ -1033,7 +1149,7 @@ export default function CreateCharacterPage() {
               </ul>
             </div>
             <div className="flex justify-between mt-4">
-              <button type="button" onClick={() => setCurrentStep(6)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
+              <button type="button" onClick={() => setCurrentStep(7)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -1056,7 +1172,7 @@ export default function CreateCharacterPage() {
         <h1 className="text-2xl font-serif font-bold text-center text-dagger-gold">New Character</h1>
 
         <div className="flex justify-center gap-2 mb-4">
-          {Array.from({ length: 7 }).map((_, idx) => (
+          {Array.from({ length: 8 }).map((_, idx) => (
             <div key={idx} className={clsx(
               "w-6 h-2 rounded-full",
               idx + 1 === currentStep ? "bg-dagger-gold" : "bg-gray-700"

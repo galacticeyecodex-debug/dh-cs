@@ -107,6 +107,7 @@ interface CharacterState {
   switchCharacter: (characterId: string) => Promise<void>;
 
   updateVitals: (type: 'hp_current' | 'stress_current' | 'armor_current', value: number) => Promise<void>;
+  equipItem: (itemId: string, slot: 'equipped_primary' | 'equipped_secondary' | 'equipped_armor' | 'backpack') => Promise<void>;
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({
@@ -156,6 +157,54 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       get().fetchCharacter(user.id);
     } else {
       set({ user: null, character: null, isLoading: false });
+    }
+  },
+
+  equipItem: async (itemId, slot) => {
+    const state = get();
+    if (!state.character) return;
+
+    const inventory = [...(state.character.character_inventory || [])];
+    const itemIndex = inventory.findIndex(i => i.id === itemId);
+    if (itemIndex === -1) return;
+
+    const itemToEquip = { ...inventory[itemIndex] };
+    const updates: { id: string; location: string }[] = [];
+
+    // If we are equipping to a slot (not unequipped to backpack)
+    if (slot !== 'backpack') {
+      // Check if something is already in that slot
+      const existingItemIndex = inventory.findIndex(i => i.location === slot);
+      if (existingItemIndex !== -1) {
+        // Move existing item to backpack
+        const existingItem = { ...inventory[existingItemIndex], location: 'backpack' as const };
+        inventory[existingItemIndex] = existingItem;
+        updates.push({ id: existingItem.id, location: 'backpack' });
+      }
+    }
+
+    // Update the target item location
+    itemToEquip.location = slot;
+    inventory[itemIndex] = itemToEquip;
+    updates.push({ id: itemToEquip.id, location: slot });
+
+    // Optimistically update UI
+    set((s) => ({
+      character: s.character ? { ...s.character, character_inventory: inventory } : null,
+    }));
+
+    // Persist to DB
+    const supabase = createClient();
+    for (const update of updates) {
+      const { error } = await supabase
+        .from('character_inventory')
+        .update({ location: update.location })
+        .eq('id', update.id);
+      
+      if (error) {
+        console.error('Error updating inventory location:', error);
+        // Ideally revert here
+      }
     }
   },
 
