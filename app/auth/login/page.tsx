@@ -15,7 +15,7 @@ export default function LoginPage() {
   const supabase = createClient();
 
   const searchParams = useSearchParams();
-  const next = searchParams.get("next");
+  const next = searchParams.get("next") ?? "/client/characters";
 
   const loginWithGoogle = async () => {
     setIsGoogleLoading(true);
@@ -26,9 +26,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${siteUrl}/auth/callback${
-            next ? `?next=${encodeURIComponent(next)}` : ""
-          }`,
+          redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`,
         },
       });
 

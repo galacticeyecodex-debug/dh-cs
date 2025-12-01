@@ -646,7 +646,7 @@ export default function CreateCharacterPage() {
 
     // After successful creation, refetch character for store and redirect
     await fetchCharacter(user.id);
-    router.push('/');
+    router.push('/client/characters');
   };
 
   const renderStep = useCallback(() => { // Define renderStep using useCallback

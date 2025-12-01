@@ -1,7 +1,17 @@
 import Link from 'next/link';
 import { Github } from 'lucide-react';
+import { redirect } from 'next/navigation';
+import createClient from '@/lib/supabase/server';
 
-export default function Page() {
+export default async function Page() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // If user is authenticated, redirect to characters page
+  if (user) {
+    redirect('/client/characters');
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 text-center space-y-8">
       <div className="space-y-4">
@@ -14,19 +24,19 @@ export default function Page() {
       </div>
 
       <div className="space-y-4 w-full max-w-md">
-        <Link 
-          href="/client/characters"
+        <Link
+          href="/auth/login"
           className="block w-full py-4 bg-dagger-gold hover:bg-yellow-500 text-black font-bold text-xl rounded-lg shadow-lg transform transition hover:scale-105 active:scale-95"
         >
-          Go to Characters
+          Get Started
         </Link>
       </div>
 
       <div className="pt-12 space-y-6 opacity-80 hover:opacity-100 transition-opacity">
         <div className="flex justify-center gap-6">
-          <a 
-            href="https://github.com/galacticeyecodex-debug/dh-cs" 
-            target="_blank" 
+          <a
+            href="https://github.com/galacticeyecodex-debug/dh-cs"
+            target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
           >
@@ -34,7 +44,7 @@ export default function Page() {
             <span>View on GitHub</span>
           </a>
         </div>
-        
+
         <p className="text-sm text-gray-500 max-w-lg mx-auto">
           This is a fan-made hobby project and is not affiliated with Darrington Press.
           Daggerheart is a trademark of Darrington Press.
