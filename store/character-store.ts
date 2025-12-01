@@ -112,6 +112,8 @@ interface CharacterState {
   recalculateDerivedStats: () => Promise<void>;
   updateGold: (denomination: 'handfuls' | 'bags' | 'chests', value: number) => Promise<void>;
   updateHope: (value: number) => Promise<void>;
+  moveCard: (cardId: string, destination: 'loadout' | 'vault') => Promise<void>;
+  addCardToCollection: (item: LibraryItem) => Promise<void>;
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({
@@ -162,6 +164,73 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     } else {
       set({ user: null, character: null, isLoading: false });
     }
+  },
+
+  moveCard: async (cardId, destination) => {
+    const state = get();
+    if (!state.character) return;
+
+    const cards = [...(state.character.character_cards || [])];
+    const cardIndex = cards.findIndex(c => c.id === cardId);
+    if (cardIndex === -1) return;
+
+    // Update local state
+    const updatedCard = { ...cards[cardIndex], location: destination };
+    cards[cardIndex] = updatedCard;
+
+    set((s) => ({
+      character: s.character ? { ...s.character, character_cards: cards } : null,
+    }));
+
+    // Persist to DB
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('character_cards')
+      .update({ location: destination })
+      .eq('id', cardId);
+
+    if (error) {
+      console.error('Error moving card:', error);
+      // Ideally revert here
+    }
+  },
+
+  addCardToCollection: async (item) => {
+    const state = get();
+    if (!state.character) return;
+
+    const supabase = createClient();
+    const newCard: Omit<CharacterCard, 'id' | 'library_item'> = {
+      character_id: state.character.id,
+      card_id: item.id,
+      location: 'vault', // Default to vault
+      state: {},
+      sort_order: 0
+    };
+
+    const { data, error } = await supabase
+      .from('character_cards')
+      .insert([newCard])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding card:', error);
+      return;
+    }
+
+    // Manually add the library_item data
+    const addedCard: CharacterCard = {
+      ...data,
+      library_item: item,
+    };
+
+    set((s) => ({
+      character: s.character ? {
+        ...s.character,
+        character_cards: [...(s.character.character_cards || []), addedCard],
+      } : null,
+    }));
   },
 
   addItemToInventory: async (item: LibraryItem) => {

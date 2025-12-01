@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { LibraryItem } from '@/store/character-store';
-import { Search, X, Sword, Shield, Heart, Gem, Package } from 'lucide-react';
+import { Search, X, Sword, Shield, Heart, Gem, Package, ScrollText } from 'lucide-react';
 import clsx from 'clsx';
 
 interface AddItemModalProps {
@@ -10,23 +10,45 @@ interface AddItemModalProps {
   onClose: () => void;
   onAddItem: (item: LibraryItem) => void;
   libraryItems: LibraryItem[];
+  filterType?: 'inventory' | 'cards'; // Optional prop to default filtering context
 }
 
-export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems }: AddItemModalProps) {
+export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems, filterType = 'inventory' }: AddItemModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // 'weapon', 'armor', 'consumable', 'item'
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // 'weapon', 'armor', 'consumable', 'item', 'card'
 
   const filteredItems = useMemo(() => {
     return libraryItems.filter(item => {
       const matchesSearch = searchTerm ? item.name.toLowerCase().includes(searchTerm.toLowerCase()) : true;
-      const matchesCategory = selectedCategory ? item.type === selectedCategory : true;
       
-      // Only show types relevant to inventory
-      const isRelevantType = ['weapon', 'armor', 'consumable', 'item'].includes(item.type);
+      // Category filtering
+      let matchesCategory = true;
+      if (selectedCategory === 'weapon') matchesCategory = item.type === 'weapon';
+      else if (selectedCategory === 'armor') matchesCategory = item.type === 'armor';
+      else if (selectedCategory === 'consumable') matchesCategory = item.type === 'consumable';
+      else if (selectedCategory === 'item') matchesCategory = item.type === 'item';
+      else if (selectedCategory === 'card') matchesCategory = ['ability', 'spell', 'grimoire'].includes(item.type);
+      
+      // Relevant Type check based on context (Inventory vs Playmat/Cards)
+      // If filterType is 'cards', we mainly want card types. If 'inventory', we want item types.
+      // But the user can toggle. Let's allow the tabs to drive visibility.
+      // If NO category selected, show based on filterType default.
+      
+      const isCardType = ['ability', 'spell', 'grimoire'].includes(item.type);
+      const isInventoryType = ['weapon', 'armor', 'consumable', 'item'].includes(item.type);
+
+      let isRelevantType = false;
+      if (selectedCategory) {
+        isRelevantType = true; // Category selection overrides context
+      } else {
+        // Default view based on prop
+        if (filterType === 'cards') isRelevantType = isCardType;
+        else isRelevantType = isInventoryType;
+      }
 
       return matchesSearch && matchesCategory && isRelevantType;
     });
-  }, [libraryItems, searchTerm, selectedCategory]);
+  }, [libraryItems, searchTerm, selectedCategory, filterType]);
 
   if (!isOpen) return null;
 
@@ -40,7 +62,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems 
       <div className="bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full max-w-lg h-[80vh] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-white/10">
-          <h2 className="text-xl font-bold text-dagger-gold">Add Item to Inventory</h2>
+          <h2 className="text-xl font-bold text-dagger-gold">Add {filterType === 'cards' ? 'Card' : 'Item'}</h2>
           <button onClick={onClose} className="text-white/70 hover:text-white">
             <X size={24} />
           </button>
@@ -52,7 +74,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems 
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search items..."
+              placeholder="Search..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full p-2 pl-10 rounded bg-black/20 border border-white/10 focus:ring-dagger-gold focus:border-dagger-gold text-white"
@@ -66,30 +88,42 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems 
               isSelected={selectedCategory === null} 
               onClick={() => setSelectedCategory(null)} 
             />
-            <FilterButton 
-              label="Weapons" 
-              icon={<Sword size={16} />} 
-              isSelected={selectedCategory === 'weapon'} 
-              onClick={() => setSelectedCategory('weapon')} 
-            />
-            <FilterButton 
-              label="Armor" 
-              icon={<Shield size={16} />} 
-              isSelected={selectedCategory === 'armor'} 
-              onClick={() => setSelectedCategory('armor')} 
-            />
-            <FilterButton 
-              label="Consumables" 
-              icon={<Heart size={16} />} 
-              isSelected={selectedCategory === 'consumable'} 
-              onClick={() => setSelectedCategory('consumable')} 
-            />
-            <FilterButton 
-              label="Misc Items" 
-              icon={<Gem size={16} />} 
-              isSelected={selectedCategory === 'item'} 
-              onClick={() => setSelectedCategory('item')} 
-            />
+            {filterType === 'inventory' && (
+              <>
+                <FilterButton 
+                  label="Weapons" 
+                  icon={<Sword size={16} />} 
+                  isSelected={selectedCategory === 'weapon'} 
+                  onClick={() => setSelectedCategory('weapon')} 
+                />
+                <FilterButton 
+                  label="Armor" 
+                  icon={<Shield size={16} />} 
+                  isSelected={selectedCategory === 'armor'} 
+                  onClick={() => setSelectedCategory('armor')} 
+                />
+                <FilterButton 
+                  label="Consumables" 
+                  icon={<Heart size={16} />} 
+                  isSelected={selectedCategory === 'consumable'} 
+                  onClick={() => setSelectedCategory('consumable')} 
+                />
+                <FilterButton 
+                  label="Misc Items" 
+                  icon={<Gem size={16} />} 
+                  isSelected={selectedCategory === 'item'} 
+                  onClick={() => setSelectedCategory('item')} 
+                />
+              </>
+            )}
+            {filterType === 'cards' && (
+              <FilterButton 
+                label="Cards" 
+                icon={<ScrollText size={16} />} 
+                isSelected={selectedCategory === 'card'} 
+                onClick={() => setSelectedCategory('card')} 
+              />
+            )}
           </div>
         </div>
 
@@ -103,7 +137,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems 
                 onClick={() => handleAddItemClick(item)}
               >
                 <div className="font-bold text-white">{item.name}</div>
-                <div className="text-xs text-gray-400 uppercase">{item.type} {item.tier ? `(Tier ${item.tier})` : ''}</div>
+                <div className="text-xs text-gray-400 uppercase">{item.type} {item.tier ? `(Tier ${item.tier})` : ''} {item.domain ? `- ${item.domain}` : ''}</div>
                 {item.type === 'weapon' && item.data && (
                   <div className="text-xs text-gray-500">
                     {item.data.trait} {item.data.range} {item.data.damage}
@@ -113,6 +147,11 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems 
                   <div className="text-xs text-gray-500">
                     Thresholds: {item.data.base_thresholds}, Score: {item.data.base_score}
                   </div>
+                )}
+                {['ability', 'spell', 'grimoire'].includes(item.type) && item.data && (
+                   <div className="text-xs text-gray-500 line-clamp-2">
+                     {item.data.description || item.data.text}
+                   </div>
                 )}
               </div>
             ))
