@@ -60,4 +60,5 @@ GEMINI.md
 # Supabase
 .supabase/
 
+# GitHub App credentials
 gha-creds-*.json
