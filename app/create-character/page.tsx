@@ -920,16 +920,15 @@ export default function CreateCharacterPage() {
                     )}>
                       {statValue >= 0 ? `+${statValue}` : statValue}
                     </div>
-                    <button
-                      type="button"
+                    <span
                       onClick={(e) => {
                         e.stopPropagation();
                         assignTraitValue(stat as keyof CharacterFormData['stats'], '');
                       }}
-                      className="mt-2 text-red-400 text-xs hover:underline"
+                      className="mt-2 text-red-400 text-xs hover:underline cursor-pointer"
                     >
                       Clear
-                    </button>
+                    </span>
                   </button>
                 );
               })}
@@ -1048,7 +1047,7 @@ export default function CreateCharacterPage() {
       default:
         return null;
     }
-  }, [currentStep, formData, libraryData, calculatedVitals, startingItemsAndCards, TRAIT_ASSIGNMENT_POOL, DISPLAY_TRAIT_POOL, handleInputChange, assignTraitValue, handleExperienceChange, isSubmitting, selectedTraitIndex, isTraitValueAssigned, handleDomainChange, handleCardSelection]);
+  }, [currentStep, formData, libraryData, calculatedVitals, startingItemsAndCards, TRAIT_ASSIGNMENT_POOL, DISPLAY_TRAIT_POOL, handleInputChange, assignTraitValue, handleExperienceChange, isSubmitting, selectedTraitIndex, isTraitValueAssigned, handleDomainChange, handleCardSelection, validateStep]);
 
 
   return (
