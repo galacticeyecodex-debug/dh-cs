@@ -12,8 +12,8 @@ export default function CombatView() {
 
   // Extract derived stats
   const evasion = character.evasion;
-  // Default armor score if not calculated yet (should be dynamic based on armor)
-  const armorScore = character.vitals.armor_current; 
+  // Display max armor score as the stat, not current availability
+  const armorScore = character.vitals.armor_max; 
   
   // Find equipped items
   const weapons = character.character_inventory?.filter(

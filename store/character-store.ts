@@ -109,6 +109,7 @@ interface CharacterState {
   updateVitals: (type: 'hp_current' | 'stress_current' | 'armor_current', value: number) => Promise<void>;
   equipItem: (itemId: string, slot: 'equipped_primary' | 'equipped_secondary' | 'equipped_armor' | 'backpack') => Promise<void>;
   addItemToInventory: (item: LibraryItem) => Promise<void>;
+  recalculateDerivedStats: () => Promise<void>;
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({
@@ -202,6 +203,69 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     }));
   },
 
+  recalculateDerivedStats: async () => {
+    const state = get();
+    const character = state.character;
+    if (!character) return;
+
+    const inventory = character.character_inventory || [];
+    const equippedArmor = inventory.find(i => i.location === 'equipped_armor');
+    const equippedPrimary = inventory.find(i => i.location === 'equipped_primary');
+    const equippedSecondary = inventory.find(i => i.location === 'equipped_secondary');
+
+    let newArmorScore = 0;
+
+    // 1. Base Score from Armor
+    if (equippedArmor?.library_item?.data?.base_score) {
+      newArmorScore += parseInt(equippedArmor.library_item.data.base_score) || 0;
+    }
+    // Add Level Bonus to Armor Score if wearing armor (assuming standard rule)
+    // SRD says "Base Score" + permanent bonuses.
+    // Usually Armor Score = Base Score + Level (if armor equipped) is NOT a standard rule, but usually specific armor stats scale or character levels grant bonuses.
+    // Wait, SRD armor tables show base score scaling with Tier.
+    // Let's stick to Item Stats.
+    // HOWEVER, some classes/subclasses/abilities might give bonuses. We are only checking Items for now.
+
+    // 2. Scan equipped items for bonuses
+    const checkItemForBonus = (item: CharacterInventoryItem | undefined) => {
+      if (!item?.library_item?.data) return;
+      const featureText = item.library_item.data.feature?.text || '';
+      const featText = item.library_item.data.feat_text || ''; // Some might store it here
+      const combinedText = `${featureText} ${featText}`;
+
+      // Regex for "+X to Armor Score"
+      const armorBonusMatch = combinedText.match(/([+-]?\d+)\s+to\s+Armor\s+Score/i);
+      if (armorBonusMatch) {
+        newArmorScore += parseInt(armorBonusMatch[1]);
+      }
+    };
+
+    checkItemForBonus(equippedArmor); // Armor itself might have a bonus feature? Unlikely but possible.
+    checkItemForBonus(equippedPrimary);
+    checkItemForBonus(equippedSecondary);
+
+    // Apply updates
+    const currentVitals = character.vitals;
+    if (currentVitals.armor_max !== newArmorScore) {
+      const newVitals = {
+        ...currentVitals,
+        armor_max: newArmorScore,
+        // Clamp current armor if it exceeds max
+        armor_current: Math.min(currentVitals.armor_current, newArmorScore)
+      };
+
+      set((s) => ({
+        character: s.character ? { ...s.character, vitals: newVitals } : null
+      }));
+
+      const supabase = createClient();
+      await supabase
+        .from('characters')
+        .update({ vitals: newVitals })
+        .eq('id', character.id);
+    }
+  },
+
   equipItem: async (itemId, slot) => {
     const state = get();
     if (!state.character) return;
@@ -248,6 +312,9 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         // Ideally revert here
       }
     }
+
+    // Trigger stat recalculation after equipment change
+    await get().recalculateDerivedStats();
   },
 
   switchCharacter: async (characterId: string) => {
