@@ -91,9 +91,57 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
        2.  Copy its entire content and paste it into the Supabase SQL Editor.
        3.  Execute this SQL. This script will create the `public.characters` and `public.library` tables (along with their RLS policies as defined in the seed script) and populate the `public.library` table with game data.
 
-   *   **Configure Google OAuth (Optional, but Recommended)**:
-       1.  In your Supabase project dashboard, navigate to "Authentication" -> "Providers".
-       2.  Enable the "Google" provider and follow the instructions to set up your Google OAuth credentials. This is essential for the application's authentication flow.
+   *   **Configure Google OAuth (Required for Authentication)**:
+
+       This app uses Google OAuth for user authentication. You'll need to set up OAuth credentials in Google Cloud Console and configure them in Supabase.
+
+       **Step A: Create Google OAuth Credentials**
+
+       1.  Go to [Google Cloud Console](https://console.cloud.google.com/)
+       2.  Create a new project or select an existing one
+       3.  Navigate to **APIs & Services** → **Credentials**
+       4.  Click **Create Credentials** → **OAuth client ID**
+       5.  If prompted, configure the **OAuth consent screen**:
+           *   User Type: External (unless you have a Google Workspace)
+           *   App name: `Daggerheart Companion` (or your preferred name)
+           *   User support email: Your email address
+           *   Developer contact email: Your email address
+           *   Scopes: Add `userinfo.email` and `userinfo.profile`
+           *   Test users: Add your Google account email for testing
+           *   Click **Save and Continue** through the remaining steps
+       6.  Back in **Credentials**, click **Create Credentials** → **OAuth client ID** again
+       7.  Application type: **Web application**
+       8.  Name: `Daggerheart Web Client` (or your preferred name)
+       9.  **Authorized redirect URIs**: You'll get this from Supabase in the next step. For now, leave it blank and click **Create**
+       10. Copy the **Client ID** and **Client Secret** - you'll need these for Supabase
+
+       **Step B: Configure Supabase with Google OAuth**
+
+       1.  In your Supabase project dashboard, navigate to **Authentication** → **Providers**
+       2.  Find **Google** in the provider list and enable it
+       3.  Supabase will display a **Callback URL** (e.g., `https://your-project.supabase.co/auth/v1/callback`)
+       4.  Copy this **Callback URL**
+       5.  Paste your Google **Client ID** and **Client Secret** from Step A into Supabase
+       6.  Click **Save**
+
+       **Step C: Add Callback URL to Google Cloud Console**
+
+       1.  Return to [Google Cloud Console](https://console.cloud.google.com/)
+       2.  Navigate to **APIs & Services** → **Credentials**
+       3.  Click on your OAuth client ID from Step A
+       4.  Under **Authorized redirect URIs**, click **Add URI**
+       5.  Paste the **Callback URL** you copied from Supabase (Step B)
+       6.  For local development, also add: `http://localhost:3000/auth/callback`
+       7.  Click **Save**
+
+       **Step D: Test Authentication**
+
+       1.  Start your development server (`npm run dev`)
+       2.  Navigate to your app and try signing in with Google
+       3.  If you encounter errors, verify:
+           *   The redirect URI in Google Cloud exactly matches the one from Supabase
+           *   Your Google account is added as a test user (if app is in testing mode)
+           *   Client ID and Secret are correctly entered in Supabase
 
 5. Start the development server:
 ```bash
