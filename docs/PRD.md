@@ -1,8 +1,8 @@
 # Product Requirement Document: Daggerheart Web Companion
 
-**Version:** 1.2
-**Status:** Active / Phase 1 Refactoring
-**Last Updated:** November 29, 2025
+**Version:** 1.3
+**Status:** Active / Phase 2 - Item Modifiers
+**Last Updated:** December 1, 2025
 
 ---
 
@@ -35,6 +35,7 @@ The **Daggerheart Web Companion** is a digital character sheet application desig
 *   **Stats (Traits):**
     *   Display of Agility, Strength, Finesse, Instinct, Presence, Knowledge.
     *   One-click rolling for each stat.
+    *   **Derived Stats:** Evasion and Armor Score automatically calculated from base values plus equipped item modifiers.
 *   **Hope & Fear:**
     *   Resource pool for Hope.
     *   Resource pool for Fear (GM currency, but often tracked by players for reference).
@@ -56,7 +57,34 @@ The **Daggerheart Web Companion** is a digital character sheet application desig
     *   **Upload Feature:** Users must be able to upload custom image files (PNG/JPG) to create unique cards. These are stored in the user's personal collection and can be added to the Loadout like standard cards.
     *   **Dynamic Rendering:** System to render SRD text content onto a standardized card frame if no image is provided.
 
-### 4.3 Dice Roller (The Tray)
+### 4.3 Inventory & Equipment System
+*   **Equipment Management:**
+    *   **Equip Slots:** Primary weapon, secondary weapon, and armor slots.
+    *   **Equipment Effects:** Items can be equipped from inventory to active slots.
+    *   **Slot Swapping:** Equipping an item to an occupied slot automatically moves the previous item to backpack.
+*   **Library Integration:**
+    *   **SRD Items:** Browse and add weapons, armor, consumables, and general items from the official game library.
+    *   **Item Properties:** Display of weapon stats (damage, range, trait), armor stats (score, thresholds), and item features.
+*   **Item Modifiers:**
+    *   **Structured Modifiers:** Items define modifiers in a structured format (e.g., `+1 to Evasion`, `-1 to Agility`).
+    *   **Automatic Application:** Equipped items automatically apply their modifiers to character stats.
+    *   **Stacking:** Multiple modifiers from different items stack additively.
+    *   **Types Supported:**
+        *   **Stat Bonuses:** Direct modifiers to Evasion, Armor Score, or traits (Agility, Strength, etc.).
+        *   **Roll Bonuses:** Bonuses to specific roll types (attack rolls, spellcast rolls, trait rolls).
+        *   **Damage Bonuses:** Additional damage dice or flat bonuses.
+        *   **Conditional Effects:** Triggered abilities (e.g., "On successful attack, add d4 damage").
+        *   **Resource Substitution:** Alternative resource costs (e.g., "Mark Armor instead of Hope").
+    *   **Visual Feedback:** UI displays active modifiers and shows modified vs. base stats.
+*   **Homebrew Items:**
+    *   **Custom Creation:** Users can create custom inventory items with:
+        *   Basic properties (name, description, type).
+        *   Custom modifiers using a builder interface.
+        *   Multiple modifiers per item.
+    *   **Storage:** Custom items stored in `character_inventory` with modifiers in JSONB `custom_data` field.
+    *   **Equal Treatment:** Homebrew items function identically to SRD items once created.
+
+### 4.4 Dice Roller (The Tray)
 *   **Duality Dice Engine:**
     *   Physics-based 3D rolling of two 12-sided dice (d12).
     *   Differentiation between "Hope" and "Fear" dice (e.g., color coding).
@@ -69,7 +97,7 @@ The **Daggerheart Web Companion** is a digital character sheet application desig
     *   Determination of outcome: **Success with Hope**, **Success with Fear**, **Failure with Hope**, **Failure with Fear**, or **Critical Success**.
 *   **Modifiers:** Input for adding temporary bonuses/penalties before rolling.
 
-### 4.4 Data Management
+### 4.5 Data Management
 *   **SRD Integration:**
     *   Parsing engine to ingest Markdown files from the Daggerheart SRD.
     *   Dynamic population of Class, Subclass, Heritage, and Domain data into a structured `library_cards` database table.
@@ -94,9 +122,10 @@ The **Daggerheart Web Companion** is a digital character sheet application desig
 
 ### 6.1 Mobile Layout Structure (Primary)
 *   **Bottom Navigation Bar:** Primary navigation between views:
-    *   **Character:** Stats, Skills, Vitals summary.
+    *   **Character:** Stats, Skills, Vitals summary, Active Modifiers.
     *   **Playmat:** Active Cards (Loadout) and Vault access.
-    *   **Inventory:** Gold, Gear, Items.
+    *   **Inventory:** Equipped items, backpack, gold.
+    *   **Combat:** Evasion, Armor Score (with modifiers), Weapons.
 *   **Sticky Action Button (FAB):** A persistent "Roll" button that floats above the interface.
 *   **Transient Dice Overlay:** A full-screen layer that appears *only* during a roll animation.
 *   **Top Bar:** Character Name, Level, Compact Status.
@@ -125,6 +154,13 @@ The **Daggerheart Web Companion** is a digital character sheet application desig
 *   [x] **Schema Migration:** Implement Relational DB structure (Library vs. Character cards).
 *   [x] **Data Seed:** Migrate from Markdown to robust JSON source for SRD data.
 *   [x] **Combat View:** Dedicated dashboard for Evasion, Armor, and Weapons.
+*   [x] **Equipment System:** Primary/secondary weapon and armor slot management.
+*   [x] **Inventory Management:** Add items from library to character inventory.
+*   [ ] **Item Modifier System:** Automatic stat calculation from equipped items (See Issue #2).
+    *   [ ] Parser to convert SRD item features to structured modifiers.
+    *   [ ] Modifier service for aggregating and applying bonuses.
+    *   [ ] UI to display active modifiers and modified stats.
+*   [ ] **Homebrew Items:** Custom item creation with modifier builder.
 *   [ ] **Optimistic UI Hooks:** Refactor state management for instant feedback.
 *   [ ] **Mobile Layout Refactor:** Implement Bottom Navigation and Bottom Sheet drawers.
 *   [ ] **Transient Dice:** Refactor 3D roller to be an overlay.
@@ -174,9 +210,45 @@ The **Daggerheart Web Companion** is a digital character sheet application desig
 *   `state` (JSONB): `{ tokens: 0, exhausted: false, custom_image_url: "..." }`.
 *   `order` (Int): For sorting in the UI.
 
-**`inventory_items`**
+**`library`** (The SRD Content - Items, Weapons, Armor, Cards)
+*   `id` (Text, PK): e.g., "armor-gambeson-armor", "weapon-longsword".
+*   `type` (Text): "weapon", "armor", "consumable", "item", "ability", "spell", "class", "subclass", "ancestry", "domain".
+*   `name` (Text).
+*   `domain` (Text, nullable).
+*   `tier` (Int, nullable): Item power level (1-4).
+*   `data` (JSONB): All item-specific properties including:
+    *   Weapon: `trait`, `range`, `damage`, `burden`, `type`, `hand`, `feature`.
+    *   Armor: `base_score`, `base_thresholds`, `feature`.
+    *   **Modifiers** (NEW): Structured modifier data:
+        ```json
+        "modifiers": {
+          "modifiers": [
+            {
+              "id": "unique-id",
+              "source_item_id": "armor-gambeson-armor",
+              "source_name": "Gambeson Armor",
+              "type": "stat_bonus",
+              "stat": "evasion",
+              "stat_value": 1,
+              "is_parseable": true,
+              "original_text": "+1 to Evasion"
+            }
+          ]
+        }
+        ```
+
+**`character_inventory`**
 *   `id` (UUID, PK).
 *   `character_id` (UUID, FK): References `characters.id`.
+*   `item_id` (Text, FK, nullable): References `library.id`. Null for custom items.
 *   `name` (Text).
-*   `description` (Text).
-*   `quantity` (Int).
+*   `description` (Text, nullable).
+*   `location` (Text): "equipped_primary", "equipped_secondary", "equipped_armor", "armor", "backpack".
+*   `quantity` (Int, default 1).
+*   `custom_data` (JSONB, nullable): For homebrew items, stores custom modifiers:
+    ```json
+    {
+      "modifiers": [...]  // Same structure as library.data.modifiers
+    }
+    ```
+*   `library_item` (Joined): Virtual field when querying with joins to get full item data.
