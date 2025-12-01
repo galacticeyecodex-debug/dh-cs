@@ -208,10 +208,12 @@ function CardThumbnail({ charCard, onClick, actionLabel, onAction }: { charCard:
 
         {/* Full Description (Small Text) */}
         <div className="flex-1 mt-2 overflow-hidden text-[9px] text-gray-300 leading-snug text-center px-1">
-           {data?.description ? (
-            <p className="line-clamp-[8]">{data.description}</p>
-          ) : data?.text ? (
-            <div className="whitespace-pre-wrap line-clamp-[8]">{data.text}</div>
+           {data?.description || data?.text ? (
+            <div className="prose prose-invert prose-p:text-[9px] prose-p:leading-snug line-clamp-[8]">
+              <ReactMarkdown>
+                {data.description || data.text}
+              </ReactMarkdown>
+            </div>
           ) : (
             <p className="italic text-gray-500">No description.</p>
           )}
