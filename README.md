@@ -180,6 +180,7 @@ This project is private and not currently licensed for public use.
 ## Acknowledgments
 
 - Built with the amazing [Daggerheart SRD](https://darringtonpress.com/daggerheart/)
+- SRD compilation by [seansbox](https://github.com/seansbox/daggerheart-srd/)
 - Inspired by the need for a mobile-friendly character sheet
 - Original authentication boilerplate from [shsfwork/supabase-auth-nextjs-google-boilerplate](https://github.com/shsfwork/supabase-auth-nextjs-google-boilerplate)
 
@@ -202,4 +203,3 @@ const origin = `${protocol}://${host}`;
 
 This fix is **essential** for any cloud deployment. Without it, Google OAuth will redirect users to your hosting platform's internal URL instead of your public domain.
 
-See [GitHub Issue #1](https://github.com/glacticeye/dh-cs/issues/1) for details on other security improvements made to the boilerplate.
