@@ -108,7 +108,7 @@ BEGIN
 
     EXECUTE 'DROP POLICY IF EXISTS "Cards insertable by char owner" ON public.character_cards';
     CREATE POLICY "Cards insertable by char owner" ON public.character_cards FOR INSERT WITH CHECK (
-      EXISTS (SELECT 1 FROM public.characters WHERE id = character_id)
+      EXISTS (SELECT 1 FROM public.characters WHERE id = character_id AND user_id = auth.uid())
     );
 
     EXECUTE 'DROP POLICY IF EXISTS "Cards updatable by char owner" ON public.character_cards';
