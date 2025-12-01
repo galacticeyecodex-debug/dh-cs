@@ -61,7 +61,7 @@ export default function CharacterSelectPage() {
     } else {
        await fetchCharacter(user.id, characterId);
     }
-    router.back();
+    router.push('/client');
   };
 
   if (loading) {
