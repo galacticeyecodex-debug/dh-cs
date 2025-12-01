@@ -13,19 +13,31 @@ export default function CharacterSelectPage() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const supabase = createClient();
-  const { user, fetchCharacter } = useCharacterStore();
+  const { user, fetchCharacter, fetchUser } = useCharacterStore();
 
   useEffect(() => {
-    const fetchCharacters = async () => {
-      if (!user) {
-        router.push('/auth/login');
-        return;
+    const initData = async () => {
+      let activeUser = user;
+
+      if (!activeUser) {
+        // Try to fetch user from Supabase if store is empty
+        const { data: { user: sbUser } } = await supabase.auth.getUser();
+        if (sbUser) {
+          activeUser = sbUser;
+          // Sync store
+          await fetchUser(); 
+        } else {
+          // Really not logged in
+          router.push('/auth/login');
+          return;
+        }
       }
 
+      // Now fetch characters for the confirmed user
       const { data, error } = await supabase
         .from('characters')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', activeUser.id)
         .limit(10);
 
       if (error) {
@@ -36,14 +48,19 @@ export default function CharacterSelectPage() {
       setLoading(false);
     };
 
-    fetchCharacters();
-  }, [user, supabase, router]);
+    initData();
+  }, [user, supabase, router, fetchUser]);
 
   const handleSelectCharacter = async (characterId: string) => {
-    if (!user) return;
-
-    // Fetch the selected character into the store
-    await fetchCharacter(user.id, characterId);
+    if (!user) {
+       // Should be handled by useEffect, but safe guard
+       const { data: { user: sbUser } } = await supabase.auth.getUser();
+       if (sbUser) {
+         await fetchCharacter(sbUser.id, characterId);
+       }
+    } else {
+       await fetchCharacter(user.id, characterId);
+    }
     router.back();
   };
 
