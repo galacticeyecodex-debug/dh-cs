@@ -2,6 +2,14 @@
 
 A mobile-first, digital character sheet for the [Daggerheart](https://darringtonpress.com/daggerheart/) Tabletop RPG. Built with Next.js 15, TypeScript, and Supabase.
 
+## Support
+
+If you find this project useful or fun to use, consider sending a "Thank you!"
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow?style=for-the-badge&logo=buy-me-a-coffee)](https://buymeacoffee.com/galactic.eye.codex)
+
+Thank you! ☕
+
 ## Features
 
 - **Mobile-First Design** - Optimized for portrait mobile usage with touch interactions
@@ -182,3 +190,4 @@ This project is private and not currently licensed for public use.
 - Built with the amazing [Daggerheart SRD](https://darringtonpress.com/daggerheart/)
 - SRD compilation by [seansbox](https://github.com/seansbox/daggerheart-srd/)
 - Original authentication boilerplate from [shsfwork/supabase-auth-nextjs-google-boilerplate](https://github.com/shsfwork/supabase-auth-nextjs-google-boilerplate)
+
