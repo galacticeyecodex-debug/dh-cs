@@ -8,7 +8,7 @@ import AddItemModal from '@/components/add-item-modal';
 import createClient from '@/lib/supabase/client'; // Import Supabase client
 
 export default function InventoryView() {
-  const { character, equipItem, addItemToInventory } = useCharacterStore();
+  const { character, equipItem, addItemToInventory, updateGold } = useCharacterStore();
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [allLibraryItems, setAllLibraryItems] = useState<LibraryItem[]>([]
   );
@@ -75,18 +75,24 @@ export default function InventoryView() {
         </div>
         
         <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="text-2xl font-bold">{character.gold.handfuls}</div>
-            <div className="text-[10px] uppercase text-gray-500">Handfuls</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{character.gold.bags}</div>
-            <div className="text-[10px] uppercase text-gray-500">Bags</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{character.gold.chests}</div>
-            <div className="text-[10px] uppercase text-gray-500">Chests</div>
-          </div>
+          <GoldCounter 
+            label="Handfuls" 
+            value={character.gold.handfuls} 
+            onIncrement={() => updateGold('handfuls', character.gold.handfuls + 1)}
+            onDecrement={() => updateGold('handfuls', character.gold.handfuls - 1)}
+          />
+          <GoldCounter 
+            label="Bags" 
+            value={character.gold.bags} 
+            onIncrement={() => updateGold('bags', character.gold.bags + 1)}
+            onDecrement={() => updateGold('bags', character.gold.bags - 1)}
+          />
+          <GoldCounter 
+            label="Chests" 
+            value={character.gold.chests} 
+            onIncrement={() => updateGold('chests', character.gold.chests + 1)}
+            onDecrement={() => updateGold('chests', character.gold.chests - 1)}
+          />
         </div>
       </div>
 
@@ -132,9 +138,23 @@ export default function InventoryView() {
   );
 }
 
+function GoldCounter({ label, value, onIncrement, onDecrement }: { label: string, value: number, onIncrement: () => void, onDecrement: () => void }) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div className="text-2xl font-bold text-white">{value}</div>
+      <div className="text-[10px] uppercase text-gray-500">{label}</div>
+      <div className="flex w-full gap-1 mt-1 max-w-[80px]">
+        <button type="button" onClick={onDecrement} className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-sm font-bold text-gray-300">-</button>
+        <button type="button" onClick={onIncrement} className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-sm font-bold text-gray-300">+</button>
+      </div>
+    </div>
+  );
+}
+
 function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id: string, slot: any) => void }) {
   const type = item.library_item?.type;
   const isEquipped = item.location.startsWith('equipped');
+  const data = item.library_item?.data;
   
   let locationLabel = '';
   if (item.location === 'equipped_primary') locationLabel = 'Primary';
@@ -156,8 +176,24 @@ function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id
               </span>
             )}
           </div>
-          <div className="text-xs text-gray-400 line-clamp-1">
-            {item.description || item.library_item?.data?.markdown || 'No description'}
+          <div className="text-xs text-gray-400 mt-1">
+            {type === 'armor' && data ? (
+              <>
+                {data.feature?.name && <span className="font-bold text-gray-300">{data.feature.name}: </span>}
+                {data.feature?.text && <span className="italic">{data.feature.text} </span>}
+                <span className="block mt-0.5 text-gray-500">Score: {data.base_score}, Thresholds: {data.base_thresholds}</span>
+              </>
+            ) : type === 'weapon' && data ? (
+              <>
+                <span className="block mb-0.5">
+                  {data.trait} • {data.range} • {data.damage}
+                </span>
+                {data.feature?.name && <span className="font-bold text-gray-300">{data.feature.name}: </span>}
+                {data.feature?.text && <span className="italic">{data.feature.text}</span>}
+              </>
+            ) : (
+              item.description || data?.markdown || 'No description'
+            )}
           </div>
         </div>
         {item.quantity > 1 && (

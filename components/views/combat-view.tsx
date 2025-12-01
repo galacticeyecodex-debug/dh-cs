@@ -2,19 +2,15 @@
 
 import React from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Shield, Swords, Zap, Skull, Info } from 'lucide-react';
+import { Shield, Swords, Zap, Skull, Info, Heart, Eye } from 'lucide-react';
 import clsx from 'clsx';
+import VitalCard from '@/components/vital-card'; // Import common VitalCard
 
 export default function CombatView() {
-  const { character, prepareRoll } = useCharacterStore();
+  const { character, prepareRoll, updateVitals, updateHope } = useCharacterStore();
 
   if (!character) return null;
 
-  // Extract derived stats
-  const evasion = character.evasion;
-  // Display max armor score as the stat, not current availability
-  const armorScore = character.vitals.armor_max; 
-  
   // Find equipped items
   const weapons = character.character_inventory?.filter(
     item => item.location === 'equipped_primary' || item.location === 'equipped_secondary'
@@ -22,6 +18,24 @@ export default function CombatView() {
   
   const armor = character.character_inventory?.find(item => item.location === 'equipped_armor');
 
+  // Calculate damage thresholds for armor, considering character level
+  let minorThreshold = 0;
+  let majorThreshold = 0;
+  let severeThreshold = 0;
+
+  if (armor?.library_item?.data?.base_thresholds) {
+    const [baseMajor, baseSevere] = armor.library_item.data.base_thresholds.split('/').map((s: string) => parseInt(s.trim()));
+    // According to SRD: "A PC’s damage thresholds are calculated by adding their level to the listed damage thresholds of their equipped armor."
+    // However, the base Thresholds already seem to account for level tier (Tier 1 vs Tier 2 armor has higher thresholds)
+    // For simplicity, let's assume base_thresholds directly reflect the Major/Severe values for the equipped armor, and Minor is always 1.
+    
+    // Default Minor is 1 HP. Major is baseMajor. Severe is baseSevere.
+    // Daggerheart Rule: "If the final damage is below the character’s Major damage threshold, they mark 1 HP."
+    minorThreshold = 1;
+    majorThreshold = baseMajor;
+    severeThreshold = baseSevere;
+  }
+  
   // Find Class Data for features
   // We assume the class data is loaded or we might need to fetch it if not fully populated in character store
   // For now, we might need to rely on what we have. 
@@ -34,38 +48,68 @@ export default function CombatView() {
 
   return (
     <div className="space-y-6 pb-24">
-      {/* Defenses Row */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 flex flex-col items-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-cyan-500/50"></div>
-          <div className="text-cyan-400 mb-1"><Shield size={24} /></div>
-          <div className="text-4xl font-black text-white">{evasion}</div>
-          <div className="text-[10px] uppercase tracking-widest text-gray-400 mt-1">Evasion</div>
+      {/* Vitals & Evasion Grid - Reshaped for Mobile */}
+      <div className="space-y-3">
+        {/* Row 1: Evasion & Armor (Squares) */}
+        <div className="grid grid-cols-2 gap-3">
+          <VitalCard 
+            label="Evasion" 
+            current={character.evasion} 
+            color="text-cyan-400"
+            icon={Eye}
+          />
+          <VitalCard 
+            label="Armor" 
+            current={character.vitals.armor_current} 
+            max={character.vitals.armor_max}
+            color="text-blue-400"
+            icon={Shield}
+            onIncrement={() => updateVitals('armor_current', character.vitals.armor_current + 1)}
+            onDecrement={() => updateVitals('armor_current', character.vitals.armor_current - 1)}
+            isCriticalCondition={character.vitals.armor_current === 0}
+            thresholds={armor ? { minor: minorThreshold, major: majorThreshold, severe: severeThreshold } : undefined}
+          />
         </div>
 
-        <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 flex flex-col items-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-blue-500/50"></div>
-          <div className="text-blue-400 mb-1"><Shield size={24} /></div>
-          <div className="text-4xl font-black text-white">{armorScore}</div>
-          <div className="text-[10px] uppercase tracking-widest text-gray-400 mt-1">Armor Score</div>
-        </div>
+        {/* Row 2: Hit Points (Rectangle) */}
+        <VitalCard 
+          label="Hit Points" 
+          current={character.vitals.hp_current} 
+          max={character.vitals.hp_max}
+          color="text-red-400"
+          icon={Heart}
+          variant="rectangle"
+          onIncrement={() => updateVitals('hp_current', character.vitals.hp_current + 1)}
+          onDecrement={() => updateVitals('hp_current', character.vitals.hp_current - 1)}
+          isCriticalCondition={character.vitals.hp_current === 0}
+        />
+
+        {/* Row 3: Stress (Rectangle) */}
+        <VitalCard 
+          label="Stress" 
+          current={character.vitals.stress_current} 
+          max={character.vitals.stress_max}
+          color="text-purple-400"
+          icon={Zap}
+          variant="rectangle"
+          onIncrement={() => updateVitals('stress_current', character.vitals.stress_current + 1)}
+          onDecrement={() => updateVitals('stress_current', character.vitals.stress_current - 1)}
+          isCriticalCondition={character.vitals.stress_current === 0}
+        />
+
+        {/* Row 4: Hope (Rectangle) */}
+        <VitalCard 
+          label="Hope" 
+          current={character.hope} 
+          max={6} 
+          color="text-dagger-gold"
+          icon={Zap}
+          variant="rectangle"
+          onIncrement={() => updateHope(character.hope + 1)}
+          onDecrement={() => updateHope(character.hope - 1)}
+        />
       </div>
-
-      {/* Damage Thresholds (Placeholder - Needs Armor Data logic) */}
-      <div className="bg-white/5 rounded-lg p-3 border border-white/5">
-        <div className="flex justify-between text-xs text-gray-400 mb-2 uppercase tracking-wider">
-          <span>Minor</span>
-          <span>Major</span>
-          <span>Severe</span>
-        </div>
-        <div className="flex justify-between font-mono font-bold text-lg text-white">
-          {/* TODO: Calculate these based on Armor Item */}
-          <span>1 - {armor?.library_item?.data?.base_thresholds?.split('/')[0] || 'X'}</span>
-          <span>{parseInt(armor?.library_item?.data?.base_thresholds?.split('/')[0] || '0') + 1} - {armor?.library_item?.data?.base_thresholds?.split('/')[1] || 'X'}</span>
-          <span>{parseInt(armor?.library_item?.data?.base_thresholds?.split('/')[1] || '0') + 1}+</span>
-        </div>
-      </div>
-
+      
       {/* Weapons List */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
@@ -126,8 +170,15 @@ export default function CombatView() {
             <Shield size={16} /> Active Armor
           </h3>
           <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-            <h4 className="font-serif font-bold text-white">{armor.name}</h4>
-            <p className="text-xs text-gray-400 mt-1 italic">{armor.library_item?.data?.feature?.text}</p>
+            <h4 className="font-serif font-bold text-white mb-1">{armor.name}</h4>
+            {armor.library_item?.data && (
+              <div className="text-xs text-gray-400 mt-1">
+                {armor.library_item.data.feature?.name && (
+                  <p className="italic"><span className="font-bold not-italic text-gray-300">{armor.library_item.data.feature.name}:</span> {armor.library_item.data.feature.text}</p>
+                )}
+                <p className="mt-1">Score: {armor.library_item.data.base_score}, Thresholds: {armor.library_item.data.base_thresholds}</p>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -163,3 +214,4 @@ export default function CombatView() {
     </div>
   );
 }
+
