@@ -108,6 +108,7 @@ interface CharacterState {
 
   updateVitals: (type: 'hp_current' | 'stress_current' | 'armor_current', value: number) => Promise<void>;
   equipItem: (itemId: string, slot: 'equipped_primary' | 'equipped_secondary' | 'equipped_armor' | 'backpack') => Promise<void>;
+  addItemToInventory: (item: LibraryItem) => Promise<void>;
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({
@@ -158,6 +159,47 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     } else {
       set({ user: null, character: null, isLoading: false });
     }
+  },
+
+  addItemToInventory: async (item: LibraryItem) => {
+    const state = get();
+    if (!state.character) return;
+
+    const supabase = createClient();
+    const newInventoryItem: Omit<CharacterInventoryItem, 'id'> = {
+      character_id: state.character.id,
+      item_id: item.id,
+      name: item.name,
+      description: item.data?.markdown || item.data?.description || '',
+      location: 'backpack',
+      quantity: 1,
+      // library_item will be joined on fetch, so not directly set here
+    };
+
+    const { data, error } = await supabase
+      .from('character_inventory')
+      .insert([newInventoryItem])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding item to inventory:', error);
+      return;
+    }
+
+    // Manually add the library_item data since it's not joined on insert
+    const addedItem: CharacterInventoryItem = {
+      ...data,
+      library_item: item,
+    };
+
+    // Optimistically update the UI
+    set((s) => ({
+      character: s.character ? {
+        ...s.character,
+        character_inventory: [...(s.character.character_inventory || []), addedItem],
+      } : null,
+    }));
   },
 
   equipItem: async (itemId, slot) => {

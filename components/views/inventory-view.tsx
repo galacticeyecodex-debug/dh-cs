@@ -1,12 +1,49 @@
 'use client';
 
-import React from 'react';
-import { useCharacterStore, CharacterInventoryItem } from '@/store/character-store';
-import { Coins, Package, Sword, Shield, ArrowRightLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useCharacterStore, CharacterInventoryItem, LibraryItem } from '@/store/character-store';
+import { Coins, Package, Sword, Shield, ArrowRightLeft, Plus } from 'lucide-react';
 import clsx from 'clsx';
+import AddItemModal from '@/components/add-item-modal';
+import createClient from '@/lib/supabase/client'; // Import Supabase client
 
 export default function InventoryView() {
-  const { character, equipItem } = useCharacterStore();
+  const { character, equipItem, addItemToInventory } = useCharacterStore();
+  const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+  const [allLibraryItems, setAllLibraryItems] = useState<LibraryItem[]>([]
+  );
+  const [libraryLoading, setLibraryLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAllLibraryItems = async () => {
+      setLibraryLoading(true);
+      setError(null);
+      const supabase = createClient();
+
+      const { data: weaponsData, error: e1 } = await supabase.from('library').select('*').eq('type', 'weapon');
+      const { data: armorData, error: e2 } = await supabase.from('library').select('*').eq('type', 'armor');
+      const { data: consumablesData, error: e3 } = await supabase.from('library').select('*').eq('type', 'consumable');
+      const { data: itemsData, error: e4 } = await supabase.from('library').select('*').eq('type', 'item');
+
+
+      if (e1 || e2 || e3 || e4) {
+        setError("Failed to load library data: " + (e1?.message || e2?.message || e3?.message || e4?.message));
+        console.error(e1, e2, e3, e4);
+      } else {
+        setAllLibraryItems([
+          ...(weaponsData || []),
+          ...(armorData || []),
+          ...(consumablesData || []),
+          ...(itemsData || []),
+        ]);
+      }
+      setLibraryLoading(false);
+    };
+
+    fetchAllLibraryItems();
+  }, []); // Run only once on mount
+
 
   if (!character) return null;
 
@@ -22,6 +59,10 @@ export default function InventoryView() {
 
   const handleEquip = (itemId: string, slot: 'equipped_primary' | 'equipped_secondary' | 'equipped_armor' | 'backpack') => {
     equipItem(itemId, slot);
+  };
+
+  const handleAddItem = (item: LibraryItem) => {
+    addItemToInventory(item);
   };
 
   return (
@@ -49,27 +90,44 @@ export default function InventoryView() {
         </div>
       </div>
 
-      {/* Items List */}
-      <div>
-        <h2 className="text-lg font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+      {/* Items List Header */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-bold text-white uppercase tracking-wider flex items-center gap-2">
           <Package size={20} /> Inventory Items
         </h2>
-        <div className="space-y-2">
-          {sortedItems.length > 0 ? (
-            sortedItems.map((item) => (
-              <ItemRow 
-                key={item.id} 
-                item={item}
-                onEquip={handleEquip}
-              />
-            ))
-          ) : (
-            <div className="p-4 bg-white/5 rounded-lg border border-white/5 text-gray-400 text-sm text-center">
-              Your inventory is empty.
-            </div>
-          )}
-        </div>
+        <button 
+          onClick={() => setIsAddItemModalOpen(true)}
+          className="bg-dagger-gold text-black px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 hover:scale-105 transition-transform"
+        >
+          <Plus size={16} /> Add Item
+        </button>
       </div>
+
+      {/* Items List */}
+      <div className="space-y-2">
+        {libraryLoading && <div className="text-center text-gray-500">Loading library items...</div>}
+        {error && <div className="p-3 bg-red-800/50 border border-red-500 rounded text-red-300 text-sm">{error}</div>}
+        {sortedItems.length > 0 ? (
+          sortedItems.map((item) => (
+            <ItemRow 
+              key={item.id} 
+              item={item}
+              onEquip={handleEquip}
+            />
+          ))
+        ) : (
+          !libraryLoading && <div className="p-4 bg-white/5 rounded-lg border border-white/5 text-gray-400 text-sm text-center">
+            Your inventory is empty. Click &quot;Add Item&quot; to get started!
+          </div>
+        )}
+      </div>
+
+      <AddItemModal 
+        isOpen={isAddItemModalOpen} 
+        onClose={() => setIsAddItemModalOpen(false)} 
+        onAddItem={handleAddItem}
+        libraryItems={allLibraryItems}
+      />
     </div>
   );
 }
