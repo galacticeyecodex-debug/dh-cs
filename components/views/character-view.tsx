@@ -2,12 +2,13 @@
 
 import React from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Heart, Zap, Shield } from 'lucide-react';
-import clsx from 'clsx';
+import { Heart, Zap, Shield, Eye } from 'lucide-react';
 import Image from 'next/image';
+import VitalCard from '@/components/vital-card'; // Import common VitalCard
+import StatButton from '@/components/stat-button'; // Import common StatButton
 
 export default function CharacterView() {
-  const { character, updateVitals } = useCharacterStore();
+  const { character, updateVitals, updateHope } = useCharacterStore();
   // openDiceOverlay is used implicitly by StatButton component, so it's not an unused variable.
 
   // Fallback if loading
@@ -38,37 +39,65 @@ export default function CharacterView() {
         </div>
       </div>
 
-      {/* Vitals Grid */}
-      <div className="grid grid-cols-3 gap-3">
-        {/* HP */}
+      {/* Vitals Grid - Reshaped for Mobile */}
+      <div className="space-y-3">
+        {/* Row 1: Evasion & Armor (Squares) */}
+        <div className="grid grid-cols-2 gap-3">
+          <VitalCard 
+            label="Evasion" 
+            current={character.evasion} 
+            color="text-cyan-400"
+            icon={Eye} // Imported implicitly or need to check imports. Evasion was missing icon in previous view? No, it used Shield in one view. Eye is good.
+            // Evasion is read-only/derived usually, but VitalCard handles read-only if no onIncrement
+          />
+          <VitalCard 
+            label="Armor" 
+            current={character.vitals.armor_current} 
+            max={character.vitals.armor_max}
+            color="text-blue-400"
+            icon={Shield}
+            onIncrement={() => updateVitals('armor_current', character.vitals.armor_current + 1)}
+            onDecrement={() => updateVitals('armor_current', character.vitals.armor_current - 1)}
+            isCriticalCondition={character.vitals.armor_current === 0}
+          />
+        </div>
+
+        {/* Row 2: Hit Points (Rectangle) */}
         <VitalCard 
           label="Hit Points" 
           current={character.vitals.hp_current} 
           max={character.vitals.hp_max}
           color="text-red-400"
           icon={Heart}
+          variant="rectangle"
           onIncrement={() => updateVitals('hp_current', character.vitals.hp_current + 1)}
           onDecrement={() => updateVitals('hp_current', character.vitals.hp_current - 1)}
+          isCriticalCondition={character.vitals.hp_current === 0}
         />
-        {/* Stress */}
+
+        {/* Row 3: Stress (Rectangle) */}
         <VitalCard 
           label="Stress" 
           current={character.vitals.stress_current} 
           max={character.vitals.stress_max}
           color="text-purple-400"
           icon={Zap}
+          variant="rectangle"
           onIncrement={() => updateVitals('stress_current', character.vitals.stress_current + 1)}
           onDecrement={() => updateVitals('stress_current', character.vitals.stress_current - 1)}
+          isCriticalCondition={character.vitals.stress_current === 0}
         />
-        {/* Armor */}
+
+        {/* Row 4: Hope (Rectangle) */}
         <VitalCard 
-          label="Armor" 
-          current={character.vitals.armor_current} 
-          max={character.vitals.armor_max}
-          color="text-blue-400"
-          icon={Shield}
-          onIncrement={() => updateVitals('armor_current', character.vitals.armor_current + 1)}
-          onDecrement={() => updateVitals('armor_current', character.vitals.armor_current - 1)}
+          label="Hope" 
+          current={character.hope} 
+          max={6} // Default max hope is usually small, often 5 or 6? Daggerheart usually max 5 or 6. Let's assume max 6 for UI or just show current.
+          color="text-dagger-gold"
+          icon={Zap} // Maybe a different icon for Hope? Zap is Stress. Maybe 'Star' or 'Sun'? Lucide has `Sparkle` or `Star`.
+          variant="rectangle"
+          onIncrement={() => updateHope(character.hope + 1)}
+          onDecrement={() => updateHope(character.hope - 1)}
         />
       </div>
 
@@ -81,51 +110,22 @@ export default function CharacterView() {
           ))}
         </div>
       </div>
-    </div>
-  );
-}
 
-// Props interface for VitalCard
-interface VitalCardProps {
-  label: string;
-  current: number;
-  max: number;
-  color: string;
-  icon: React.ElementType;
-  onIncrement: () => void;
-  onDecrement: () => void;
-}
-
-function VitalCard({ label, current, max, color, icon: Icon, onIncrement, onDecrement }: VitalCardProps) {
-  return (
-    <div className="bg-dagger-panel border border-white/10 rounded-xl p-3 flex flex-col items-center justify-between aspect-square">
-      <div className={clsx("flex items-center gap-1 text-xs font-bold uppercase", color)}>
-        <Icon size={14} />
-        {label}
-      </div>
-      <div className="text-3xl font-serif font-bold">
-        {current}<span className="text-sm text-gray-500 font-sans font-normal">/{max}</span>
-      </div>
-      <div className="flex w-full gap-2 mt-1">
-        <button type="button" onClick={onDecrement} className="flex-1 h-8 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-lg font-bold">-</button>
-        <button type="button" onClick={onIncrement} className="flex-1 h-8 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-lg font-bold">+</button>
+      {/* Experiences Section */}
+      <div className="space-y-2">
+        <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Experiences</h3>
+        <div className="space-y-2">
+          {character.experiences && character.experiences.length > 0 ? (
+            character.experiences.map((exp, index) => (
+              <div key={index} className="bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm font-medium">
+                {exp}
+              </div>
+            ))
+          ) : (
+            <div className="text-gray-500 text-sm italic">No experiences recorded.</div>
+          )}
+        </div>
       </div>
     </div>
-  );
-}
-
-// Removed openDiceOverlay prop to StatButton, let it call store directly
-function StatButton({ label, value }: { label: string, value: number }) {
-  const { prepareRoll } = useCharacterStore(); // Call from store directly
-  
-  return (
-    <button 
-      type="button"
-      onClick={() => prepareRoll(label, value)}
-      className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg p-3 flex items-center justify-between transition-colors group"
-    >
-      <span className="capitalize font-medium text-gray-300 group-hover:text-white">{label}</span>
-      <span className="text-xl font-bold text-dagger-gold">{value >= 0 ? `+${value}` : value}</span>
-    </button>
   );
 }

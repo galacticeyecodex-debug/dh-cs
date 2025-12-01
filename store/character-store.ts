@@ -110,6 +110,8 @@ interface CharacterState {
   equipItem: (itemId: string, slot: 'equipped_primary' | 'equipped_secondary' | 'equipped_armor' | 'backpack') => Promise<void>;
   addItemToInventory: (item: LibraryItem) => Promise<void>;
   recalculateDerivedStats: () => Promise<void>;
+  updateGold: (denomination: 'handfuls' | 'bags' | 'chests', value: number) => Promise<void>;
+  updateHope: (value: number) => Promise<void>;
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({
@@ -263,6 +265,62 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         .from('characters')
         .update({ vitals: newVitals })
         .eq('id', character.id);
+    }
+  },
+
+  updateGold: async (denomination, value) => {
+    const state = get();
+    if (!state.character) return;
+
+    const newValue = Math.max(0, value); // Ensure no negative gold
+    const newGold = { ...state.character.gold, [denomination]: newValue };
+
+    // Optimistically update UI
+    set((s) => ({
+      character: s.character ? { ...s.character, gold: newGold } : null,
+    }));
+
+    // Persist to DB
+    const supabase = createClient();
+    // Gold is stored as JSONB, so we need to update the whole object
+    // But supabase .update() merges top-level keys.
+    // However, 'gold' is a single column.
+    // We need to stringify it if it's stored as JSONB in our interface but text in logic?
+    // Looking at fetchCharacter, gold is parsed: `typeof charData.gold === 'string' ? JSON.parse(charData.gold) : charData.gold`
+    // So we should send it as an object, supabase client handles JSONB serialization.
+
+    const { error } = await supabase
+      .from('characters')
+      .update({ gold: newGold })
+      .eq('id', state.character.id);
+
+    if (error) {
+      console.error('Error updating gold:', error);
+      // Ideally revert here
+    }
+  },
+
+  updateHope: async (value) => {
+    const state = get();
+    if (!state.character) return;
+
+    const newHope = Math.max(0, value);
+
+    // Optimistically update UI
+    set((s) => ({
+      character: s.character ? { ...s.character, hope: newHope } : null,
+    }));
+
+    // Persist to DB
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('characters')
+      .update({ hope: newHope })
+      .eq('id', state.character.id);
+
+    if (error) {
+      console.error('Error updating hope:', error);
+      // Ideally revert here
     }
   },
 

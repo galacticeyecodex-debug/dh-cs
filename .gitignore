@@ -62,3 +62,7 @@ GEMINI.md
 
 # GitHub App credentials
 gha-creds-*.json
+
+# Reference files and screenshots
+reference/
+screenshots/    
