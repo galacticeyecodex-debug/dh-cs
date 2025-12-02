@@ -96,10 +96,11 @@ export function getClassBaseStat(character: any, stat: string): number {
   if (stat === 'hp') {
     return parseInt(character.class_data.data.starting_hp) || 6;
   }
+  if (stat === 'stress' || stat === 'hope') {
+    return 6;
+  }
   // Traits base is usually 0 (assigned by user), but could have racial bonuses?
   // Ancestry modifiers: We could parse those here if we had ancestry data.
-  
-  return 0;
 }
 
 export function calculateBaseEvasion(character: any): number {
