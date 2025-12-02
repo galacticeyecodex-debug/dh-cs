@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCharacterStore, Character } from '@/store/character-store';
+import { useCharacterStore, Character, LibraryItem } from '@/store/character-store';
 import createClient from '@/lib/supabase/client';
 import clsx from 'clsx';
-import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins } from 'lucide-react';
+import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins, Sword, X } from 'lucide-react';
+import AddItemModal from '@/components/add-item-modal';
 
 // Define the shape of our form data
 interface CharacterFormData {
@@ -82,6 +83,10 @@ export default function CreateCharacterPage() {
   const [libraryLoading, setLibraryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Equipment Selection Modal State
+  const [equipmentModalOpen, setEquipmentModalOpen] = useState(false);
+  const [equipmentModalContext, setEquipmentModalContext] = useState<'primary' | 'secondary' | 'armor' | null>(null);
 
   // Initial trait assignment values as per Daggerheart rules
   const TRAIT_ASSIGNMENT_POOL = useMemo(() => [2, 1, 1, 0, 0, -1], []);
@@ -382,6 +387,22 @@ export default function CreateCharacterPage() {
       return { ...prev, experiences: newExperiences };
     });
   }, []);
+
+  const handleEquipmentSelect = useCallback((item: LibraryItem) => {
+    if (!equipmentModalContext) return;
+
+    if (equipmentModalContext === 'primary') {
+      setFormData(prev => ({ ...prev, selectedPrimaryWeaponId: item.id }));
+    } else if (equipmentModalContext === 'secondary') {
+      setFormData(prev => ({ ...prev, selectedSecondaryWeaponId: item.id }));
+    } else if (equipmentModalContext === 'armor') {
+      setFormData(prev => ({ ...prev, selectedArmorId: item.id }));
+    }
+    // AddItemModal usually calls onAddItem which we are handling here.
+    // The modal's internal logic handles calling onClose after onAddItem if we use it correctly.
+    // But we need to ensure state reflects that.
+    setEquipmentModalOpen(false);
+  }, [equipmentModalContext]);
 
   const validateStep = useCallback((step: number) => {
     switch (step) {
@@ -1045,70 +1066,68 @@ export default function CreateCharacterPage() {
         // Determine if secondary weapon selection should be enabled
         const isSecondaryWeaponEnabled = selectedPrimaryWeapon?.data.burden !== 'Two-Handed';
 
+        // Helper for rendering a slot
+        const renderEquipmentSlot = (
+          title: string, 
+          item: LibraryLookupItem | undefined, 
+          context: 'primary' | 'secondary' | 'armor', 
+          enabled: boolean = true
+        ) => (
+          <div 
+            onClick={() => enabled && (() => { setEquipmentModalContext(context); setEquipmentModalOpen(true); })()}
+            className={clsx(
+              "border rounded-xl p-4 flex items-center justify-between transition-all group",
+              enabled ? "cursor-pointer hover:border-dagger-gold hover:bg-white/5" : "opacity-50 border-white/5 cursor-not-allowed",
+              item ? "bg-dagger-gold/10 border-dagger-gold" : "bg-black/20 border-white/10"
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <div className={clsx(
+                "w-10 h-10 rounded-full flex items-center justify-center",
+                item ? "bg-dagger-gold text-black" : "bg-white/10 text-gray-500 group-hover:text-white"
+              )}>
+                {context === 'armor' ? <Shield size={20} /> : <Sword size={20} />}
+              </div>
+              <div>
+                <div className="text-sm font-bold text-gray-400 uppercase tracking-wider">{title}</div>
+                {item ? (
+                  <>
+                    <div className="text-lg font-serif font-bold text-white">{item.name}</div>
+                    <div className="text-xs text-gray-400">
+                      {context === 'armor' 
+                        ? `Score: ${item.data.base_score} • ${item.data.feature?.name || 'No Feature'}` 
+                        : `${item.data.damage} • ${item.data.trait} • ${item.data.range}`}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-white/50 italic">Select {title}...</div>
+                )}
+              </div>
+            </div>
+            {item && enabled && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (context === 'primary') setFormData(prev => ({ ...prev, selectedPrimaryWeaponId: null }));
+                  else if (context === 'secondary') setFormData(prev => ({ ...prev, selectedSecondaryWeaponId: null }));
+                  else if (context === 'armor') setFormData(prev => ({ ...prev, selectedArmorId: null }));
+                }}
+                className="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        );
+
         return (
           <div className="space-y-4">
             <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Shield size={20} /> Step 7: Starting Equipment</h2>
             <p className="text-sm text-gray-400">Choose your primary weapon, an optional secondary weapon, and your armor.</p>
 
-            {/* Primary Weapon Selection */}
-            <div>
-              <label htmlFor="primary_weapon_id" className="block text-sm font-medium text-gray-400">Primary Weapon</label>
-              <select
-                id="primary_weapon_id"
-                name="selectedPrimaryWeaponId"
-                value={formData.selectedPrimaryWeaponId || ''}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
-                required
-              >
-                <option value="">Select Primary Weapon</option>
-                {tier1PrimaryWeapons.map(weapon => (
-                  <option key={weapon.id} value={weapon.id}>
-                    {weapon.name} ({weapon.data.burden})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Secondary Weapon Selection */}
-            <div>
-              <label htmlFor="secondary_weapon_id" className="block text-sm font-medium text-gray-400">Secondary Weapon (Optional)</label>
-              <select
-                id="secondary_weapon_id"
-                name="selectedSecondaryWeaponId"
-                value={formData.selectedSecondaryWeaponId || ''}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
-                disabled={!isSecondaryWeaponEnabled}
-              >
-                <option value="">Select Secondary Weapon</option>
-                {tier1SecondaryWeapons.map(weapon => (
-                  <option key={weapon.id} value={weapon.id}>
-                    {weapon.name} ({weapon.data.burden})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Armor Selection */}
-            <div>
-              <label htmlFor="armor_id" className="block text-sm font-medium text-gray-400">Armor</label>
-              <select
-                id="armor_id"
-                name="selectedArmorId"
-                value={formData.selectedArmorId || ''}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
-                required
-              >
-                <option value="">Select Armor</option>
-                {tier1Armor.map(armor => (
-                  <option key={armor.id} value={armor.id}>
-                    {armor.name} (Score: {armor.data.base_score})
-                  </option>
-                ))}
-              </select>
-            </div>
+            {renderEquipmentSlot("Primary Weapon", selectedPrimaryWeapon, 'primary')}
+            {renderEquipmentSlot("Secondary Weapon", selectedSecondaryWeapon, 'secondary', isSecondaryWeaponEnabled)}
+            {renderEquipmentSlot("Armor", selectedArmor, 'armor')}
 
             <div className="flex justify-between mt-4">
               <button type="button" onClick={() => setCurrentStep(6)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
@@ -1126,6 +1145,21 @@ export default function CreateCharacterPage() {
                 Next
               </button>
             </div>
+
+            {/* Modal Rendering */}
+            {equipmentModalOpen && (
+              <AddItemModal 
+                isOpen={equipmentModalOpen}
+                onClose={() => setEquipmentModalOpen(false)}
+                onAddItem={(item) => handleEquipmentSelect(item)}
+                libraryItems={
+                  equipmentModalContext === 'primary' ? tier1PrimaryWeapons as LibraryItem[] :
+                  equipmentModalContext === 'secondary' ? tier1SecondaryWeapons as LibraryItem[] :
+                  equipmentModalContext === 'armor' ? tier1Armor as LibraryItem[] : []
+                }
+                filterType="inventory"
+              />
+            )}
           </div>
         );
       case 8: // Confirm & Create
