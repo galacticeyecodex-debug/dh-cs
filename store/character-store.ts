@@ -82,7 +82,7 @@ export interface RollResult {
   fear: number;
   total: number;
   modifier: number;
-  type: 'Critical' | 'Hope' | 'Fear';
+  type: 'Critical' | 'Hope' | 'Fear' | 'Damage';
 }
 
 interface CharacterState {
@@ -92,7 +92,7 @@ interface CharacterState {
 
   activeTab: 'character' | 'playmat' | 'inventory' | 'combat';
   isDiceOverlayOpen: boolean;
-  activeRoll: { label: string; modifier: number } | null;
+  activeRoll: { label: string; modifier: number; dice?: string } | null;
   lastRollResult: RollResult | null;
 
   setCharacter: (char: Character | null) => void;
@@ -100,7 +100,7 @@ interface CharacterState {
   setActiveTab: (tab: 'character' | 'playmat' | 'inventory' | 'combat') => void;
   openDiceOverlay: () => void;
   closeDiceOverlay: () => void;
-  prepareRoll: (label: string, modifier: number) => void;
+  prepareRoll: (label: string, modifier: number, dice?: string) => void;
   setLastRollResult: (result: RollResult) => void;
   fetchCharacter: (userId: string, characterId?: string) => Promise<void>;
   fetchUser: () => Promise<void>;
@@ -131,7 +131,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   setActiveTab: (tab) => set({ activeTab: tab }),
   openDiceOverlay: () => set({ isDiceOverlayOpen: true }),
   closeDiceOverlay: () => set({ isDiceOverlayOpen: false, activeRoll: null }), // Clear active roll on close
-  prepareRoll: (label, modifier) => set({ isDiceOverlayOpen: true, activeRoll: { label, modifier } }),
+  prepareRoll: (label, modifier, dice) => set({ isDiceOverlayOpen: true, activeRoll: { label, modifier, dice } }),
   setLastRollResult: (result) => set({ lastRollResult: result }),
 
   fetchUser: async () => {

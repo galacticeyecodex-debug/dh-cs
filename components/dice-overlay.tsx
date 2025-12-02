@@ -100,18 +100,93 @@ export default function DiceOverlay() {
     }
   }, [isDiceOverlayOpen, isReady]);
 
-  const rollDuality = async () => {
+  const handleRoll = async () => {
     if (!boxInstanceRef.current || !isReady) {
       console.warn("DiceBox not ready");
       return;
     }
 
-    // Calculate total modifier: Base (from stat) + Temp (user input)
     const baseModifier = activeRoll?.modifier || 0;
     const totalModifier = baseModifier + tempModifier;
     
-    setLastRollResult({ hope: 0, fear: 0, total: 0, modifier: totalModifier, type: 'Hope' }); 
     boxInstanceRef.current.clear();
+
+    // Case 1: Custom Dice Roll (e.g. Damage)
+    if (activeRoll?.dice) {
+       setLastRollResult({ hope: 0, fear: 0, total: 0, modifier: totalModifier, type: 'Damage' });
+       
+       try {
+         // Parse dice string (e.g., "1d8", "d8 phy", "d10+3")
+         // Clean string: remove "phy", "mag" (case insensitive) and whitespace
+         const cleanDice = activeRoll.dice.replace(/(phy|mag|physical|magic)/gi, '').replace(/\s/g, '');
+         
+         const diceParts = cleanDice.split('+');
+         const diceConfig = [];
+         let stringModifier = 0;
+         
+         for (const part of diceParts) {
+             // Match "d8", "1d8"
+             const diceMatch = part.match(/^(\d+)?d(\d+)$/i);
+             if (diceMatch) {
+                 const count = diceMatch[1] ? parseInt(diceMatch[1]) : 1;
+                 const sides = parseInt(diceMatch[2]);
+                 for (let i = 0; i < count; i++) {
+                     diceConfig.push({ sides, themeColor: '#ef4444' }); // Red for damage
+                 }
+             } else {
+                 // Check for static number
+                 const num = parseInt(part);
+                 if (!isNaN(num)) {
+                     stringModifier += num;
+                 }
+             }
+         }
+         
+         if (diceConfig.length === 0) {
+             // If only a modifier was found or parsing failed?
+             if (stringModifier > 0) {
+                 // Just a flat damage number
+                 setLastRollResult({
+                     hope: 0, 
+                     fear: 0,
+                     total: stringModifier + totalModifier,
+                     modifier: totalModifier + stringModifier,
+                     type: 'Damage'
+                 });
+                 return;
+             }
+             
+             console.warn("Could not parse dice string:", activeRoll.dice);
+             return;
+         }
+
+         const result = await boxInstanceRef.current.roll(diceConfig);
+         
+         // Sum up results
+         let diceTotal = 0;
+         if (Array.isArray(result)) {
+             diceTotal = result.reduce((acc: number, die: any) => acc + die.value, 0);
+         }
+         
+         const finalTotalModifier = totalModifier + stringModifier;
+
+         setLastRollResult({
+             hope: 0, 
+             fear: 0,
+             total: diceTotal + finalTotalModifier,
+             modifier: finalTotalModifier,
+             type: 'Damage'
+         });
+
+       } catch (e) {
+           console.error("Custom roll failed", e);
+       }
+       
+       return;
+    }
+
+    // Case 2: Standard Duality Roll
+    setLastRollResult({ hope: 0, fear: 0, total: 0, modifier: totalModifier, type: 'Hope' }); 
 
     try {
       const result = await boxInstanceRef.current.roll([
@@ -124,7 +199,7 @@ export default function DiceOverlay() {
         const fearRoll = result[1].value;
         const total = hopeRoll + fearRoll + totalModifier;
         
-        let type: 'Critical' | 'Hope' | 'Fear' = 'Hope';
+        let type: 'Critical' | 'Hope' | 'Fear' | 'Damage' = 'Hope';
         if (hopeRoll === fearRoll) type = 'Critical';
         else if (hopeRoll > fearRoll) type = 'Hope';
         else type = 'Fear';
@@ -160,7 +235,7 @@ export default function DiceOverlay() {
         )} />
 
         {/* 3D Canvas Container */}
-        <div id="dice-tray-overlay" ref={containerRef} className="absolute inset-0 w-screen h-screen cursor-pointer z-10" onClick={() => isDiceOverlayOpen && rollDuality()} />
+        <div id="dice-tray-overlay" ref={containerRef} className="absolute inset-0 w-screen h-screen cursor-pointer z-10" onClick={() => isDiceOverlayOpen && handleRoll()} />
       </div>
 
       {/* UI Controls - Conditionally rendered for clean DOM but separated from Canvas */}
@@ -187,6 +262,7 @@ export default function DiceOverlay() {
                             {activeRoll && (
                                <div className="bg-black/40 px-4 py-2 rounded-full text-white font-medium text-sm border border-white/10">
                                   Rolling <span className="text-dagger-gold font-bold capitalize">{activeRoll.label}</span>
+                                  {activeRoll.dice && <span className="text-gray-400 ml-2 text-xs">({activeRoll.dice})</span>}
                                </div>
                             )}
                           </div>
@@ -200,7 +276,7 @@ export default function DiceOverlay() {
                     </div>
 
                     <button 
-                      onClick={() => rollDuality()}
+                      onClick={() => handleRoll()}
                       className="px-8 py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 text-lg"
                     >
                       <RotateCcw size={20} />
@@ -220,24 +296,27 @@ export default function DiceOverlay() {
                     <div className="text-sm text-gray-400 uppercase tracking-wider mb-1">Result</div>
                     <div className="text-6xl font-serif font-black text-white mb-4">{lastRollResult.total}</div>
                     
-                    <div className="flex justify-center gap-8 mb-4">
-                      <div className="flex flex-col">
-                        <span className="text-xs text-dagger-gold uppercase font-bold">Hope</span>
-                        <span className="text-2xl font-bold text-white">{lastRollResult.hope}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-xs text-purple-400 uppercase font-bold">Fear</span>
-                        <span className="text-2xl font-bold text-white">{lastRollResult.fear}</span>
-                      </div>
-                    </div>
+                    {lastRollResult.type !== 'Damage' && (
+                        <div className="flex justify-center gap-8 mb-4">
+                        <div className="flex flex-col">
+                            <span className="text-xs text-dagger-gold uppercase font-bold">Hope</span>
+                            <span className="text-2xl font-bold text-white">{lastRollResult.hope}</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-xs text-purple-400 uppercase font-bold">Fear</span>
+                            <span className="text-2xl font-bold text-white">{lastRollResult.fear}</span>
+                        </div>
+                        </div>
+                    )}
 
                     <div className={clsx(
                       "inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wide",
                       lastRollResult.type === 'Critical' ? "bg-green-500/20 text-green-400 border border-green-500/50" :
                       lastRollResult.type === 'Hope' ? "bg-dagger-gold/20 text-dagger-gold border border-dagger-gold/50" : 
-                      "bg-purple-500/20 text-purple-300 border border-purple-500/50"
+                      lastRollResult.type === 'Fear' ? "bg-purple-500/20 text-purple-300 border border-purple-500/50" :
+                      "bg-red-500/20 text-red-300 border border-red-500/50"
                     )}>
-                      With {lastRollResult.type}
+                      {lastRollResult.type === 'Damage' ? 'Damage' : `With ${lastRollResult.type}`}
                     </div>
                   </div>
                 </motion.div>
