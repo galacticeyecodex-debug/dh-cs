@@ -4,13 +4,16 @@ import React from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { Shield, Swords, Zap, Skull, Info, Heart, Eye } from 'lucide-react';
 import clsx from 'clsx';
-import { parseDamageRoll } from '@/lib/utils';
+import { parseDamageRoll, calculateBaseEvasion } from '@/lib/utils';
 import VitalCard from '@/components/vital-card'; // Import common VitalCard
 
 export default function CombatView() {
-  const { character, prepareRoll, updateVitals, updateHope } = useCharacterStore();
+  const { character, prepareRoll, updateVitals, updateHope, updateEvasion } = useCharacterStore();
 
   if (!character) return null;
+
+  const expectedEvasion = calculateBaseEvasion(character);
+  const isEvasionModified = character.evasion !== expectedEvasion;
 
   // Find equipped items
   const weapons = character.character_inventory?.filter(
