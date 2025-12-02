@@ -23,13 +23,13 @@ interface VitalCardProps {
   trackType?: 'fill-up-good' | 'fill-up-bad' | 'mark-bad';
 }
 
-export default function VitalCard({ 
-  label, 
-  current, 
-  max, 
-  color, 
-  icon: Icon, 
-  onIncrement, 
+export default function VitalCard({
+  label,
+  current,
+  max,
+  color,
+  icon: Icon,
+  onIncrement,
   onDecrement,
   isCriticalCondition = false,
   isModified = false,
@@ -41,6 +41,7 @@ export default function VitalCard({
   trackType
 }: VitalCardProps) {
   const isReadOnly = onIncrement === undefined || onDecrement === undefined;
+  const isUnarmored = label === 'Armor' && (!max || max === 0); // Define isUnarmored here
 
   // Render Track Logic
   const renderTrack = () => {
@@ -80,6 +81,31 @@ export default function VitalCard({
     );
   };
 
+  if (isUnarmored) {
+    return (
+      <div className={clsx(
+        "bg-dagger-panel border rounded-xl p-2 flex flex-col items-center justify-center gap-1 relative transition-all",
+        "w-full",
+        isModified ? "border-yellow-500/50 border-dashed" : "border-white/10", // No critical border for unarmored
+        className
+      )}>
+        <div className={clsx("flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide", color)}>
+          <Icon size={12} />
+          {label}
+          {isModified && <span className="ml-1 text-[8px] bg-yellow-500/20 text-yellow-500 px-1 rounded">MOD</span>}
+        </div>
+        <div className="text-sm text-gray-400 italic my-2">Unarmored</div>
+        {thresholds && ( // Still show thresholds for unarmored
+          <div className="w-full px-1 text-[9px] uppercase tracking-wider text-gray-500 flex justify-between">
+            <span>Min: {thresholds.minor}</span>
+            <span>Maj: {thresholds.major}</span>
+            <span>Sev: {thresholds.severe}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={clsx(
       "bg-dagger-panel border rounded-xl p-2 flex flex-col items-center justify-center gap-1 relative transition-all",
@@ -98,8 +124,6 @@ export default function VitalCard({
       {/* Display: Track or Number */}
       {trackType && max && max > 0 ? (
         renderTrack()
-      ) : trackType === 'mark-bad' && (!max || max === 0) && label === 'Armor' ? (
-        <div className="text-sm text-gray-400 italic my-2">Unarmored</div>
       ) : (
         <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center">
           <span>{current}</span>
