@@ -88,17 +88,17 @@ export default function CombatView() {
         />
 
         {/* Row 3: Stress (Rectangle) */}
-        <VitalCard 
-          label="Stress" 
-          current={character.vitals.stress_current} 
+        <VitalCard
+          label="Stress"
+          current={character.vitals.stress_current}
           max={character.vitals.stress_max}
           color="text-purple-400"
           icon={Zap}
           variant="rectangle"
           onIncrement={() => updateVitals('stress_current', character.vitals.stress_current + 1)}
           onDecrement={() => updateVitals('stress_current', character.vitals.stress_current - 1)}
-          isCriticalCondition={character.vitals.stress_current === 0}
-          trackType="mark-bad"
+          isCriticalCondition={character.vitals.stress_current === character.vitals.stress_max}
+          trackType="fill-up-bad"
         />
 
         {/* Row 4: Hope (Rectangle) */}
