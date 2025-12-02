@@ -373,7 +373,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     const state = get();
     if (!state.character) return;
 
-    const newHope = Math.max(0, value);
+    const newHope = Math.min(6, Math.max(0, value)); // Clamp between 0 and 6
 
     // Optimistically update UI
     set((s) => ({
