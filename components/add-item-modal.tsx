@@ -153,6 +153,31 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
                      {item.data.description || item.data.text}
                    </div>
                 )}
+                
+                {/* Modifiers Tags */}
+                {item.data?.modifiers && Array.isArray(item.data.modifiers) && item.data.modifiers.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {item.data.modifiers.map((mod: any, idx: number) => {
+                      const isPositive = mod.operator === 'add' && mod.value > 0;
+                      const sign = mod.operator === 'add' ? '+' : mod.operator === 'subtract' ? '-' : '';
+                      const label = `${sign}${mod.value} ${mod.target.charAt(0).toUpperCase() + mod.target.slice(1)}`;
+                      
+                      return (
+                        <span 
+                          key={idx} 
+                          className={clsx(
+                            "text-[10px] px-1.5 py-0.5 rounded border uppercase font-bold",
+                            isPositive 
+                              ? "bg-green-500/10 border-green-500/30 text-green-400" 
+                              : "bg-red-500/10 border-red-500/30 text-red-400"
+                          )}
+                        >
+                          {label}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             ))
           ) : (
