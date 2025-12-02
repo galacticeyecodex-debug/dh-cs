@@ -37,7 +37,7 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
   let severeThreshold = character.level * 2;
 
   if (armorItem?.library_item?.data) {
-    armorBaseScore = (parseInt(armorItem.library_item.data.base_score) || 0); 
+    armorBaseScore = (parseInt(armorItem.library_item.data.base_score) || 0);
     armorBaseScore += character.level;
 
     if (armorItem.library_item.data.base_thresholds) {
@@ -59,7 +59,7 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
   // --- HOPE ---
   // Max Hope is generally a fixed value (6) and not directly modified by items in the SRD, 
   // but it can have user modifiers, so we calculate totalHopeMax for consistency with the Ledger.
-  const baseHope = 6; 
+  const baseHope = 6;
   const { total: totalHopeMax, allMods: hopeMods } = getStatDetails('hope', baseHope);
 
 
@@ -67,19 +67,19 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
     <div className="space-y-3">
       {/* Row 1: Evasion & Armor (Squares) */}
       <div className="grid grid-cols-2 gap-3">
-        <VitalCard 
-          label="Evasion" 
-          current={totalEvasion} 
+        <VitalCard
+          label="Evasion"
+          current={totalEvasion}
           color={isEvasionModified ? "text-yellow-400" : "text-cyan-400"}
-          icon={Eye} 
+          icon={Eye}
           isModified={isEvasionModified}
           expectedValue={classBaseEvasion}
           modifiers={evasionMods}
           onUpdateModifiers={(mods) => updateModifiers('evasion', mods)}
         />
-        <VitalCard 
-          label="Armor" 
-          current={character.vitals.armor_current} 
+        <VitalCard
+          label="Armor"
+          current={character.vitals.armor_current}
           max={totalArmorMax}
           color="text-blue-400"
           icon={Shield}
@@ -95,9 +95,9 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
       </div>
 
       {/* Row 2: Hit Points (Rectangle) */}
-      <VitalCard 
-        label="Hit Points" 
-        current={character.vitals.hp_current} 
+      <VitalCard
+        label="Hit Points"
+        current={character.vitals.hp_current}
         max={totalHPMax}
         color="text-red-400"
         icon={Heart}
@@ -111,24 +111,24 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
       />
 
       {/* Row 3: Stress (Rectangle) */}
-              <VitalCard
-                label="Stress"
-                current={character.vitals.stress_current}
-                max={totalStressMax}
-                color="text-purple-400"
-                icon={Zap}
-                variant="rectangle"
-                onIncrement={() => updateVitals('stress_current', character.vitals.stress_current + 1)}
-                onDecrement={() => updateVitals('stress_current', character.vitals.stress_current - 1)}
-                isCriticalCondition={character.vitals.stress_current === totalStressMax}
-                trackType="mark-bad"        modifiers={stressMods}
+      <VitalCard
+        label="Stress"
+        current={character.vitals.stress_current}
+        max={totalStressMax}
+        color="text-purple-400"
+        icon={Zap}
+        variant="rectangle"
+        onIncrement={() => updateVitals('stress_current', character.vitals.stress_current + 1)}
+        onDecrement={() => updateVitals('stress_current', character.vitals.stress_current - 1)}
+        isCriticalCondition={character.vitals.stress_current === 0}
+        trackType="mark-bad" modifiers={stressMods}
         onUpdateModifiers={(mods) => updateModifiers('stress', mods)}
       />
 
       {/* Row 4: Hope (Rectangle) */}
-      <VitalCard 
-        label="Hope" 
-        current={character.hope} 
+      <VitalCard
+        label="Hope"
+        current={character.hope}
         max={totalHopeMax}
         color="text-dagger-gold"
         icon={Zap}
