@@ -158,8 +158,8 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
                 {item.data?.modifiers && Array.isArray(item.data.modifiers) && item.data.modifiers.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1.5">
                     {item.data.modifiers.map((mod: any, idx: number) => {
-                      const isPositive = mod.operator === 'add' && mod.value > 0;
-                      const sign = mod.operator === 'add' ? '+' : mod.operator === 'subtract' ? '-' : '';
+                      const isPositive = mod.value > 0;
+                      const sign = mod.value > 0 ? '+' : '';
                       const label = `${sign}${mod.value} ${mod.target.charAt(0).toUpperCase() + mod.target.slice(1)}`;
                       
                       return (
