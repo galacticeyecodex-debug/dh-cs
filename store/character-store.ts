@@ -318,6 +318,14 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     checkItemForBonus(equippedPrimary);
     checkItemForBonus(equippedSecondary);
 
+    // 3. Apply Manual Modifiers (from Ledger)
+    if (character.modifiers?.['armor']) {
+      character.modifiers['armor'].forEach(mod => {
+        // Armor modifiers usually affect the Score (Max)
+        newArmorScore += mod.value; 
+      });
+    }
+
     // Apply updates
     const currentVitals = character.vitals;
     if (currentVitals.armor_max !== newArmorScore) {

@@ -56,7 +56,20 @@ export function calculateBaseEvasion(character: any): number {
   equippedItems.forEach((item: any) => {
     if (!item.library_item?.data) return;
     
-    // Check Feature Text
+    // Check for structured modifiers (Preferred)
+    if (Array.isArray(item.library_item.data.modifiers)) {
+      const mods = item.library_item.data.modifiers;
+      mods.forEach((mod: any) => {
+        if (mod.target === 'evasion') {
+          if (mod.operator === 'add') base += mod.value;
+          else if (mod.operator === 'subtract') base -= mod.value;
+          // Handle other operators if needed, but evasion is usually add/sub
+        }
+      });
+      return; // Skip regex if structured data found
+    }
+
+    // Check Feature Text (Fallback)
     const featureText = item.library_item.data.feature?.text || '';
     // Check basic Feat Text (flat CSV style)
     const featText = item.library_item.data.feat_text || '';
