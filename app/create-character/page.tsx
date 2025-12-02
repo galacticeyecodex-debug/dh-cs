@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useCharacterStore, Character, LibraryItem } from '@/store/character-store';
 import createClient from '@/lib/supabase/client';
 import clsx from 'clsx';
-import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins, Sword, X } from 'lucide-react';
+import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins, Sword, X, Heart, Upload } from 'lucide-react';
 import AddItemModal from '@/components/add-item-modal';
+import { uploadCharacterAvatar } from '@/lib/supabase/storage';
 
 // Define the shape of our form data
 interface CharacterFormData {
@@ -30,6 +31,7 @@ interface CharacterFormData {
   selectedPrimaryWeaponId: string | null;
   selectedSecondaryWeaponId: string | null;
   selectedArmorId: string | null;
+  selectedPotionType: 'health' | 'stamina' | null;
 }
 
 // Minimal Library Item type for dropdowns and lookup
@@ -56,6 +58,7 @@ export default function CreateCharacterPage() {
     selectedPrimaryWeaponId: null,
     selectedSecondaryWeaponId: null,
     selectedArmorId: null,
+    selectedPotionType: null,
   });
   const [calculatedVitals, setCalculatedVitals] = useState({ hp: 0, stress: 0, armor: 0, evasion: 10 });
   const [startingItemsAndCards, setStartingItemsAndCards] = useState<{ cards: string[], weapons: string[], armor: string[], misc: string[], gold: { handfuls: number, bags: number, chests: number } }>({
@@ -87,6 +90,11 @@ export default function CreateCharacterPage() {
   // Equipment Selection Modal State
   const [equipmentModalOpen, setEquipmentModalOpen] = useState(false);
   const [equipmentModalContext, setEquipmentModalContext] = useState<'primary' | 'secondary' | 'armor' | null>(null);
+
+  // Image Upload State
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Initial trait assignment values as per Daggerheart rules
   const TRAIT_ASSIGNMENT_POOL = useMemo(() => [2, 1, 1, 0, 0, -1], []);
@@ -388,6 +396,30 @@ export default function CreateCharacterPage() {
     });
   }, []);
 
+  const handleImageFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select an image file');
+        return;
+      }
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setError('Image must be less than 2MB');
+        return;
+      }
+      setSelectedImageFile(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      setError(null);
+    }
+  }, []);
+
   const handleEquipmentSelect = useCallback((item: LibraryItem) => {
     if (!equipmentModalContext) return;
 
@@ -428,7 +460,7 @@ export default function CreateCharacterPage() {
       case 6: // Experiences
         return !!formData.experiences && formData.experiences.length === 2 && formData.experiences.every(e => e.trim().length > 0);
       case 7: // Equipment
-        return !!formData.selectedPrimaryWeaponId && !!formData.selectedArmorId;
+        return !!formData.selectedPrimaryWeaponId && !!formData.selectedArmorId && !!formData.selectedPotionType;
       default:
         return true;
     }
@@ -491,6 +523,20 @@ export default function CreateCharacterPage() {
       return;
     }
 
+    // Upload image if one was selected
+    let uploadedImageUrl: string | null = null;
+    if (selectedImageFile) {
+      setUploadingImage(true);
+      uploadedImageUrl = await uploadCharacterAvatar(user.id, selectedImageFile);
+      setUploadingImage(false);
+
+      if (!uploadedImageUrl) {
+        setError("Failed to upload character image. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     const supabase = createClient();
 
     // Check character limit
@@ -546,7 +592,7 @@ export default function CreateCharacterPage() {
       proficiency: 1,
       experiences: formData.experiences as string[],
       gold: startingItemsAndCards.gold,
-      image_url: formData.image_url,
+      image_url: uploadedImageUrl || formData.image_url,
     };
 
     const { data: newCharacter, error: charError } = await supabase
@@ -629,6 +675,39 @@ export default function CreateCharacterPage() {
         });
       }
     }
+
+    // Add selected starting potion
+    if (formData.selectedPotionType) {
+      const potionName = formData.selectedPotionType === 'health' ? 'Minor Health Potion' : 'Minor Stamina Potion';
+      const potionItem = libraryData.consumables.find(c => c.name === potionName);
+      if (potionItem) {
+        inventoryToInsert.push({
+          character_id: characterId,
+          item_id: potionItem.id,
+          name: potionItem.name,
+          description: potionItem.data.markdown || '',
+          location: 'backpack',
+          quantity: 1,
+        });
+      }
+    }
+
+    // Add default starting items (torch, rope, basic supplies)
+    const defaultStartingItems = ['Torch', '50 Feet of Rope', 'Basic Supplies'];
+    for (const itemName of defaultStartingItems) {
+      const item = libraryData.consumables.find(c => c.name === itemName) || libraryData.weapons.find(w => w.name === itemName);
+      if (item) {
+        inventoryToInsert.push({
+          character_id: characterId,
+          item_id: item.id,
+          name: item.name,
+          description: item.data?.markdown || '',
+          location: 'backpack',
+          quantity: 1,
+        });
+      }
+    }
+
     for (const itemId of startingItemsAndCards.misc) {
       const item = libraryData.consumables.find(c => c.id === itemId); // Assuming misc items are consumables
       if (item) {
@@ -687,9 +766,38 @@ export default function CreateCharacterPage() {
                 className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold" required />
             </div>
             <div>
-              <label htmlFor="image_url" className="block text-sm font-medium text-gray-400">Image URL (Optional)</label>
-              <input type="url" id="image_url" name="image_url" value={formData.image_url || ''} onChange={handleInputChange}
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold" />
+              <label className="block text-sm font-medium text-gray-400 mb-2">Character Image (Optional)</label>
+              <div className="flex flex-col gap-3">
+                {imagePreview && (
+                  <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-dagger-gold">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedImageFile(null);
+                        setImagePreview(null);
+                      }}
+                      className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 rounded-full text-white"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                )}
+                <label className="cursor-pointer">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg border border-white/10 transition-colors">
+                    <Upload size={16} />
+                    <span className="text-sm">{selectedImageFile ? 'Change Image' : 'Upload Image'}</span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageFileChange}
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-xs text-gray-500">Max 2MB. PNG, JPG, or WEBP</p>
+              </div>
             </div>
             <button
               type="button"
@@ -1066,68 +1174,147 @@ export default function CreateCharacterPage() {
         // Determine if secondary weapon selection should be enabled
         const isSecondaryWeaponEnabled = selectedPrimaryWeapon?.data.burden !== 'Two-Handed';
 
-        // Helper for rendering a slot
-        const renderEquipmentSlot = (
-          title: string, 
-          item: LibraryLookupItem | undefined, 
-          context: 'primary' | 'secondary' | 'armor', 
+        // Helper for rendering equipment cards (Inventory-style)
+        const renderEquipmentCard = (
+          label: string,
+          item: LibraryLookupItem | undefined,
+          context: 'primary' | 'secondary' | 'armor',
           enabled: boolean = true
         ) => (
-          <div 
-            onClick={() => enabled && (() => { setEquipmentModalContext(context); setEquipmentModalOpen(true); })()}
+          <div
             className={clsx(
-              "border rounded-xl p-4 flex items-center justify-between transition-all group",
-              enabled ? "cursor-pointer hover:border-dagger-gold hover:bg-white/5" : "opacity-50 border-white/5 cursor-not-allowed",
-              item ? "bg-dagger-gold/10 border-dagger-gold" : "bg-black/20 border-white/10"
+              "flex flex-col gap-2 p-3 rounded-lg border transition-all",
+              item ? "bg-dagger-gold/10 border-dagger-gold/30" : "bg-white/5 border-white/5",
+              !enabled && "opacity-50"
             )}
           >
-            <div className="flex items-center gap-3">
-              <div className={clsx(
-                "w-10 h-10 rounded-full flex items-center justify-center",
-                item ? "bg-dagger-gold text-black" : "bg-white/10 text-gray-500 group-hover:text-white"
-              )}>
-                {context === 'armor' ? <Shield size={20} /> : <Sword size={20} />}
-              </div>
-              <div>
-                <div className="text-sm font-bold text-gray-400 uppercase tracking-wider">{title}</div>
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-bold uppercase bg-white/10 text-gray-400 px-1.5 py-0.5 rounded">
+                    {label}
+                  </span>
+                  {item && (
+                    <span className="text-[10px] font-bold uppercase bg-dagger-gold text-black px-1.5 py-0.5 rounded">
+                      Selected
+                    </span>
+                  )}
+                </div>
                 {item ? (
                   <>
-                    <div className="text-lg font-serif font-bold text-white">{item.name}</div>
-                    <div className="text-xs text-gray-400">
-                      {context === 'armor' 
-                        ? `Score: ${item.data.base_score} • ${item.data.feature?.name || 'No Feature'}` 
-                        : `${item.data.damage} • ${item.data.trait} • ${item.data.range}`}
+                    <div className="font-medium text-white">{item.name}</div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {context === 'armor' ? (
+                        <>
+                          {item.data.feature?.name && <span className="font-bold text-gray-300">{item.data.feature.name}: </span>}
+                          {item.data.feature?.text && <span className="italic">{item.data.feature.text} </span>}
+                          <span className="block mt-0.5 text-gray-500">
+                            Score: {item.data.base_score}, Thresholds: {item.data.base_thresholds}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="block mb-0.5">
+                            {item.data.trait} • {item.data.range} • {item.data.damage}
+                          </span>
+                          {item.data.feature?.name && <span className="font-bold text-gray-300">{item.data.feature.name}: </span>}
+                          {item.data.feature?.text && <span className="italic">{item.data.feature.text}</span>}
+                        </>
+                      )}
                     </div>
                   </>
                 ) : (
-                  <div className="text-white/50 italic">Select {title}...</div>
+                  <div className="text-white/50 italic text-sm">
+                    {enabled ? `Click to select ${label.toLowerCase()}...` : `${label} disabled (two-handed weapon equipped)`}
+                  </div>
                 )}
               </div>
             </div>
-            {item && enabled && (
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (context === 'primary') setFormData(prev => ({ ...prev, selectedPrimaryWeaponId: null }));
-                  else if (context === 'secondary') setFormData(prev => ({ ...prev, selectedSecondaryWeaponId: null }));
-                  else if (context === 'armor') setFormData(prev => ({ ...prev, selectedArmorId: null }));
-                }}
-                className="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white"
-              >
-                <X size={16} />
-              </button>
-            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 mt-1">
+              {enabled && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEquipmentModalContext(context);
+                    setEquipmentModalOpen(true);
+                  }}
+                  className="text-[10px] font-bold uppercase px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white flex items-center gap-1"
+                >
+                  <Sword size={12} /> {item ? 'Change' : 'Select'}
+                </button>
+              )}
+              {item && enabled && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (context === 'primary') setFormData(prev => ({ ...prev, selectedPrimaryWeaponId: null }));
+                    else if (context === 'secondary') setFormData(prev => ({ ...prev, selectedSecondaryWeaponId: null }));
+                    else if (context === 'armor') setFormData(prev => ({ ...prev, selectedArmorId: null }));
+                  }}
+                  className="text-[10px] font-bold uppercase px-2 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded flex items-center gap-1 ml-auto"
+                >
+                  <X size={12} /> Remove
+                </button>
+              )}
+            </div>
           </div>
         );
 
         return (
           <div className="space-y-4">
             <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Shield size={20} /> Step 7: Starting Equipment</h2>
-            <p className="text-sm text-gray-400">Choose your primary weapon, an optional secondary weapon, and your armor.</p>
+            <p className="text-sm text-gray-400">
+              Choose from Tier 1 equipment: either a two-handed primary weapon OR a one-handed primary weapon and secondary weapon, plus one set of armor.
+            </p>
 
-            {renderEquipmentSlot("Primary Weapon", selectedPrimaryWeapon, 'primary')}
-            {renderEquipmentSlot("Secondary Weapon", selectedSecondaryWeapon, 'secondary', isSecondaryWeaponEnabled)}
-            {renderEquipmentSlot("Armor", selectedArmor, 'armor')}
+            {/* Equipment Cards */}
+            <div className="space-y-2">
+              {renderEquipmentCard("Primary Weapon", selectedPrimaryWeapon, 'primary')}
+              {renderEquipmentCard("Secondary Weapon", selectedSecondaryWeapon, 'secondary', isSecondaryWeaponEnabled)}
+              {renderEquipmentCard("Armor", selectedArmor, 'armor')}
+            </div>
+
+            {/* Starting Potion Selection */}
+            <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 mt-4">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Starting Potion</h3>
+              <p className="text-xs text-gray-400 mb-3">Choose one starting potion (you&apos;ll also receive a torch, rope, and basic supplies)</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, selectedPotionType: 'health' }))}
+                  className={clsx(
+                    "p-3 rounded-lg border transition-all text-left",
+                    formData.selectedPotionType === 'health'
+                      ? "bg-dagger-gold/10 border-dagger-gold"
+                      : "bg-white/5 border-white/10 hover:border-white/20"
+                  )}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Heart size={16} className="text-red-400" />
+                    <span className="font-bold text-white text-sm">Minor Health Potion</span>
+                  </div>
+                  <div className="text-xs text-gray-400">Clear 1d4 Hit Points</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, selectedPotionType: 'stamina' }))}
+                  className={clsx(
+                    "p-3 rounded-lg border transition-all text-left",
+                    formData.selectedPotionType === 'stamina'
+                      ? "bg-dagger-gold/10 border-dagger-gold"
+                      : "bg-white/5 border-white/10 hover:border-white/20"
+                  )}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkle size={16} className="text-blue-400" />
+                    <span className="font-bold text-white text-sm">Minor Stamina Potion</span>
+                  </div>
+                  <div className="text-xs text-gray-400">Clear 1d4 Stress</div>
+                </button>
+              </div>
+            </div>
 
             <div className="flex justify-between mt-4">
               <button type="button" onClick={() => setCurrentStep(6)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
@@ -1148,7 +1335,7 @@ export default function CreateCharacterPage() {
 
             {/* Modal Rendering */}
             {equipmentModalOpen && (
-              <AddItemModal 
+              <AddItemModal
                 isOpen={equipmentModalOpen}
                 onClose={() => setEquipmentModalOpen(false)}
                 onAddItem={(item) => handleEquipmentSelect(item)}
@@ -1190,6 +1377,8 @@ export default function CreateCharacterPage() {
               <p><strong>Primary Weapon:</strong> {finalPrimaryWeapon?.name || 'N/A'}</p>
               {finalSecondaryWeapon && <p><strong>Secondary Weapon:</strong> {finalSecondaryWeapon.name}</p>}
               <p><strong>Armor:</strong> {finalArmor?.name || 'N/A'}</p>
+              <p><strong>Starting Potion:</strong> {formData.selectedPotionType === 'health' ? 'Minor Health Potion' : formData.selectedPotionType === 'stamina' ? 'Minor Stamina Potion' : 'N/A'}</p>
+              <p className="text-xs text-gray-400"><em>Also includes: Torch, 50 Feet of Rope, Basic Supplies</em></p>
               <p><strong>Starting Cards ({formData.selectedCards?.length}):</strong></p>
               <ul className="list-disc pl-5">
                 {formData.selectedCards?.map(id => {
@@ -1202,10 +1391,10 @@ export default function CreateCharacterPage() {
               <button type="button" onClick={() => setCurrentStep(7)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || uploadingImage}
                 className="px-4 py-2 bg-green-600 text-white font-bold rounded-full shadow-md hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                {isSubmitting ? 'Creating...' : 'Create Character'}
+                {uploadingImage ? 'Uploading Image...' : isSubmitting ? 'Creating...' : 'Create Character'}
               </button>
             </div>
           </div>
@@ -1213,7 +1402,7 @@ export default function CreateCharacterPage() {
       default:
         return null;
     }
-  }, [currentStep, formData, libraryData, calculatedVitals, startingItemsAndCards, TRAIT_ASSIGNMENT_POOL, DISPLAY_TRAIT_POOL, handleInputChange, assignTraitValue, handleExperienceChange, isSubmitting, selectedTraitIndex, isTraitValueAssigned, handleDomainChange, handleCardSelection, validateStep]);
+  }, [currentStep, formData, libraryData, calculatedVitals, startingItemsAndCards, TRAIT_ASSIGNMENT_POOL, DISPLAY_TRAIT_POOL, handleInputChange, assignTraitValue, handleExperienceChange, isSubmitting, selectedTraitIndex, isTraitValueAssigned, handleDomainChange, handleCardSelection, validateStep, equipmentModalContext, equipmentModalOpen, handleEquipmentSelect, imagePreview, selectedImageFile, handleImageFileChange, uploadingImage]);
 
 
   return (
