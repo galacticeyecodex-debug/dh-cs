@@ -16,10 +16,11 @@ interface VitalCardProps {
   isCriticalCondition?: boolean;
   isModified?: boolean;
   expectedValue?: number;
+  disableCritColor?: boolean; // New prop to disable red color on full track
   thresholds?: { minor: number, major: number, severe: number };
   variant?: 'square' | 'rectangle';
   className?: string;
-  trackType?: 'fill-up-good' | 'fill-up-bad' | 'mark-bad'; // New prop for track behavior
+  trackType?: 'fill-up-good' | 'fill-up-bad' | 'mark-bad';
 }
 
 export default function VitalCard({ 
@@ -33,6 +34,7 @@ export default function VitalCard({
   isCriticalCondition = false,
   isModified = false,
   expectedValue,
+  disableCritColor = false,
   thresholds,
   variant = 'square',
   className,
@@ -46,15 +48,13 @@ export default function VitalCard({
 
     const icons = [];
     // Determine how many are "filled" based on type
-    // fill-up-good (Hope): current = filled.
-    // fill-up-bad (Stress): current = filled.
-    // mark-bad (HP): (max - current) = marked (filled).
     const filledCount = (trackType === 'fill-up-good' || trackType === 'fill-up-bad') ? current : Math.max(0, max - current);
-    const isFullBad = (trackType === 'mark-bad' || trackType === 'fill-up-bad') && filledCount >= max;
+    
+    // Check if track is "badly" full (e.g. full stress/damage)
+    // Respect disableCritColor prop (e.g. for Armor, which isn't "bad" when full)
+    const isFullBad = (trackType === 'mark-bad' || trackType === 'fill-up-bad') && filledCount >= max && !disableCritColor;
     
     // Base color for filled icons
-    // If mark-bad and full, use red. Else use prop color.
-    // Actually, user said "turn the track red when full".
     const filledColor = isFullBad ? "text-red-500" : color;
     const emptyColor = "text-white/10";
 
@@ -98,8 +98,8 @@ export default function VitalCard({
       {/* Display: Track or Number */}
       {trackType && max && max > 0 ? (
         renderTrack()
-      ) : trackType === 'mark-bad' && max === 0 && label === 'Armor' ? (
-        <div className="text-sm text-gray-500 italic my-2">Unarmored</div>
+      ) : trackType === 'mark-bad' && (!max || max === 0) && label === 'Armor' ? (
+        <div className="text-sm text-gray-400 italic my-2">Unarmored</div>
       ) : (
         <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center">
           <span>{current}</span>
@@ -110,7 +110,7 @@ export default function VitalCard({
         </div>
       )}
       
-      {thresholds && max && max > 0 && (
+      {thresholds && (
         <div className="w-full px-1 text-[9px] uppercase tracking-wider text-gray-500 flex justify-between">
           <span>Min: {thresholds.minor}</span>
           <span>Maj: {thresholds.major}</span>

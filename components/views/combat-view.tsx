@@ -20,9 +20,9 @@ export default function CombatView() {
   const armor = character.character_inventory?.find(item => item.location === 'equipped_armor');
 
   // Calculate damage thresholds for armor, considering character level
-  let minorThreshold = 0;
-  let majorThreshold = 0;
-  let severeThreshold = 0;
+  let minorThreshold = 1;
+  let majorThreshold = character.level;
+  let severeThreshold = character.level * 2;
 
   if (armor?.library_item?.data?.base_thresholds) {
     const [baseMajor, baseSevere] = armor.library_item.data.base_thresholds.split('/').map((s: string) => parseInt(s.trim()));
@@ -32,7 +32,6 @@ export default function CombatView() {
     
     // Default Minor is 1 HP. Major is baseMajor. Severe is baseSevere.
     // Daggerheart Rule: "If the final damage is below the character’s Major damage threshold, they mark 1 HP."
-    minorThreshold = 1;
     majorThreshold = baseMajor;
     severeThreshold = baseSevere;
   }
@@ -56,8 +55,12 @@ export default function CombatView() {
           <VitalCard 
             label="Evasion" 
             current={character.evasion} 
-            color="text-cyan-400"
-            icon={Eye}
+            color={isEvasionModified ? "text-yellow-400" : "text-cyan-400"}
+            icon={Eye} 
+            onIncrement={() => updateEvasion(character.evasion + 1)}
+            onDecrement={() => updateEvasion(character.evasion - 1)}
+            isModified={isEvasionModified}
+            expectedValue={expectedEvasion}
           />
           <VitalCard 
             label="Armor" 
@@ -67,9 +70,10 @@ export default function CombatView() {
             icon={Shield}
             onIncrement={() => updateVitals('armor_current', character.vitals.armor_current + 1)}
             onDecrement={() => updateVitals('armor_current', character.vitals.armor_current - 1)}
-            isCriticalCondition={character.vitals.armor_current === 0}
-            thresholds={armor ? { minor: minorThreshold, major: majorThreshold, severe: severeThreshold } : undefined}
+            isCriticalCondition={character.vitals.armor_current === 0 && character.vitals.armor_max > 0} // Only critical if we have armor slots and they are 0
+            thresholds={{ minor: minorThreshold, major: majorThreshold, severe: severeThreshold }}
             trackType="mark-bad"
+            disableCritColor={true}
           />
         </div>
 

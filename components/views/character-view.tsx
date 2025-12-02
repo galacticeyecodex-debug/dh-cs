@@ -26,13 +26,12 @@ export default function CharacterView() {
 
   // Armor thresholds logic (duplicated from CombatView for consistency)
   const armorItem = character.character_inventory?.find(item => item.location === 'equipped_armor');
-  let minorThreshold = 0;
-  let majorThreshold = 0;
-  let severeThreshold = 0;
+  let minorThreshold = 1;
+  let majorThreshold = character.level;
+  let severeThreshold = character.level * 2;
 
   if (armorItem?.library_item?.data?.base_thresholds) {
     const [baseMajor, baseSevere] = armorItem.library_item.data.base_thresholds.split('/').map((s: string) => parseInt(s.trim()));
-    minorThreshold = 1;
     majorThreshold = baseMajor;
     severeThreshold = baseSevere;
   }
@@ -78,9 +77,10 @@ export default function CharacterView() {
             icon={Shield}
             onIncrement={() => updateVitals('armor_current', character.vitals.armor_current + 1)}
             onDecrement={() => updateVitals('armor_current', character.vitals.armor_current - 1)}
-            isCriticalCondition={character.vitals.armor_current === 0}
+            isCriticalCondition={character.vitals.armor_current === 0 && character.vitals.armor_max > 0} // Only critical if we have armor slots and they are 0
             trackType="mark-bad"
-            thresholds={armorItem ? { minor: minorThreshold, major: majorThreshold, severe: severeThreshold } : undefined}
+            thresholds={{ minor: minorThreshold, major: majorThreshold, severe: severeThreshold }}
+            disableCritColor={true}
           />
         </div>
 
