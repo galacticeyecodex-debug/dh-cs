@@ -1055,8 +1055,8 @@ export default function CreateCharacterPage() {
         );
       case 7: // Equipment Selection
         // Filter Tier 1 weapons and armor
-        const tier1PrimaryWeapons = libraryData.weapons.filter(w => w.tier === 1 && w.data.primary_or_secondary === 'Primary');
-        const tier1SecondaryWeapons = libraryData.weapons.filter(w => w.tier === 1 && w.data.primary_or_secondary === 'Secondary');
+        const tier1PrimaryWeapons = libraryData.weapons.filter(w => w.tier === 1 && (w.data.primary_or_secondary === 'Primary' || w.data.hand === 'Primary'));
+        const tier1SecondaryWeapons = libraryData.weapons.filter(w => w.tier === 1 && (w.data.primary_or_secondary === 'Secondary' || w.data.hand === 'Secondary'));
         const tier1Armor = libraryData.armor.filter(a => a.tier === 1);
 
         const selectedPrimaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedPrimaryWeaponId);
