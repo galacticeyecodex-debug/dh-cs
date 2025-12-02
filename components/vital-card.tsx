@@ -96,8 +96,10 @@ export default function VitalCard({
       </div>
       
       {/* Display: Track or Number */}
-      {trackType && max ? (
+      {trackType && max && max > 0 ? (
         renderTrack()
+      ) : trackType === 'mark-bad' && max === 0 && label === 'Armor' ? (
+        <div className="text-sm text-gray-500 italic my-2">Unarmored</div>
       ) : (
         <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center">
           <span>{current}</span>
@@ -108,7 +110,7 @@ export default function VitalCard({
         </div>
       )}
       
-      {thresholds && (
+      {thresholds && max && max > 0 && (
         <div className="w-full px-1 text-[9px] uppercase tracking-wider text-gray-500 flex justify-between">
           <span>Min: {thresholds.minor}</span>
           <span>Maj: {thresholds.major}</span>
@@ -116,7 +118,7 @@ export default function VitalCard({
         </div>
       )}
 
-      {!isReadOnly && (
+      {!isReadOnly && max && max > 0 && (
         <div className="flex w-full gap-1 mt-1">
           {/* 
              Button Logic depends on Track Type? 

@@ -568,6 +568,9 @@ export default function CreateCharacterPage() {
     const finalSecondaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedSecondaryWeaponId);
     const finalArmor = libraryData.armor.find(a => a.id === formData.selectedArmorId);
 
+    // Calculate actual armor score based on equipped armor
+    const actualArmorScore = finalArmor?.data.base_score || 0;
+
     const newCharacterData: Omit<Character, 'id' | 'character_cards' | 'character_inventory'> = {
       user_id: user.id,
       name: formData.name,
@@ -583,8 +586,8 @@ export default function CreateCharacterPage() {
         hp_current: calculatedVitals.hp,
         stress_max: calculatedVitals.stress,
         stress_current: 0,
-        armor_max: calculatedVitals.armor,
-        armor_current: calculatedVitals.armor,
+        armor_max: actualArmorScore,
+        armor_current: actualArmorScore,
       },
       hope: 2, // Starting hope is always 2
       fear: 0,
