@@ -112,6 +112,7 @@ interface CharacterState {
   recalculateDerivedStats: () => Promise<void>;
   updateGold: (denomination: 'handfuls' | 'bags' | 'chests', value: number) => Promise<void>;
   updateHope: (value: number) => Promise<void>;
+  updateEvasion: (value: number) => Promise<void>;
   moveCard: (cardId: string, destination: 'loadout' | 'vault') => Promise<void>;
   addCardToCollection: (item: LibraryItem) => Promise<void>;
 }
@@ -389,6 +390,32 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
 
     if (error) {
       console.error('Error updating hope:', error);
+      // Ideally revert here
+    }
+  },
+
+  updateEvasion: async (value) => {
+    const state = get();
+    if (!state.character) return;
+
+    // Evasion can theoretically be negative (though unlikely), but let's clamp to 0 for sanity?
+    // Daggerheart doesn't explicitly forbid negative, but 0 is a safe floor.
+    const newEvasion = Math.max(0, value);
+
+    // Optimistically update UI
+    set((s) => ({
+      character: s.character ? { ...s.character, evasion: newEvasion } : null,
+    }));
+
+    // Persist to DB
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('characters')
+      .update({ evasion: newEvasion })
+      .eq('id', state.character.id);
+
+    if (error) {
+      console.error('Error updating evasion:', error);
       // Ideally revert here
     }
   },

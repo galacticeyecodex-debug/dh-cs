@@ -4,11 +4,12 @@ import React from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { Heart, Zap, Shield, Eye } from 'lucide-react';
 import Image from 'next/image';
+import { calculateBaseEvasion } from '@/lib/utils';
 import VitalCard from '@/components/vital-card'; // Import common VitalCard
 import StatButton from '@/components/stat-button'; // Import common StatButton
 
 export default function CharacterView() {
-  const { character, updateVitals, updateHope } = useCharacterStore();
+  const { character, updateVitals, updateHope, updateEvasion } = useCharacterStore();
   // openDiceOverlay is used implicitly by StatButton component, so it's not an unused variable.
 
   // Fallback if loading
@@ -18,6 +19,22 @@ export default function CharacterView() {
         <div className="animate-pulse">Loading Character...</div>
       </div>
     );
+  }
+
+  const expectedEvasion = calculateBaseEvasion(character);
+  const isEvasionModified = character.evasion !== expectedEvasion;
+
+  // Armor thresholds logic (duplicated from CombatView for consistency)
+  const armorItem = character.character_inventory?.find(item => item.location === 'equipped_armor');
+  let minorThreshold = 0;
+  let majorThreshold = 0;
+  let severeThreshold = 0;
+
+  if (armorItem?.library_item?.data?.base_thresholds) {
+    const [baseMajor, baseSevere] = armorItem.library_item.data.base_thresholds.split('/').map((s: string) => parseInt(s.trim()));
+    minorThreshold = 1;
+    majorThreshold = baseMajor;
+    severeThreshold = baseSevere;
   }
 
   return (
@@ -46,9 +63,12 @@ export default function CharacterView() {
           <VitalCard 
             label="Evasion" 
             current={character.evasion} 
-            color="text-cyan-400"
-            icon={Eye} // Imported implicitly or need to check imports. Evasion was missing icon in previous view? No, it used Shield in one view. Eye is good.
-            // Evasion is read-only/derived usually, but VitalCard handles read-only if no onIncrement
+            color={isEvasionModified ? "text-yellow-400" : "text-cyan-400"}
+            icon={Eye} 
+            onIncrement={() => updateEvasion(character.evasion + 1)}
+            onDecrement={() => updateEvasion(character.evasion - 1)}
+            isModified={isEvasionModified}
+            expectedValue={expectedEvasion}
           />
           <VitalCard 
             label="Armor" 
@@ -59,6 +79,8 @@ export default function CharacterView() {
             onIncrement={() => updateVitals('armor_current', character.vitals.armor_current + 1)}
             onDecrement={() => updateVitals('armor_current', character.vitals.armor_current - 1)}
             isCriticalCondition={character.vitals.armor_current === 0}
+            trackType="mark-bad"
+            thresholds={armorItem ? { minor: minorThreshold, major: majorThreshold, severe: severeThreshold } : undefined}
           />
         </div>
 
@@ -73,6 +95,7 @@ export default function CharacterView() {
           onIncrement={() => updateVitals('hp_current', character.vitals.hp_current + 1)}
           onDecrement={() => updateVitals('hp_current', character.vitals.hp_current - 1)}
           isCriticalCondition={character.vitals.hp_current === 0}
+          trackType="mark-bad"
         />
 
         {/* Row 3: Stress (Rectangle) */}
@@ -86,18 +109,20 @@ export default function CharacterView() {
           onIncrement={() => updateVitals('stress_current', character.vitals.stress_current + 1)}
           onDecrement={() => updateVitals('stress_current', character.vitals.stress_current - 1)}
           isCriticalCondition={character.vitals.stress_current === 0}
+          trackType="mark-bad"
         />
 
         {/* Row 4: Hope (Rectangle) */}
         <VitalCard 
           label="Hope" 
           current={character.hope} 
-          max={6} // Default max hope is usually small, often 5 or 6? Daggerheart usually max 5 or 6. Let's assume max 6 for UI or just show current.
+          max={6} 
           color="text-dagger-gold"
-          icon={Zap} // Maybe a different icon for Hope? Zap is Stress. Maybe 'Star' or 'Sun'? Lucide has `Sparkle` or `Star`.
+          icon={Zap} 
           variant="rectangle"
           onIncrement={() => updateHope(character.hope + 1)}
           onDecrement={() => updateHope(character.hope - 1)}
+          trackType="fill-up-good"
         />
       </div>
 
