@@ -4,6 +4,7 @@ import React from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { Shield, Swords, Zap, Skull, Info, Heart, Eye } from 'lucide-react';
 import clsx from 'clsx';
+import { parseDamageRoll } from '@/lib/utils';
 import VitalCard from '@/components/vital-card'; // Import common VitalCard
 
 export default function CombatView() {
@@ -149,7 +150,10 @@ export default function CombatView() {
                     <Zap size={16} className="text-yellow-400" /> Attack ({traitValue >= 0 ? `+${traitValue}` : traitValue})
                   </button>
                   <button 
-                    onClick={() => prepareRoll(`${weapon.name} Damage`, 0)} // Damage usually strictly dice, but proficiency might apply
+                    onClick={() => {
+                      const { dice, modifier } = parseDamageRoll(damage);
+                      prepareRoll(`${weapon.name} Damage`, modifier, dice);
+                    }}
                     className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Skull size={16} className="text-red-400" /> Damage
