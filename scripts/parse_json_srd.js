@@ -1,8 +1,47 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto'); // Native in Node 19+, check version or use fallback
 
 const JSON_DIR = path.join(__dirname, '../srd/json');
 const OUTPUT_PATH = path.join(__dirname, '../supabase/seed_library.sql');
+
+// --- Modifier Parsing Logic ---
+const STAT_MODIFIER_REGEX = /([+-]?\d+)\s+(?:to|bonus\s+to)\s+(Agility|Strength|Finesse|Instinct|Presence|Knowledge|Evasion|Armor|Hit\s+Points|Stress|Hope|Proficiency)/i;
+
+function parseModifiers(text) {
+  const modifiers = [];
+  if (!text) return modifiers;
+
+  // Split text by semicolons or newlines
+  const segments = text.split(/[;\n]/);
+
+  segments.forEach(segment => {
+    const cleanSegment = segment.trim();
+    if (!cleanSegment) return;
+
+    const statMatch = cleanSegment.match(STAT_MODIFIER_REGEX);
+    if (statMatch) {
+      const value = parseInt(statMatch[1]);
+      const rawStat = statMatch[2].toLowerCase().replace(/\s+/g, '_'); // 'hit points' -> 'hit_points'
+      
+      let target = rawStat;
+      if (rawStat === 'hit_points') target = 'hp';
+      if (rawStat === 'armor_score') target = 'armor'; // normalize if regex matched armor score
+
+      modifiers.push({
+        id: crypto.randomUUID(),
+        type: 'stat',
+        target: target,
+        value: value,
+        operator: value >= 0 ? 'add' : 'subtract',
+        description: cleanSegment
+      });
+    }
+  });
+
+  return modifiers;
+}
+// ------------------------------
 
 const escapeSql = (str) => {
   if (!str) return '';
@@ -163,7 +202,8 @@ function processWeapons() {
       feature: {
         name: item.feat_name,
         text: item.feat_text
-      }
+      },
+      modifiers: parseModifiers(item.feat_text) // Add parsed modifiers
     };
 
     sqlOutput.push(createInsert(id, 'weapon', item.name, null, tier, data));
@@ -186,7 +226,8 @@ function processArmor() {
       feature: {
         name: item.feat_name,
         text: item.feat_text
-      }
+      },
+      modifiers: parseModifiers(item.feat_text) // Add parsed modifiers
     };
 
     sqlOutput.push(createInsert(id, 'armor', item.name, null, tier, data));
