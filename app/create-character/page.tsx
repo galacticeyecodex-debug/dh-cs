@@ -393,7 +393,7 @@ export default function CreateCharacterPage() {
         return !!formData.class_id && !!formData.subclass_id && !!formData.domains?.[0] && !!formData.domains?.[1];
       case 4: // Domain Cards
         return (formData.selectedCards?.length || 0) === 2;
-      case 6: // Assign Traits
+      case 5: // Assign Traits
         const assignedStatValues = Object.values(formData.stats || {});
         const counts: { [key: number]: number } = {};
         TRAIT_ASSIGNMENT_POOL.forEach(val => counts[val] = (counts[val] || 0) + 1);
@@ -709,8 +709,8 @@ export default function CreateCharacterPage() {
               <button type="button" onClick={() => setCurrentStep(1)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
               <button
                 type="button"
-                onClick={() => setCurrentStep(4)}
-                disabled={!validateStep(3)}
+                onClick={() => setCurrentStep(3)}
+                disabled={!validateStep(2)}
                 className={clsx(
                   "px-4 py-2 font-bold rounded-full shadow-md transition-all",
                   validateStep(2)
@@ -723,7 +723,7 @@ export default function CreateCharacterPage() {
             </div>
           </div>
         );
-      case 4: // Class & Subclass & Domains
+      case 3: // Class & Subclass & Domains
         return (
           <div className="space-y-4">
             <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Sparkle size={20} /> Step 3: Class & Domains</h2>
@@ -792,7 +792,7 @@ export default function CreateCharacterPage() {
             </div>
           </div>
         );
-      case 5: // Choose Domain Cards (Consolidated)
+      case 4: // Choose Domain Cards (Consolidated)
         const domain1 = formData.domains?.[0];
         const domain2 = formData.domains?.[1];
 
@@ -872,11 +872,11 @@ export default function CreateCharacterPage() {
             </div>
 
             <div className="flex justify-between pt-4">
-              <button type="button" onClick={() => setCurrentStep(4)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
+              <button type="button" onClick={() => setCurrentStep(3)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
               <button
                 type="button"
-                onClick={() => setCurrentStep(6)}
-                disabled={!validateStep(5)}
+                onClick={() => setCurrentStep(5)}
+                disabled={!validateStep(4)}
                 className={clsx(
                   "px-4 py-2 font-bold rounded-full shadow-md transition-all",
                   validateStep(4)
@@ -972,11 +972,11 @@ export default function CreateCharacterPage() {
               })}
             </div>
             <div className="flex justify-between mt-4">
-              <button type="button" onClick={() => setCurrentStep(5)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
+              <button type="button" onClick={() => setCurrentStep(4)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
               <button
                 type="button"
-                onClick={() => setCurrentStep(7)}
-                disabled={!validateStep(6)}
+                onClick={() => setCurrentStep(6)}
+                disabled={!validateStep(5)}
                 className={clsx(
                   "px-4 py-2 font-bold rounded-full shadow-md transition-all",
                   validateStep(5)
@@ -1014,9 +1014,25 @@ export default function CreateCharacterPage() {
                 className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
               />
             </div>
+            <div className="flex justify-between mt-4">
+              <button type="button" onClick={() => setCurrentStep(5)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(7)}
+                disabled={!validateStep(6)}
+                className={clsx(
+                  "px-4 py-2 font-bold rounded-full shadow-md transition-all",
+                  validateStep(6)
+                    ? "bg-dagger-gold text-black hover:scale-[1.02]"
+                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                )}
+              >
+                Next
+              </button>
+            </div>
           </div>
         );
-      case 6: // Equipment Selection
+      case 7: // Equipment Selection
         // Filter Tier 1 weapons and armor
         const tier1PrimaryWeapons = libraryData.weapons.filter(w => w.tier === 1 && w.data.primary_or_secondary === 'Primary');
         const tier1SecondaryWeapons = libraryData.weapons.filter(w => w.tier === 1 && w.data.primary_or_secondary === 'Secondary');
@@ -1031,7 +1047,7 @@ export default function CreateCharacterPage() {
 
         return (
           <div className="space-y-4">
-            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Shield size={20} /> Step 6: Starting Equipment</h2>
+            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Shield size={20} /> Step 7: Starting Equipment</h2>
             <p className="text-sm text-gray-400">Choose your primary weapon, an optional secondary weapon, and your armor.</p>
 
             {/* Primary Weapon Selection */}
@@ -1123,7 +1139,7 @@ export default function CreateCharacterPage() {
 
         return (
           <div className="space-y-4">
-            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Shield size={20} /> Step 7: Confirm & Create</h2>
+            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Shield size={20} /> Step 8: Confirm & Create</h2>
             <div className="bg-black/20 p-4 rounded-lg border border-white/5 space-y-3">
               <p><strong>Name:</strong> {formData.name}</p>
               <p><strong>Ancestry:</strong> {currentAncestrySummary?.name || 'N/A'}</p>
