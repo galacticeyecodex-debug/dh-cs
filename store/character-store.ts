@@ -64,6 +64,7 @@ export interface Character {
   evasion: number;
   proficiency: number;
   experiences: string[];
+  modifiers?: Record<string, { id: string; name: string; value: number; source: 'user' | 'system' }[]>;
   gold: {
     handfuls: number;
     bags: number;
@@ -113,6 +114,7 @@ interface CharacterState {
   updateGold: (denomination: 'handfuls' | 'bags' | 'chests', value: number) => Promise<void>;
   updateHope: (value: number) => Promise<void>;
   updateEvasion: (value: number) => Promise<void>;
+  updateModifiers: (stat: string, modifiers: { id: string; name: string; value: number; source: 'user' | 'system' }[]) => Promise<void>;
   moveCard: (cardId: string, destination: 'loadout' | 'vault') => Promise<void>;
   addCardToCollection: (item: LibraryItem) => Promise<void>;
 }
@@ -417,6 +419,32 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     if (error) {
       console.error('Error updating evasion:', error);
       // Ideally revert here
+    }
+  },
+
+  updateModifiers: async (stat, modifiers) => {
+    const state = get();
+    if (!state.character) return;
+
+    // Clone existing modifiers object or create new
+    const currentModifiers = { ...state.character.modifiers } || {};
+    currentModifiers[stat] = modifiers;
+
+    // Optimistically update UI
+    set((s) => ({
+      character: s.character ? { ...s.character, modifiers: currentModifiers } : null,
+    }));
+
+    // Persist to DB
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('characters')
+      .update({ modifiers: currentModifiers })
+      .eq('id', state.character.id);
+
+    if (error) {
+      console.error('Error updating modifiers:', error);
+      // Revert logic would go here
     }
   },
 
