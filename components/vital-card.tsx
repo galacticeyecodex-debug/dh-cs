@@ -19,7 +19,7 @@ interface VitalCardProps {
   thresholds?: { minor: number, major: number, severe: number };
   variant?: 'square' | 'rectangle';
   className?: string;
-  trackType?: 'fill-up-good' | 'mark-bad'; // New prop for track behavior
+  trackType?: 'fill-up-good' | 'fill-up-bad' | 'mark-bad'; // New prop for track behavior
 }
 
 export default function VitalCard({ 
@@ -47,9 +47,10 @@ export default function VitalCard({
     const icons = [];
     // Determine how many are "filled" based on type
     // fill-up-good (Hope): current = filled.
+    // fill-up-bad (Stress): current = filled.
     // mark-bad (HP): (max - current) = marked (filled).
-    const filledCount = trackType === 'fill-up-good' ? current : Math.max(0, max - current);
-    const isFullBad = trackType === 'mark-bad' && filledCount >= max;
+    const filledCount = (trackType === 'fill-up-good' || trackType === 'fill-up-bad') ? current : Math.max(0, max - current);
+    const isFullBad = (trackType === 'mark-bad' || trackType === 'fill-up-bad') && filledCount >= max;
     
     // Base color for filled icons
     // If mark-bad and full, use red. Else use prop color.
@@ -147,6 +148,11 @@ export default function VitalCard({
              <>
                 <button type="button" onClick={onIncrement} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Clear</button>
                 <button type="button" onClick={onDecrement} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Mark</button>
+             </>
+          ) : trackType === 'fill-up-bad' ? (
+             <>
+                <button type="button" onClick={onDecrement} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Clear</button>
+                <button type="button" onClick={onIncrement} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Mark</button>
              </>
           ) : trackType === 'fill-up-good' ? (
              <>
