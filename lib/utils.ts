@@ -32,61 +32,87 @@ export function parseDamageRoll(input: string): { dice: string; modifier: number
   };
 }
 
-export function calculateBaseEvasion(character: any): number {
-  if (!character) return 10; // Fallback
+// Helper to extract System Modifiers from Equipment
+export function getSystemModifiers(character: any, stat: string): any[] {
+  if (!character || !character.character_inventory) return [];
 
-  // 1. Start with Class Base
-  let base = 10; // Default
-  if (character.class_data?.data?.starting_evasion) {
-    base = parseInt(character.class_data.data.starting_evasion) || 10;
-  }
-
-  // 2. Apply Ancestry Modifiers (e.g. Simiah "Nimble: +1 to Evasion")
-  // We need to check character.ancestry (string) against some data, OR check features.
-  // Currently `character` doesn't have joined Ancestry data in the store interface explicitly as `ancestry_data`.
-  // However, `calculateBaseEvasion` is best effort. If we can't find ancestry data, we skip it.
-  // Assuming the store might eventually join it or we just rely on Items for now.
-  
-  // 3. Apply Item Modifiers (Armor, Weapons, Shields)
-  const inventory = character.character_inventory || [];
-  const equippedItems = inventory.filter((item: any) => 
+  const systemModifiers: any[] = [];
+  const equippedItems = character.character_inventory.filter((item: any) => 
     ['equipped_primary', 'equipped_secondary', 'equipped_armor'].includes(item.location)
   );
 
   equippedItems.forEach((item: any) => {
     if (!item.library_item?.data) return;
-    
-    // Check for structured modifiers (Preferred)
+
+    // A. Structured Modifiers (Preferred)
     if (Array.isArray(item.library_item.data.modifiers)) {
       const mods = item.library_item.data.modifiers;
       mods.forEach((mod: any) => {
-        if (mod.target === 'evasion') {
-          if (mod.operator === 'add') base += mod.value;
-          else if (mod.operator === 'subtract') base -= mod.value;
-          // Handle other operators if needed, but evasion is usually add/sub
+        if (mod.target === stat) {
+          systemModifiers.push({
+            id: `sys-${item.id}-${mod.id || Math.random()}`,
+            name: item.name, // Use Item Name as source description
+            value: mod.value, // Directly use the value from the structured modifier
+            source: 'system'
+          });
         }
       });
-      return; // Skip regex if structured data found
+      return; // Skip regex if structured found
     }
 
-    // Check Feature Text (Fallback)
+    // B. Fallback Regex (Legacy)
     const featureText = item.library_item.data.feature?.text || '';
-    // Check basic Feat Text (flat CSV style)
     const featText = item.library_item.data.feat_text || '';
-    
     const combinedText = `${featureText} ${featText}`;
     
-    // Regex for modifiers like "-1 to Evasion", "+1 to Evasion"
-    // Global flag to catch multiple modifiers if present (unlikely in one item but possible)
-    const matches = Array.from(combinedText.matchAll(/([+-]?\d+)\s+to\s+Evasion/gi));
-    
+    // Regex needs to match the specific stat
+    // e.g. "Evasion" -> /... Evasion/
+    const regex = new RegExp(`([+-]?\\d+)\\s+(?:to|bonus\\s+to)\\s+${stat.replace('_', '\\s+')}`, 'gi');
+    const matches = Array.from(combinedText.matchAll(regex));
+
     for (const match of matches) {
       const val = parseInt(match[1]);
       if (!isNaN(val)) {
-        base += val;
+        systemModifiers.push({
+          id: `sys-${item.id}-regex`,
+          name: item.name,
+          value: val,
+          source: 'system'
+        });
       }
     }
   });
 
-  return base;
+  return systemModifiers;
+}
+
+// Helper to get Class Base Stat
+export function getClassBaseStat(character: any, stat: string): number {
+  if (!character?.class_data?.data) return 0; // Default fallbacks handled below
+
+  if (stat === 'evasion') {
+    return parseInt(character.class_data.data.starting_evasion) || 10;
+  }
+  if (stat === 'hp') {
+    return parseInt(character.class_data.data.starting_hp) || 6;
+  }
+  // Traits base is usually 0 (assigned by user), but could have racial bonuses?
+  // Ancestry modifiers: We could parse those here if we had ancestry data.
+  
+  return 0;
+}
+
+export function calculateBaseEvasion(character: any): number {
+  if (!character) return 10;
+
+  // 1. Class Base
+  let base = getClassBaseStat(character, 'evasion');
+
+  // 2. Ancestry Modifiers (TODO: Fetch and parse ancestry features if needed)
+  
+  // 3. Item Modifiers
+  const systemMods = getSystemModifiers(character, 'evasion');
+  const itemBonus = systemMods.reduce((acc, mod) => acc + mod.value, 0);
+
+  return base + itemBonus;
 }
