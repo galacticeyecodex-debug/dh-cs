@@ -200,8 +200,8 @@ function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id
           {data?.modifiers && Array.isArray(data.modifiers) && data.modifiers.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
               {data.modifiers.map((mod: any, idx: number) => {
-                const isPositive = mod.operator === 'add' && mod.value > 0;
-                const sign = mod.operator === 'add' ? '+' : mod.operator === 'subtract' ? '-' : '';
+                const isPositive = mod.value > 0;
+                const sign = mod.value > 0 ? '+' : '';
                 const label = `${sign}${mod.value} ${mod.target.charAt(0).toUpperCase() + mod.target.slice(1)}`;
                 
                 return (
