@@ -552,8 +552,8 @@ export default function CreateCharacterPage() {
       return;
     }
 
-    if (count && count >= 10) {
-      setError("You have reached the maximum of 10 characters. Please delete an existing character to create a new one.");
+    if (count && count >= 25) {
+      setError("You have reached the maximum of 25 characters. Please delete an existing character to create a new one.");
       setIsSubmitting(false);
       return;
     }
