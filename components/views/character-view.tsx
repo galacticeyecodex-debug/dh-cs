@@ -9,7 +9,7 @@ import VitalCard from '@/components/vital-card'; // Import common VitalCard
 import StatButton from '@/components/stat-button'; // Import common StatButton
 
 export default function CharacterView() {
-  const { character, updateVitals, updateHope, updateEvasion } = useCharacterStore();
+  const { character, updateVitals, updateHope, updateEvasion, updateModifiers } = useCharacterStore();
   // openDiceOverlay is used implicitly by StatButton component, so it's not an unused variable.
 
   // Fallback if loading
@@ -64,10 +64,22 @@ export default function CharacterView() {
             current={character.evasion} 
             color={isEvasionModified ? "text-yellow-400" : "text-cyan-400"}
             icon={Eye} 
+            // We keep the direct increment/decrement for quick overrides if supported by updateEvasion,
+            // but now we primarily want the Modifier Sheet.
+            // If I use Modifier Sheet, do I still want manual +/- on the card?
+            // Plan A says "Quick Chips" in the sheet.
+            // The card itself might just open the sheet.
+            // But VitalCard has +/- buttons built-in.
+            // Let's keep them for now, they update the 'value' directly (manual override behavior).
+            // BUT if we switch to Ledger, direct update might be confusing if it doesn't add a modifier.
+            // Let's rely on `updateModifiers` for the Sheet context.
+            // Passing `onUpdateModifiers` enables the sheet trigger.
             onIncrement={() => updateEvasion(character.evasion + 1)}
             onDecrement={() => updateEvasion(character.evasion - 1)}
             isModified={isEvasionModified}
             expectedValue={expectedEvasion}
+            modifiers={character.modifiers?.['evasion']}
+            onUpdateModifiers={(mods) => updateModifiers('evasion', mods)}
           />
           <VitalCard 
             label="Armor" 
@@ -77,10 +89,12 @@ export default function CharacterView() {
             icon={Shield}
             onIncrement={() => updateVitals('armor_current', character.vitals.armor_current + 1)}
             onDecrement={() => updateVitals('armor_current', character.vitals.armor_current - 1)}
-            isCriticalCondition={character.vitals.armor_current === 0 && character.vitals.armor_max > 0} // Only critical if we have armor slots and they are 0
+            isCriticalCondition={character.vitals.armor_current === 0 && character.vitals.armor_max > 0}
             trackType="mark-bad"
             thresholds={{ minor: minorThreshold, major: majorThreshold, severe: severeThreshold }}
             disableCritColor={true}
+            modifiers={character.modifiers?.['armor']}
+            onUpdateModifiers={(mods) => updateModifiers('armor', mods)}
           />
         </div>
 
@@ -96,6 +110,8 @@ export default function CharacterView() {
           onDecrement={() => updateVitals('hp_current', character.vitals.hp_current - 1)}
           isCriticalCondition={character.vitals.hp_current === 0}
           trackType="mark-bad"
+          modifiers={character.modifiers?.['hp']}
+          onUpdateModifiers={(mods) => updateModifiers('hp', mods)}
         />
 
         {/* Row 3: Stress (Rectangle) */}
@@ -110,6 +126,8 @@ export default function CharacterView() {
           onDecrement={() => updateVitals('stress_current', character.vitals.stress_current - 1)}
           isCriticalCondition={character.vitals.stress_current === character.vitals.stress_max}
           trackType="fill-up-bad"
+          modifiers={character.modifiers?.['stress']}
+          onUpdateModifiers={(mods) => updateModifiers('stress', mods)}
         />
 
         {/* Row 4: Hope (Rectangle) */}
@@ -123,6 +141,8 @@ export default function CharacterView() {
           onIncrement={() => updateHope(character.hope + 1)}
           onDecrement={() => updateHope(character.hope - 1)}
           trackType="fill-up-good"
+          modifiers={character.modifiers?.['hope']}
+          onUpdateModifiers={(mods) => updateModifiers('hope', mods)}
         />
       </div>
 
@@ -131,7 +151,13 @@ export default function CharacterView() {
         <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Traits</h3>
         <div className="grid grid-cols-2 gap-3">
           {Object.entries(character.stats).map(([key, value]) => (
-            <StatButton key={key} label={key} value={value} />
+            <StatButton 
+              key={key} 
+              label={key} 
+              value={value} 
+              modifiers={character.modifiers?.[key]}
+              onUpdateModifiers={(mods) => updateModifiers(key, mods)}
+            />
           ))}
         </div>
       </div>

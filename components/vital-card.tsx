@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart, Zap, Shield, Eye } from 'lucide-react';
 import clsx from 'clsx';
+import ModifierSheet from '@/components/modifier-sheet';
 
 // Props interface for VitalCard
 interface VitalCardProps {
@@ -21,15 +22,17 @@ interface VitalCardProps {
   variant?: 'square' | 'rectangle';
   className?: string;
   trackType?: 'fill-up-good' | 'fill-up-bad' | 'mark-bad';
+  modifiers?: { id: string; name: string; value: number; source: 'user' | 'system' }[];
+  onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' }[]) => void;
 }
 
-export default function VitalCard({
-  label,
-  current,
-  max,
-  color,
-  icon: Icon,
-  onIncrement,
+export default function VitalCard({ 
+  label, 
+  current, 
+  max, 
+  color, 
+  icon: Icon, 
+  onIncrement, 
   onDecrement,
   isCriticalCondition = false,
   isModified = false,
@@ -38,10 +41,13 @@ export default function VitalCard({
   thresholds,
   variant = 'square',
   className,
-  trackType
+  trackType,
+  modifiers,
+  onUpdateModifiers
 }: VitalCardProps) {
+  const [showModifierSheet, setShowModifierSheet] = useState(false);
   const isReadOnly = onIncrement === undefined || onDecrement === undefined;
-  const isUnarmored = label === 'Armor' && (!max || max === 0); // Define isUnarmored here
+  const isUnarmored = label === 'Armor' && (!max || max === 0); 
 
   // Render Track Logic
   const renderTrack = () => {
@@ -81,12 +87,22 @@ export default function VitalCard({
     );
   };
 
+  const handleCardClick = () => {
+    if (onUpdateModifiers) {
+      setShowModifierSheet(true);
+    }
+  };
+
   if (isUnarmored) {
     return (
-      <div className={clsx(
+      <>
+      <div 
+        onClick={handleCardClick}
+        className={clsx(
         "bg-dagger-panel border rounded-xl p-2 flex flex-col items-center justify-center gap-1 relative transition-all",
         "w-full",
-        isModified ? "border-yellow-500/50 border-dashed" : "border-white/10", // No critical border for unarmored
+        isModified ? "border-yellow-500/50 border-dashed" : "border-white/10",
+        onUpdateModifiers && "cursor-pointer hover:border-white/30",
         className
       )}>
         <div className={clsx("flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide", color)}>
@@ -95,7 +111,7 @@ export default function VitalCard({
           {isModified && <span className="ml-1 text-[8px] bg-yellow-500/20 text-yellow-500 px-1 rounded">MOD</span>}
         </div>
         <div className="text-sm text-gray-400 italic my-2">Unarmored</div>
-        {thresholds && ( // Still show thresholds for unarmored
+        {thresholds && ( 
           <div className="w-full px-1 text-[9px] uppercase tracking-wider text-gray-500 flex justify-between">
             <span>Min: {thresholds.minor}</span>
             <span>Maj: {thresholds.major}</span>
@@ -103,16 +119,31 @@ export default function VitalCard({
           </div>
         )}
       </div>
+      {showModifierSheet && onUpdateModifiers && (
+        <ModifierSheet 
+          isOpen={showModifierSheet} 
+          onClose={() => setShowModifierSheet(false)}
+          statLabel={label}
+          baseValue={expectedValue || 0} // Use expectedValue as base if available, else 0
+          currentModifiers={modifiers || []}
+          onUpdateModifiers={onUpdateModifiers}
+        />
+      )}
+      </>
     );
   }
 
   return (
-    <div className={clsx(
+    <>
+    <div 
+      onClick={handleCardClick}
+      className={clsx(
       "bg-dagger-panel border rounded-xl p-2 flex flex-col items-center justify-center gap-1 relative transition-all",
       "w-full",
       // Critical condition overrides modified border
       isCriticalCondition ? "border-red-500 ring-2 ring-red-500" : 
       isModified ? "border-yellow-500/50 border-dashed" : "border-white/10",
+      onUpdateModifiers && "cursor-pointer hover:border-white/30",
       className
     )}>
       <div className={clsx("flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide", color)}>
@@ -143,33 +174,8 @@ export default function VitalCard({
       )}
 
       {!isReadOnly && max && max > 0 && (
-        <div className="flex w-full gap-1 mt-1">
-          {/* 
-             Button Logic depends on Track Type? 
-             User said: "Hiting the + / - buttons will 'Mark' an icon"
-             
-             For 'mark-bad' (HP): 
-               Marking adds a filled spot. 
-               Since filled = max - current, Adding Filled means Reducing Current.
-               So "Mark (+)" should CALL DECREMENT?
-               Wait. "+" usually implies "Add to the stat".
-               If stat is "HP Remaining", "+" adds HP (Unmarks).
-               If User sees a "+" button, do they think "Add Health" or "Add Mark"?
-               User said: "Hiting the + / - buttons will 'Mark' an icon"
-               So they likely want a button labeled "Mark" or "+" that ADDS A MARK.
-               Adding a Mark REDUCES 'current' (Remaining HP).
-               
-               So for 'mark-bad':
-                 Left Button (-/Unmark/Heal): Increases Current.
-                 Right Button (+/Mark/Hurt): Decreases Current.
-                 
-               For 'fill-up-good' (Hope):
-                 Left Button (-/Spend): Decreases Current.
-                 Right Button (+/Gain): Increases Current.
-                 
-               I should probably customize the button labels/icons too to be clear.
-          */}
-          
+        <div className="flex w-full gap-1 mt-1" onClick={(e) => e.stopPropagation()}> {/* Stop propagation so button clicks don't open sheet */}
+          {/* ... Buttons ... */}
           {trackType === 'mark-bad' ? (
              <>
                 <button type="button" onClick={onIncrement} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Clear</button>
@@ -194,5 +200,16 @@ export default function VitalCard({
         </div>
       )}
     </div>
+    {showModifierSheet && onUpdateModifiers && (
+        <ModifierSheet 
+          isOpen={showModifierSheet} 
+          onClose={() => setShowModifierSheet(false)}
+          statLabel={label}
+          baseValue={expectedValue || 0}
+          currentModifiers={modifiers || []}
+          onUpdateModifiers={onUpdateModifiers}
+        />
+      )}
+    </>
   );
 }
