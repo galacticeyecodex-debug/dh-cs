@@ -51,7 +51,35 @@ export default function VitalCard({
 
   // Render Track Logic
   const renderTrack = () => {
-// ... existing code ...
+    if (!max) return null;
+
+    const icons = [];
+    // Determine how many are "filled" based on type
+    const filledCount = (trackType === 'fill-up-good' || trackType === 'fill-up-bad') ? current : Math.max(0, max - current);
+    
+    // Check if track is "badly" full (e.g. full stress/damage)
+    // Respect disableCritColor prop (e.g. for Armor, which isn't "bad" when full)
+    const isFullBad = (trackType === 'mark-bad' || trackType === 'fill-up-bad') && filledCount >= max && !disableCritColor;
+    
+    // Base color for filled icons
+    const filledColor = isFullBad ? "text-red-500" : color;
+    const emptyColor = "text-white/10";
+
+    for (let i = 0; i < max; i++) {
+      const isFilled = i < filledCount;
+      icons.push(
+        <Icon 
+          key={i} 
+          size={trackType === 'mark-bad' ? 16 : 14} 
+          className={clsx(
+            "transition-all duration-300",
+            isFilled ? clsx(filledColor, "scale-100") : clsx(emptyColor, "scale-90")
+          )}
+          fill={isFilled ? "currentColor" : "none"}
+        />
+      );
+    }
+    
     return (
       <div className="flex flex-wrap justify-center gap-1.5 my-2 px-2">
         {icons}
