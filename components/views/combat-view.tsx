@@ -69,6 +69,7 @@ export default function CombatView() {
             onDecrement={() => updateVitals('armor_current', character.vitals.armor_current - 1)}
             isCriticalCondition={character.vitals.armor_current === 0}
             thresholds={armor ? { minor: minorThreshold, major: majorThreshold, severe: severeThreshold } : undefined}
+            trackType="mark-bad"
           />
         </div>
 
@@ -83,6 +84,7 @@ export default function CombatView() {
           onIncrement={() => updateVitals('hp_current', character.vitals.hp_current + 1)}
           onDecrement={() => updateVitals('hp_current', character.vitals.hp_current - 1)}
           isCriticalCondition={character.vitals.hp_current === 0}
+          trackType="mark-bad"
         />
 
         {/* Row 3: Stress (Rectangle) */}
@@ -96,6 +98,7 @@ export default function CombatView() {
           onIncrement={() => updateVitals('stress_current', character.vitals.stress_current + 1)}
           onDecrement={() => updateVitals('stress_current', character.vitals.stress_current - 1)}
           isCriticalCondition={character.vitals.stress_current === 0}
+          trackType="mark-bad"
         />
 
         {/* Row 4: Hope (Rectangle) */}
@@ -108,6 +111,7 @@ export default function CombatView() {
           variant="rectangle"
           onIncrement={() => updateHope(character.hope + 1)}
           onDecrement={() => updateHope(character.hope - 1)}
+          trackType="fill-up-good"
         />
       </div>
       
