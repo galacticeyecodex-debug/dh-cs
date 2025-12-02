@@ -148,6 +148,11 @@ export default function VitalCard({
                 <button type="button" onClick={onIncrement} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Clear</button>
                 <button type="button" onClick={onDecrement} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Mark</button>
              </>
+          ) : trackType === 'fill-up-good' ? (
+             <>
+                <button type="button" onClick={onDecrement} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Spend</button>
+                <button type="button" onClick={onIncrement} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Gain</button>
+             </>
           ) : (
              <>
                 <button type="button" onClick={onDecrement} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-base font-bold">-</button>
