@@ -36,15 +36,21 @@ export default function ModifierSheet({
 
   // Calculate Total
   const total = baseValue + currentModifiers.reduce((acc, mod) => acc + mod.value, 0);
+  
+  // Pending Value for Stepper
+  const [pendingValue, setPendingValue] = useState(0);
 
-  const handleAddQuick = (val: number) => {
+  const handleApplyPending = () => {
+    if (pendingValue === 0) return;
+    
     const newMod: Modifier = {
       id: crypto.randomUUID(),
       name: 'Adjustment',
-      value: val,
+      value: pendingValue,
       source: 'user'
     };
     onUpdateModifiers([...currentModifiers, newMod]);
+    setPendingValue(0); // Reset after apply
   };
 
   const handleDelete = (id: string) => {
@@ -105,11 +111,38 @@ export default function ModifierSheet({
               <div className="text-xs text-gray-500 mt-1">Base Value: {baseValue}</div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="p-4 flex justify-center gap-3 border-b border-white/10 bg-black/20">
-              <button onClick={() => handleAddQuick(-1)} className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-bold text-red-400">-1</button>
-              <button onClick={() => handleAddQuick(1)} className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-bold text-green-400">+1</button>
-              <button onClick={() => handleAddQuick(2)} className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-bold text-green-400">+2</button>
+            {/* Stepper / Quick Actions */}
+            <div className="p-4 border-b border-white/10 bg-black/20 flex flex-col items-center gap-3">
+               <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setPendingValue(prev => prev - 1)}
+                    className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-2xl font-bold text-white transition-colors"
+                  >
+                    -
+                  </button>
+                  
+                  <div className={clsx(
+                    "w-16 text-center text-3xl font-bold",
+                    pendingValue > 0 ? "text-green-400" : pendingValue < 0 ? "text-red-400" : "text-gray-500"
+                  )}>
+                    {pendingValue > 0 ? `+${pendingValue}` : pendingValue}
+                  </div>
+
+                  <button 
+                    onClick={() => setPendingValue(prev => prev + 1)}
+                    className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-2xl font-bold text-white transition-colors"
+                  >
+                    +
+                  </button>
+               </div>
+               
+               <button 
+                 onClick={handleApplyPending}
+                 disabled={pendingValue === 0}
+                 className="w-full py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+               >
+                 Apply Adjustment
+               </button>
             </div>
 
             {/* List */}
@@ -138,7 +171,10 @@ export default function ModifierSheet({
                         {mod.source === 'user' && <Pencil size={12} className="text-gray-600 opacity-50" />}
                       </div>
                     )}
-                    <div className="text-xs text-gray-500 uppercase">{mod.source}</div>
+                    <div className="text-xs text-gray-500 uppercase flex items-center gap-1">
+                       {mod.source === 'system' && <span className="bg-blue-900/50 text-blue-300 px-1.5 rounded text-[10px]">SYSTEM</span>}
+                       {mod.source === 'user' && <span className="bg-white/10 text-gray-400 px-1.5 rounded text-[10px]">USER</span>}
+                    </div>
                   </div>
                   
                   <div className="flex items-center gap-3">
