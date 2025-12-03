@@ -415,16 +415,26 @@ export default function DiceOverlay() {
                     <div className="text-sm text-gray-400 uppercase tracking-wider mb-1">Result</div>
                     <div className="text-6xl font-serif font-black text-white mb-4">{lastRollResult.total}</div>
                     {lastRollResult.type !== 'Damage' && (
-                      <div className="flex justify-center gap-8 mb-4">
-                        <div className="flex flex-col">
-                          <span className="text-xs text-dagger-gold uppercase font-bold">Hope</span>
-                          <span className="text-2xl font-bold text-white">{lastRollResult.hope}</span>
+                        <div className="flex justify-center gap-4 mb-4">
+                          <div className="flex flex-col">
+                              <span className="text-[10px] text-dagger-gold uppercase font-bold">Hope</span>
+                              <span className="text-2xl font-bold text-white">{lastRollResult.hope}</span>
+                          </div>
+                          <div className="flex flex-col">
+                              <span className="text-[10px] text-purple-400 uppercase font-bold">Fear</span>
+                              <span className="text-2xl font-bold text-white">{lastRollResult.fear}</span>
+                          </div>
+                          {(lastRollResult.extras || 0) > 0 && (
+                            <div className="flex flex-col">
+                                <span className="text-[10px] text-green-400 uppercase font-bold">Help</span>
+                                <span className="text-2xl font-bold text-white">+{lastRollResult.extras}</span>
+                            </div>
+                          )}
+                          <div className="flex flex-col">
+                             <span className="text-[10px] text-gray-400 uppercase font-bold">Mod</span>
+                             <span className="text-2xl font-bold text-white">{lastRollResult.modifier >= 0 ? `+${lastRollResult.modifier}` : lastRollResult.modifier}</span>
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-purple-400 uppercase font-bold">Fear</span>
-                          <span className="text-2xl font-bold text-white">{lastRollResult.fear}</span>
-                        </div>
-                      </div>
                     )}
                     <div className={clsx(
                       "inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wide",
