@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import createClient from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { getSystemModifiers } from '@/lib/utils';
+import { Experience } from '@/types/modifiers';
 
 // Define interfaces for related data
 export interface LibraryItem {
@@ -69,7 +70,7 @@ export interface Character {
   fear: number;
   evasion: number;
   proficiency: number;
-  experiences: string[];
+  experiences: Experience[];
   modifiers?: Record<string, { id: string; name: string; value: number; source: 'user' | 'system' }[]>;
   gold: {
     handfuls: number;
@@ -121,6 +122,7 @@ interface CharacterState {
   updateHope: (value: number) => Promise<void>;
   updateEvasion: (value: number) => Promise<void>;
   updateModifiers: (stat: string, modifiers: { id: string; name: string; value: number; source: 'user' | 'system' }[]) => Promise<void>;
+  updateExperiences: (experiences: Experience[]) => Promise<void>;
   moveCard: (cardId: string, destination: 'loadout' | 'vault') => Promise<void>;
   addCardToCollection: (item: LibraryItem) => Promise<void>;
 }
@@ -535,6 +537,28 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     await get().recalculateDerivedStats();
   },
 
+  updateExperiences: async (experiences) => {
+    const state = get();
+    if (!state.character) return;
+
+    // Optimistically update UI
+    set((s) => ({
+      character: s.character ? { ...s.character, experiences } : null,
+    }));
+
+    // Persist to DB
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('characters')
+      .update({ experiences })
+      .eq('id', state.character.id);
+
+    if (error) {
+      console.error('Error updating experiences:', error);
+      // TODO: Revert
+    }
+  },
+
   equipItem: async (itemId, slot) => {
     const state = get();
     if (!state.character) return;
@@ -722,6 +746,20 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       armor_score: rawVitals.armor_score ?? rawVitals.armor_max ?? 0
     };
 
+    // Parse Experiences (Migrate string[] to Experience[])
+    let experiences: Experience[] = [];
+    const rawExperiences = typeof charData.experiences === 'string' ? JSON.parse(charData.experiences) : charData.experiences;
+
+    if (Array.isArray(rawExperiences)) {
+      if (rawExperiences.length > 0 && typeof rawExperiences[0] === 'string') {
+        // Legacy: Array of strings
+        experiences = rawExperiences.map((name: string) => ({ name, value: 2 })); // Default to +2
+      } else {
+        // New: Array of Experience objects
+        experiences = rawExperiences;
+      }
+    }
+
     // Calculate initial damage thresholds (default if not stored)
     // We could call recalculateDerivedStats after set, but calculating basic here is safer
     const minor = 1;
@@ -745,6 +783,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       vitals,
       damage_thresholds, // Injected property
       gold: typeof charData.gold === 'string' ? JSON.parse(charData.gold) : charData.gold,
+      experiences, // Use parsed experiences
     };
 
     set({ character: fullCharacter as Character, isLoading: false });

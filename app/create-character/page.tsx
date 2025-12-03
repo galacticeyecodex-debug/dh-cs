@@ -582,64 +582,37 @@ export default function CreateCharacterPage() {
       domains: formData.domains as string[],
       stats: formData.stats as Character['stats'],
       vitals: { // Dynamically calculated vitals
-        hp_max: calculatedVitals.hp,
-        hp_current: calculatedVitals.hp,
+        hit_points_max: calculatedVitals.hp,
+        hit_points_current: calculatedVitals.hp, // Start healthy (no damage)
         stress_max: calculatedVitals.stress,
-        stress_current: 0,
-        armor_max: actualArmorScore,
-        armor_current: actualArmorScore,
+        stress_current: 0, // Start with no stress
+        armor_score: actualArmorScore,
+        armor_slots: actualArmorScore, // Start with all armor slots available (unmarked)
       },
       hope: 2, // Starting hope is always 2
       fear: 0,
       evasion: calculatedVitals.evasion,
       proficiency: 1,
-      experiences: formData.experiences as string[],
+      experiences: formData.experiences!.map(name => ({ name, value: 2 })),
       gold: startingItemsAndCards.gold,
       image_url: uploadedImageUrl || formData.image_url,
     };
 
-    const { data: newCharacter, error: charError } = await supabase
-      .from('characters')
-      .insert([newCharacterData])
-      .select('id')
-      .single();
-
-    if (charError) {
-      setError("Error creating character: " + charError.message);
-      console.error(charError);
-      setIsSubmitting(false);
-      return;
-    }
-
-    const characterId = newCharacter.id;
-
-    // Insert initial character cards (from user selection)
+    // Prepare Cards Payload
     const cardsToInsert = formData.selectedCards!.map((card_id, index) => ({
-      character_id: characterId,
       card_id: card_id,
       location: 'loadout', // Assume all starting cards go to loadout
       sort_order: index,
     }));
 
-    if (cardsToInsert.length > 0) {
-      const { error: cardsError } = await supabase.from('character_cards').insert(cardsToInsert);
-      if (cardsError) {
-        setError("Error adding starting cards: " + cardsError.message);
-        console.error(cardsError);
-        setIsSubmitting(false);
-        return;
-      }
-    }
-
-    // Insert initial character inventory
-    const inventoryToInsert = [];
+    // Prepare Inventory Payload
+    const inventoryToInsert: { item_id: string | null, name: string, description: string, location: string, quantity: number }[] = [];
 
     // Add primary weapon
     if (formData.selectedPrimaryWeaponId) {
       const item = libraryData.weapons.find(w => w.id === formData.selectedPrimaryWeaponId);
       if (item) {
         inventoryToInsert.push({
-          character_id: characterId,
           item_id: item.id,
           name: item.name,
           description: item.data.markdown || '',
@@ -654,7 +627,6 @@ export default function CreateCharacterPage() {
       const item = libraryData.weapons.find(w => w.id === formData.selectedSecondaryWeaponId);
       if (item) {
         inventoryToInsert.push({
-          character_id: characterId,
           item_id: item.id,
           name: item.name,
           description: item.data.markdown || '',
@@ -669,7 +641,6 @@ export default function CreateCharacterPage() {
       const item = libraryData.armor.find(a => a.id === formData.selectedArmorId);
       if (item) {
         inventoryToInsert.push({
-          character_id: characterId,
           item_id: item.id,
           name: item.name,
           description: item.data.markdown || '',
@@ -685,7 +656,6 @@ export default function CreateCharacterPage() {
       const potionItem = libraryData.consumables.find(c => c.name === potionName);
       if (potionItem) {
         inventoryToInsert.push({
-          character_id: characterId,
           item_id: potionItem.id,
           name: potionItem.name,
           description: potionItem.data.markdown || '',
@@ -701,7 +671,6 @@ export default function CreateCharacterPage() {
       const item = libraryData.consumables.find(c => c.name === itemName) || libraryData.weapons.find(w => w.name === itemName);
       if (item) {
         inventoryToInsert.push({
-          character_id: characterId,
           item_id: item.id,
           name: item.name,
           description: item.data?.markdown || '',
@@ -715,7 +684,6 @@ export default function CreateCharacterPage() {
       const item = libraryData.consumables.find(c => c.id === itemId); // Assuming misc items are consumables
       if (item) {
         inventoryToInsert.push({
-          character_id: characterId,
           item_id: item.id,
           name: item.name,
           description: item.data.markdown || '',
@@ -727,7 +695,6 @@ export default function CreateCharacterPage() {
     // Add default gold items as generic inventory items or handle separately
     if (startingItemsAndCards.gold.handfuls > 0 || startingItemsAndCards.gold.bags > 0 || startingItemsAndCards.gold.chests > 0) {
       inventoryToInsert.push({
-        character_id: characterId,
         item_id: null, // Custom item
         name: 'Gold',
         description: `Handfuls: ${startingItemsAndCards.gold.handfuls}, Bags: ${startingItemsAndCards.gold.bags}, Chests: ${startingItemsAndCards.gold.chests}`,
@@ -736,15 +703,45 @@ export default function CreateCharacterPage() {
       });
     }
 
+    // Prepare RPC Payloads
+    const rpcCharacterData = {
+      ...newCharacterData,
+      // Experiences needs to be a JSON array for the RPC
+      experiences: newCharacterData.experiences,
+      // Stats, Vitals, Gold, Modifiers need to be JSON objects
+      stats: newCharacterData.stats,
+      vitals: newCharacterData.vitals,
+      gold: newCharacterData.gold,
+      modifiers: {}
+    };
 
-    if (inventoryToInsert.length > 0) {
-      const { error: inventoryError } = await supabase.from('character_inventory').insert(inventoryToInsert);
-      if (inventoryError) {
-        setError("Error adding starting inventory: " + inventoryError.message);
-        console.error(inventoryError);
-        setIsSubmitting(false);
-        return;
-      }
+    // Prepare Cards Payload (remove character_id as RPC handles it)
+    const rpcCardsData = cardsToInsert.map(({ card_id, location, sort_order }) => ({
+      card_id,
+      location,
+      sort_order
+    }));
+
+    // Prepare Inventory Payload (remove character_id as RPC handles it)
+    const rpcInventoryData = inventoryToInsert.map(({ item_id, name, description, location, quantity }) => ({
+      item_id,
+      name,
+      description,
+      location,
+      quantity
+    }));
+
+    const { data: characterId, error: rpcError } = await supabase.rpc('create_complete_character', {
+      p_character: rpcCharacterData,
+      p_cards: rpcCardsData,
+      p_inventory: rpcInventoryData
+    });
+
+    if (rpcError) {
+      setError("Error creating character: " + rpcError.message);
+      console.error(rpcError);
+      setIsSubmitting(false);
+      return;
     }
 
     // After successful creation, refetch character for store and redirect
@@ -1344,8 +1341,8 @@ export default function CreateCharacterPage() {
                 onAddItem={(item) => handleEquipmentSelect(item)}
                 libraryItems={
                   equipmentModalContext === 'primary' ? tier1PrimaryWeapons as LibraryItem[] :
-                  equipmentModalContext === 'secondary' ? tier1SecondaryWeapons as LibraryItem[] :
-                  equipmentModalContext === 'armor' ? tier1Armor as LibraryItem[] : []
+                    equipmentModalContext === 'secondary' ? tier1SecondaryWeapons as LibraryItem[] :
+                      equipmentModalContext === 'armor' ? tier1Armor as LibraryItem[] : []
                 }
                 filterType="inventory"
               />

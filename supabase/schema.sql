@@ -23,6 +23,12 @@ CREATE TABLE IF NOT EXISTS public.library (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- DROP TABLES for Clean Reset (Development Mode)
+-- This ensures that if the schema changes, we don't get "relation exists" errors with old structures.
+DROP TABLE IF EXISTS public.character_inventory CASCADE;
+DROP TABLE IF EXISTS public.character_cards CASCADE;
+DROP TABLE IF EXISTS public.characters CASCADE;
+
 -- 3. CHARACTERS
 -- Stores the player characters
 CREATE TABLE IF NOT EXISTS public.characters (
@@ -51,7 +57,7 @@ CREATE TABLE IF NOT EXISTS public.characters (
   proficiency INT DEFAULT 1,
   
   -- Lists
-  experiences TEXT[] DEFAULT '{}',
+  experiences JSONB DEFAULT '[]'::jsonb,
   domains TEXT[] DEFAULT '{}',
   
   -- Inventory/Gold
@@ -144,8 +150,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-
 -- Character Cards RLS
 DO $$
 BEGIN
@@ -156,22 +160,22 @@ BEGIN
 
     EXECUTE 'DROP POLICY IF EXISTS "Cards viewable by char owner" ON public.character_cards';
     CREATE POLICY "Cards viewable by char owner" ON public.character_cards FOR SELECT USING (
-      EXISTS (SELECT 1 FROM public.characters WHERE id = character_id AND user_id = auth.uid())
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
     );
 
     EXECUTE 'DROP POLICY IF EXISTS "Cards insertable by char owner" ON public.character_cards';
     CREATE POLICY "Cards insertable by char owner" ON public.character_cards FOR INSERT WITH CHECK (
-      (SELECT user_id FROM public.characters WHERE id = character_cards.character_id) = auth.uid()
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
     );
 
     EXECUTE 'DROP POLICY IF EXISTS "Cards updatable by char owner" ON public.character_cards';
     CREATE POLICY "Cards updatable by char owner" ON public.character_cards FOR UPDATE USING (
-      EXISTS (SELECT 1 FROM public.characters WHERE id = character_id AND user_id = auth.uid())
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
     );
 
     EXECUTE 'DROP POLICY IF EXISTS "Cards deletable by char owner" ON public.character_cards';
     CREATE POLICY "Cards deletable by char owner" ON public.character_cards FOR DELETE USING (
-      EXISTS (SELECT 1 FROM public.characters WHERE id = character_id AND user_id = auth.uid())
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
     );
   END IF;
 END;
@@ -187,22 +191,22 @@ BEGIN
 
     EXECUTE 'DROP POLICY IF EXISTS "Inventory viewable by char owner" ON public.character_inventory';
     CREATE POLICY "Inventory viewable by char owner" ON public.character_inventory FOR SELECT USING (
-      EXISTS (SELECT 1 FROM public.characters WHERE id = character_id AND user_id = auth.uid())
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
     );
 
     EXECUTE 'DROP POLICY IF EXISTS "Inventory insertable by char owner" ON public.character_inventory';
     CREATE POLICY "Inventory insertable by char owner" ON public.character_inventory FOR INSERT WITH CHECK (
-      EXISTS (SELECT 1 FROM public.characters WHERE id = character_id AND user_id = auth.uid())
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
     );
 
     EXECUTE 'DROP POLICY IF EXISTS "Inventory updatable by char owner" ON public.character_inventory';
     CREATE POLICY "Inventory updatable by char owner" ON public.character_inventory FOR UPDATE USING (
-      EXISTS (SELECT 1 FROM public.characters WHERE id = character_id AND user_id = auth.uid())
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
     );
 
     EXECUTE 'DROP POLICY IF EXISTS "Inventory deletable by char owner" ON public.character_inventory';
     CREATE POLICY "Inventory deletable by char owner" ON public.character_inventory FOR DELETE USING (
-      EXISTS (SELECT 1 FROM public.characters WHERE id = character_id AND user_id = auth.uid())
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
     );
   END IF;
 END;
@@ -232,3 +236,76 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- RPC FUNCTIONS --
+
+-- Function to create a character with initial cards and inventory in one transaction
+-- Bypasses RLS for dependent tables since it verifies ownership via auth.uid()
+CREATE OR REPLACE FUNCTION create_complete_character(
+  p_character jsonb,
+  p_cards jsonb,
+  p_inventory jsonb
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_character_id uuid;
+  v_user_id uuid;
+BEGIN
+  v_user_id := auth.uid();
+  
+  -- 1. Insert Character
+  INSERT INTO public.characters (
+    user_id, name, level, class_id, subclass_id, ancestry, community,
+    stats, vitals, hope, fear, evasion, proficiency,
+    experiences, domains, gold, image_url, modifiers
+  ) VALUES (
+    v_user_id,
+    p_character->>'name',
+    COALESCE((p_character->>'level')::int, 1),
+    p_character->>'class_id',
+    p_character->>'subclass_id',
+    p_character->>'ancestry',
+    p_character->>'community',
+    COALESCE(p_character->'stats', '{}'::jsonb),
+    COALESCE(p_character->'vitals', '{}'::jsonb),
+    COALESCE((p_character->>'hope')::int, 2),
+    COALESCE((p_character->>'fear')::int, 0),
+    COALESCE((p_character->>'evasion')::int, 10),
+    COALESCE((p_character->>'proficiency')::int, 1),
+    COALESCE(p_character->'experiences', '[]'::jsonb),
+    (SELECT array_agg(x) FROM jsonb_array_elements_text(p_character->'domains') t(x)),
+    COALESCE(p_character->'gold', '{}'::jsonb),
+    p_character->>'image_url',
+    COALESCE(p_character->'modifiers', '{}'::jsonb)
+  ) RETURNING id INTO v_character_id;
+
+  -- 2. Insert Cards
+  IF jsonb_array_length(p_cards) > 0 THEN
+    INSERT INTO public.character_cards (character_id, card_id, location, sort_order)
+    SELECT 
+      v_character_id,
+      x->>'card_id',
+      x->>'location',
+      (x->>'sort_order')::int
+    FROM jsonb_array_elements(p_cards) as x;
+  END IF;
+
+  -- 3. Insert Inventory
+  IF jsonb_array_length(p_inventory) > 0 THEN
+    INSERT INTO public.character_inventory (character_id, item_id, name, description, location, quantity)
+    SELECT 
+      v_character_id,
+      x->>'item_id',
+      x->>'name',
+      x->>'description',
+      x->>'location',
+      (x->>'quantity')::int
+    FROM jsonb_array_elements(p_inventory) as x;
+  END IF;
+
+  RETURN v_character_id;
+END;
+$$;

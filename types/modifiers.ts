@@ -19,3 +19,8 @@ export interface Modifier {
 export interface ItemModifiers {
   modifiers: Modifier[];
 }
+
+export interface Experience {
+  name: string;
+  value: number;
+}
