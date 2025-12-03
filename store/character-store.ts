@@ -341,7 +341,36 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // 3. Apply Manual Modifiers (from Ledger)
     if (character.modifiers?.['armor']) {
       character.modifiers['armor'].forEach(mod => {
-        newArmorScore += mod.value; 
+        newArmorScore += mod.value;
+      });
+    }
+
+    // === HP MAX CALCULATION ===
+    const classBaseHP = parseInt(character.class_data?.data?.starting_hp) || 6;
+    let newHPMax = classBaseHP;
+
+    // System modifiers from items
+    const hpMods = getSystemModifiers(tempChar, 'hit_points');
+    newHPMax += hpMods.reduce((acc: number, mod: any) => acc + mod.value, 0);
+
+    // Manual modifiers from ledger
+    if (character.modifiers?.['hit_points']) {
+      character.modifiers['hit_points'].forEach(mod => {
+        newHPMax += mod.value;
+      });
+    }
+
+    // === STRESS MAX CALCULATION ===
+    let newStressMax = 6; // Base stress is always 6
+
+    // System modifiers from items
+    const stressMods = getSystemModifiers(tempChar, 'stress');
+    newStressMax += stressMods.reduce((acc: number, mod: any) => acc + mod.value, 0);
+
+    // Manual modifiers from ledger
+    if (character.modifiers?.['stress']) {
+      character.modifiers['stress'].forEach(mod => {
+        newStressMax += mod.value;
       });
     }
 
@@ -350,9 +379,15 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     
     const newVitals = {
       ...currentVitals,
+      // Armor
       armor_score: newArmorScore,
-      // Clamp current armor if it exceeds max
-      armor_slots: Math.min(currentVitals.armor_slots, newArmorScore)
+      armor_slots: Math.min(currentVitals.armor_slots, newArmorScore),
+      // HP
+      hit_points_max: newHPMax,
+      hit_points_current: Math.min(currentVitals.hit_points_current, newHPMax),
+      // Stress
+      stress_max: newStressMax,
+      stress_current: Math.min(currentVitals.stress_current, newStressMax),
     };
     
     const newThresholds = {
