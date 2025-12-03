@@ -232,16 +232,16 @@ export default function DiceOverlay() {
 
         dicePool.forEach((die, idx) => {
           const val = result[idx].value;
-          if (die.role === 'hope' && hopeRoll === 0) hopeRoll = val; // Only take first hope
-          else if (die.role === 'fear' && fearRoll === 0) fearRoll = val; // Only take first fear
-          else extraTotal += val; // All others (including 2nd hope/fear) add to total? 
-          // Actually, 2nd hope/fear usually implies Advantage/Disadvantage where you take higher/lower.
-          // For this Builder MVP, let's just sum everything else as "extra".
-        });
-
-        const total = hopeRoll + fearRoll + totalModifier + extraTotal;
-
-        let type: 'Critical' | 'Hope' | 'Fear' | 'Damage' = 'Hope';
+                     if (die.role === 'hope' && hopeRoll === 0) hopeRoll = val;
+                     else if (die.role === 'fear' && fearRoll === 0) fearRoll = val;
+                     else extraTotal += val;
+                  });
+          
+                  const total = hopeRoll + fearRoll + totalModifier + extraTotal;
+                  
+                  console.log("Roll Calculation:", { hopeRoll, fearRoll, extraTotal, total, totalModifier });
+          
+                  let type: 'Critical' | 'Hope' | 'Fear' | 'Damage' = 'Hope';
         if (hopeRoll === fearRoll && hopeRoll !== 0) type = 'Critical';
         else if (hopeRoll > fearRoll) type = 'Hope';
         else type = 'Fear';
@@ -420,17 +420,17 @@ export default function DiceOverlay() {
                               <span className="text-[10px] text-dagger-gold uppercase font-bold">Hope</span>
                               <span className="text-2xl font-bold text-white">{lastRollResult.hope}</span>
                           </div>
-                          <div className="flex flex-col">
+                          <div className="flex flex-col items-center">
                               <span className="text-[10px] text-purple-400 uppercase font-bold">Fear</span>
                               <span className="text-2xl font-bold text-white">{lastRollResult.fear}</span>
                           </div>
-                          {(lastRollResult.extras || 0) > 0 && (
-                            <div className="flex flex-col">
-                                <span className="text-[10px] text-green-400 uppercase font-bold">Help</span>
-                                <span className="text-2xl font-bold text-white">+{lastRollResult.extras}</span>
-                            </div>
-                          )}
-                          <div className="flex flex-col">
+                          
+                          <div className="flex flex-col items-center">
+                              <span className="text-[10px] text-green-400 uppercase font-bold">Help</span>
+                              <span className="text-2xl font-bold text-white">+{lastRollResult.extras ?? 0}</span>
+                          </div>
+
+                          <div className="flex flex-col items-center">
                              <span className="text-[10px] text-gray-400 uppercase font-bold">Mod</span>
                              <span className="text-2xl font-bold text-white">{lastRollResult.modifier >= 0 ? `+${lastRollResult.modifier}` : lastRollResult.modifier}</span>
                           </div>
