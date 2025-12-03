@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import createClient from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
+import { getSystemModifiers } from '@/lib/utils';
 
 // Define interfaces for related data
 export interface LibraryItem {
@@ -52,12 +53,17 @@ export interface Character {
     knowledge: number;
   };
   vitals: {
-    hp_max: number;
-    hp_current: number;
+    hit_points_max: number;
+    hit_points_current: number;
     stress_max: number;
     stress_current: number;
-    armor_max: number;
-    armor_current: number;
+    armor_score: number;
+    armor_slots: number;
+  };
+  damage_thresholds: {
+    minor: number;
+    major: number;
+    severe: number;
   };
   hope: number;
   fear: number;
@@ -107,7 +113,7 @@ interface CharacterState {
   fetchUser: () => Promise<void>;
   switchCharacter: (characterId: string) => Promise<void>;
 
-  updateVitals: (type: 'hp_current' | 'stress_current' | 'armor_current', value: number) => Promise<void>;
+  updateVitals: (type: 'hit_points_current' | 'stress_current' | 'armor_slots', value: number) => Promise<void>;
   equipItem: (itemId: string, slot: 'equipped_primary' | 'equipped_secondary' | 'equipped_armor' | 'backpack') => Promise<void>;
   addItemToInventory: (item: LibraryItem) => Promise<void>;
   recalculateDerivedStats: () => Promise<void>;
@@ -288,64 +294,96 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     const equippedSecondary = inventory.find(i => i.location === 'equipped_secondary');
 
     let newArmorScore = 0;
+    let minorThreshold = 1;
+    let majorThreshold = character.level;
+    let severeThreshold = character.level * 2;
 
-    // 1. Base Score from Armor
-    if (equippedArmor?.library_item?.data?.base_score) {
-      newArmorScore += parseInt(equippedArmor.library_item.data.base_score) || 0;
-    }
-    // Add Level Bonus to Armor Score if wearing armor (assuming standard rule)
-    // SRD says "Base Score" + permanent bonuses.
-    // Usually Armor Score = Base Score + Level (if armor equipped) is NOT a standard rule, but usually specific armor stats scale or character levels grant bonuses.
-    // Wait, SRD armor tables show base score scaling with Tier.
-    // Let's stick to Item Stats.
-    // HOWEVER, some classes/subclasses/abilities might give bonuses. We are only checking Items for now.
-
-    // 2. Scan equipped items for bonuses
-    const checkItemForBonus = (item: CharacterInventoryItem | undefined) => {
-      if (!item?.library_item?.data) return;
-      const featureText = item.library_item.data.feature?.text || '';
-      const featText = item.library_item.data.feat_text || ''; // Some might store it here
-      const combinedText = `${featureText} ${featText}`;
-
-      // Regex for "+X to Armor Score"
-      const armorBonusMatch = combinedText.match(/([+-]?\d+)\s+to\s+Armor\s+Score/i);
-      if (armorBonusMatch) {
-        newArmorScore += parseInt(armorBonusMatch[1]);
+    // 1. Base Score from Armor & Thresholds
+    if (equippedArmor?.library_item?.data) {
+      const armorData = equippedArmor.library_item.data;
+      
+      // Base Score
+      if (armorData.base_score) {
+        newArmorScore += parseInt(armorData.base_score) || 0;
       }
-    };
+      
+      // Thresholds
+      if (armorData.base_thresholds) {
+        const parts = armorData.base_thresholds.split('/');
+        if (parts.length === 2) {
+          const baseMajor = parseInt(parts[0].trim());
+          const baseSevere = parseInt(parts[1].trim());
+          if (!isNaN(baseMajor) && !isNaN(baseSevere)) {
+            majorThreshold = baseMajor + character.level;
+            severeThreshold = baseSevere + character.level;
+          }
+        }
+      }
+    } else {
+        // Unarmored rules: Score 0, Major = Level, Severe = Level * 2
+        // (Defaults already set)
+    }
 
-    checkItemForBonus(equippedArmor); // Armor itself might have a bonus feature? Unlikely but possible.
-    checkItemForBonus(equippedPrimary);
-    checkItemForBonus(equippedSecondary);
+    // 2. System Modifiers (Items)
+    const tempChar = { ...character, character_inventory: inventory };
+    
+    // Armor Score Bonuses
+    const armorMods = getSystemModifiers(tempChar, 'armor');
+    newArmorScore += armorMods.reduce((acc: number, mod: any) => acc + mod.value, 0);
+
+    // Threshold Bonuses
+    const thresholdMods = getSystemModifiers(tempChar, 'damage_thresholds');
+    const thresholdBonus = thresholdMods.reduce((acc: number, mod: any) => acc + mod.value, 0);
+    
+    majorThreshold += thresholdBonus;
+    severeThreshold += thresholdBonus;
 
     // 3. Apply Manual Modifiers (from Ledger)
     if (character.modifiers?.['armor']) {
       character.modifiers['armor'].forEach(mod => {
-        // Armor modifiers usually affect the Score (Max)
         newArmorScore += mod.value; 
       });
     }
 
     // Apply updates
     const currentVitals = character.vitals;
-    if (currentVitals.armor_max !== newArmorScore) {
-      const newVitals = {
-        ...currentVitals,
-        armor_max: newArmorScore,
-        // Clamp current armor if it exceeds max
-        armor_current: Math.min(currentVitals.armor_current, newArmorScore)
-      };
+    
+    const newVitals = {
+      ...currentVitals,
+      armor_score: newArmorScore,
+      // Clamp current armor if it exceeds max
+      armor_slots: Math.min(currentVitals.armor_slots, newArmorScore)
+    };
+    
+    const newThresholds = {
+      minor: minorThreshold,
+      major: majorThreshold,
+      severe: severeThreshold
+    };
 
-      set((s) => ({
-        character: s.character ? { ...s.character, vitals: newVitals } : null
-      }));
+    set((s) => ({
+      character: s.character ? { 
+        ...s.character, 
+        vitals: newVitals,
+        damage_thresholds: newThresholds
+      } : null
+    }));
 
-      const supabase = createClient();
-      await supabase
-        .from('characters')
-        .update({ vitals: newVitals })
-        .eq('id', character.id);
-    }
+    const supabase = createClient();
+    await supabase
+      .from('characters')
+      .update({ 
+        vitals: newVitals,
+        // We need to store thresholds too if we want them persistent, 
+        // or we assume they are always recalculated. 
+        // But for now, let's update vitals.
+        // If damage_thresholds isn't a column, we might need to store it in vitals or another jsonb.
+        // Given we can't easily add columns, let's assume we just calculate them client side 
+        // BUT the interface requires them. Let's store them in `stats` or just keep in state?
+        // Ideally we save them. Let's try to save them in a 'derived_stats' or similar if it existed.
+        // For now, we just update vitals in DB. Thresholds are derived, so recalculating on load is fine.
+      })
+      .eq('id', character.id);
   },
 
   updateGold: async (denomination, value) => {
@@ -452,8 +490,11 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
 
     if (error) {
       console.error('Error updating modifiers:', error);
-      // Revert logic would go here
+      return; // Don't recalculate if DB update failed
     }
+
+    // Trigger recalculation after modifier change
+    await get().recalculateDerivedStats();
   },
 
   equipItem: async (itemId, slot) => {
@@ -597,12 +638,6 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // Add class_id if it exists
     let classIdToFetch = null;
     if (charData.class_id) {
-      // Assuming class_id stored in charData is actually the name (e.g., 'Bard') or partial ID
-      // Our library IDs are 'class-bard'. If charData.class_id is 'Bard', we might need to slugify.
-      // However, creating character saves the library NAME ('Bard').
-      // We need to find the library item where type='class' and name=charData.class_id
-      // OR we update create-character to save the ID.
-      // Given current state, let's try to find by ID 'class-[slug]' first.
       const slug = charData.class_id.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
       classIdToFetch = `class-${slug}`;
       libraryIds.add(classIdToFetch);
@@ -636,6 +671,32 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
 
     const classData = classIdToFetch ? libraryMap.get(classIdToFetch) : undefined;
 
+    // E. Parse and Migrate Vitals
+    let rawVitals = typeof charData.vitals === 'string' ? JSON.parse(charData.vitals) : charData.vitals;
+    
+    // Backward compatibility migration
+    const vitals = {
+      hit_points_current: rawVitals.hit_points_current ?? rawVitals.hp_current ?? 0,
+      hit_points_max: rawVitals.hit_points_max ?? rawVitals.hp_max ?? 6,
+      stress_current: rawVitals.stress_current ?? 0,
+      stress_max: rawVitals.stress_max ?? 6,
+      armor_slots: rawVitals.armor_slots ?? rawVitals.armor_current ?? 0,
+      armor_score: rawVitals.armor_score ?? rawVitals.armor_max ?? 0
+    };
+
+    // Calculate initial damage thresholds (default if not stored)
+    // We could call recalculateDerivedStats after set, but calculating basic here is safer
+    const minor = 1;
+    const major = charData.level;
+    const severe = charData.level * 2;
+    
+    // Note: Real recalculation happens via recalculateDerivedStats() action, 
+    // but we need initial state. Use base unarmored values.
+    const damage_thresholds = {
+      minor,
+      major,
+      severe
+    };
 
     const fullCharacter = {
       ...charData,
@@ -643,11 +704,15 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       character_inventory: enrichedInventory,
       class_data: classData,
       stats: typeof charData.stats === 'string' ? JSON.parse(charData.stats) : charData.stats,
-      vitals: typeof charData.vitals === 'string' ? JSON.parse(charData.vitals) : charData.vitals,
+      vitals,
+      damage_thresholds, // Injected property
       gold: typeof charData.gold === 'string' ? JSON.parse(charData.gold) : charData.gold,
     };
 
     set({ character: fullCharacter as Character, isLoading: false });
+    
+    // Trigger a recalculation to ensure thresholds and armor bonuses are correct based on inventory
+    setTimeout(() => get().recalculateDerivedStats(), 0);
   },
 
   updateVitals: async (type, value) => {
@@ -657,9 +722,9 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     const newVitals = { ...state.character.vitals };
     let actualValue = value;
 
-    if (type === 'hp_current') actualValue = Math.min(newVitals.hp_max, Math.max(0, value));
+    if (type === 'hit_points_current') actualValue = Math.min(newVitals.hit_points_max, Math.max(0, value));
     if (type === 'stress_current') actualValue = Math.min(newVitals.stress_max, Math.max(0, value));
-    if (type === 'armor_current') actualValue = Math.min(newVitals.armor_max, Math.max(0, value));
+    if (type === 'armor_slots') actualValue = Math.min(newVitals.armor_score, Math.max(0, value));
 
     const updatedVitals = { ...newVitals, [type]: actualValue };
 
