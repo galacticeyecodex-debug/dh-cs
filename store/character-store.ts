@@ -88,6 +88,7 @@ export interface Character {
 export interface RollResult {
   hope: number;
   fear: number;
+  extras?: number;
   total: number;
   modifier: number;
   type: 'Critical' | 'Hope' | 'Fear' | 'Damage';
