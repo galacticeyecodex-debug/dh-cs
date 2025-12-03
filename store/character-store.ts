@@ -345,6 +345,9 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       });
     }
 
+    // 4. Cap Armor Score at 12 per SRD rules
+    newArmorScore = Math.min(newArmorScore, 12);
+
     // === HP MAX CALCULATION ===
     const classBaseHP = parseInt(character.class_data?.data?.starting_hp) || 6;
     let newHPMax = classBaseHP;
