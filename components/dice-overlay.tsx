@@ -206,11 +206,15 @@ export default function DiceOverlay() {
     try {
       const diceConfig = dicePool.map(d => ({
         sides: d.sides,
-        themeColor: d.role === 'hope' ? '#f6c928' : d.role === 'fear' ? '#4a148c' : '#22c55e',
-        groupId: d.role
+        themeColor: d.role === 'hope' ? '#f6c928' : d.role === 'fear' ? '#4a148c' : '#22c55e'
       }));
 
-      if (diceConfig.length === 0) return;
+      console.log("Rolling Duality Config", diceConfig);
+
+      if (diceConfig.length === 0) {
+        console.warn("No dice in pool");
+        return;
+      }
 
       const result = await boxInstanceRef.current.roll(diceConfig);
 
