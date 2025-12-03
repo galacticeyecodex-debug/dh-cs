@@ -3,8 +3,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X, RotateCcw } from 'lucide-react';
+import { X, RotateCcw, Plus, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
+
+type DiceRole = 'hope' | 'fear' | 'extra';
+
+interface DieConfig {
+  id: string;
+  sides: number;
+  role: DiceRole;
+}
 
 export default function DiceOverlay() {
   const { isDiceOverlayOpen, closeDiceOverlay, setLastRollResult, lastRollResult, activeRoll, character, updateHope } = useCharacterStore();
@@ -13,6 +21,10 @@ export default function DiceOverlay() {
   const [isReady, setIsReady] = useState(false);
   const [tempModifier, setTempModifier] = useState(0);
   const [selectedExpIndices, setSelectedExpIndices] = useState<number[]>([]);
+  
+  // BUILDER STATE
+  const [dicePool, setDicePool] = useState<DieConfig[]>([]);
+
   const diceBoxClassRef = useRef<any>(null);
   const [moduleLoaded, setModuleLoaded] = useState(false);
 
@@ -21,6 +33,11 @@ export default function DiceOverlay() {
     if (isDiceOverlayOpen) {
       setTempModifier(0);
       setSelectedExpIndices([]);
+      // Default Pool: 1 Hope (d12), 1 Fear (d12)
+      setDicePool([
+        { id: 'default-hope', sides: 12, role: 'hope' },
+        { id: 'default-fear', sides: 12, role: 'fear' }
+      ]);
     }
   }, [isDiceOverlayOpen]);
 
@@ -41,6 +58,24 @@ export default function DiceOverlay() {
     }
   };
 
+  // Builder Handlers
+  const addDie = (sides: number) => {
+    setDicePool(prev => [...prev, { id: crypto.randomUUID(), sides, role: 'extra' }]);
+  };
+
+  const removeDie = (id: string) => {
+    setDicePool(prev => prev.filter(d => d.id !== id));
+  };
+
+  const cycleRole = (id: string) => {
+    setDicePool(prev => prev.map(d => {
+      if (d.id !== id) return d;
+      const roles: DiceRole[] = ['extra', 'hope', 'fear'];
+      const idx = roles.indexOf(d.role);
+      return { ...d, role: roles[(idx + 1) % roles.length] };
+    }));
+  };
+
   // Load module on mount
   useEffect(() => {
     if (typeof window !== 'undefined' && !moduleLoaded) {
@@ -53,7 +88,7 @@ export default function DiceOverlay() {
     }
   }, [moduleLoaded]);
 
-  // Initialize DiceBox - run once when module is loaded and container is available
+  // Initialize DiceBox
   useEffect(() => {
     if (!containerRef.current || boxInstanceRef.current || !moduleLoaded || !diceBoxClassRef.current) return;
 
@@ -98,11 +133,9 @@ export default function DiceOverlay() {
     };
   }, [moduleLoaded]); 
 
-
-  // Trigger resize when overlay opens to ensure physics bounds are correct
+  // Trigger resize
   useEffect(() => {
     if (isDiceOverlayOpen && boxInstanceRef.current && isReady) {
-      // Small timeout to ensure layout is stable if transition affects it (though opacity shouldn't)
       setTimeout(() => {
         if (boxInstanceRef.current && typeof boxInstanceRef.current.resize === 'function') {
           try {
@@ -121,7 +154,6 @@ export default function DiceOverlay() {
       return;
     }
 
-    // Deduct Hope if used
     if (hopeCost > 0) {
       await updateHope(currentHope - hopeCost);
     }
@@ -131,96 +163,82 @@ export default function DiceOverlay() {
     
     boxInstanceRef.current.clear();
 
-    // Case 1: Custom Dice Roll (e.g. Damage)
+    // Case 1: Custom Dice Roll (Damage)
     if (activeRoll?.dice) {
        setLastRollResult({ hope: 0, fear: 0, total: 0, modifier: totalModifier, type: 'Damage' });
-       
        try {
-         // Parse dice string (e.g., "1d8", "d8 phy", "d10+3")
-         // Clean string: remove "phy", "mag" (case insensitive) and whitespace
          const cleanDice = activeRoll.dice.replace(/(phy|mag|physical|magic)/gi, '').replace(/\s/g, '');
-         
          const diceParts = cleanDice.split('+');
          const diceConfig = [];
          let stringModifier = 0;
-         
          for (const part of diceParts) {
-             // Match "d8", "1d8"
              const diceMatch = part.match(/^(\d+)?d(\d+)$/i);
              if (diceMatch) {
                  const count = diceMatch[1] ? parseInt(diceMatch[1]) : 1;
                  const sides = parseInt(diceMatch[2]);
                  for (let i = 0; i < count; i++) {
-                     diceConfig.push({ sides, themeColor: '#ef4444' }); // Red for damage
+                     diceConfig.push({ sides, themeColor: '#ef4444' }); 
                  }
              } else {
-                 // Check for static number
                  const num = parseInt(part);
-                 if (!isNaN(num)) {
-                     stringModifier += num;
-                 }
+                 if (!isNaN(num)) stringModifier += num;
              }
          }
-         
          if (diceConfig.length === 0) {
-             // If only a modifier was found or parsing failed?
              if (stringModifier > 0) {
-                 // Just a flat damage number
-                 setLastRollResult({
-                     hope: 0, 
-                     fear: 0,
-                     total: stringModifier + totalModifier,
-                     modifier: totalModifier + stringModifier,
-                     type: 'Damage'
-                 });
+                 setLastRollResult({ hope: 0, fear: 0, total: stringModifier + totalModifier, modifier: totalModifier + stringModifier, type: 'Damage' });
                  return;
              }
-             
-             console.warn("Could not parse dice string:", activeRoll.dice);
              return;
          }
-
          const result = await boxInstanceRef.current.roll(diceConfig);
-         
-         // Sum up results
          let diceTotal = 0;
-         if (Array.isArray(result)) {
-             diceTotal = result.reduce((acc: number, die: any) => acc + die.value, 0);
-         }
-         
+         if (Array.isArray(result)) diceTotal = result.reduce((acc: number, die: any) => acc + die.value, 0);
          const finalTotalModifier = totalModifier + stringModifier;
-
-         setLastRollResult({
-             hope: 0, 
-             fear: 0,
-             total: diceTotal + finalTotalModifier,
-             modifier: finalTotalModifier,
-             type: 'Damage'
-         });
-
-       } catch (e) {
-           console.error("Custom roll failed", e);
-       }
-       
+         setLastRollResult({ hope: 0, fear: 0, total: diceTotal + finalTotalModifier, modifier: finalTotalModifier, type: 'Damage' });
+       } catch (e) { console.error("Custom roll failed", e); }
        return;
     }
 
-    // Case 2: Standard Duality Roll
+    // Case 2: Builder Duality Roll
     setLastRollResult({ hope: 0, fear: 0, total: 0, modifier: totalModifier, type: 'Hope' }); 
 
     try {
-      const result = await boxInstanceRef.current.roll([
-        { sides: 12, themeColor: '#f6c928' }, // Hope (Gold)
-        { sides: 12, themeColor: '#4a148c' }  // Fear (Purple)
-      ]);
+      const diceConfig = dicePool.map(d => ({
+        sides: d.sides,
+        themeColor: d.role === 'hope' ? '#f6c928' : d.role === 'fear' ? '#4a148c' : '#22c55e',
+        groupId: d.role
+      }));
 
-      if (Array.isArray(result) && result.length === 2) {
-        const hopeRoll = result[0].value;
-        const fearRoll = result[1].value;
-        const total = hopeRoll + fearRoll + totalModifier;
+      if (diceConfig.length === 0) return;
+
+      const result = await boxInstanceRef.current.roll(diceConfig);
+
+      if (Array.isArray(result)) {
+        // Identify primary Hope and Fear rolls
+        // If multiple exist, we might need rules (highest? first?). For now, take first.
+        // We rely on the order in dicePool matching result order (usually true for DiceBox).
+        
+        let hopeRoll = 0;
+        let fearRoll = 0;
+        let extraTotal = 0;
+
+        // We need to map result values back to our pool config to know which was which
+        // DiceBox usually returns results in the order requested.
+        
+        dicePool.forEach((die, idx) => {
+           const val = result[idx].value;
+           if (die.role === 'hope' && hopeRoll === 0) hopeRoll = val; // Only take first hope
+           else if (die.role === 'fear' && fearRoll === 0) fearRoll = val; // Only take first fear
+           else extraTotal += val; // All others (including 2nd hope/fear) add to total? 
+           // Actually, 2nd hope/fear usually implies Advantage/Disadvantage where you take higher/lower.
+           // For this Builder MVP, let's just sum everything else as "extra".
+        });
+
+        const total = hopeRoll + fearRoll + totalModifier + extraTotal;
         
         let type: 'Critical' | 'Hope' | 'Fear' | 'Damage' = 'Hope';
-        if (hopeRoll === fearRoll) type = 'Critical';
+        if (hopeRoll === fearRoll && hopeRoll !== 0) type = 'Critical';
         else if (hopeRoll > fearRoll) type = 'Hope';
         else type = 'Fear';
 
@@ -241,24 +259,19 @@ export default function DiceOverlay() {
 
   return (
     <>
-      {/* Persistent Container for DiceBox - Always rendered but hidden when inactive */}
       <div 
         className={clsx(
           "fixed inset-0 z-40 transition-opacity duration-300",
           isDiceOverlayOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
       >
-         {/* Background Backdrop (only visible when open) */}
-        <div className={clsx(
+         <div className={clsx(
             "absolute inset-0 bg-black/60 transition-opacity duration-300",
             isDiceOverlayOpen ? "opacity-100" : "opacity-0"
         )} />
-
-        {/* 3D Canvas Container */}
         <div id="dice-tray-overlay" ref={containerRef} className="absolute inset-0 w-screen h-screen cursor-pointer z-10" onClick={() => isDiceOverlayOpen && handleRoll()} />
       </div>
 
-      {/* UI Controls - Conditionally rendered for clean DOM but separated from Canvas */}
       <AnimatePresence>
         {isDiceOverlayOpen && (
           <div className="fixed inset-0 z-50 pointer-events-none">
@@ -268,7 +281,6 @@ export default function DiceOverlay() {
               exit={{ opacity: 0 }}
               className="w-full h-full flex flex-col"
             >
-                        {/* Header / Controls */}
                         <div className="absolute top-0 left-0 right-0 p-4 flex flex-col gap-4 z-20 pointer-events-none">
                           <div className="flex justify-between items-start pointer-events-auto">
                             <button 
@@ -278,7 +290,6 @@ export default function DiceOverlay() {
                               <X size={24} />
                             </button>
                             
-                            {/* Context Display */}
                             {activeRoll && (
                                <div className="bg-black/40 px-4 py-2 rounded-full text-white font-medium text-sm border border-white/10">
                                   Rolling <span className="text-dagger-gold font-bold capitalize">{activeRoll.label}</span>
@@ -287,9 +298,7 @@ export default function DiceOverlay() {
                             )}
                           </div>
               
-                           {/* Roll Controls */}
                            <div className="flex flex-col items-center gap-2 pointer-events-auto">
-                              {/* Modifier Stepper */}
                               <div className="flex items-center gap-2 bg-black/40 p-1 rounded-full border border-white/10">
                                   <span className="text-xs text-gray-300 pl-3 font-bold uppercase">Mod</span>
                                   <button onClick={() => setTempModifier(m => m - 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20">-</button>
@@ -297,23 +306,69 @@ export default function DiceOverlay() {
                                   <button onClick={() => setTempModifier(m => m + 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20">+</button>
                               </div>
 
+                              {/* PLAN C: DICE BUILDER UI */}
+                              {!activeRoll?.dice && (
+                                <div className="flex flex-col gap-2 mt-2 w-full max-w-md">
+                                  
+                                  {/* Pool Display */}
+                                  <div className="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-xl border border-white/10 min-h-[4rem]">
+                                    {dicePool.map((die) => (
+                                      <div key={die.id} className="relative group">
+                                        <button 
+                                          onClick={() => cycleRole(die.id)}
+                                          className={clsx(
+                                            "flex flex-col items-center justify-center w-12 h-12 rounded-lg transition-colors border",
+                                            die.role === 'hope' ? "bg-dagger-gold/20 border-dagger-gold" :
+                                            die.role === 'fear' ? "bg-purple-900/40 border-purple-500" :
+                                            "bg-green-900/40 border-green-500"
+                                          )}
+                                        >
+                                          <span className={clsx("text-[8px] font-bold uppercase",
+                                            die.role === 'hope' ? "text-dagger-gold" :
+                                            die.role === 'fear' ? "text-purple-400" :
+                                            "text-green-400"
+                                          )}>{die.role}</span>
+                                          <span className="text-lg font-black text-white">d{die.sides}</span>
+                                        </button>
+                                        <button 
+                                          onClick={() => removeDie(die.id)}
+                                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                          <X size={10} />
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  {/* Dice Picker */}
+                                  <div className="flex justify-center gap-2 bg-black/60 p-2 rounded-xl border border-white/10">
+                                    {[4, 6, 8, 10, 12, 20].map(sides => (
+                                      <button
+                                        key={sides}
+                                        onClick={() => addDie(sides)}
+                                        className="w-10 h-10 flex flex-col items-center justify-center bg-white/5 hover:bg-white/15 rounded border border-white/5 hover:border-white/20 transition-all"
+                                      >
+                                        <span className="text-xs font-bold text-gray-400">d{sides}</span>
+                                        <Plus size={12} className="text-white" />
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
                               {/* Experiences & Hope Section */}
                               {experiences.length > 0 && !activeRoll?.dice && (
-                                <div className="flex flex-col items-center gap-2 w-full max-w-md px-4">
-                                  {/* Hope Cost Display */}
+                                <div className="flex flex-col items-center gap-2 w-full max-w-md px-4 mt-2">
                                   <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
                                     <span className="text-dagger-gold">Hope: {currentHope}</span>
                                     {hopeCost > 0 && (
                                       <span className="text-red-400 animate-pulse">- {hopeCost}</span>
                                     )}
                                   </div>
-
-                                  {/* Experience Chips */}
                                   <div className="flex flex-wrap justify-center gap-2">
                                     {experiences.map((exp, idx) => {
                                       const isSelected = selectedExpIndices.includes(idx);
                                       const canAfford = currentHope - hopeCost >= 1;
-                                      
                                       return (
                                         <button
                                           key={idx}
@@ -336,7 +391,6 @@ export default function DiceOverlay() {
                                 </div>
                               )}
 
-                              {/* Roll Button */}
                               <button 
                                 onClick={() => handleRoll()}
                                 className="mt-2 px-8 py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 text-lg"
@@ -347,7 +401,6 @@ export default function DiceOverlay() {
                            </div>
               </div>
 
-              {/* Result Display (Floating) */}
               {lastRollResult && lastRollResult.total > 0 && (
                 <motion.div 
                   initial={{ y: 50, opacity: 0 }}
@@ -357,7 +410,6 @@ export default function DiceOverlay() {
                   <div className="bg-dagger-panel border border-white/10 p-6 rounded-2xl shadow-2xl text-center">
                     <div className="text-sm text-gray-400 uppercase tracking-wider mb-1">Result</div>
                     <div className="text-6xl font-serif font-black text-white mb-4">{lastRollResult.total}</div>
-                    
                     {lastRollResult.type !== 'Damage' && (
                         <div className="flex justify-center gap-8 mb-4">
                         <div className="flex flex-col">
@@ -370,7 +422,6 @@ export default function DiceOverlay() {
                         </div>
                         </div>
                     )}
-
                     <div className={clsx(
                       "inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wide",
                       lastRollResult.type === 'Critical' ? "bg-green-500/20 text-green-400 border border-green-500/50" :
