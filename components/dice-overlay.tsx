@@ -226,22 +226,22 @@ export default function DiceOverlay() {
         let hopeRoll = 0;
         let fearRoll = 0;
         let extraTotal = 0;
-
-        // We need to map result values back to our pool config to know which was which
-        // DiceBox usually returns results in the order requested.
+        const individualDieResults: { role: DiceRole, value: number, sides: number }[] = [];
 
         dicePool.forEach((die, idx) => {
           const val = result[idx].value;
-                     if (die.role === 'hope' && hopeRoll === 0) hopeRoll = val;
-                     else if (die.role === 'fear' && fearRoll === 0) fearRoll = val;
-                     else extraTotal += val;
-                  });
+          individualDieResults.push({ role: die.role, value: val, sides: die.sides });
+
+          if (die.role === 'hope' && hopeRoll === 0) hopeRoll = val;
+          else if (die.role === 'fear' && fearRoll === 0) fearRoll = val;
+          else extraTotal += val;
+        });
           
-                  const total = hopeRoll + fearRoll + totalModifier + extraTotal;
-                  
-                  console.log("Roll Calculation:", { hopeRoll, fearRoll, extraTotal, total, totalModifier });
-          
-                  let type: 'Critical' | 'Hope' | 'Fear' | 'Damage' = 'Hope';
+        const total = hopeRoll + fearRoll + totalModifier + extraTotal;
+        
+        console.log("Roll Calculation:", { hopeRoll, fearRoll, extraTotal, total, totalModifier, individualDieResults });
+        
+        let type: 'Critical' | 'Hope' | 'Fear' | 'Damage' = 'Hope';
         if (hopeRoll === fearRoll && hopeRoll !== 0) type = 'Critical';
         else if (hopeRoll > fearRoll) type = 'Hope';
         else type = 'Fear';
@@ -252,7 +252,8 @@ export default function DiceOverlay() {
           total,
           extras: extraTotal,
           modifier: totalModifier,
-          type
+          type,
+          dice: individualDieResults
         });
       }
     } catch (e) {
@@ -416,25 +417,26 @@ export default function DiceOverlay() {
                     <div className="text-sm text-gray-400 uppercase tracking-wider mb-1">Result</div>
                     <div className="text-6xl font-serif font-black text-white mb-4">{lastRollResult.total}</div>
                     {lastRollResult.type !== 'Damage' && (
-                        <div className="flex justify-center gap-4 mb-4">
-                          <div className="flex flex-col">
-                              <span className="text-[10px] text-dagger-gold uppercase font-bold">Hope</span>
-                              <span className="text-2xl font-bold text-white">{lastRollResult.hope}</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                              <span className="text-[10px] text-purple-400 uppercase font-bold">Fear</span>
-                              <span className="text-2xl font-bold text-white">{lastRollResult.fear}</span>
-                          </div>
-                          
-                          <div className="flex flex-col items-center">
-                              <span className="text-[10px] text-green-400 uppercase font-bold">Help</span>
-                              <span className="text-2xl font-bold text-white">+{lastRollResult.extras ?? 0}</span>
-                          </div>
-
-                          <div className="flex flex-col items-center">
-                             <span className="text-[10px] text-gray-400 uppercase font-bold">Mod</span>
-                             <span className="text-2xl font-bold text-white">{lastRollResult.modifier >= 0 ? `+${lastRollResult.modifier}` : lastRollResult.modifier}</span>
-                          </div>
+                        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4">
+                            {lastRollResult.dice?.map((die, index) => (
+                                <div key={index} className="flex flex-col items-center">
+                                    <span className={clsx(
+                                        "text-[10px] uppercase font-bold",
+                                        die.role === 'hope' ? "text-dagger-gold" :
+                                        die.role === 'fear' ? "text-purple-400" :
+                                        "text-green-400" // For 'extra'
+                                    )}>
+                                        {die.role}
+                                    </span>
+                                    <span className="text-2xl font-bold text-white">{die.value}</span>
+                                </div>
+                            ))}
+                            {lastRollResult.modifier !== 0 && (
+                                <div className="flex flex-col items-center">
+                                    <span className="text-[10px] text-gray-400 uppercase font-bold">Mod</span>
+                                    <span className="text-2xl font-bold text-white">{lastRollResult.modifier >= 0 ? `+${lastRollResult.modifier}` : lastRollResult.modifier}</span>
+                                </div>
+                            )}
                         </div>
                     )}
                     <div className={clsx(
