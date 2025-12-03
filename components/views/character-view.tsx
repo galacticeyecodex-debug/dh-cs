@@ -34,7 +34,14 @@ export default function CharacterView() {
       <div className="flex items-center gap-4">
         <div className="w-16 h-16 bg-gray-700 rounded-full overflow-hidden border-2 border-white/10 flex-shrink-0">
           {character.image_url ? (
-            <Image src={character.image_url} alt={character.name} width={64} height={64} className="w-full h-full object-cover" />
+            <Image 
+              src={character.image_url} 
+              alt={character.name} 
+              width={64} 
+              height={64} 
+              className="w-full h-full object-cover"
+              priority 
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-2xl font-bold bg-gradient-to-br from-dagger-gold to-orange-600 text-black">
               {character.name[0]}
