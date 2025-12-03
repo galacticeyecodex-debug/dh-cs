@@ -1,14 +1,15 @@
-'use client';
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import Image from 'next/image';
 import { getClassBaseStat, getSystemModifiers } from '@/lib/utils';
 import StatButton from '@/components/stat-button';
-import CommonVitalsDisplay from '@/components/common-vitals-display'; // Import the new common component
+import CommonVitalsDisplay from '@/components/common-vitals-display';
+import ExperienceSheet from '../experience-sheet';
+import { Settings, Plus } from 'lucide-react';
 
 export default function CharacterView() {
-  const { character, updateModifiers } = useCharacterStore();
+  const { character, updateModifiers, updateExperiences } = useCharacterStore();
+  const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
 
   if (!character) {
     return (
@@ -18,7 +19,7 @@ export default function CharacterView() {
     );
   }
 
-  // Helper to calculate totals and combine modifiers for Traits (still needed here)
+  // Helper to calculate totals and combine modifiers for Traits
   const getStatDetails = (stat: string, base: number) => {
     const systemMods = getSystemModifiers(character, stat);
     const userMods = character.modifiers?.[stat] || [];
@@ -54,7 +55,7 @@ export default function CharacterView() {
         </div>
       </div>
 
-      {/* Vitals Grid - Now handled by CommonVitalsDisplay */}
+      {/* Vitals Grid */}
       <CommonVitalsDisplay character={character} />
 
       {/* Stats Grid */}
@@ -62,7 +63,7 @@ export default function CharacterView() {
         <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Traits</h3>
         <div className="grid grid-cols-2 gap-3">
           {Object.entries(character.stats).map(([key, value]) => {
-            const { total, allMods } = getStatDetails(key, value); // Base is the assigned stat value
+            const { total, allMods } = getStatDetails(key, value); 
             return (
               <StatButton 
                 key={key} 
@@ -79,7 +80,16 @@ export default function CharacterView() {
 
       {/* Experiences Section */}
       <div className="space-y-2">
-        <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Experiences</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Experiences</h3>
+          <button 
+            onClick={() => setIsExperienceSheetOpen(true)}
+            className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
+          >
+            <Settings size={12} /> Manage
+          </button>
+        </div>
+        
         <div className="space-y-2">
           {character.experiences && character.experiences.length > 0 ? (
             character.experiences.map((exp, index) => (
@@ -89,10 +99,22 @@ export default function CharacterView() {
               </div>
             ))
           ) : (
-            <div className="text-gray-500 text-sm italic">No experiences recorded.</div>
+            <div 
+              onClick={() => setIsExperienceSheetOpen(true)}
+              className="text-gray-500 text-sm italic p-4 border border-dashed border-white/10 rounded-lg text-center cursor-pointer hover:bg-white/5"
+            >
+              No experiences recorded. Tap to add.
+            </div>
           )}
         </div>
       </div>
+
+      <ExperienceSheet
+        isOpen={isExperienceSheetOpen}
+        onClose={() => setIsExperienceSheetOpen(false)}
+        experiences={character.experiences || []}
+        onUpdateExperiences={updateExperiences}
+      />
     </div>
   );
 }
