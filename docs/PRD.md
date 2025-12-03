@@ -32,6 +32,19 @@ The **Daggerheart Web Companion** is a digital character sheet application desig
     *   **Hit Points (HP):** Visual tracker for current/max HP. Ability to mark/clear damage thresholds (Minor/Major/Severe).
     *   **Stress:** Interactive slots for tracking stress.
     *   **Armor:** Tracking for armor score and armor slots.
+    *   **Vital Track Component System:**
+        *   Reusable track visualization pattern for all resources (HP, Stress, Hope, Armor Slots).
+        *   **Track Behaviors:**
+            *   `fill-up-good`: Values increase positively (Hope).
+            *   `fill-up-bad`: Values increase negatively (Stress).
+            *   `deplete`: Values decrease from max (HP, Armor Slots).
+        *   **Interactive Controls:** Increment/decrement buttons with custom labels per track type.
+        *   **Visual States:** Filled, empty, threshold markers, disabled states.
+        *   **Threshold Indicators:** Visual markers for damage thresholds (Minor/Major/Severe).
+    *   **Unarmored State:**
+        *   Characters without equipped armor have Armor Score 0.
+        *   Damage thresholds default to character level when unarmored.
+        *   UI clearly indicates unarmored state with distinct visual treatment.
 *   **Stats (Traits):**
     *   Display of Agility, Strength, Finesse, Instinct, Presence, Knowledge.
     *   One-click rolling for each stat.
@@ -56,6 +69,7 @@ The **Daggerheart Web Companion** is a digital character sheet application desig
 *   **Customization:**
     *   **Upload Feature:** Users must be able to upload custom image files (PNG/JPG) to create unique cards. These are stored in the user's personal collection and can be added to the Loadout like standard cards.
     *   **Dynamic Rendering:** System to render SRD text content onto a standardized card frame if no image is provided.
+    *   **Markdown Rendering:** Card text content parsed as Markdown with proper formatting (bold, lists, headers, etc.) for consistent display across library and custom cards.
 
 ### 4.3 Inventory & Equipment System
 *   **Equipment Management:**
@@ -75,7 +89,13 @@ The **Daggerheart Web Companion** is a digital character sheet application desig
         *   **Damage Bonuses:** Additional damage dice or flat bonuses.
         *   **Conditional Effects:** Triggered abilities (e.g., "On successful attack, add d4 damage").
         *   **Resource Substitution:** Alternative resource costs (e.g., "Mark Armor instead of Hope").
-    *   **Visual Feedback:** UI displays active modifiers and shows modified vs. base stats.
+    *   **Modifier Ledger UI:**
+        *   **Bottom Sheet Interface:** Dedicated sheet displaying all active modifiers grouped by source item.
+        *   **Source Attribution:** Each modifier shows which item/effect grants it.
+        *   **Inline Tags:** Modifier tags displayed alongside affected stats in Character and Combat views.
+        *   **Stepper Controls:** Quick-add interface for temporary/situational modifiers.
+        *   **Visual Differentiation:** Modified stats show base value + modifier total (e.g., "12 (10+2)").
+        *   **Inventory Integration:** Modifier tags visible in item cards within inventory view.
 *   **Homebrew Items:**
     *   **Custom Creation:** Users can create custom inventory items with:
         *   Basic properties (name, description, type).
@@ -92,9 +112,16 @@ The **Daggerheart Web Companion** is a digital character sheet application desig
     *   Dice do not occupy permanent screen real estate.
     *   Pressing "Roll" triggers a full-screen transparent overlay where dice are thrown.
     *   Overlay dismisses automatically or via tap after result is settled, leaving a compact "Result Bubble" in the UI.
-*   **Automated Resolution:**
-    *   Calculation of total result (Stat + Hope Die + Fear Die).
-    *   Determination of outcome: **Success with Hope**, **Success with Fear**, **Failure with Hope**, **Failure with Fear**, or **Critical Success**.
+*   **Roll Types:**
+    *   **Trait Rolls (Duality Dice):** d12 + d12 + Stat for action resolution.
+        *   Calculation of total result (Stat + Hope Die + Fear Die).
+        *   Determination of outcome: **Success with Hope**, **Success with Fear**, **Failure with Hope**, **Failure with Fear**, or **Critical Success**.
+    *   **Damage Rolls:** Weapon dice + modifiers for attack damage.
+        *   Uses weapon's damage dice (e.g., 2d6, 1d8).
+        *   Automatically applies equipped weapon's damage modifiers.
+        *   Supports additional damage from item bonuses and conditional effects.
+    *   **Attack Rolls:** Trait rolls with weapon-specific bonuses applied.
+    *   **Spellcast Rolls:** Trait rolls with domain/card-specific bonuses.
 *   **Modifiers:** Input for adding temporary bonuses/penalties before rolling.
 
 ### 4.5 Data Management
@@ -105,12 +132,26 @@ The **Daggerheart Web Companion** is a digital character sheet application desig
     *   Supabase (PostgreSQL) for authoritative data.
     *   **Optimistic Updates:** UI reflects changes instantly (marking HP, moving cards) without waiting for server confirmation.
 
+### 4.6 Authentication & Navigation Flow
+*   **Authentication:**
+    *   **Server-Side Session Validation:** Protected routes validate auth session on the server to prevent client-side auth loops.
+    *   **Supabase Auth Integration:** User authentication managed via Supabase Auth with email/password.
+*   **Character Selection Flow:**
+    *   Post-login redirect to character selection screen.
+    *   Users can create new characters (up to 25 per account) or select existing ones.
+    *   Selected character context persists across page loads via session storage.
+*   **Navigation Guards:**
+    *   Unauthenticated users redirected to login.
+    *   Authenticated users without selected character redirected to character selection.
+    *   Proper route protection prevents navigation loops and ensures smooth user flow.
+
 ## 5. Non-Functional Requirements
 
 *   **Responsiveness:** **Mobile-First.** The application must be fully functional and performant on smartphone screens (portrait mode). Tablet and Desktop views are secondary/adaptive expansions of the mobile view.
 *   **Offline Tolerance:** The app must function transiently if the network drops (e.g., convention centers). State changes queue up and sync when the connection is restored.
 *   **Performance:** Dice animations must be smooth (60fps target). 3D Context is managed aggressively (created on roll, destroyed/paused on settle).
 *   **Accessibility:** High contrast text options; ARIA labels for screen readers where visual metaphors (dice/cards) are used; touch targets must be at least 44x44px.
+*   **Account Limits:** Users can create up to 25 characters per account to balance personal collection size with database performance.
 *   **Stack:**
     *   **Frontend:** Next.js, React, TypeScript.
     *   **Styling:** Tailwind CSS.
