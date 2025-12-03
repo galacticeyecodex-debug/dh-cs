@@ -93,9 +93,13 @@ export default function CharacterView() {
         <div className="space-y-2">
           {character.experiences && character.experiences.length > 0 ? (
             character.experiences.map((exp, index) => (
-              <div key={index} className="bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm font-medium flex justify-between items-center">
-                <span>{exp.name}</span>
-                <span className="text-dagger-gold font-bold">+{exp.value}</span>
+              <div key={index} className="flex bg-white/5 border border-white/5 rounded-lg overflow-hidden">
+                <div className="flex-1 p-3 flex items-center justify-start text-left">
+                  <span className="capitalize font-medium text-gray-300">{exp.name}</span>
+                </div>
+                <div className="p-3 min-w-[3rem] flex items-center justify-center font-bold text-xl border-l border-white/5 text-white">
+                  {exp.value >= 0 ? `+${exp.value}` : exp.value}
+                </div>
               </div>
             ))
           ) : (
