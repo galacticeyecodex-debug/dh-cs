@@ -32,25 +32,24 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
   // --- ARMOR ---
   const armorItem = character.character_inventory?.find(item => item.location === 'equipped_armor');
   let armorBaseScore = 0;
-  let minorThreshold = 1;
+  const minorThreshold = 1;
   let majorThreshold = character.level;
   let severeThreshold = character.level * 2;
 
   if (armorItem?.library_item?.data) {
     armorBaseScore = (parseInt(armorItem.library_item.data.base_score) || 0);
-    armorBaseScore += character.level;
 
     if (armorItem.library_item.data.base_thresholds) {
       const [baseMajor, baseSevere] = armorItem.library_item.data.base_thresholds.split('/').map((s: string) => parseInt(s.trim()));
-      majorThreshold = baseMajor;
-      severeThreshold = baseSevere;
+      majorThreshold = baseMajor + character.level;
+      severeThreshold = baseSevere + character.level;
     }
   }
   const { total: totalArmorMax, allMods: armorMods } = getStatDetails('armor', armorBaseScore);
 
   // --- HIT POINTS ---
-  const classBaseHP = getClassBaseStat(character, 'hp');
-  const { total: totalHPMax, allMods: hpMods } = getStatDetails('hp', classBaseHP);
+  const classBaseHP = getClassBaseStat(character, 'hit_points');
+  const { total: totalHPMax, allMods: hpMods } = getStatDetails('hit_points', classBaseHP);
 
   // --- STRESS ---
   const classBaseStress = getClassBaseStat(character, 'stress');
@@ -79,14 +78,14 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
         />
         <VitalCard
           label="Armor"
-          current={character.vitals.armor_current}
+          current={character.vitals.armor_slots}
           max={totalArmorMax}
           color="text-blue-400"
           icon={Shield}
-          onIncrement={() => updateVitals('armor_current', character.vitals.armor_current + 1)}
-          onDecrement={() => updateVitals('armor_current', character.vitals.armor_current - 1)}
-          isCriticalCondition={character.vitals.armor_current === 0 && totalArmorMax > 0}
-          thresholds={{ minor: minorThreshold, major: majorThreshold, severe: severeThreshold }}
+          onIncrement={() => updateVitals('armor_slots', character.vitals.armor_slots + 1)}
+          onDecrement={() => updateVitals('armor_slots', character.vitals.armor_slots - 1)}
+          isCriticalCondition={character.vitals.armor_slots === 0 && totalArmorMax > 0}
+          thresholds={character.damage_thresholds}
           trackType="mark-bad"
           disableCritColor={true}
           modifiers={armorMods}
@@ -97,17 +96,17 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
       {/* Row 2: Hit Points (Rectangle) */}
       <VitalCard
         label="Hit Points"
-        current={character.vitals.hp_current}
+        current={character.vitals.hit_points_current}
         max={totalHPMax}
         color="text-red-400"
         icon={Heart}
         variant="rectangle"
-        onIncrement={() => updateVitals('hp_current', character.vitals.hp_current + 1)}
-        onDecrement={() => updateVitals('hp_current', character.vitals.hp_current - 1)}
-        isCriticalCondition={character.vitals.hp_current === 0}
+        onIncrement={() => updateVitals('hit_points_current', character.vitals.hit_points_current + 1)}
+        onDecrement={() => updateVitals('hit_points_current', character.vitals.hit_points_current - 1)}
+        isCriticalCondition={character.vitals.hit_points_current === 0}
         trackType="mark-bad"
         modifiers={hpMods}
-        onUpdateModifiers={(mods) => updateModifiers('hp', mods)}
+        onUpdateModifiers={(mods) => updateModifiers('hit_points', mods)}
       />
 
       {/* Row 3: Stress (Rectangle) */}

@@ -93,24 +93,23 @@ export function getClassBaseStat(character: any, stat: string): number {
   if (stat === 'evasion') {
     return parseInt(character.class_data.data.starting_evasion) || 10;
   }
-  if (stat === 'hp') {
+  if (stat === 'hp' || stat === 'hit_points') {
     return parseInt(character.class_data.data.starting_hp) || 6;
   }
   if (stat === 'stress' || stat === 'hope') {
     return 6;
   }
-  // Traits base is usually 0 (assigned by user), but could have racial bonuses?
-  // Ancestry modifiers: We could parse those here if we had ancestry data.
+  return 0;
 }
 
 export function calculateBaseEvasion(character: any): number {
   if (!character) return 10;
 
   // 1. Class Base
-  let base = getClassBaseStat(character, 'evasion');
+  const base = getClassBaseStat(character, 'evasion');
 
   // 2. Ancestry Modifiers (TODO: Fetch and parse ancestry features if needed)
-  
+
   // 3. Item Modifiers
   const systemMods = getSystemModifiers(character, 'evasion');
   const itemBonus = systemMods.reduce((acc, mod) => acc + mod.value, 0);
