@@ -122,6 +122,10 @@ The **Daggerheart Web Companion** is a digital character sheet application desig
         *   Supports additional damage from item bonuses and conditional effects.
     *   **Attack Rolls:** Trait rolls with weapon-specific bonuses applied.
     *   **Spellcast Rolls:** Trait rolls with domain/card-specific bonuses.
+    *   **Tag Team & Assistance:**
+        *   **Tag Team Rolls:** Option to swap the d12 Hope Die for a d20 (Tag Team mechanic).
+        *   **Help/Advantage:** Spend Hope to add Experience modifiers or add advantage dice (d6).
+        *   **Interactive Modifier Builder:** Pre-roll overlay allows toggling Experiences (Spend 1 Hope), Tag Team mode, or Advantage before committing the roll.
 *   **Modifiers:** Input for adding temporary bonuses/penalties before rolling.
 
 ### 4.5 Data Management

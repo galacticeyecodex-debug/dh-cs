@@ -7,20 +7,39 @@ import { X, RotateCcw } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function DiceOverlay() {
-  const { isDiceOverlayOpen, closeDiceOverlay, setLastRollResult, lastRollResult, activeRoll } = useCharacterStore();
+  const { isDiceOverlayOpen, closeDiceOverlay, setLastRollResult, lastRollResult, activeRoll, character, updateHope } = useCharacterStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const boxInstanceRef = useRef<any>(null);
   const [isReady, setIsReady] = useState(false);
   const [tempModifier, setTempModifier] = useState(0);
+  const [selectedExpIndices, setSelectedExpIndices] = useState<number[]>([]);
   const diceBoxClassRef = useRef<any>(null);
   const [moduleLoaded, setModuleLoaded] = useState(false);
 
-  // Reset temp modifier when overlay opens
+  // Reset state when overlay opens
   useEffect(() => {
     if (isDiceOverlayOpen) {
       setTempModifier(0);
+      setSelectedExpIndices([]);
     }
   }, [isDiceOverlayOpen]);
+
+  // Calculate Experience Modifiers
+  const experiences = character?.experiences || [];
+  const experienceModifier = selectedExpIndices.reduce((sum, idx) => sum + (experiences[idx]?.value || 0), 0);
+  const hopeCost = selectedExpIndices.length;
+  const currentHope = character?.hope || 0;
+
+  // Toggle Experience Selection
+  const toggleExperience = (index: number) => {
+    if (selectedExpIndices.includes(index)) {
+      setSelectedExpIndices(prev => prev.filter(i => i !== index));
+    } else {
+      if (currentHope - hopeCost >= 1) {
+        setSelectedExpIndices(prev => [...prev, index]);
+      }
+    }
+  };
 
   // Load module on mount
   useEffect(() => {
@@ -76,13 +95,8 @@ export default function DiceOverlay() {
 
     return () => {
         window.removeEventListener('resize', handleResize);
-        // Do NOT destroy the box on unmount if we want to reuse it, 
-        // but since this component might be conditionally rendered by a parent,
-        // we might need to keep it mounted.
-        // Current Plan: This component is mounted once in the layout? 
-        // If so, we just keep the box alive.
     };
-  }, [moduleLoaded]); // Removed isDiceOverlayOpen dependency
+  }, [moduleLoaded]); 
 
 
   // Trigger resize when overlay opens to ensure physics bounds are correct
@@ -107,8 +121,13 @@ export default function DiceOverlay() {
       return;
     }
 
+    // Deduct Hope if used
+    if (hopeCost > 0) {
+      await updateHope(currentHope - hopeCost);
+    }
+
     const baseModifier = activeRoll?.modifier || 0;
-    const totalModifier = baseModifier + tempModifier;
+    const totalModifier = baseModifier + tempModifier + experienceModifier;
     
     boxInstanceRef.current.clear();
 
@@ -218,7 +237,7 @@ export default function DiceOverlay() {
     }
   };
 
-  const totalModifierDisplay = (activeRoll?.modifier || 0) + tempModifier;
+  const totalModifierDisplay = (activeRoll?.modifier || 0) + tempModifier + experienceModifier;
 
   return (
     <>
@@ -270,20 +289,62 @@ export default function DiceOverlay() {
               
                            {/* Roll Controls */}
                            <div className="flex flex-col items-center gap-2 pointer-events-auto">
-                              <div className="flex items-center gap-2 bg-black/40 p-1 rounded-full border border-white/10">                        <span className="text-xs text-gray-300 pl-3 font-bold uppercase">Mod</span>
-                        <button onClick={() => setTempModifier(m => m - 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20">-</button>
-                        <span className="w-8 text-center font-mono font-bold">{totalModifierDisplay >= 0 ? `+${totalModifierDisplay}` : totalModifierDisplay}</span>
-                        <button onClick={() => setTempModifier(m => m + 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20">+</button>
-                    </div>
+                              {/* Modifier Stepper */}
+                              <div className="flex items-center gap-2 bg-black/40 p-1 rounded-full border border-white/10">
+                                  <span className="text-xs text-gray-300 pl-3 font-bold uppercase">Mod</span>
+                                  <button onClick={() => setTempModifier(m => m - 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20">-</button>
+                                  <span className="w-8 text-center font-mono font-bold">{totalModifierDisplay >= 0 ? `+${totalModifierDisplay}` : totalModifierDisplay}</span>
+                                  <button onClick={() => setTempModifier(m => m + 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20">+</button>
+                              </div>
 
-                    <button 
-                      onClick={() => handleRoll()}
-                      className="px-8 py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 text-lg"
-                    >
-                      <RotateCcw size={20} />
-                      ROLL
-                    </button>
-                 </div>
+                              {/* Experiences & Hope Section */}
+                              {experiences.length > 0 && !activeRoll?.dice && (
+                                <div className="flex flex-col items-center gap-2 w-full max-w-md px-4">
+                                  {/* Hope Cost Display */}
+                                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+                                    <span className="text-dagger-gold">Hope: {currentHope}</span>
+                                    {hopeCost > 0 && (
+                                      <span className="text-red-400 animate-pulse">- {hopeCost}</span>
+                                    )}
+                                  </div>
+
+                                  {/* Experience Chips */}
+                                  <div className="flex flex-wrap justify-center gap-2">
+                                    {experiences.map((exp, idx) => {
+                                      const isSelected = selectedExpIndices.includes(idx);
+                                      const canAfford = currentHope - hopeCost >= 1;
+                                      
+                                      return (
+                                        <button
+                                          key={idx}
+                                          onClick={() => toggleExperience(idx)}
+                                          disabled={!isSelected && !canAfford}
+                                          className={clsx(
+                                            "px-3 py-1 rounded-full text-sm font-bold border transition-all flex items-center gap-1",
+                                            isSelected 
+                                              ? "bg-dagger-gold text-black border-dagger-gold shadow-md shadow-dagger-gold/20" 
+                                              : canAfford
+                                                ? "bg-black/40 text-gray-300 border-white/20 hover:bg-white/10"
+                                                : "bg-black/20 text-gray-600 border-white/5 opacity-50 cursor-not-allowed"
+                                          )}
+                                        >
+                                          {exp.name} <span className="opacity-80">+{exp.value}</span>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Roll Button */}
+                              <button 
+                                onClick={() => handleRoll()}
+                                className="mt-2 px-8 py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 text-lg"
+                              >
+                                <RotateCcw size={20} />
+                                ROLL
+                              </button>
+                           </div>
               </div>
 
               {/* Result Display (Floating) */}
