@@ -250,6 +250,7 @@ export default function DiceOverlay() {
           hope: hopeRoll,
           fear: fearRoll,
           total,
+          extras: extraTotal,
           modifier: totalModifier,
           type
         });
@@ -336,9 +337,9 @@ export default function DiceOverlay() {
                             </button>
                             <button
                               onClick={() => removeDie(die.id)}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="absolute -top-3 -right-3 bg-red-500/50 text-white rounded-full p-1 shadow-md opacity-50 group-hover:opacity-100 transition-opacity"
                             >
-                              <X size={10} />
+                              <X size={12} />
                             </button>
                           </div>
                         ))}
@@ -397,7 +398,7 @@ export default function DiceOverlay() {
 
                   <button
                     onClick={() => handleRoll()}
-                    className="mt-2 px-8 py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 text-lg"
+                    className="mt-2 px-8 py-3 bg-dagger-gold/75 text-black font-bold rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 text-lg"
                   >
                     <RotateCcw size={20} />
                     ROLL
@@ -411,7 +412,7 @@ export default function DiceOverlay() {
                   animate={{ y: 0, opacity: 1 }}
                   className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-md pointer-events-none"
                 >
-                  <div className="bg-dagger-panel border border-white/10 p-6 rounded-2xl shadow-2xl text-center">
+                  <div className="bg-dagger-panel/75 border border-white/10 p-6 rounded-2xl shadow-2xl text-center">
                     <div className="text-sm text-gray-400 uppercase tracking-wider mb-1">Result</div>
                     <div className="text-6xl font-serif font-black text-white mb-4">{lastRollResult.total}</div>
                     {lastRollResult.type !== 'Damage' && (
