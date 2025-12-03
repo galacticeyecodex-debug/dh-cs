@@ -11,6 +11,59 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 2. LIBRARY (SRD Data)
+-- Used for static game data (classes, cards, etc.)
+CREATE TABLE IF NOT EXISTS public.library (
+  id TEXT PRIMARY KEY, -- e.g. 'class-bard', 'card-beastbound'
+  type TEXT NOT NULL, -- 'class', 'subclass', 'card', 'item'
+  name TEXT NOT NULL,
+  domain TEXT, -- Nullable (e.g. for classes)
+  tier INT,    -- Nullable
+  data JSONB NOT NULL, -- The raw JSON content
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. CHARACTERS
+-- Stores the player characters
+CREATE TABLE IF NOT EXISTS public.characters (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  name TEXT NOT NULL,
+  level INT DEFAULT 1,
+  class_id TEXT, -- Could reference library(id) or just be text
+  subclass_id TEXT,
+  ancestry TEXT,
+  community TEXT,
+  
+  -- Core Stats (Traits)
+  stats JSONB DEFAULT '{"agility": 0, "strength": 0, "finesse": 0, "instinct": 0, "presence": 0, "knowledge": 0}'::jsonb,
+  
+  -- Vitals (HP, Stress, Armor)
+  -- Updated to use new terminology: hit_points_current, armor_slots, armor_score
+  vitals JSONB DEFAULT '{"hit_points_current": 6, "hit_points_max": 6, "stress_current": 0, "stress_max": 6, "armor_slots": 0, "armor_score": 0}'::jsonb,
+  
+  -- Metacurrency
+  hope INT DEFAULT 2,
+  fear INT DEFAULT 0, -- GM currency, but maybe tracked here for solo/co-op?
+  
+  -- Calculated/Base Stats
+  evasion INT DEFAULT 10,
+  proficiency INT DEFAULT 1,
+  
+  -- Lists
+  experiences TEXT[] DEFAULT '{}',
+  domains TEXT[] DEFAULT '{}',
+  
+  -- Inventory/Gold
+  gold JSONB DEFAULT '{"handfuls": 0, "bags": 0, "chests": 0}'::jsonb,
+  
+  image_url TEXT,
+  
+  modifiers JSONB DEFAULT '{}'::jsonb, -- Store user modifiers here
+  
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
 -- 4. CHARACTER CARDS (The Loadout)
 CREATE TABLE IF NOT EXISTS public.character_cards (
