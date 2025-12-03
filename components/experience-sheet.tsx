@@ -150,7 +150,7 @@ export default function ExperienceSheet({
                         </div>
                         
                         <div className="flex items-center gap-3">
-                          <div className="text-xl font-bold text-dagger-gold">
+                          <div className="text-gray-400 font-medium">
                             +{exp.value}
                           </div>
                           <button onClick={() => handleDelete(index)} className="text-gray-500 hover:text-red-400 p-1">
