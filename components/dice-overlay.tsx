@@ -39,7 +39,8 @@ export default function DiceOverlay() {
     if (!containerRef.current || boxInstanceRef.current || !moduleLoaded || !diceBoxClassRef.current) return;
 
     const DiceBox = diceBoxClassRef.current;
-    const box = new DiceBox("#dice-tray-overlay", {
+    const box = new DiceBox({
+      container: "#dice-tray-overlay",
       assetPath: '/assets/',
       scale: 6,
       theme: 'default',
