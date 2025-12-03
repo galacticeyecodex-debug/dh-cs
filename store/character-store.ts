@@ -89,6 +89,7 @@ export interface RollResult {
   hope: number;
   fear: number;
   extras?: number;
+  dice?: { role: string, value: number, sides: number }[];
   total: number;
   modifier: number;
   type: 'Critical' | 'Hope' | 'Fear' | 'Damage';
