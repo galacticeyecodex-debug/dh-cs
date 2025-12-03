@@ -271,7 +271,7 @@ export default function DiceOverlay() {
         )}
       >
         <div className={clsx(
-          "absolute inset-0 bg-black/60 transition-opacity duration-300",
+          "absolute inset-0 bg-dagger-dark transition-opacity duration-300",
           isDiceOverlayOpen ? "opacity-100" : "opacity-0"
         )} />
         <div id="dice-tray-overlay" ref={containerRef} className="absolute inset-0 w-screen h-screen cursor-pointer z-10" onClick={() => isDiceOverlayOpen && handleRoll()} />
@@ -296,7 +296,7 @@ export default function DiceOverlay() {
                   </button>
 
                   {activeRoll && (
-                    <div className="bg-black/40 px-4 py-2 rounded-full text-white font-medium text-sm border border-white/10">
+                    <div className="bg-black/75 px-4 py-2 rounded-full text-white font-medium text-sm border border-white/10">
                       Rolling <span className="text-dagger-gold font-bold capitalize">{activeRoll.label}</span>
                       {activeRoll.dice && <span className="text-gray-400 ml-2 text-xs">({activeRoll.dice})</span>}
                     </div>
@@ -304,7 +304,7 @@ export default function DiceOverlay() {
                 </div>
 
                 <div className="flex flex-col items-center gap-2 pointer-events-auto">
-                  <div className="flex items-center gap-2 bg-black/40 p-1 rounded-full border border-white/10">
+                  <div className="flex items-center gap-2 bg-black/75 p-1 rounded-full border border-white/10">
                     <span className="text-xs text-gray-300 pl-3 font-bold uppercase">Mod</span>
                     <button onClick={() => setTempModifier(m => m - 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20">-</button>
                     <span className="w-8 text-center font-mono font-bold">{totalModifierDisplay >= 0 ? `+${totalModifierDisplay}` : totalModifierDisplay}</span>
@@ -316,7 +316,7 @@ export default function DiceOverlay() {
                     <div className="flex flex-col gap-2 mt-2 w-full max-w-md">
 
                       {/* Pool Display */}
-                      <div className="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-xl border border-white/10 min-h-[4rem]">
+                      <div className="flex flex-wrap justify-center gap-2 bg-black/75 p-2 rounded-xl border border-white/10 min-h-[4rem]">
                         {dicePool.map((die) => (
                           <div key={die.id} className="relative group">
                             <button
@@ -346,7 +346,7 @@ export default function DiceOverlay() {
                       </div>
 
                       {/* Dice Picker */}
-                      <div className="flex justify-center gap-2 bg-black/60 p-2 rounded-xl border border-white/10">
+                      <div className="flex justify-center gap-2 bg-black/75 p-2 rounded-xl border border-white/10">
                         {[4, 6, 8, 10, 12, 20].map(sides => (
                           <button
                             key={sides}
@@ -382,10 +382,10 @@ export default function DiceOverlay() {
                               className={clsx(
                                 "px-3 py-1 rounded-full text-sm font-bold border transition-all flex items-center gap-1",
                                 isSelected
-                                  ? "bg-dagger-gold text-black border-dagger-gold shadow-md shadow-dagger-gold/20"
+                                  ? "bg-dagger-gold/75 text-black border-dagger-gold shadow-md shadow-dagger-gold/20"
                                   : canAfford
-                                    ? "bg-black/40 text-gray-300 border-white/20 hover:bg-white/10"
-                                    : "bg-black/20 text-gray-600 border-white/5 opacity-50 cursor-not-allowed"
+                                    ? "bg-black/75 text-gray-300 border-white/20 hover:bg-white/10"
+                                    : "bg-black/50 text-gray-600 border-white/5 opacity-50 cursor-not-allowed"
                               )}
                             >
                               {exp.name} <span className="opacity-80">+{exp.value}</span>
