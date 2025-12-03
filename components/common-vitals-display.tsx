@@ -119,8 +119,8 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
         variant="rectangle"
         onIncrement={() => updateVitals('stress_current', character.vitals.stress_current + 1)}
         onDecrement={() => updateVitals('stress_current', character.vitals.stress_current - 1)}
-        isCriticalCondition={character.vitals.stress_current === 0}
-        trackType="mark-bad" modifiers={stressMods}
+        isCriticalCondition={character.vitals.stress_current >= totalStressMax && totalStressMax > 0}
+        trackType="fill-up-bad" modifiers={stressMods}
         onUpdateModifiers={(mods) => updateModifiers('stress', mods)}
       />
 
