@@ -1,14 +1,16 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Shield, Swords, Zap, Skull, Info } from 'lucide-react';
+import { Shield, Swords, Zap, Skull, Info, Crosshair } from 'lucide-react';
 import clsx from 'clsx';
-import { parseDamageRoll } from '@/lib/utils';
+import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers } from '@/lib/utils';
 import CommonVitalsDisplay from '@/components/common-vitals-display'; // Import the new common component
+import ModifierSheet from '@/components/modifier-sheet';
 
 export default function CombatView() {
-  const { character, prepareRoll } = useCharacterStore();
+  const { character, prepareRoll, updateModifiers } = useCharacterStore();
+  const [showProficiencyModifiers, setShowProficiencyModifiers] = useState(false);
 
   if (!character) return null;
 
@@ -18,6 +20,14 @@ export default function CombatView() {
   ) || [];
   
   const armor = character.character_inventory?.find(item => item.location === 'equipped_armor');
+  
+  // Calculate Proficiency with Modifiers
+  const baseProficiency = character.proficiency || 1;
+  const systemProfMods = getSystemModifiers(character, 'proficiency');
+  const userProfMods = character.modifiers?.['proficiency'] || [];
+  const allProfMods = [...systemProfMods, ...userProfMods];
+  
+  const totalProficiency = Math.max(1, baseProficiency + allProfMods.reduce((acc, mod) => acc + mod.value, 0));
 
   return (
     <div className="space-y-6 pb-24">
@@ -26,17 +36,28 @@ export default function CombatView() {
       
       {/* Weapons List */}
       <div className="space-y-3">
-        <h3 className="text-sm font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-          <Swords size={16} /> Active Weapons
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
+            <Swords size={16} /> Active Weapons
+          </h3>
+          <button 
+            onClick={() => setShowProficiencyModifiers(true)}
+            className="flex items-center gap-1 text-xs bg-dagger-gold/10 border border-dagger-gold/20 text-dagger-gold px-2 py-1 rounded-full font-bold hover:bg-dagger-gold/20 transition-colors"
+          >
+            <Crosshair size={12} />
+            Proficiency: {totalProficiency}
+          </button>
+        </div>
         
         {weapons.length > 0 ? (
           weapons.map((weapon) => {
             const libData = weapon.library_item?.data;
             const trait = libData?.trait || 'Strength';
-            const damage = libData?.damage || '1d8';
+            const baseDamage = libData?.damage || '1d8';
             const range = libData?.range || 'Melee';
             const traitValue = character.stats[trait.toLowerCase() as keyof typeof character.stats] || 0;
+            
+            const calculatedDamage = calculateWeaponDamage(baseDamage, totalProficiency);
 
             return (
               <div key={weapon.id} className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden group">
@@ -49,8 +70,10 @@ export default function CombatView() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xl font-bold text-dagger-gold">{damage}</div>
-                    <div className="text-[10px] text-gray-500 uppercase">Damage</div>
+                    <div className="text-xl font-bold text-dagger-gold">{calculatedDamage}</div>
+                    <div className="text-[10px] text-gray-500 uppercase">
+                      {baseDamage} × {totalProficiency}
+                    </div>
                   </div>
                 </div>
                 
@@ -64,7 +87,7 @@ export default function CombatView() {
                   </button>
                   <button 
                     onClick={() => {
-                      const { dice, modifier } = parseDamageRoll(damage);
+                      const { dice, modifier } = parseDamageRoll(calculatedDamage);
                       prepareRoll(`${weapon.name} Damage`, modifier, dice);
                     }}
                     className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
@@ -128,6 +151,15 @@ export default function CombatView() {
           ))}
         </div>
       )}
+
+      <ModifierSheet 
+        isOpen={showProficiencyModifiers}
+        onClose={() => setShowProficiencyModifiers(false)}
+        statLabel="proficiency"
+        baseValue={baseProficiency}
+        currentModifiers={userProfMods}
+        onUpdateModifiers={(mods) => updateModifiers('proficiency', mods)}
+      />
     </div>
   );
 }

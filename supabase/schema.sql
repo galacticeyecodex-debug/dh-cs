@@ -48,6 +48,8 @@ CREATE TABLE IF NOT EXISTS public.characters (
   -- Updated to use new terminology: hit_points_current, armor_slots, armor_score
   vitals JSONB DEFAULT '{"hit_points_current": 6, "hit_points_max": 6, "stress_current": 0, "stress_max": 6, "armor_slots": 0, "armor_score": 0}'::jsonb,
   
+  damage_thresholds JSONB DEFAULT '{"minor": 1, "major": 1, "severe": 2}'::jsonb,
+
   -- Metacurrency
   hope INT DEFAULT 2,
   fear INT DEFAULT 0, -- GM currency, but maybe tracked here for solo/co-op?
@@ -259,7 +261,7 @@ BEGIN
   -- 1. Insert Character
   INSERT INTO public.characters (
     user_id, name, level, class_id, subclass_id, ancestry, community,
-    stats, vitals, hope, fear, evasion, proficiency,
+    stats, vitals, damage_thresholds, hope, fear, evasion, proficiency,
     experiences, domains, gold, image_url, modifiers
   ) VALUES (
     v_user_id,
@@ -271,6 +273,7 @@ BEGIN
     p_character->>'community',
     COALESCE(p_character->'stats', '{}'::jsonb),
     COALESCE(p_character->'vitals', '{}'::jsonb),
+    COALESCE(p_character->'damage_thresholds', '{"minor": 1, "major": 1, "severe": 2}'::jsonb),
     COALESCE((p_character->>'hope')::int, 2),
     COALESCE((p_character->>'fear')::int, 0),
     COALESCE((p_character->>'evasion')::int, 10),

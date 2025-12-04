@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import createClient from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { getSystemModifiers } from '@/lib/utils';
+import { getSystemModifiers, getClassBaseStat, calculateBaseEvasion } from '@/lib/utils';
 import { Experience } from '@/types/modifiers';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
 
@@ -387,6 +387,9 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       });
     }
 
+    // === EVASION CALCULATION ===
+    const newEvasion = calculateBaseEvasion(tempChar);
+
     // Apply updates
     const currentVitals = character.vitals;
     
@@ -413,7 +416,8 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       character: s.character ? { 
         ...s.character, 
         vitals: newVitals,
-        damage_thresholds: newThresholds
+        damage_thresholds: newThresholds,
+        evasion: newEvasion
       } : null
     }));
 
@@ -422,14 +426,8 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       .from('characters')
       .update({ 
         vitals: newVitals,
-        // We need to store thresholds too if we want them persistent, 
-        // or we assume they are always recalculated. 
-        // But for now, let's update vitals.
-        // If damage_thresholds isn't a column, we might need to store it in vitals or another jsonb.
-        // Given we can't easily add columns, let's assume we just calculate them client side 
-        // BUT the interface requires them. Let's store them in `stats` or just keep in state?
-        // Ideally we save them. Let's try to save them in a 'derived_stats' or similar if it existed.
-        // For now, we just update vitals in DB. Thresholds are derived, so recalculating on load is fine.
+        damage_thresholds: newThresholds,
+        evasion: newEvasion
       })
       .eq('id', character.id);
   },
@@ -787,17 +785,25 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
 
     // Calculate initial damage thresholds (default if not stored)
     // We could call recalculateDerivedStats after set, but calculating basic here is safer
-    const minor = 1;
-    const major = charData.level;
-    const severe = charData.level * 2;
+    let damage_thresholds;
     
-    // Note: Real recalculation happens via recalculateDerivedStats() action, 
-    // but we need initial state. Use base unarmored values.
-    const damage_thresholds = {
-      minor,
-      major,
-      severe
-    };
+    if (charData.damage_thresholds) {
+      damage_thresholds = typeof charData.damage_thresholds === 'string' 
+        ? JSON.parse(charData.damage_thresholds) 
+        : charData.damage_thresholds;
+    } else {
+      const minor = 1;
+      const major = charData.level;
+      const severe = charData.level * 2;
+      
+      // Note: Real recalculation happens via recalculateDerivedStats() action, 
+      // but we need initial state. Use base unarmored values.
+      damage_thresholds = {
+        minor,
+        major,
+        severe
+      };
+    }
 
     const fullCharacter = {
       ...charData,
