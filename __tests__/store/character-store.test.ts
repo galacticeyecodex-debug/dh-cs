@@ -27,9 +27,10 @@ vi.mock('@/lib/supabase/client', () => ({
   default: () => mockSupabase,
 }));
 
-// Mock getSystemModifiers
+// Mock getSystemModifiers and calculateBaseEvasion
 vi.mock('@/lib/utils', () => ({
   getSystemModifiers: vi.fn(() => []),
+  calculateBaseEvasion: vi.fn(() => 10),
 }));
 
 // ============================================================================
