@@ -1,0 +1,1010 @@
+{
+  "analysis_date": "2025-12-03",
+  "analysis_scope": "Comprehensive investigation of Issue #2 (Modifier System) and related feature gaps",
+  "findings_summary": {
+    "critical_status": "INCOMPLETE",
+    "core_issue": "Core goal to convert SRD feat_text strings into structured modifier data during database seeding was never completed. System relies on fallback regex parsing at runtime instead of structured modifiers in database.",
+    "working_status": "PARTIAL - Manual modifiers work, equipment detection works, but system cannot handle automatic item modifier extraction from SRD data.",
+    "blocker_count": 4,
+    "missing_files": 3,
+    "phases_blocked": ["Phase 2", "Phase 5", "Phase 6"]
+  },
+  "issues": {
+    "issue_1": {
+      "title": "Issue #2 - Incomplete Modifier System",
+      "github_issue": "#2 'Implement Item Modifier System'",
+      "current_status": "Partially Complete (Phases 1-3 partial, Phase 4 mostly complete, Phases 5-6 not started)",
+      "blocking_items": [
+        "Missing seed-library.ts script - Cannot enrich SRD data with structured modifiers",
+        "Missing modifier-service.ts - Cannot apply complex business logic to modifiers",
+        "Missing custom item creation UI - Cannot support homebrew items with modifiers",
+        "Regex fallback in production - Brittle pattern matching instead of structured data"
+      ],
+      "completion_requirements": {
+        "phase_1_foundation": {
+          "status": "COMPLETE",
+          "completed_items": [
+            "types/modifiers.ts exists with comprehensive type definitions (Modifier, ModifierType, ModifierOperator, CharacterStat interfaces)",
+            "lib/modifier-parser.ts exists with basic regex parsing logic",
+            "Database schema includes modifiers JSONB field in characters table (line 68: modifiers JSONB DEFAULT '{}'::jsonb)"
+          ],
+          "missing_items": [
+            "Unit tests for modifier-parser.ts",
+            "lib/modifier-service.ts does not exist - Required for business logic"
+          ]
+        },
+        "phase_2_data_migration": {
+          "status": "NOT STARTED",
+          "critical": true,
+          "issue": "This is the core blocker for the entire issue",
+          "missing_items": [
+            "scripts/seed-library.ts does not exist - Should enrich SRD data during database seeding",
+            "SRD JSON files still contain only feat_text strings (e.g., armor.json: 'feat_text': '+1 to Evasion')",
+            "No structured modifiers array in database library.data field",
+            "Database has NOT been seeded with parsed modifiers from SRD"
+          ],
+          "current_workaround": "lib/utils.ts lines 63-84 use fallback regex parsing at runtime (parseModifiers function)",
+          "why_workaround_inadequate": [
+            "Regex is brittle and cannot handle complex modifier descriptions",
+            "Cannot support conditional modifiers ('while unarmored', 'when you mark stress')",
+            "Performance cost of parsing on every page load",
+            "Difficult to maintain - Any change to feat_text format breaks parsing",
+            "Issue #2 explicitly wanted to AVOID this approach"
+          ]
+        },
+        "phase_3_application_logic": {
+          "status": "PARTIALLY IMPLEMENTED",
+          "working": [
+            "store/character-store.ts has updateModifiers() method (lines 515-540)",
+            "recalculateDerivedStats() method exists (lines 290-429) and hooks into equipment changes",
+            "getSystemModifiers() helper in lib/utils.ts (lines 36-87) extracts modifiers from equipped items",
+            "Modifiers correctly stack additively and apply to character stats"
+          ],
+          "problems": [
+            "Uses fallback regex parsing because structured modifiers don't exist in DB (lib/utils.ts line 60: 'Skip regex if structured found')",
+            "Cannot handle conditional modifiers or advanced modifier types",
+            "Performance: Re-parses feat_text every time item equipment status changes",
+            "No modifier service to handle complex business logic (e.g., conditional application, interaction rules)"
+          ]
+        },
+        "phase_4_ui_integration": {
+          "status": "MOSTLY COMPLETE",
+          "working": [
+            "components/modifier-sheet.tsx allows manual modifier management (8,218 lines)",
+            "character-view.tsx displays modifiers on stats (lines 66-77)",
+            "common-vitals-display.tsx combines system + user modifiers (lines 18-25)",
+            "UI correctly shows modifier totals and sources (System vs User)",
+            "ModifierSheet has stepper controls for quick adjustments"
+          ],
+          "missing": [
+            "No dedicated 'Active Modifiers' panel showing all active item modifiers grouped by source",
+            "No visual indicator on equipment items showing what modifiers they grant",
+            "No 'modifier preview' when equipping/unequipping items",
+            "Modifier tags in equipment inventory view (described in PRD section 4.3.2 but not implemented)"
+          ]
+        },
+        "phase_5_homebrew_support": {
+          "status": "NOT IMPLEMENTED",
+          "critical": true,
+          "missing_components": [
+            "components/create-custom-item-modal.tsx does NOT exist",
+            "No UI for building custom modifiers with modifier builder interface",
+            "Cannot create custom items with custom modifiers",
+            "No storage location for homebrew modifiers (database column exists in character_inventory but no UI)"
+          ],
+          "requirements_from_prd": [
+            "Custom Creation: Users can create custom inventory items with basic properties (name, description, type), custom modifiers using builder interface, multiple modifiers per item",
+            "Storage: Custom items stored in character_inventory with modifiers in JSONB custom_data field",
+            "Equal Treatment: Homebrew items function identically to SRD items once created"
+          ]
+        },
+        "phase_6_polish": {
+          "status": "NOT STARTED",
+          "items": [
+            "No end-to-end tests for modifier system",
+            "No performance optimization (regex parsing on every render)",
+            "No documentation for modifier system",
+            "No error handling for malformed feat_text",
+            "No migration guide for converting old data to structured format"
+          ]
+        }
+      },
+      "dependencies": [
+        {
+          "item": "Phase 2: Seed Script",
+          "blocks": ["Phase 3", "Phase 4", "Phase 5", "Phase 6"],
+          "criticality": "CRITICAL"
+        },
+        {
+          "item": "Phase 3: Application Logic",
+          "blocks": ["Phase 4", "Phase 5"],
+          "criticality": "HIGH"
+        },
+        {
+          "item": "Modifier Service (modifier-service.ts)",
+          "blocks": ["Phase 3", "Phase 5"],
+          "criticality": "HIGH"
+        }
+      ],
+      "effort_estimate": {
+        "phase_1_foundation": "2 hours - Add unit tests for parser",
+        "phase_2_data_migration": "8-12 hours - Create seed-library.ts script, parse SRD JSON, test seeding",
+        "phase_3_application_logic": "6-8 hours - Create modifier-service.ts, implement conditional modifiers, optimize performance",
+        "phase_4_ui_integration": "4-6 hours - Add active modifiers panel, equipment modifier preview, inline modifier tags",
+        "phase_5_homebrew_support": "10-12 hours - Create custom item modal, modifier builder, validation, UI",
+        "phase_6_polish": "4-6 hours - Tests, documentation, error handling",
+        "total_hours": "34-50 hours of development work"
+      },
+      "priority": "HIGH",
+      "priority_rationale": "Item modifiers are a core gameplay mechanic. The current regex fallback is brittle and will cause bugs as the system grows. Completing this issue is a dependency for other features (homebrew, advanced items, character optimization)."
+    },
+    "issue_2": {
+      "title": "Issue #2 Missing Component - seed-library.ts Script",
+      "file_path": "scripts/seed-library.ts (DOES NOT EXIST)",
+      "criticality": "CRITICAL - Blocks entire Phase 2 and subsequent phases",
+      "current_status": "NOT STARTED",
+      "blocking_items": [
+        "SRD data cannot be enriched with structured modifiers",
+        "Database seeding cannot convert feat_text to modifiers",
+        "Application must use fallback regex parsing at runtime"
+      ],
+      "what_this_script_needs_to_do": {
+        "overall_purpose": "Convert raw SRD JSON feat_text strings into structured modifier arrays during database seeding. This runs ONCE during initial setup or migration, so the expensive parsing is done offline rather than at runtime.",
+        "step_1_read_srd_data": {
+          "description": "Load all SRD JSON files that may contain modifiers",
+          "files_to_process": [
+            "srd/json/armor.json - Base thresholds and feat_text (e.g., '+1 to Evasion')",
+            "srd/json/weapons.json - feat_text modifiers (e.g., '+1 to attack rolls')",
+            "srd/json/items.json - Generic item feat_text",
+            "srd/json/abilities.json - Feature/ability modifiers",
+            "srd/json/domains.json - Domain card modifiers",
+            "Note: ancestries.json, communities.json have features but need custom parsing"
+          ],
+          "expected_structure": {
+            "armor": {
+              "name": "Gambeson Armor",
+              "base_score": "3",
+              "base_thresholds": "5 / 11",
+              "feat_name": "Flexible",
+              "feat_text": "+1 to Evasion"
+            },
+            "weapons": {
+              "name": "Broadsword",
+              "feat_text": "+1 to attack rolls"
+            }
+          }
+        },
+        "step_2_parse_feat_text": {
+          "description": "Convert feat_text strings into structured Modifier objects",
+          "transformation_logic": {
+            "simple_stat_bonus": {
+              "pattern": "/([+-]?\\d+)\\s+(?:to|bonus\\s+to)\\s+(Evasion|Armor|Hit\\s+Points|Agility|etc)/i",
+              "example_inputs": [
+                "+1 to Evasion",
+                "-1 to Agility",
+                "+2 bonus to Strength",
+                "-2 to Evasion; -1 to Agility"
+              ],
+              "output_structure": {
+                "id": "mod-uuid",
+                "type": "stat",
+                "target": "evasion",
+                "value": 1,
+                "operator": "add",
+                "description": "+1 to Evasion"
+              }
+            },
+            "conditional_modifiers": {
+              "pattern": "Parse descriptions with conditions like 'while unarmored', 'when you mark stress', 'on successful attack'",
+              "example_inputs": [
+                "While unarmored, you gain +1 to Evasion",
+                "On a successful attack, add 1d4 damage",
+                "When you mark stress, gain hope"
+              ],
+              "challenge": "DIFFICULT - Current regex cannot handle. These require conditional logic in modifier-service.ts",
+              "recommended_approach": "Flag these with condition field, handle in modifier-service.ts at application time"
+            },
+            "complex_effects": {
+              "examples": [
+                "feat_text: 'roll an additional damage die and discard the lowest result' (Greatsword) - Cannot be simplified to stat bonus",
+                "feat_text: 'You reduce incoming magic damage by your Armor Score' (Elundrian Chain) - Complex interaction",
+                "feat_text: 'When you mark your last Armor Slot, increase thresholds by +2' (Irontree Breastplate) - Conditional"
+              ],
+              "handling": "These cannot be fully structured. Create generic 'special_effect' modifier type with original text preserved for manual application."
+            }
+          }
+        },
+        "step_3_database_transformation": {
+          "description": "Add structured modifiers to library.data JSONB during INSERT/UPSERT",
+          "current_seed_structure": {
+            "example": "seed_library.sql lines 1-30 show: INSERT INTO public.library (id, type, name, domain, tier, data) VALUES (id, type, name, domain, tier, data_jsonb)"
+          },
+          "required_change": {
+            "before": {
+              "data": {
+                "name": "Gambeson Armor",
+                "base_score": "3",
+                "feat_text": "+1 to Evasion"
+              }
+            },
+            "after": {
+              "data": {
+                "name": "Gambeson Armor",
+                "base_score": "3",
+                "feat_text": "+1 to Evasion",
+                "modifiers": [
+                  {
+                    "id": "mod-uuid",
+                    "type": "stat",
+                    "target": "evasion",
+                    "value": 1,
+                    "operator": "add",
+                    "description": "+1 to Evasion"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "step_4_error_handling": {
+          "description": "Handle parsing failures gracefully",
+          "errors_to_handle": [
+            "Unparseable feat_text - Log warning, include original text in modifier description",
+            "Malformed JSON - Skip item, log error with item ID",
+            "Ambiguous text - Flag for manual review",
+            "Empty feat_text - Skip modifier creation"
+          ],
+          "strategy": "Generate structured modifiers for simple patterns, preserve original feat_text for complex cases, log all unparsed items to review queue"
+        },
+        "step_5_output_verification": {
+          "description": "Verify parsing was successful and complete",
+          "validation_checks": [
+            "All armor items have modifiers array (even if empty)",
+            "All weapon items with feat_text have modifiers",
+            "Each modifier has required fields: id, type, target, value, operator, description",
+            "Modifier values are numeric and reasonable (not parsing '12-sided die' as 12)",
+            "No duplicate modifier IDs"
+          ],
+          "output_report": {
+            "items_processed": 247,
+            "modifiers_created": 189,
+            "items_with_unparseable_text": 14,
+            "items_with_complex_effects": 23,
+            "warnings": [
+              "Armor 'Full Plate' has multi-modifier feat_text, split into 2 modifiers",
+              "Weapon 'Greatsword' has complex effect that cannot be structured, flagged for manual review"
+            ]
+          }
+        }
+      },
+      "srd_files_needing_processing": {
+        "armor_json": {
+          "file": "srd/json/armor.json",
+          "items": 30,
+          "examples_with_feat_text": [
+            {
+              "name": "Gambeson Armor",
+              "feat_text": "+1 to Evasion",
+              "parsed_modifier": {"target": "evasion", "value": 1}
+            },
+            {
+              "name": "Chainmail Armor",
+              "feat_text": "-1 to Evasion",
+              "parsed_modifier": {"target": "evasion", "value": -1}
+            },
+            {
+              "name": "Full Plate Armor",
+              "feat_text": "-2 to Evasion; -1 to Agility",
+              "parsed_modifiers": [
+                {"target": "evasion", "value": -2},
+                {"target": "agility", "value": -1}
+              ]
+            }
+          ]
+        },
+        "weapons_json": {
+          "file": "srd/json/weapons.json",
+          "items": 80,
+          "examples_with_feat_text": [
+            {
+              "name": "Broadsword",
+              "feat_text": "+1 to attack rolls",
+              "challenge": "Attack roll modifier - Need 'roll' type modifier"
+            }
+          ]
+        },
+        "items_json": {
+          "file": "srd/json/items.json",
+          "items": 40,
+          "status": "Likely has feat_text, needs inventory"
+        }
+      },
+      "transformation_logic_required": [
+        "Regex pattern matching for stat modifiers: /([+-]?\\d+)\\s+(?:to|bonus)\\s+([A-Za-z\\s]+)/",
+        "Stat name normalization: 'Hit Points' -> 'hp', 'Evasion' -> 'evasion', etc.",
+        "Value parsing: Extract numeric value and determine operator (add vs subtract)",
+        "Multi-modifier handling: Split on semicolons for items with multiple modifiers",
+        "UUID generation: Create unique modifier IDs for tracking"
+      ],
+      "how_to_verify_output": [
+        "Query database: SELECT data->'modifiers' FROM library WHERE type='armor' LIMIT 5;",
+        "Check modifier structure: Verify each has id, type, target, value, operator fields",
+        "Spot-check parsing: Confirm '+1 to Evasion' became {target: 'evasion', value: 1}",
+        "Review unparsed items: Check warning log for complex feat_text that couldn't be automated"
+      ],
+      "how_to_handle_errors": [
+        "Unparseable feat_text: Create modifier with type='special' and preserve original text in description",
+        "Null feat_text: Skip modifier creation, leave modifiers array empty",
+        "Malformed data: Log error and skip item",
+        "Ambiguous patterns: Flag with warning comment for manual review"
+      ],
+      "priority": "CRITICAL",
+      "effort_estimate_hours": "8-12 hours",
+      "dependencies": [
+        "Must complete before Phase 3 (Application Logic)",
+        "Blocks all downstream phases"
+      ]
+    },
+    "issue_3": {
+      "title": "Issue #2 Missing Component - modifier-service.ts",
+      "file_path": "lib/modifier-service.ts (DOES NOT EXIST)",
+      "criticality": "HIGH - Required for Phase 3 Application Logic",
+      "current_status": "NOT STARTED",
+      "why_needed": "Currently modifier application logic is scattered across store (character-store.ts) and utils (utils.ts). No centralized service to handle business logic, conditional modifiers, or modifier interactions.",
+      "what_functions_should_this_contain": {
+        "core_functions": [
+          {
+            "name": "applyModifierToStat(character, stat, modifiers)",
+            "purpose": "Apply a list of modifiers to a specific stat and return the total",
+            "signature": "function applyModifierToStat(character: Character, stat: CharacterStat, modifiers: Modifier[]): number",
+            "logic": [
+              "Sum all modifiers for the target stat",
+              "Handle operator types: add, subtract, multiply, divide, set",
+              "Apply modifiers in correct order (multiplicative after additive)",
+              "Return final calculated value"
+            ],
+            "example": "applyModifierToStat(character, 'evasion', [mod1, mod2]) => base + mod1.value + mod2.value"
+          },
+          {
+            "name": "evaluateConditionalModifier(character, modifier)",
+            "purpose": "Check if a conditional modifier should apply based on character state",
+            "signature": "function evaluateConditionalModifier(character: Character, modifier: Modifier): boolean",
+            "conditions_to_support": [
+              "while unarmored: character.armor_score === 0",
+              "when you mark stress: Check if stress was just marked",
+              "on successful attack: Check roll result context",
+              "when you have [N] Hope: Check hope pool value",
+              "when you have [N] Hit Points: Check HP value",
+              "in [terrain type]: Check current location/environment"
+            ],
+            "challenge": "Requires contextual information beyond just character state"
+          },
+          {
+            "name": "getEquippedItemModifiers(character)",
+            "purpose": "Extract all modifiers from equipped items",
+            "signature": "function getEquippedItemModifiers(character: Character): Modifier[]",
+            "logic": [
+              "Find equipped primary, secondary, armor items",
+              "Extract modifiers array from each item's library_item.data",
+              "Combine and return as flat array",
+              "Filter out conditional modifiers that don't currently apply"
+            ]
+          },
+          {
+            "name": "getActiveModifiers(character, stat)",
+            "purpose": "Get all modifiers affecting a specific stat (system + user + conditional)",
+            "signature": "function getActiveModifiers(character: Character, stat: CharacterStat): Modifier[]",
+            "logic": [
+              "Get system modifiers from equipped items",
+              "Get user-defined modifiers from character.modifiers JSONB",
+              "Filter for relevant stat",
+              "Filter conditionals based on character state",
+              "Return combined array with source attribution"
+            ]
+          },
+          {
+            "name": "calculateDerivedStats(character)",
+            "purpose": "Calculate all derived stats (evasion, armor, HP max, stress max) based on modifiers",
+            "signature": "function calculateDerivedStats(character: Character): DerivedStats",
+            "returns": {
+              "evasion": "number",
+              "armor_score": "number",
+              "armor_slots": "number",
+              "hit_points_max": "number",
+              "stress_max": "number",
+              "damage_thresholds": {
+                "minor": "number",
+                "major": "number",
+                "severe": "number"
+              }
+            },
+            "logic": [
+              "Get base values from class data",
+              "Get item modifiers from equipped items",
+              "Get user modifiers from character.modifiers",
+              "Apply all modifiers with correct precedence",
+              "Apply caps and limits (e.g., armor max 12)",
+              "Calculate damage thresholds based on armor and level",
+              "Return complete derived stats object"
+            ]
+          }
+        ],
+        "utility_functions": [
+          {
+            "name": "normalizeStatName(input)",
+            "purpose": "Convert various stat name formats to canonical form",
+            "examples": [
+              "'Hit Points' -> 'hp'",
+              "'Evasion' -> 'evasion'",
+              "'Damage Thresholds' -> 'damage_thresholds'",
+              "'armor_slots' -> 'armor' (context dependent)"
+            ]
+          },
+          {
+            "name": "validateModifier(modifier)",
+            "purpose": "Check if modifier has valid structure and values",
+            "checks": [
+              "Has required fields: id, type, target, value, operator",
+              "Value is numeric",
+              "Operator is valid type",
+              "Target is known stat or string",
+              "Description is not empty"
+            ]
+          },
+          {
+            "name": "mergeModifierLists(systemMods, userMods)",
+            "purpose": "Combine system and user modifiers, maintaining source attribution",
+            "logic": [
+              "Keep all modifiers with source field",
+              "Group by target stat if needed",
+              "Maintain order (system first, then user)",
+              "Avoid duplicates based on ID"
+            ]
+          },
+          {
+            "name": "getModifierConflicts(modifiers)",
+            "purpose": "Identify modifiers that might conflict",
+            "example_conflicts": [
+              "Two 'set' operators on same stat",
+              "Contradictory conditional modifiers",
+              "Modifiers exceeding known caps"
+            ]
+          }
+        ]
+      },
+      "how_differs_from_modifier_parser": {
+        "modifier_parser": {
+          "purpose": "Convert feat_text strings to Modifier objects",
+          "scope": "One-way transformation: string -> object",
+          "complexity": "Low - just regex and parsing",
+          "used_by": "Seed script, fallback at runtime",
+          "file": "lib/modifier-parser.ts"
+        },
+        "modifier_service": {
+          "purpose": "Apply modifiers to character and calculate derived stats",
+          "scope": "Application logic: modifiers + character state -> derived stats",
+          "complexity": "High - business logic, conditionals, interactions",
+          "used_by": "Store, components, damage calculation",
+          "file": "lib/modifier-service.ts (to be created)"
+        }
+      },
+      "game_logic_examples": [
+        {
+          "scenario": "Character equips Gambeson Armor (+1 Evasion)",
+          "current_flow": "store -> getSystemModifiers (regex parse feat_text) -> recalculateDerivedStats -> update UI",
+          "improved_flow": "store -> modifier-service.getEquippedItemModifiers() -> modifier-service.calculateDerivedStats() -> update UI",
+          "benefit": "Uses pre-parsed modifiers from database instead of regex"
+        },
+        {
+          "scenario": "Character has -2 Evasion from Full Plate Armor but manually adds +1 from ability",
+          "logic": [
+            "Full Plate: base -2 evasion (parsed from armor.json feat_text)",
+            "User ledger: +1 evasion (manual adjustment)",
+            "Result: -2 + 1 = -1 total evasion modifier",
+            "Service function: applyModifierToStat(character, 'evasion', [systemMods, userMods]) => -1"
+          ]
+        },
+        {
+          "scenario": "Drakona ancestry: 'When unarmored, gain +1 Evasion'",
+          "complexity": "Conditional modifier",
+          "logic": [
+            "Modifier has condition: 'while unarmored'",
+            "evaluateConditionalModifier checks: character.armor_score === 0",
+            "If true: Include modifier in active modifiers list",
+            "If false: Exclude from calculation",
+            "Service function: evaluateConditionalModifier(character, modifier) => boolean"
+          ]
+        },
+        {
+          "scenario": "Calculating damage thresholds for unarmored Level 3 character",
+          "current_implementation": "Hardcoded in store.recalculateDerivedStats() (lines 301-303)",
+          "ideal_implementation": [
+            "Get base thresholds from level (level -> major, level*2 -> severe)",
+            "Get armor bonuses from equipped armor",
+            "Get modifier bonuses from character.modifiers",
+            "Apply all together using service function",
+            "Return {minor: 1, major: 3, severe: 6}"
+          ]
+        }
+      ],
+      "conditional_modifier_handling": {
+        "what_are_conditional_modifiers": "Modifiers that only apply when specific conditions are met",
+        "examples_from_srd": [
+          "Dwarf 'Thick Skin': When you take Minor damage, mark 2 Stress instead of Hit Point (condition: Minor damage taken)",
+          "Drakona 'Scales': When you would take Severe damage, mark 1 Stress to mark 1 fewer Hit Points (condition: Severe damage)",
+          "Faun 'Kick': Mark Stress to deal extra 2d6 damage and knock back (condition: successful attack)"
+        ],
+        "implementation_approach": [
+          "Add optional 'condition' field to Modifier interface (currently exists, line 15 of modifiers.ts)",
+          "Store condition as string: 'while unarmored', 'on successful attack', etc.",
+          "Create condition evaluator function: evaluateConditionalModifier()",
+          "Filter modifiers before applying them based on conditions",
+          "Challenge: Some conditions depend on runtime context (last attack, damage type) not just character state"
+        ]
+      },
+      "interface_design": {
+        "input": {
+          "type": "Character (full character object with inventory, modifiers, etc.)",
+          "requires": [
+            "character.class_data - For base evasion, HP, stress",
+            "character.character_inventory - For equipped items",
+            "character.modifiers - For user-defined modifiers",
+            "character.level - For threshold calculations"
+          ]
+        },
+        "output": {
+          "type": "DerivedStats (interface to define)",
+          "structure": {
+            "evasion": "number",
+            "proficiency": "number",
+            "armor_score": "number",
+            "armor_slots": "number",
+            "hit_points_max": "number",
+            "stress_max": "number",
+            "damage_thresholds": {"minor": "number", "major": "number", "severe": "number"},
+            "modifiers_applied": {
+              "evasion": [{"source": "Full Plate Armor", "value": -2}, {"source": "User", "value": 1}],
+              "hit_points": [...]
+            }
+          }
+        }
+      },
+      "integration_points": [
+        {
+          "location": "store/character-store.ts recalculateDerivedStats()",
+          "current": "Direct calculation logic (lines 290-429)",
+          "change": "Call modifier-service.calculateDerivedStats(character) instead"
+        },
+        {
+          "location": "components/character-view.tsx",
+          "current": "Displays stats with manual modifier application",
+          "change": "Use modifier-service.getActiveModifiers() to display mod breakdown"
+        },
+        {
+          "location": "lib/utils.ts getSystemModifiers()",
+          "current": "Fallback regex parsing (lines 63-84)",
+          "change": "Call modifier-service.getEquippedItemModifiers() instead"
+        }
+      ],
+      "priority": "HIGH",
+      "effort_estimate_hours": "6-8 hours",
+      "dependencies": [
+        "Phase 2 (seed-library.ts) should complete first for accurate modifier data",
+        "Blocks Phase 5 (Homebrew) which needs conditional modifier support"
+      ]
+    },
+    "issue_4": {
+      "title": "Issue #2 Missing Feature - Homebrew Item Creation (Phase 5)",
+      "feature_scope": "Item Modifier System Phase 5",
+      "criticality": "HIGH - Required for user customization",
+      "current_status": "NOT IMPLEMENTED",
+      "blocking_items": [
+        "components/create-custom-item-modal.tsx does NOT exist",
+        "No UI for defining custom modifiers with builder interface",
+        "Cannot create or save custom items with modifiers",
+        "No validation for custom modifiers"
+      ],
+      "what_ui_components_are_needed": {
+        "create_custom_item_modal": {
+          "file_to_create": "components/create-custom-item-modal.tsx",
+          "purpose": "Modal dialog for creating custom inventory items with modifiers",
+          "features": [
+            "Item basic properties input: name, description, item_type (weapon/armor/consumable/other)",
+            "Modifier builder interface: Add/remove modifiers with structured UI",
+            "Modifier field inputs for each modifier: target stat, operator, value, condition (optional)",
+            "Validation: Ensure modifiers are valid before save",
+            "Preview: Show modifier effects on character stats in real-time",
+            "Save/Cancel buttons with optimistic update"
+          ]
+        },
+        "modifier_builder_component": {
+          "file_to_create": "components/modifier-builder.tsx or components/ui/modifier-builder.tsx",
+          "purpose": "Reusable component for building individual modifiers",
+          "fields": [
+            "Type dropdown: 'stat' | 'roll' | 'conditional'",
+            "Target dropdown: Stat selection (evasion, armor, agility, etc.) or custom string",
+            "Operator dropdown: 'add' | 'subtract' | 'multiply' | 'divide' | 'set'",
+            "Value input: Numeric input for modifier value",
+            "Condition input: Optional text field for condition description",
+            "Description input: User-friendly description of what modifier does",
+            "Delete button: Remove this modifier"
+          ],
+          "validation": [
+            "Target cannot be empty",
+            "Value must be numeric",
+            "Operator must be valid",
+            "At least one modifier required"
+          ]
+        },
+        "custom_item_inventory_display": {
+          "enhancement": "Modify character_inventory.tsx to distinguish homebrew items",
+          "features": [
+            "Visual indicator (badge/icon) showing 'CUSTOM' for homebrew items",
+            "Edit button to modify custom item",
+            "Ability to delete custom items",
+            "Modifier preview when hovering/tapping item",
+            "Same functionality as SRD items (equip, unequip, etc.)"
+          ]
+        }
+      },
+      "how_should_custom_modifiers_be_defined": {
+        "ui_approach": {
+          "flow": [
+            "User taps 'Create Custom Item'",
+            "Modal opens with form: name, description, item_type",
+            "User taps 'Add Modifier'",
+            "Modifier builder component appears with dropdowns/inputs",
+            "User selects: Type=stat, Target=evasion, Operator=add, Value=1",
+            "User can add more modifiers by tapping 'Add Another'",
+            "User taps 'Save Item'",
+            "Item created and added to character_inventory"
+          ],
+          "example_custom_item": {
+            "name": "Homebrewed Ring of Evasion",
+            "description": "A magical ring that increases dodge speed",
+            "item_type": "accessory",
+            "modifiers": [
+              {
+                "id": "custom-mod-1",
+                "type": "stat",
+                "target": "evasion",
+                "value": 2,
+                "operator": "add",
+                "description": "+2 to Evasion"
+              }
+            ]
+          }
+        },
+        "data_storage": {
+          "location": "character_inventory table",
+          "fields_needed": [
+            "id: UUID",
+            "character_id: UUID FK",
+            "name: TEXT 'Homebrewed Ring of Evasion'",
+            "item_id: TEXT or NULL (NULL for custom items, references library.id for SRD items)",
+            "location: TEXT 'backpack'|'equipped_primary'|'equipped_secondary'|'equipped_armor'",
+            "description: TEXT",
+            "custom_data: JSONB { modifiers: [Modifier[]], item_type: 'weapon'|'armor'|'consumable'|'other', is_homebrew: true }",
+            "created_at: TIMESTAMP"
+          ],
+          "schema_change": "Add custom_data JSONB DEFAULT '{}'::jsonb column if not already present",
+          "current_schema": "schema.sql line 86-95 shows character_inventory exists but missing custom_data field"
+        }
+      },
+      "where_should_homebrew_items_be_stored": {
+        "location": "character_inventory table (already exists)",
+        "approach": {
+          "srd_items": {
+            "item_id": "'item-longsword' (references library.id)",
+            "library_item": "Loaded via FK join",
+            "custom_data": "NULL or empty object"
+          },
+          "homebrew_items": {
+            "item_id": "NULL (no library reference)",
+            "library_item": "NULL",
+            "custom_data": {
+              "modifiers": [{ "id": "...", "type": "stat", ... }],
+              "item_type": "weapon",
+              "is_homebrew": true,
+              "created_at": "2025-12-03",
+              "created_by_user": "user_id"
+            }
+          }
+        },
+        "database_access": "Query character_inventory WHERE character_id = ? AND (item_id IS NOT NULL OR custom_data IS NOT NULL)"
+      },
+      "what_validation_is_needed": {
+        "on_create": [
+          "Item name: Non-empty, max 100 characters",
+          "Item description: Optional, max 500 characters",
+          "Item type: Must be one of 'weapon', 'armor', 'consumable', 'other'",
+          "Modifiers array: At least 1 modifier required",
+          "Each modifier: Passes validateModifier() from modifier-service",
+          "Total modifier count: Max 5 modifiers per item (reasonable limit)"
+        ],
+        "on_equip": [
+          "Equipping as armor: Must be item_type='armor'",
+          "Equipping as primary/secondary: Must be item_type='weapon'",
+          "Check for burden conflicts (two-handed weapon in secondary slot)",
+          "Verify modifiers are compatible (no conflicting 'set' operators)"
+        ],
+        "on_save": [
+          "Check character doesn't already have item with same name",
+          "Validate all custom_data.modifiers structure",
+          "Ensure item is owned by authenticated user (RLS)",
+          "Write to database with optimistic update"
+        ]
+      },
+      "how_to_test_homebrew_items": {
+        "unit_tests_needed": [
+          "Test custom item creation with valid data",
+          "Test custom item creation with invalid data (should reject)",
+          "Test equipping/unequipping custom items",
+          "Test custom item modifiers apply to character stats",
+          "Test deletion of custom items",
+          "Test custom items persist across page reload"
+        ],
+        "integration_tests_needed": [
+          "Create custom item -> Verify appears in inventory",
+          "Create custom item with modifier -> Equip -> Verify stat changes",
+          "Create armor item -> Cannot equip as weapon -> Verify error handling",
+          "Create item with 2 modifiers -> Verify both apply",
+          "Edit custom item -> Verify changes persist",
+          "Delete custom item -> Verify removed from character"
+        ],
+        "manual_testing_flow": [
+          "Login as test user",
+          "Go to inventory",
+          "Tap 'Create Custom Item'",
+          "Fill: name='Test Ring', description='For testing', type='accessory'",
+          "Add modifier: evasion +1",
+          "Save",
+          "Verify item appears in inventory with 'CUSTOM' badge",
+          "Verify evasion stat changed by +1",
+          "Equip item (if applicable)",
+          "Verify modifier still applies",
+          "Unequip",
+          "Verify modifier removed",
+          "Delete item",
+          "Verify removed from inventory"
+        ]
+      },
+      "priority": "HIGH",
+      "effort_estimate_hours": "10-12 hours",
+      "implementation_phases": [
+        {
+          "phase": "1 - Database & Data Structure",
+          "tasks": ["Add custom_data column to character_inventory", "Update character_inventory INSERT/UPDATE RPC function"],
+          "hours": 2
+        },
+        {
+          "phase": "2 - Modifier Builder Component",
+          "tasks": ["Create modifier-builder.tsx component", "Add validation logic", "Create unit tests"],
+          "hours": 3
+        },
+        {
+          "phase": "3 - Custom Item Modal",
+          "tasks": ["Create create-custom-item-modal.tsx", "Integrate modifier builder", "Add equip slot selection logic"],
+          "hours": 4
+        },
+        {
+          "phase": "4 - Integration & Testing",
+          "tasks": ["Update character-store to handle homebrew items", "Update inventory display component", "Integration tests", "Manual testing"],
+          "hours": 3
+        }
+      ],
+      "dependencies": [
+        "Requires Phase 1 (Modifier types and parser)",
+        "Requires Phase 3 (Modifier application logic)",
+        "Should complete after Phase 4 (UI integration)"
+      ]
+    }
+  },
+  "completion_requirements_summary": {
+    "phase_1_foundation": {
+      "status": "COMPLETE",
+      "remaining_work": "Add unit tests for modifier-parser.ts (2 hours)"
+    },
+    "phase_2_data_migration": {
+      "status": "CRITICAL BLOCKER",
+      "required_deliverables": [
+        "scripts/seed-library.ts - TypeScript script to parse SRD JSON and enrich with structured modifiers",
+        "Updated seed_library.sql - With modifiers arrays in library.data JSONB",
+        "Parsing tests - Validate example armor/weapons parse correctly"
+      ],
+      "effort_hours": "8-12"
+    },
+    "phase_3_application_logic": {
+      "status": "PARTIAL - NEEDS REFACTOR",
+      "required_deliverables": [
+        "lib/modifier-service.ts - Centralized service with applyModifierToStat, calculateDerivedStats, evaluateConditionalModifier functions",
+        "Refactor store/character-store.ts - Use modifier-service instead of inline logic",
+        "Refactor lib/utils.ts - Use modifier-service for getSystemModifiers"
+      ],
+      "effort_hours": "6-8"
+    },
+    "phase_4_ui_integration": {
+      "status": "MOSTLY COMPLETE - GAPS REMAIN",
+      "missing_features": [
+        "Active Modifiers panel showing all modifiers grouped by source",
+        "Equipment preview showing modifiers when equipping/unequipping",
+        "Inline modifier tags on stats and items",
+        "Modifier source attribution UI"
+      ],
+      "effort_hours": "4-6"
+    },
+    "phase_5_homebrew_support": {
+      "status": "NOT STARTED",
+      "required_deliverables": [
+        "components/create-custom-item-modal.tsx",
+        "components/modifier-builder.tsx or components/ui/modifier-builder.tsx",
+        "Database schema: Add custom_data column to character_inventory",
+        "Store integration: Handle homebrew items in character store",
+        "Validation: Custom item and modifier validation"
+      ],
+      "effort_hours": "10-12"
+    },
+    "phase_6_polish": {
+      "status": "NOT STARTED",
+      "required_deliverables": [
+        "End-to-end tests for modifier system",
+        "Performance optimization (eliminate regex parsing at runtime)",
+        "Documentation: Modifier system architecture guide",
+        "Error handling: Graceful handling of malformed modifiers",
+        "Migration: Data migration guide for upgrading systems"
+      ],
+      "effort_hours": "4-6"
+    },
+    "total_effort_estimate": "34-50 hours of development"
+  },
+  "suggested_completion_order": [
+    {
+      "order": 1,
+      "task": "Phase 2: Seed Script (seed-library.ts)",
+      "why_first": "CRITICAL BLOCKER - No other phases can proceed without structured modifiers in database",
+      "hours": "8-12",
+      "parallel_work": "Can research SRD parsing patterns while other work continues"
+    },
+    {
+      "order": 2,
+      "task": "Phase 3: Modifier Service (modifier-service.ts)",
+      "why_second": "Depends on Phase 2 for database data; Enables Phase 4 and 5",
+      "hours": "6-8",
+      "parallel_work": "Start designing modifier-service interface while seed-library.ts is being built"
+    },
+    {
+      "order": 3,
+      "task": "Phase 1 Completion: Parser Unit Tests",
+      "why_third": "Can proceed in parallel with Phase 2/3; Ensures parser quality",
+      "hours": "2",
+      "parallel_work": "Add to test suite while doing other work"
+    },
+    {
+      "order": 4,
+      "task": "Phase 4: UI Integration Enhancements",
+      "why_fourth": "Depends on Phase 3; Enhances existing UI with modifier visibility",
+      "hours": "4-6",
+      "depends_on": "Phase 3 completion"
+    },
+    {
+      "order": 5,
+      "task": "Phase 5: Homebrew Item Creation",
+      "why_fifth": "Depends on Phase 3 for modifier service; Complex feature requiring UI",
+      "hours": "10-12",
+      "depends_on": "Phase 3 completion, ideally Phase 4 for UX consistency"
+    },
+    {
+      "order": 6,
+      "task": "Phase 6: Polish & Testing",
+      "why_last": "All other phases should be complete first",
+      "hours": "4-6",
+      "depends_on": "Phases 1-5 completion"
+    }
+  ],
+  "critical_path_analysis": {
+    "critical_path": "Phase 2 → Phase 3 → Phase 4 → Phase 5",
+    "critical_path_duration": "28-38 hours",
+    "parallel_opportunities": [
+      "Phase 1 tests can happen during Phase 2/3",
+      "Phase 4 can start while Phase 3 finishing",
+      "Design work for Phase 5 can start while Phase 3 in progress"
+    ],
+    "minimum_viable_product": "Phases 1-3 Complete = Structured modifiers working end-to-end without homebrew"
+  },
+  "risk_assessment": {
+    "risk_1": {
+      "issue": "Complex feat_text parsing",
+      "probability": "HIGH",
+      "impact": "Parser misses modifiers or creates incorrect data",
+      "mitigation": [
+        "Use simple regex patterns only for straightforward cases",
+        "Flag complex cases for manual review instead of guessing",
+        "Test parser against all SRD feat_text examples",
+        "Create fallback for unparseable text"
+      ]
+    },
+    "risk_2": {
+      "issue": "Conditional modifier evaluation",
+      "probability": "MEDIUM",
+      "impact": "Conditions evaluated incorrectly, modifiers apply/don't apply wrongly",
+      "mitigation": [
+        "Keep condition parsing simple initially - just store as string",
+        "Handle condition evaluation in modifier-service with clear logic",
+        "Test with specific examples from SRD",
+        "Add logging for conditional evaluation"
+      ]
+    },
+    "risk_3": {
+      "issue": "Database migration of existing data",
+      "probability": "MEDIUM",
+      "impact": "Existing characters lose modifier information during upgrade",
+      "mitigation": [
+        "Test migration on copy of production data first",
+        "Create rollback script",
+        "Maintain backward compatibility (fallback regex if modifiers missing)",
+        "Document migration steps clearly"
+      ]
+    },
+    "risk_4": {
+      "issue": "Performance regression from refactoring",
+      "probability": "LOW-MEDIUM",
+      "impact": "App becomes slower after modifier-service refactor",
+      "mitigation": [
+        "Profile current performance before changes",
+        "Cache modifier calculations",
+        "Avoid recalculating derived stats on every render",
+        "Test with large character/inventory datasets"
+      ]
+    }
+  },
+  "recommendations": {
+    "immediate_actions": [
+      {
+        "priority": 1,
+        "action": "Create scripts/seed-library.ts",
+        "rationale": "CRITICAL - Blocks all other work. Start immediately.",
+        "acceptance_criteria": [
+          "Script reads armor.json, weapons.json, items.json",
+          "Parses feat_text strings into Modifier objects",
+          "Generates SQL INSERT with modifiers array in data JSONB",
+          "Test with 10 sample items to verify parsing"
+        ]
+      },
+      {
+        "priority": 2,
+        "action": "Create lib/modifier-service.ts",
+        "rationale": "HIGH - Required for Phase 3. Design can start while seed-library.ts in progress.",
+        "acceptance_criteria": [
+          "applyModifierToStat() function working",
+          "calculateDerivedStats() returns correct values",
+          "getEquippedItemModifiers() extracts modifiers from items",
+          "Unit tests for all functions passing"
+        ]
+      },
+      {
+        "priority": 3,
+        "action": "Update character-store.ts to use modifier-service",
+        "rationale": "Remove fallback regex parsing and use structured data instead.",
+        "acceptance_criteria": [
+          "recalculateDerivedStats() calls modifier-service.calculateDerivedStats()",
+          "No more regex parsing in store",
+          "All existing functionality preserved",
+          "Tests passing"
+        ]
+      }
+    ],
+    "architectural_improvements": [
+      "Split 826-line character-store.ts into multiple slices (character, inventory, ui)",
+      "Create dedicated services layer: modifier-service.ts, armor-service.ts, etc.",
+      "Add error boundaries for modifier calculation failures",
+      "Create comprehensive modifier system documentation"
+    ],
+    "testing_strategy": [
+      "Unit tests for modifier-service functions",
+      "Integration tests for modifier application to character stats",
+      "E2E tests for creating custom items with modifiers",
+      "Performance tests for large modifier sets",
+      "Regression tests comparing regex vs structured parsing results"
+    ]
+  }
+}
