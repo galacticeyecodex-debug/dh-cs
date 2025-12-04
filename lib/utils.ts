@@ -9,13 +9,18 @@ export function parseDamageRoll(input: string): { dice: string; modifier: number
   // Remove text like "phy", "mag", "physical", "magic" (case insensitive) and whitespace
   const cleanInput = input.replace(/(phy|mag|physical|magic)/gi, '').replace(/\s/g, '');
   
-  const parts = cleanInput.split('+');
+  // Normalize subtraction to addition of negative numbers for easier splitting
+  const normalized = cleanInput.replace(/-/g, '+-');
+  const parts = normalized.split('+').filter(p => p !== '');
+  
   const diceParts: string[] = [];
   let modifier = 0;
 
   for (const part of parts) {
     // Check for dice notation (e.g., "d8", "1d8", "2d6")
-    if (/^(\d+)?d(\d+)$/i.test(part)) {
+    // Note: This regex allows for an optional negative sign at the start, 
+    // though negative dice are rare.
+    if (/d/i.test(part)) {
       diceParts.push(part);
     } else {
       // Check for static number
@@ -115,4 +120,34 @@ export function calculateBaseEvasion(character: any): number {
   const itemBonus = systemMods.reduce((acc, mod) => acc + mod.value, 0);
 
   return base + itemBonus;
+}
+
+export function calculateWeaponDamage(baseDamage: string, proficiency: number): string {
+  if (!baseDamage) return '';
+  
+  // Parse using existing helper
+  const { dice, modifier } = parseDamageRoll(baseDamage);
+  
+  if (!dice) return baseDamage;
+
+  // Split dice string (e.g. "1d8+1d6")
+  const diceGroups = dice.split('+');
+  
+  const scaledDice = diceGroups.map(group => {
+    const match = group.match(/^(\d+)?d(\d+)$/i);
+    if (match) {
+      const count = parseInt(match[1] || '1');
+      const sides = match[2];
+      return `${count * proficiency}d${sides}`;
+    }
+    return group;
+  });
+
+  const newDiceString = scaledDice.join('+');
+  
+  if (modifier !== 0) {
+    return `${newDiceString}${modifier >= 0 ? '+' : ''}${modifier}`;
+  }
+  
+  return newDiceString;
 }
