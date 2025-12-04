@@ -3,6 +3,7 @@ import createClient from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { getSystemModifiers } from '@/lib/utils';
 import { Experience } from '@/types/modifiers';
+import { withOptimisticUpdate } from '@/lib/state-helpers';
 
 // Define interfaces for related data
 export interface LibraryItem {
@@ -187,25 +188,30 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     const cardIndex = cards.findIndex(c => c.id === cardId);
     if (cardIndex === -1) return;
 
-    // Update local state
+    const previousLocation = cards[cardIndex].location;
     const updatedCard = { ...cards[cardIndex], location: destination };
     cards[cardIndex] = updatedCard;
 
-    set((s) => ({
-      character: s.character ? { ...s.character, character_cards: cards } : null,
-    }));
+    await withOptimisticUpdate(
+      () => {
+        set((s) => ({
+          character: s.character ? { ...s.character, character_cards: cards } : null,
+        }));
 
-    // Persist to DB
-    const supabase = createClient();
-    const { error } = await supabase
-      .from('character_cards')
-      .update({ location: destination })
-      .eq('id', cardId);
-
-    if (error) {
-      console.error('Error moving card:', error);
-      // Ideally revert here
-    }
+        return () => {
+          const rollbackCards = [...(get().character?.character_cards || [])];
+          const idx = rollbackCards.findIndex(c => c.id === cardId);
+          if (idx !== -1) {
+            rollbackCards[idx] = { ...rollbackCards[idx], location: previousLocation };
+          }
+          set((s) => ({
+            character: s.character ? { ...s.character, character_cards: rollbackCards } : null,
+          }));
+        };
+      },
+      () => createClient().from('character_cards').update({ location: destination }).eq('id', cardId),
+      'Failed to move card'
+    );
   },
 
   addCardToCollection: async (item) => {
@@ -434,30 +440,23 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
 
     const newValue = Math.max(0, value); // Ensure no negative gold
     const newGold = { ...state.character.gold, [denomination]: newValue };
+    const characterId = state.character.id;
 
-    // Optimistically update UI
-    set((s) => ({
-      character: s.character ? { ...s.character, gold: newGold } : null,
-    }));
-
-    // Persist to DB
-    const supabase = createClient();
-    // Gold is stored as JSONB, so we need to update the whole object
-    // But supabase .update() merges top-level keys.
-    // However, 'gold' is a single column.
-    // We need to stringify it if it's stored as JSONB in our interface but text in logic?
-    // Looking at fetchCharacter, gold is parsed: `typeof charData.gold === 'string' ? JSON.parse(charData.gold) : charData.gold`
-    // So we should send it as an object, supabase client handles JSONB serialization.
-
-    const { error } = await supabase
-      .from('characters')
-      .update({ gold: newGold })
-      .eq('id', state.character.id);
-
-    if (error) {
-      console.error('Error updating gold:', error);
-      // Ideally revert here
-    }
+    await withOptimisticUpdate(
+      () => {
+        const previousGold = { ...get().character!.gold };
+        set((s) => ({
+          character: s.character ? { ...s.character, gold: newGold } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? { ...s.character, gold: previousGold } : null,
+          }));
+        };
+      },
+      () => createClient().from('characters').update({ gold: newGold }).eq('id', characterId),
+      'Failed to update gold'
+    );
   },
 
   updateHope: async (value) => {
@@ -465,23 +464,23 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     if (!state.character) return;
 
     const newHope = Math.min(6, Math.max(0, value)); // Clamp between 0 and 6
+    const characterId = state.character.id;
 
-    // Optimistically update UI
-    set((s) => ({
-      character: s.character ? { ...s.character, hope: newHope } : null,
-    }));
-
-    // Persist to DB
-    const supabase = createClient();
-    const { error } = await supabase
-      .from('characters')
-      .update({ hope: newHope })
-      .eq('id', state.character.id);
-
-    if (error) {
-      console.error('Error updating hope:', error);
-      // Ideally revert here
-    }
+    await withOptimisticUpdate(
+      () => {
+        const previousHope = get().character!.hope;
+        set((s) => ({
+          character: s.character ? { ...s.character, hope: newHope } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? { ...s.character, hope: previousHope } : null,
+          }));
+        };
+      },
+      () => createClient().from('characters').update({ hope: newHope }).eq('id', characterId),
+      'Failed to update hope'
+    );
   },
 
   updateEvasion: async (value) => {
@@ -491,23 +490,23 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // Evasion can theoretically be negative (though unlikely), but let's clamp to 0 for sanity?
     // Daggerheart doesn't explicitly forbid negative, but 0 is a safe floor.
     const newEvasion = Math.max(0, value);
+    const characterId = state.character.id;
 
-    // Optimistically update UI
-    set((s) => ({
-      character: s.character ? { ...s.character, evasion: newEvasion } : null,
-    }));
-
-    // Persist to DB
-    const supabase = createClient();
-    const { error } = await supabase
-      .from('characters')
-      .update({ evasion: newEvasion })
-      .eq('id', state.character.id);
-
-    if (error) {
-      console.error('Error updating evasion:', error);
-      // Ideally revert here
-    }
+    await withOptimisticUpdate(
+      () => {
+        const previousEvasion = get().character!.evasion;
+        set((s) => ({
+          character: s.character ? { ...s.character, evasion: newEvasion } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? { ...s.character, evasion: previousEvasion } : null,
+          }));
+        };
+      },
+      () => createClient().from('characters').update({ evasion: newEvasion }).eq('id', characterId),
+      'Failed to update evasion'
+    );
   },
 
   updateModifiers: async (stat, modifiers) => {
@@ -517,48 +516,51 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // Clone existing modifiers object or create new
     const currentModifiers = { ...state.character.modifiers } || {};
     currentModifiers[stat] = modifiers;
+    const characterId = state.character.id;
 
-    // Optimistically update UI
-    set((s) => ({
-      character: s.character ? { ...s.character, modifiers: currentModifiers } : null,
-    }));
+    const { success } = await withOptimisticUpdate(
+      () => {
+        const previousModifiers = { ...get().character!.modifiers };
+        set((s) => ({
+          character: s.character ? { ...s.character, modifiers: currentModifiers } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? { ...s.character, modifiers: previousModifiers } : null,
+          }));
+        };
+      },
+      () => createClient().from('characters').update({ modifiers: currentModifiers }).eq('id', characterId),
+      'Failed to update modifiers'
+    );
 
-    // Persist to DB
-    const supabase = createClient();
-    const { error } = await supabase
-      .from('characters')
-      .update({ modifiers: currentModifiers })
-      .eq('id', state.character.id);
-
-    if (error) {
-      console.error('Error updating modifiers:', error);
-      return; // Don't recalculate if DB update failed
+    // Trigger recalculation after modifier change (only if DB update succeeded)
+    if (success) {
+      await get().recalculateDerivedStats();
     }
-
-    // Trigger recalculation after modifier change
-    await get().recalculateDerivedStats();
   },
 
   updateExperiences: async (experiences) => {
     const state = get();
     if (!state.character) return;
 
-    // Optimistically update UI
-    set((s) => ({
-      character: s.character ? { ...s.character, experiences } : null,
-    }));
+    const characterId = state.character.id;
 
-    // Persist to DB
-    const supabase = createClient();
-    const { error } = await supabase
-      .from('characters')
-      .update({ experiences })
-      .eq('id', state.character.id);
-
-    if (error) {
-      console.error('Error updating experiences:', error);
-      // TODO: Revert
-    }
+    await withOptimisticUpdate(
+      () => {
+        const previousExperiences = get().character!.experiences;
+        set((s) => ({
+          character: s.character ? { ...s.character, experiences } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? { ...s.character, experiences: previousExperiences } : null,
+          }));
+        };
+      },
+      () => createClient().from('characters').update({ experiences }).eq('id', characterId),
+      'Failed to update experiences'
+    );
   },
 
   equipItem: async (itemId, slot) => {
@@ -569,8 +571,11 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     const itemIndex = inventory.findIndex(i => i.id === itemId);
     if (itemIndex === -1) return;
 
+    // Build updates array with previous locations for rollback
+    const updates: Array<{ id: string; location: string; previousLocation: string }> = [];
+
     const itemToEquip = { ...inventory[itemIndex] };
-    const updates: { id: string; location: string }[] = [];
+    const itemPreviousLocation = itemToEquip.location;
 
     // If we are equipping to a slot (not unequipped to backpack)
     if (slot !== 'backpack') {
@@ -578,38 +583,56 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       const existingItemIndex = inventory.findIndex(i => i.location === slot);
       if (existingItemIndex !== -1) {
         // Move existing item to backpack
-        const existingItem = { ...inventory[existingItemIndex], location: 'backpack' as const };
-        inventory[existingItemIndex] = existingItem;
-        updates.push({ id: existingItem.id, location: 'backpack' });
+        const existingItem = { ...inventory[existingItemIndex] };
+        const existingItemPreviousLocation = existingItem.location;
+        inventory[existingItemIndex] = { ...existingItem, location: 'backpack' as const };
+        updates.push({ id: existingItem.id, location: 'backpack', previousLocation: existingItemPreviousLocation });
       }
     }
 
     // Update the target item location
     itemToEquip.location = slot;
     inventory[itemIndex] = itemToEquip;
-    updates.push({ id: itemToEquip.id, location: slot });
+    updates.push({ id: itemToEquip.id, location: slot, previousLocation: itemPreviousLocation });
 
-    // Optimistically update UI
-    set((s) => ({
-      character: s.character ? { ...s.character, character_inventory: inventory } : null,
-    }));
+    const { success } = await withOptimisticUpdate(
+      () => {
+        set((s) => ({
+          character: s.character ? { ...s.character, character_inventory: inventory } : null,
+        }));
 
-    // Persist to DB
-    const supabase = createClient();
-    for (const update of updates) {
-      const { error } = await supabase
-        .from('character_inventory')
-        .update({ location: update.location })
-        .eq('id', update.id);
-      
-      if (error) {
-        console.error('Error updating inventory location:', error);
-        // Ideally revert here
-      }
+        return () => {
+          const rollbackInventory = [...(get().character?.character_inventory || [])];
+          updates.forEach(({ id, previousLocation }) => {
+            const idx = rollbackInventory.findIndex(i => i.id === id);
+            if (idx !== -1) {
+              rollbackInventory[idx] = { ...rollbackInventory[idx], location: previousLocation };
+            }
+          });
+          set((s) => ({
+            character: s.character ? { ...s.character, character_inventory: rollbackInventory } : null,
+          }));
+        };
+      },
+      async () => {
+        const supabase = createClient();
+        for (const update of updates) {
+          const { error } = await supabase
+            .from('character_inventory')
+            .update({ location: update.location })
+            .eq('id', update.id);
+
+          if (error) return { error };
+        }
+        return { error: null };
+      },
+      'Failed to equip item'
+    );
+
+    // Only recalculate if DB update succeeded
+    if (success) {
+      await get().recalculateDerivedStats();
     }
-
-    // Trigger stat recalculation after equipment change
-    await get().recalculateDerivedStats();
   },
 
   switchCharacter: async (characterId: string) => {
@@ -807,22 +830,22 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     if (type === 'armor_slots') actualValue = Math.min(newVitals.armor_score, Math.max(0, value));
 
     const updatedVitals = { ...newVitals, [type]: actualValue };
+    const characterId = state.character.id;
 
-    // Optimistically update UI
-    set((s) => ({
-      character: s.character ? { ...s.character, vitals: updatedVitals } : null,
-    }));
-
-    // Persist to DB
-    const supabase = createClient();
-    const { error } = await supabase
-      .from('characters')
-      .update({ vitals: updatedVitals })
-      .eq('id', state.character.id);
-
-    if (error) {
-      console.error('Error updating vitals:', error);
-      // TODO: Revert optimistic update if DB update fails
-    }
+    await withOptimisticUpdate(
+      () => {
+        const previousVitals = get().character!.vitals;
+        set((s) => ({
+          character: s.character ? { ...s.character, vitals: updatedVitals } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? { ...s.character, vitals: previousVitals } : null,
+          }));
+        };
+      },
+      () => createClient().from('characters').update({ vitals: updatedVitals }).eq('id', characterId),
+      `Failed to update ${type.replace('_', ' ')}`
+    );
   },
 }));
