@@ -789,9 +789,10 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     };
 
     set({ character: fullCharacter as Character, isLoading: false });
-    
-    // Trigger a recalculation to ensure thresholds and armor bonuses are correct based on inventory
-    setTimeout(() => get().recalculateDerivedStats(), 0);
+
+    // Recalculate derived stats synchronously to ensure correct values based on inventory.
+    // The DB update happens asynchronously after calculations complete.
+    void get().recalculateDerivedStats();
   },
 
   updateVitals: async (type, value) => {
