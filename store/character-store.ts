@@ -209,7 +209,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           }));
         };
       },
-      () => createClient().from('character_cards').update({ location: destination }).eq('id', cardId),
+      async () => createClient().from('character_cards').update({ location: destination }).eq('id', cardId),
       'Failed to move card'
     );
   },
@@ -452,7 +452,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           }));
         };
       },
-      () => createClient().from('characters').update({ gold: newGold }).eq('id', characterId),
+      async () => createClient().from('characters').update({ gold: newGold }).eq('id', characterId),
       'Failed to update gold'
     );
   },
@@ -476,7 +476,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           }));
         };
       },
-      () => createClient().from('characters').update({ hope: newHope }).eq('id', characterId),
+      async () => createClient().from('characters').update({ hope: newHope }).eq('id', characterId),
       'Failed to update hope'
     );
   },
@@ -502,7 +502,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           }));
         };
       },
-      () => createClient().from('characters').update({ evasion: newEvasion }).eq('id', characterId),
+      async () => createClient().from('characters').update({ evasion: newEvasion }).eq('id', characterId),
       'Failed to update evasion'
     );
   },
@@ -512,7 +512,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     if (!state.character) return;
 
     // Clone existing modifiers object or create new
-    const currentModifiers = { ...state.character.modifiers } || {};
+    const currentModifiers = { ...(state.character.modifiers || {}) };
     currentModifiers[stat] = modifiers;
     const characterId = state.character.id;
 
@@ -528,7 +528,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           }));
         };
       },
-      () => createClient().from('characters').update({ modifiers: currentModifiers }).eq('id', characterId),
+      async () => createClient().from('characters').update({ modifiers: currentModifiers }).eq('id', characterId),
       'Failed to update modifiers'
     );
 
@@ -556,7 +556,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           }));
         };
       },
-      () => createClient().from('characters').update({ experiences }).eq('id', characterId),
+      async () => createClient().from('characters').update({ experiences }).eq('id', characterId),
       'Failed to update experiences'
     );
   },
@@ -570,7 +570,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     if (itemIndex === -1) return;
 
     // Build updates array with previous locations for rollback
-    const updates: Array<{ id: string; location: string; previousLocation: string }> = [];
+    const updates: Array<{ id: string; location: CharacterInventoryItem['location']; previousLocation: CharacterInventoryItem['location'] }> = [];
 
     const itemToEquip = { ...inventory[itemIndex] };
     const itemPreviousLocation = itemToEquip.location;
@@ -850,7 +850,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           }));
         };
       },
-      () => createClient().from('characters').update({ vitals: updatedVitals }).eq('id', characterId),
+      async () => createClient().from('characters').update({ vitals: updatedVitals }).eq('id', characterId),
       `Failed to update ${type.replace('_', ' ')}`
     );
   },
