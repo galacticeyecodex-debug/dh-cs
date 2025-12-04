@@ -1,14 +1,14 @@
 'use client';
 
 import React from 'react';
-import { useCharacterStore } from '@/store/character-store';
+import { useCharacterStore, Character, CharacterInventoryItem } from '@/store/character-store';
 import { Shield, Zap, Heart, Eye } from 'lucide-react';
 import { getClassBaseStat, getSystemModifiers } from '@/lib/utils';
 import VitalCard from '@/components/vital-card';
 
 // Define a type for the component props
 interface CommonVitalsDisplayProps {
-  character: any; // Ideally, a more specific Character type would be used here
+  character: Character;
 }
 
 export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayProps) {
@@ -30,7 +30,7 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
   const isEvasionModified = totalEvasion !== classBaseEvasion;
 
   // --- ARMOR ---
-  const armorItem = character.character_inventory?.find(item => item.location === 'equipped_armor');
+  const armorItem = character.character_inventory?.find((item: CharacterInventoryItem) => item.location === 'equipped_armor');
   let armorBaseScore = 0;
   const minorThreshold = 1;
   let majorThreshold = character.level;

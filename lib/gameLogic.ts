@@ -4,7 +4,7 @@
  * All functions are pure (no side effects, deterministic)
  */
 
-import { Character } from '@/store/character-store';
+import { Character, CharacterInventoryItem } from '@/store/character-store';
 
 export interface DerivedStats {
   vitals: {
@@ -169,7 +169,7 @@ export function calculateDerivedStats(
   thresholdMods: Modifier[],
 ): DerivedStats {
   const inventory = character.character_inventory || [];
-  const equippedArmor = inventory.find(i => i.location === 'equipped_armor');
+  const equippedArmor = inventory.find((i: CharacterInventoryItem) => i.location === 'equipped_armor');
   const currentVitals = character.vitals;
 
   // Get manual modifiers from character ledger

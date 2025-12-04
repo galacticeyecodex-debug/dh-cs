@@ -8,6 +8,7 @@ import clsx from 'clsx';
 import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins, Sword, X, Heart, Upload } from 'lucide-react';
 import AddItemModal from '@/components/add-item-modal';
 import { uploadCharacterAvatar } from '@/lib/supabase/storage';
+import { calculateDamageThresholds } from '@/lib/gameLogic';
 
 // Define the shape of our form data
 interface CharacterFormData {
@@ -571,6 +572,9 @@ export default function CreateCharacterPage() {
     // Calculate actual armor score based on equipped armor
     const actualArmorScore = finalArmor?.data.base_score || 0;
 
+    // Calculate damage thresholds for level 1 character
+    const damageThresholds = calculateDamageThresholds(1, finalArmor ? { library_item: finalArmor } : null, []);
+
     const newCharacterData: Omit<Character, 'id' | 'character_cards' | 'character_inventory'> = {
       user_id: user.id,
       name: formData.name,
@@ -589,6 +593,7 @@ export default function CreateCharacterPage() {
         armor_score: actualArmorScore,
         armor_slots: actualArmorScore, // Start with all armor slots available (unmarked)
       },
+      damage_thresholds: damageThresholds,
       hope: 2, // Starting hope is always 2
       fear: 0,
       evasion: calculatedVitals.evasion,
