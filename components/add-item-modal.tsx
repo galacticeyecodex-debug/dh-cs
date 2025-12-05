@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { LibraryItem } from '@/store/character-store';
-import { Search, X, Sword, Shield, Heart, Gem, Package, ScrollText } from 'lucide-react';
+import { Search, X, Sword, Shield, Heart, Gem, Package, ScrollText, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 
 interface AddItemModalProps {
@@ -11,9 +11,10 @@ interface AddItemModalProps {
   onAddItem: (item: LibraryItem) => void;
   libraryItems: LibraryItem[];
   filterType?: 'inventory' | 'cards'; // Optional prop to default filtering context
+  isLoading?: boolean;
 }
 
-export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems, filterType = 'inventory' }: AddItemModalProps) {
+export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems, filterType = 'inventory', isLoading = false }: AddItemModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // 'weapon', 'armor', 'consumable', 'item', 'card'
 
@@ -129,7 +130,12 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
 
         {/* Results List */}
         <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
-          {filteredItems.length > 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
+              <Loader2 className="animate-spin" size={24} />
+              <span className="text-sm">Loading library items...</span>
+            </div>
+          ) : filteredItems.length > 0 ? (
             filteredItems.map(item => (
               <div 
                 key={item.id} 
