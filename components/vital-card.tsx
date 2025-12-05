@@ -96,10 +96,10 @@ export default function VitalCard({
   if (isUnarmored) {
     return (
       <>
-      <div 
+      <div
         onClick={handleCardClick}
         className={clsx(
-        "bg-dagger-panel border rounded-xl p-2 flex flex-col items-center justify-center gap-1 relative transition-all",
+        "bg-dagger-panel border rounded-xl p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
         "w-full",
         isModified ? "border-yellow-500/50 border-dashed" : "border-white/10",
         onUpdateModifiers && "cursor-pointer hover:border-white/30",
@@ -108,7 +108,6 @@ export default function VitalCard({
         <div className={clsx("flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide", color)}>
           <Icon size={12} />
           {label}
-          {isModified && <span className="ml-1 text-[8px] bg-yellow-500/20 text-yellow-500 px-1 rounded">MOD</span>}
         </div>
         <div className="text-sm text-gray-400 italic my-2">Unarmored</div>
         {thresholds && ( 
@@ -135,13 +134,13 @@ export default function VitalCard({
 
   return (
     <>
-    <div 
+    <div
       onClick={handleCardClick}
       className={clsx(
-      "bg-dagger-panel border rounded-xl p-2 flex flex-col items-center justify-center gap-1 relative transition-all",
+      "bg-dagger-panel border rounded-xl p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
       "w-full",
       // Critical condition overrides modified border
-      isCriticalCondition ? "border-red-500 ring-2 ring-red-500" : 
+      isCriticalCondition ? "border-red-500 ring-2 ring-red-500" :
       isModified ? "border-yellow-500/50 border-dashed" : "border-white/10",
       onUpdateModifiers && "cursor-pointer hover:border-white/30",
       className
@@ -149,15 +148,14 @@ export default function VitalCard({
       <div className={clsx("flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide", color)}>
         <Icon size={12} />
         {label}
-        {isModified && <span className="ml-1 text-[8px] bg-yellow-500/20 text-yellow-500 px-1 rounded">MOD</span>}
       </div>
-      
+
       {/* Display: Track or Number */}
       {trackType && max && max > 0 ? (
         renderTrack()
       ) : (
         <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center relative">
-          <span>{current}</span>
+          <span className={isModified && !trackType ? "text-dagger-gold" : ""}>{current}</span>
           {max !== undefined && <span className="text-xs text-gray-500 font-sans font-normal">/{max}</span>}
           {isModified && expectedValue !== undefined && (
              <span className="text-[8px] text-gray-500 font-sans font-normal mt-0.5">Base: {expectedValue}</span>
