@@ -573,7 +573,17 @@ export default function CreateCharacterPage() {
     const actualArmorScore = finalArmor?.data.base_score || 0;
 
     // Calculate damage thresholds for level 1 character
-    const damageThresholds = calculateDamageThresholds(1, finalArmor ? { library_item: finalArmor } : null, []);
+    const damageThresholds = calculateDamageThresholds(
+      1,
+      finalArmor
+        ? [
+            {
+              library_item: finalArmor,
+            },
+          ]
+        : [],
+      []
+    );
 
     const newCharacterData: Omit<Character, 'id' | 'character_cards' | 'character_inventory'> = {
       user_id: user.id,

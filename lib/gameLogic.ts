@@ -29,6 +29,16 @@ export interface Modifier {
   source: 'system' | 'user';
 }
 
+// Minimal interface for equipped armor when passed to calculation functions
+export interface EquippedArmorForCalculation {
+  library_item?: {
+    data?: {
+      base_score?: string;
+      base_thresholds?: string;
+    };
+  };
+}
+
 /**
  * Calculate armor score from equipped armor and modifiers
  *
@@ -40,16 +50,16 @@ export interface Modifier {
  * - Unarmored: score = 0
  */
 export function calculateArmorScore(
-  equippedArmor: any,
+  equippedArmor: EquippedArmorForCalculation[],
   systemMods: Modifier[],
   userMods: Modifier[],
 ): number {
   let armorScore = 0;
 
   // 1. Base score from equipped armor
-  if (equippedArmor?.library_item?.data?.base_score) {
-    armorScore += parseInt(equippedArmor.library_item.data.base_score) || 0;
-  }
+  armorScore += equippedArmor.reduce((acc, item) => {
+    return acc + (parseInt(item.library_item?.data?.base_score || '0') || 0);
+  }, 0);
 
   // 2. System modifiers from items
   const armorSystemMods = systemMods.filter(mod => mod.source === 'system');
@@ -72,7 +82,7 @@ export function calculateArmorScore(
  */
 export function calculateDamageThresholds(
   level: number,
-  equippedArmor: any,
+  equippedArmors: EquippedArmorForCalculation[],
   thresholdMods: Modifier[],
 ): { minor: number; major: number; severe: number } {
   const minorThreshold = 1;
@@ -80,16 +90,25 @@ export function calculateDamageThresholds(
   let severeThreshold = level * 2;
 
   // Check if armor defines base thresholds
-  if (equippedArmor?.library_item?.data?.base_thresholds) {
-    const parts = equippedArmor.library_item.data.base_thresholds.split('/');
-    if (parts.length === 2) {
-      const baseMajor = parseInt(parts[0].trim());
-      const baseSevere = parseInt(parts[1].trim());
-      if (!isNaN(baseMajor) && !isNaN(baseSevere)) {
-        majorThreshold = baseMajor + level;
-        severeThreshold = baseSevere + level;
+  // Check if any equipped armor defines base thresholds
+  const armorWithThresholds = equippedArmors.find((item) => {
+    if (item.library_item?.data?.base_thresholds) {
+      const parts = item.library_item.data.base_thresholds.split('/');
+      if (parts.length === 2) {
+        const baseMajor = parseInt(parts[0].trim());
+        const baseSevere = parseInt(parts[1].trim());
+        return !isNaN(baseMajor) && !isNaN(baseSevere);
       }
     }
+    return false;
+  });
+
+  if (armorWithThresholds?.library_item?.data?.base_thresholds) {
+    const parts = armorWithThresholds.library_item.data.base_thresholds.split('/');
+    const baseMajor = parseInt(parts[0].trim());
+    const baseSevere = parseInt(parts[1].trim());
+    majorThreshold = baseMajor + level;
+    severeThreshold = baseSevere + level;
   }
 
   // Apply threshold modifiers
@@ -169,7 +188,7 @@ export function calculateDerivedStats(
   thresholdMods: Modifier[],
 ): DerivedStats {
   const inventory = character.character_inventory || [];
-  const equippedArmor = inventory.find((i: CharacterInventoryItem) => i.location === 'equipped_armor');
+  const equippedArmors = inventory.filter((i: CharacterInventoryItem) => i.location === 'equipped_armor') as EquippedArmorForCalculation[];
   const currentVitals = character.vitals;
 
   // Get manual modifiers from character ledger
@@ -178,10 +197,10 @@ export function calculateDerivedStats(
   const userStressMods = character.modifiers?.['stress'] || [];
 
   // Calculate new values
-  const newArmorScore = calculateArmorScore(equippedArmor, armorMods, userArmorMods);
+  const newArmorScore = calculateArmorScore(equippedArmors, armorMods, userArmorMods);
   const newMaxHP = calculateMaxHP(character.class_data?.data?.starting_hp || 6, hpMods, userHPMods);
   const newMaxStress = calculateMaxStress(stressMods, userStressMods);
-  const newThresholds = calculateDamageThresholds(character.level, equippedArmor, thresholdMods);
+  const newThresholds = calculateDamageThresholds(character.level, equippedArmors, thresholdMods);
 
   // Create new vitals, clamping current values to new maxes
   const newVitals = {
