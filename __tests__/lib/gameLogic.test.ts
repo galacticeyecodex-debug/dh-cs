@@ -14,6 +14,7 @@ import {
   clampVitalValue,
   parseDiceNotation,
   Modifier,
+  EquippedArmorForCalculation,
 } from '@/lib/gameLogic';
 
 // ============================================================================
@@ -22,69 +23,80 @@ import {
 
 describe('calculateArmorScore', () => {
   it('should return 0 for unarmored character', () => {
-    const score = calculateArmorScore(null, [], []);
+    const equippedArmor: EquippedArmorForCalculation[] = [];
+    const score = calculateArmorScore(equippedArmor, [], []);
     expect(score).toBe(0);
   });
 
   it('should calculate base armor score from equipped armor', () => {
-    const armor = {
-      library_item: {
-        data: { base_score: '5' },
+    const equippedArmor: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_score: '5' },
+        },
       },
-    };
-    const score = calculateArmorScore(armor, [], []);
+    ];
+    const score = calculateArmorScore(equippedArmor, [], []);
     expect(score).toBe(5);
   });
 
   it('should add system modifiers to armor score', () => {
-    const armor = {
-      library_item: {
-        data: { base_score: '4' },
+    const equippedArmor: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_score: '4' },
+        },
       },
-    };
+    ];
     const systemMods: Modifier[] = [
       { id: '1', name: 'Enchantment', value: 1, source: 'system' },
       { id: '2', name: 'Blessing', value: 2, source: 'system' },
     ];
-    const score = calculateArmorScore(armor, systemMods, []);
+    const score = calculateArmorScore(equippedArmor, systemMods, []);
     expect(score).toBe(7); // 4 + 1 + 2
   });
 
   it('should add user modifiers to armor score', () => {
-    const armor = {
-      library_item: {
-        data: { base_score: '3' },
+    const equippedArmor: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_score: '3' },
+        },
       },
-    };
+    ];
     const userMods: Modifier[] = [
       { id: '1', name: 'Manual Buff', value: 2, source: 'user' },
     ];
-    const score = calculateArmorScore(armor, [], userMods);
+    const score = calculateArmorScore(equippedArmor, [], userMods);
     expect(score).toBe(5); // 3 + 2
   });
 
   it('should stack both system and user modifiers', () => {
-    const armor = {
-      library_item: {
-        data: { base_score: '2' },
+    const equippedArmor: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_score: '2' },
+        },
       },
-    };
+    ];
     const systemMods: Modifier[] = [
       { id: '1', name: 'Item Bonus', value: 3, source: 'system' },
     ];
     const userMods: Modifier[] = [
       { id: '2', name: 'Manual Buff', value: 1, source: 'user' },
     ];
-    const score = calculateArmorScore(armor, systemMods, userMods);
+    const score = calculateArmorScore(equippedArmor, systemMods, userMods);
     expect(score).toBe(6); // 2 + 3 + 1
   });
 
   it('should cap armor at 12 (SRD maximum)', () => {
-    const armor = {
-      library_item: {
-        data: { base_score: '8' },
+    const equippedArmor: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_score: '8' },
+        },
       },
-    };
+    ];
     const systemMods: Modifier[] = [
       { id: '1', name: 'Bonus 1', value: 2, source: 'system' },
       { id: '2', name: 'Bonus 2', value: 3, source: 'system' },
@@ -92,42 +104,65 @@ describe('calculateArmorScore', () => {
     const userMods: Modifier[] = [
       { id: '3', name: 'Bonus 3', value: 2, source: 'user' },
     ];
-    const score = calculateArmorScore(armor, systemMods, userMods);
+    const score = calculateArmorScore(equippedArmor, systemMods, userMods);
     // Would be 8 + 2 + 3 + 2 = 15, but capped at 12
     expect(score).toBe(12);
   });
 
   it('should handle negative modifiers', () => {
-    const armor = {
-      library_item: {
-        data: { base_score: '5' },
+    const equippedArmor: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_score: '5' },
+        },
       },
-    };
+    ];
     const systemMods: Modifier[] = [
       { id: '1', name: 'Penalty', value: -2, source: 'system' },
     ];
-    const score = calculateArmorScore(armor, systemMods, []);
+    const score = calculateArmorScore(equippedArmor, systemMods, []);
     expect(score).toBe(3); // 5 - 2
   });
 
   it('should handle armor with no base_score data', () => {
-    const armor = {
-      library_item: {
-        data: { /* no base_score */ },
+    const equippedArmor: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { /* no base_score */ },
+        },
       },
-    };
-    const score = calculateArmorScore(armor, [], []);
+    ];
+    const score = calculateArmorScore(equippedArmor, [], []);
     expect(score).toBe(0);
   });
 
   it('should handle invalid base_score (non-numeric)', () => {
-    const armor = {
-      library_item: {
-        data: { base_score: 'invalid' },
+    const equippedArmor: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_score: 'invalid' },
+        },
       },
-    };
-    const score = calculateArmorScore(armor, [], []);
+    ];
+    const score = calculateArmorScore(equippedArmor, [], []);
     expect(score).toBe(0); // NaN becomes 0
+  });
+
+  it('should correctly sum base scores of multiple armor pieces', () => {
+    const equippedArmor: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_score: '3' },
+        },
+      },
+      {
+        library_item: {
+          data: { base_score: '4' },
+        },
+      },
+    ];
+    const score = calculateArmorScore(equippedArmor, [], []);
+    expect(score).toBe(7); // 3 + 4
   });
 });
 
@@ -137,26 +172,30 @@ describe('calculateArmorScore', () => {
 
 describe('calculateDamageThresholds', () => {
   it('should calculate default thresholds for unarmored character', () => {
-    const thresholds = calculateDamageThresholds(5, null, []);
+    const equippedArmors: EquippedArmorForCalculation[] = [];
+    const thresholds = calculateDamageThresholds(5, equippedArmors, []);
     expect(thresholds.minor).toBe(1);
     expect(thresholds.major).toBe(5); // level
     expect(thresholds.severe).toBe(10); // level * 2
   });
 
   it('should scale thresholds with character level', () => {
-    const thresholds = calculateDamageThresholds(3, null, []);
+    const equippedArmors: EquippedArmorForCalculation[] = [];
+    const thresholds = calculateDamageThresholds(3, equippedArmors, []);
     expect(thresholds.minor).toBe(1);
     expect(thresholds.major).toBe(3);
     expect(thresholds.severe).toBe(6);
   });
 
   it('should apply armor base thresholds', () => {
-    const armor = {
-      library_item: {
-        data: { base_thresholds: '2/4' }, // major_base=2, severe_base=4
+    const equippedArmors: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_thresholds: '2/4' }, // major_base=2, severe_base=4
+        },
       },
-    };
-    const thresholds = calculateDamageThresholds(3, armor, []);
+    ];
+    const thresholds = calculateDamageThresholds(3, equippedArmors, []);
     expect(thresholds.minor).toBe(1);
     expect(thresholds.major).toBe(5); // 2 + 3
     expect(thresholds.severe).toBe(7); // 4 + 3
@@ -166,44 +205,51 @@ describe('calculateDamageThresholds', () => {
     const mods: Modifier[] = [
       { id: '1', name: 'Bonus', value: 1, source: 'system' },
     ];
-    const thresholds = calculateDamageThresholds(4, null, mods);
+    const equippedArmors: EquippedArmorForCalculation[] = [];
+    const thresholds = calculateDamageThresholds(4, equippedArmors, mods);
     expect(thresholds.major).toBe(5); // 4 + 1
     expect(thresholds.severe).toBe(9); // 8 + 1
   });
 
   it('should handle armor thresholds with modifiers combined', () => {
-    const armor = {
-      library_item: {
-        data: { base_thresholds: '3/5' },
+    const equippedArmors: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_thresholds: '3/5' },
+        },
       },
-    };
+    ];
     const mods: Modifier[] = [
       { id: '1', name: 'Bonus', value: 2, source: 'system' },
     ];
-    const thresholds = calculateDamageThresholds(2, armor, mods);
+    const thresholds = calculateDamageThresholds(2, equippedArmors, mods);
     expect(thresholds.major).toBe(7); // 3 + 2 + 2
     expect(thresholds.severe).toBe(9); // 5 + 2 + 2
   });
 
   it('should handle invalid base_thresholds format', () => {
-    const armor = {
-      library_item: {
-        data: { base_thresholds: 'invalid' },
+    const equippedArmors: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_thresholds: 'invalid' },
+        },
       },
-    };
-    const thresholds = calculateDamageThresholds(4, armor, []);
+    ];
+    const thresholds = calculateDamageThresholds(4, equippedArmors, []);
     // Falls back to defaults
     expect(thresholds.major).toBe(4);
     expect(thresholds.severe).toBe(8);
   });
 
   it('should handle armor with only one threshold value', () => {
-    const armor = {
-      library_item: {
-        data: { base_thresholds: '2' }, // Only one value
+    const equippedArmors: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_thresholds: '2' }, // Only one value
+        },
       },
-    };
-    const thresholds = calculateDamageThresholds(3, armor, []);
+    ];
+    const thresholds = calculateDamageThresholds(3, equippedArmors, []);
     // Falls back to defaults
     expect(thresholds.major).toBe(3);
     expect(thresholds.severe).toBe(6);
@@ -213,9 +259,28 @@ describe('calculateDamageThresholds', () => {
     const mods: Modifier[] = [
       { id: '1', name: 'Weakness', value: -1, source: 'system' },
     ];
-    const thresholds = calculateDamageThresholds(5, null, mods);
+    const equippedArmors: EquippedArmorForCalculation[] = [];
+    const thresholds = calculateDamageThresholds(5, equippedArmors, mods);
     expect(thresholds.major).toBe(4); // 5 - 1
     expect(thresholds.severe).toBe(9); // 10 - 1
+  });
+
+  it('should use base thresholds from first valid armor in array', () => {
+    const equippedArmors: EquippedArmorForCalculation[] = [
+      {
+        library_item: {
+          data: { base_thresholds: 'invalid' }, // Skip this one
+        },
+      },
+      {
+        library_item: {
+          data: { base_thresholds: '3/6' }, // Use this one
+        },
+      },
+    ];
+    const thresholds = calculateDamageThresholds(2, equippedArmors, []);
+    expect(thresholds.major).toBe(5); // 3 + 2
+    expect(thresholds.severe).toBe(8); // 6 + 2
   });
 });
 
