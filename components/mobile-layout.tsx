@@ -56,7 +56,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
       {/* Floating Action Button (FAB) - Dice */}
       <button
         onClick={openDiceOverlay}
-        className="fixed bottom-24 right-6 bg-dagger-gold text-black p-4 rounded-full shadow-lg shadow-dagger-gold/20 hover:scale-105 transition-transform z-40"
+        className="fixed bottom-24 right-6 bg-dagger-gold/50 text-black p-4 rounded-full shadow-lg shadow-dagger-gold/20 hover:scale-105 transition-transform z-40"
       >
         <Dices size={28} />
       </button>
@@ -64,29 +64,29 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 pb-safe pt-2 px-6 z-40 backdrop-blur-lg">
         <div className="flex justify-between items-center h-16">
-          <NavButton 
-            active={activeTab === 'character'} 
+          <NavButton
+            active={activeTab === 'character'}
             onClick={() => setActiveTab('character')}
-            icon={User} 
-            label="Character" 
+            icon={User}
+            label="Character"
           />
-          <NavButton 
-            active={activeTab === 'combat'} 
+          <NavButton
+            active={activeTab === 'combat'}
             onClick={() => setActiveTab('combat')}
-            icon={Swords} 
-            label="Combat" 
+            icon={Swords}
+            label="Combat"
           />
-          <NavButton 
-            active={activeTab === 'playmat'} 
+          <NavButton
+            active={activeTab === 'playmat'}
             onClick={() => setActiveTab('playmat')}
-            icon={Layers} 
-            label="Playmat" 
+            icon={Layers}
+            label="Playmat"
           />
-          <NavButton 
-            active={activeTab === 'inventory'} 
+          <NavButton
+            active={activeTab === 'inventory'}
             onClick={() => setActiveTab('inventory')}
-            icon={Backpack} 
-            label="Inventory" 
+            icon={Backpack}
+            label="Inventory"
           />
         </div>
       </nav>
@@ -99,7 +99,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
 
 function NavButton({ active, onClick, icon: Icon, label }: NavButtonProps) { // Use defined props interface
   return (
-    <button 
+    <button
       onClick={onClick}
       className={clsx(
         "flex flex-col items-center gap-1 transition-colors w-16",

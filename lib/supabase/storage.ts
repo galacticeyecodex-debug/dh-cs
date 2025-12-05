@@ -11,20 +11,35 @@ export async function uploadCharacterAvatar(
   userId: string,
   file: File,
   characterId?: string
-): Promise<string | null> {
+): Promise<{ url: string | null; error: string | null }> {
+  return uploadFile('character-avatars', userId, file, characterId);
+}
+
+export async function uploadCharacterImage(
+  userId: string,
+  file: File,
+  characterId?: string
+): Promise<{ url: string | null; error: string | null }> {
+  return uploadFile('character-gallery', userId, file, characterId);
+}
+
+async function uploadFile(
+  bucket: string,
+  userId: string,
+  file: File,
+  characterId?: string
+): Promise<{ url: string | null; error: string | null }> {
   const supabase = createClient();
 
   // Validate file type
   if (!file.type.startsWith('image/')) {
-    console.error('File must be an image');
-    return null;
+    return { url: null, error: 'File must be an image' };
   }
 
-  // Validate file size (max 2MB)
-  const maxSize = 2 * 1024 * 1024; // 2MB
+  // Validate file size (max 5MB)
+  const maxSize = 5 * 1024 * 1024; // 5MB
   if (file.size > maxSize) {
-    console.error('File size must be less than 2MB');
-    return null;
+    return { url: null, error: 'File size must be less than 5MB' };
   }
 
   // Create a unique filename
@@ -36,7 +51,7 @@ export async function uploadCharacterAvatar(
 
   // Upload the file
   const { data, error } = await supabase.storage
-    .from('character-avatars')
+    .from(bucket)
     .upload(fileName, file, {
       cacheControl: '3600',
       upsert: false,
@@ -44,16 +59,21 @@ export async function uploadCharacterAvatar(
 
   if (error) {
     console.error('Error uploading file:', error);
-    return null;
+    // Provide more specific error messages based on Supabase error
+    if (error.message.includes('Bucket not found')) {
+      return { url: null, error: 'Storage bucket not found. Please run the storage setup SQL.' };
+    }
+    return { url: null, error: error.message || 'Upload failed' };
   }
 
   // Get the public URL
   const { data: { publicUrl } } = supabase.storage
-    .from('character-avatars')
+    .from(bucket)
     .getPublicUrl(data.path);
 
-  return publicUrl;
+  return { url: publicUrl, error: null };
 }
+
 
 /**
  * Deletes a character avatar from Supabase Storage

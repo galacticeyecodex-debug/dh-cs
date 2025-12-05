@@ -528,14 +528,15 @@ export default function CreateCharacterPage() {
     let uploadedImageUrl: string | null = null;
     if (selectedImageFile) {
       setUploadingImage(true);
-      uploadedImageUrl = await uploadCharacterAvatar(user.id, selectedImageFile);
+      const uploadResult = await uploadCharacterAvatar(user.id, selectedImageFile);
       setUploadingImage(false);
 
-      if (!uploadedImageUrl) {
+      if (uploadResult.error || !uploadResult.url) {
         setError("Failed to upload character image. Please try again.");
         setIsSubmitting(false);
         return;
       }
+      uploadedImageUrl = uploadResult.url;
     }
 
     const supabase = createClient();
