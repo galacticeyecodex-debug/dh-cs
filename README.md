@@ -93,6 +93,12 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
        2.  Copy its entire content and paste it into the Supabase SQL Editor.
        3.  Execute this SQL. This script will create the `public.characters` and `public.library` tables (along with their RLS policies as defined in the seed script) and populate the `public.library` table with game data.
 
+   *   **Set up Storage Buckets**:
+       The application requires storage buckets for character avatars and gallery images.
+       1.  Open the local file `supabase/storage.sql` from your cloned repository.
+       2.  Copy its entire content and paste it into the Supabase SQL Editor.
+       3.  Execute the SQL. This will create the required buckets (`character-avatars`, `character-gallery`) and set up their security policies.
+
    *   **Configure Google OAuth (Required for Authentication)**:
 
        This app uses Google OAuth for user authentication. You'll need to set up OAuth credentials in Google Cloud Console and configure them in Supabase.
