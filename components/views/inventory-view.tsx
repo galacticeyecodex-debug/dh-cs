@@ -11,6 +11,7 @@ export default function InventoryView() {
   const { character, equipItem, addItemToInventory, updateGold } = useCharacterStore();
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [showWealth, setShowWealth] = useState(true);
+  const [showFilter, setShowFilter] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [allLibraryItems, setAllLibraryItems] = useState<LibraryItem[]>([]
   );
@@ -125,57 +126,68 @@ export default function InventoryView() {
 
       {/* Filter */}
       <div className="space-y-2">
-        <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-          <Package size={14} /> Filter
-        </h3>
-
-        <div className="flex gap-2 overflow-x-auto pb-2 -mb-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
+            <Package size={14} /> Filter
+          </h3>
           <button
-            className={clsx(
-              "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
-              selectedCategory === null ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-            )}
-            onClick={() => setSelectedCategory(null)}
+            onClick={() => setShowFilter(!showFilter)}
+            className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
           >
-            <Package size={16} /> All
-          </button>
-          <button
-            className={clsx(
-              "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
-              selectedCategory === 'weapon' ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-            )}
-            onClick={() => setSelectedCategory('weapon')}
-          >
-            <Sword size={16} /> Weapons
-          </button>
-          <button
-            className={clsx(
-              "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
-              selectedCategory === 'armor' ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-            )}
-            onClick={() => setSelectedCategory('armor')}
-          >
-            <Shield size={16} /> Armor
-          </button>
-          <button
-            className={clsx(
-              "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
-              selectedCategory === 'consumable' ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-            )}
-            onClick={() => setSelectedCategory('consumable')}
-          >
-            <Heart size={16} /> Consumables
-          </button>
-          <button
-            className={clsx(
-              "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
-              selectedCategory === 'item' ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-            )}
-            onClick={() => setSelectedCategory('item')}
-          >
-            <Gem size={16} /> Misc Items
+            {showFilter ? <EyeOff size={14} /> : <Eye size={14} />}
+            {showFilter ? 'Hide' : 'Show'}
           </button>
         </div>
+
+        {showFilter && (
+          <div className="flex gap-2 overflow-x-auto pb-2 -mb-2">
+            <button
+              className={clsx(
+                "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
+                selectedCategory === null ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+              )}
+              onClick={() => setSelectedCategory(null)}
+            >
+              <Package size={16} /> All
+            </button>
+            <button
+              className={clsx(
+                "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
+                selectedCategory === 'weapon' ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+              )}
+              onClick={() => setSelectedCategory('weapon')}
+            >
+              <Sword size={16} /> Weapons
+            </button>
+            <button
+              className={clsx(
+                "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
+                selectedCategory === 'armor' ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+              )}
+              onClick={() => setSelectedCategory('armor')}
+            >
+              <Shield size={16} /> Armor
+            </button>
+            <button
+              className={clsx(
+                "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
+                selectedCategory === 'consumable' ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+              )}
+              onClick={() => setSelectedCategory('consumable')}
+            >
+              <Heart size={16} /> Consumables
+            </button>
+            <button
+              className={clsx(
+                "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
+                selectedCategory === 'item' ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+              )}
+              onClick={() => setSelectedCategory('item')}
+            >
+              <Gem size={16} /> Misc Items
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Items List Header */}
