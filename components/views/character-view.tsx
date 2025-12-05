@@ -5,6 +5,7 @@ import { getSystemModifiers } from '@/lib/utils';
 import StatButton from '@/components/stat-button';
 import CommonVitalsDisplay from '@/components/common-vitals-display';
 import ExperienceSheet from '../experience-sheet';
+import LevelUpInline from '../level-up-inline';
 import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/supabase/storage';
@@ -409,6 +410,16 @@ export default function CharacterView() {
         onClose={() => setIsExperienceSheetOpen(false)}
         experiences={character.experiences || []}
         onUpdateExperiences={updateExperiences}
+      />
+
+      <LevelUpInline
+        isOpen={isLevelUpOpen}
+        onClose={() => setIsLevelUpOpen(false)}
+        currentLevel={character?.level || 1}
+        onComplete={(options) => {
+          console.log('Level up with options:', options);
+          setIsLevelUpOpen(false);
+        }}
       />
     </div>
   );
