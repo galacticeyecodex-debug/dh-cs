@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Shield, Swords, Zap, Skull, Info, Crosshair } from 'lucide-react';
+import { Shield, Swords, Zap, Skull, Info, Crosshair, Eye, EyeOff } from 'lucide-react';
 import clsx from 'clsx';
 import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers } from '@/lib/utils';
 import CommonVitalsDisplay from '@/components/common-vitals-display'; // Import the new common component
@@ -11,6 +11,7 @@ import ModifierSheet from '@/components/modifier-sheet';
 export default function CombatView() {
   const { character, prepareRoll, updateModifiers } = useCharacterStore();
   const [showProficiencyModifiers, setShowProficiencyModifiers] = useState(false);
+  const [showVitals, setShowVitals] = useState(true);
 
   if (!character) return null;
 
@@ -31,8 +32,19 @@ export default function CombatView() {
 
   return (
     <div className="space-y-6 pb-24">
-      {/* Vitals & Evasion Grid - Now handled by CommonVitalsDisplay */}
-      <CommonVitalsDisplay character={character} />
+      {/* Vitals Toggle & Display */}
+      <div className="space-y-2">
+        <div className="flex justify-end">
+          <button 
+            onClick={() => setShowVitals(!showVitals)}
+            className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+          >
+            {showVitals ? <EyeOff size={14} /> : <Eye size={14} />}
+            {showVitals ? 'Hide Vitals' : 'Show Vitals'}
+          </button>
+        </div>
+        {showVitals && <CommonVitalsDisplay character={character} />}
+      </div>
       
       {/* Weapons List */}
       <div className="space-y-3">
