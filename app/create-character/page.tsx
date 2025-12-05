@@ -404,9 +404,9 @@ export default function CreateCharacterPage() {
         setError('Please select an image file');
         return;
       }
-      // Validate file size (max 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        setError('Image must be less than 2MB');
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image must be less than 5MB');
         return;
       }
       setSelectedImageFile(file);
@@ -796,7 +796,7 @@ export default function CreateCharacterPage() {
                     className="hidden"
                   />
                 </label>
-                <p className="text-xs text-gray-500">Max 2MB. PNG, JPG, or WEBP</p>
+                <p className="text-xs text-gray-500">Max 5MB. PNG, JPG, or WEBP</p>
               </div>
             </div>
             <button

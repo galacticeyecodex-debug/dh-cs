@@ -17,6 +17,37 @@ The `library` table stores all static game data (SRD content). It uses a single-
 | `data` | `JSONB` | Unstructured data specific to the `type`. See below for schemas. |
 | `created_at` | `TIMESTAMP` | Creation timestamp. |
 
+### `characters`
+Stores player character data.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `UUID` (PK) | Unique identifier. |
+| `user_id` | `UUID` (FK) | Reference to `auth.users`. |
+| `name` | `TEXT` | Character name. |
+| `level` | `INT` | Character level (1-10). |
+| `class_id` | `TEXT` | Reference to `library(id)`. |
+| `subclass_id` | `TEXT` | Reference to `library(id)`. |
+| `ancestry` | `TEXT` | Character ancestry. |
+| `community` | `TEXT` | Character community. |
+| `stats` | `JSONB` | Core traits (agility, strength, etc.). |
+| `vitals` | `JSONB` | HP, Stress, Armor Score/Slots. |
+| `damage_thresholds` | `JSONB` | Damage thresholds (Minor/Major/Severe). |
+| `hope` | `INT` | Current hope points. |
+| `fear` | `INT` | Current fear points (if applicable). |
+| `evasion` | `INT` | Calculated evasion score. |
+| `proficiency` | `INT` | Calculated proficiency score. |
+| `experiences` | `JSONB` | List of experiences. |
+| `domains` | `TEXT[]` | Array of selected domains. |
+| `gold` | `JSONB` | Gold currency (handfuls, bags, chests). |
+| `image_url` | `TEXT` | URL to character avatar. |
+| `modifiers` | `JSONB` | User-defined modifiers. |
+| `appearance` | `TEXT` | Character physical description. |
+| `background` | `TEXT` | Character backstory. |
+| `connections` | `TEXT` | Character connections/relationships. |
+| `pronouns` | `TEXT` | Character pronouns. |
+| `gallery_images` | `JSONB` | Array of URLs for concept art/gallery. |
+
 ---
 
 ## JSONB Data Schemas (by Type)
