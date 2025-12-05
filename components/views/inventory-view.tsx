@@ -112,7 +112,6 @@ export default function InventoryView() {
 
       {/* Items List */}
       <div className="space-y-2">
-        {libraryLoading && <div className="text-center text-gray-500">Loading library items...</div>}
         {error && <div className="p-3 bg-red-800/50 border border-red-500 rounded text-red-300 text-sm">{error}</div>}
         {sortedItems.length > 0 ? (
           sortedItems.map((item) => (
@@ -123,7 +122,7 @@ export default function InventoryView() {
             />
           ))
         ) : (
-          !libraryLoading && <div className="p-4 bg-white/5 rounded-lg border border-white/5 text-gray-400 text-sm text-center">
+          <div className="p-4 bg-white/5 rounded-lg border border-white/5 text-gray-400 text-sm text-center">
             Your inventory is empty. Click &quot;Add Item&quot; to get started!
           </div>
         )}
@@ -134,6 +133,7 @@ export default function InventoryView() {
         onClose={() => setIsAddItemModalOpen(false)} 
         onAddItem={handleAddItem}
         libraryItems={allLibraryItems}
+        isLoading={libraryLoading}
       />
     </div>
   );
