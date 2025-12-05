@@ -5,7 +5,7 @@ import { getSystemModifiers } from '@/lib/utils';
 import StatButton from '@/components/stat-button';
 import CommonVitalsDisplay from '@/components/common-vitals-display';
 import ExperienceSheet from '../experience-sheet';
-import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon } from 'lucide-react';
+import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/supabase/storage';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 export default function CharacterView() {
   const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage } = useCharacterStore();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
+  const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
   const [showVitals, setShowVitals] = useState(false);
   const [showTraits, setShowTraits] = useState(true);
   const [showExperiences, setShowExperiences] = useState(true);
@@ -128,13 +129,20 @@ export default function CharacterView() {
 
           <div className="mb-2">
             <h1 className="text-2xl font-bold text-white drop-shadow-md">{character.name}</h1>
-            <div className="flex flex-wrap gap-2 mt-1">
+            <div className="flex flex-wrap gap-2 mt-1 items-center">
               <span className="text-xs font-bold bg-white/20 text-white backdrop-blur-md px-2 py-0.5 rounded-full">
                 Lvl {character.level} {character.class_id}
               </span>
               <span className="text-xs bg-black/40 text-gray-300 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
                 {character.ancestry}
               </span>
+              <button
+                onClick={() => setIsLevelUpOpen(true)}
+                className="text-xs font-bold bg-dagger-gold hover:bg-dagger-gold/90 text-black backdrop-blur-md px-3 py-0.5 rounded-full transition-all flex items-center gap-1 shadow-sm"
+              >
+                <Zap size={12} />
+                Level Up
+              </button>
             </div>
           </div>
         </div>
