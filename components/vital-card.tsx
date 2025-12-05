@@ -156,12 +156,13 @@ export default function VitalCard({
       {trackType && max && max > 0 ? (
         renderTrack()
       ) : (
-        <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center">
+        <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center relative">
           <span>{current}</span>
           {max !== undefined && <span className="text-xs text-gray-500 font-sans font-normal">/{max}</span>}
           {isModified && expectedValue !== undefined && (
              <span className="text-[8px] text-gray-500 font-sans font-normal mt-0.5">Base: {expectedValue}</span>
           )}
+          {isModified && !trackType && <div className="absolute top-0 right-0 w-1.5 h-1.5 bg-dagger-gold rounded-full" />}
         </div>
       )}
       
