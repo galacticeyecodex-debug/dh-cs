@@ -1,17 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import Image from 'next/image';
 import { getSystemModifiers } from '@/lib/utils';
 import StatButton from '@/components/stat-button';
 import CommonVitalsDisplay from '@/components/common-vitals-display';
 import ExperienceSheet from '../experience-sheet';
-import { Settings, Grid, Book, Activity, Camera, Hash } from 'lucide-react';
+import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User } from 'lucide-react';
 import clsx from 'clsx';
+import { uploadCharacterImage } from '@/lib/supabase/storage';
+import { toast } from 'sonner';
 
 export default function CharacterView() {
-  const { character, updateModifiers, updateExperiences } = useCharacterStore();
+  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage } = useCharacterStore();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
+  const [showVitals, setShowVitals] = useState(true);
   const [activeTab, setActiveTab] = useState<'stats' | 'gallery' | 'lore'>('stats');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0] || !character || !user) return;
+
+    const file = e.target.files[0];
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setIsUploading(true);
+    const { url, error } = await uploadCharacterImage(user.id, file, character.id);
+
+    if (url) {
+      const currentGallery = character.gallery_images || [];
+      await updateGallery([...currentGallery, url]);
+      toast.success('Image uploaded successfully');
+    } else {
+      toast.error(error || 'Failed to upload image.');
+    }
+    
+    setIsUploading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteImage = async (urlToDelete: string) => {
+    if (!character) return;
+    if (confirm('Are you sure you want to delete this image?')) {
+      const currentGallery = character.gallery_images || [];
+      const updatedGallery = currentGallery.filter(url => url !== urlToDelete);
+      await updateGallery(updatedGallery);
+      // Note: We are strictly removing it from the gallery list.
+      // Deleting the actual file from storage is optional/advanced as it might be used elsewhere.
+    }
+  };
 
   if (!character) {
     return (
@@ -124,7 +168,18 @@ export default function CharacterView() {
         {activeTab === 'stats' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             {/* Vitals Grid */}
-            <CommonVitalsDisplay character={character} />
+            <div className="space-y-2">
+              <div className="flex justify-end">
+                <button 
+                  onClick={() => setShowVitals(!showVitals)}
+                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                >
+                  {showVitals ? <EyeOff size={14} /> : <Eye size={14} />}
+                  {showVitals ? 'Hide Vitals' : 'Show Vitals'}
+                </button>
+              </div>
+              {showVitals && <CommonVitalsDisplay character={character} />}
+            </div>
 
             {/* Stats Grid */}
             <div className="space-y-2">
@@ -185,48 +240,114 @@ export default function CharacterView() {
 
         {activeTab === 'gallery' && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
-            <div className="p-8 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center text-gray-500 gap-2">
-               <Camera size={32} />
-               <p className="text-sm font-medium">No media uploaded yet.</p>
-               <button className="mt-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold transition-colors">
-                 Upload Concept Art
+            <div className="flex justify-center">
+               <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleUpload} 
+               />
+               <button 
+                 onClick={() => fileInputRef.current?.click()}
+                 disabled={isUploading}
+                 className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold transition-colors disabled:opacity-50"
+               >
+                 <Camera size={16} />
+                 {isUploading ? 'Uploading...' : 'Upload Image'}
                </button>
             </div>
-            {/* Mock Masonry Layout */}
-            <div className="columns-2 gap-4 space-y-4">
-               <div className="bg-gray-800 rounded-lg aspect-[3/4] w-full flex items-center justify-center text-xs text-gray-600">Placeholder</div>
-               <div className="bg-gray-800 rounded-lg aspect-square w-full flex items-center justify-center text-xs text-gray-600">Placeholder</div>
-               <div className="bg-gray-800 rounded-lg aspect-video w-full flex items-center justify-center text-xs text-gray-600">Placeholder</div>
-            </div>
+            
+            {/* Masonry-ish Gallery Grid */}
+            {character.gallery_images && character.gallery_images.length > 0 ? (
+              <div className="columns-2 gap-4 space-y-4">
+                 {character.gallery_images.map((url, index) => (
+                   <div key={index} className="relative group break-inside-avoid">
+                     <div className="rounded-lg overflow-hidden bg-gray-800 shadow-lg">
+                        <Image 
+                          src={url} 
+                          alt={`Concept Art ${index + 1}`} 
+                          width={400} 
+                          height={400} 
+                          className="w-full h-auto object-cover"
+                        />
+                     </div>
+                     <div className="absolute top-2 right-2 flex gap-2 transition-opacity">
+                       <button 
+                         onClick={() => {
+                            if(confirm('Set this image as your profile picture?')) {
+                               updateImage(url);
+                               toast.success('Profile picture updated');
+                            }
+                         }}
+                         className="p-1.5 bg-black/60 text-white rounded-full hover:bg-dagger-gold hover:text-black transition-colors"
+                         title="Set as Profile Picture"
+                       >
+                         <User size={14} />
+                       </button>
+                       <button 
+                         onClick={() => handleDeleteImage(url)}
+                         className="p-1.5 bg-black/60 text-white rounded-full hover:bg-red-500/80 transition-colors"
+                         title="Delete Image"
+                       >
+                         <Trash2 size={14} />
+                       </button>
+                     </div>
+                   </div>
+                 ))}
+              </div>
+            ) : (
+              <div className="text-center text-gray-500 text-xs mt-4">
+                No images uploaded yet.
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'lore' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-             {/* Story Highlights */}
-             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-                {[1,2,3].map(i => (
-                  <div key={i} className="flex flex-col items-center gap-1 min-w-[4.5rem]">
-                    <div className="w-16 h-16 rounded-full border-2 border-white/10 bg-white/5 flex items-center justify-center text-gray-500">
-                      <Hash size={20} />
-                    </div>
-                    <span className="text-[10px] text-gray-400 font-medium">Highlight {i}</span>
-                  </div>
-                ))}
-             </div>
-
              <div className="space-y-4">
                 <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                   <h4 className="font-bold text-white mb-2">Background</h4>
-                   <p className="text-sm text-gray-400 leading-relaxed">
-                     No background story has been written yet. This section will contain the character's origin, beliefs, and pivotal moments.
-                   </p>
+                   <h4 className="font-bold text-white mb-2">Pronouns</h4>
+                   <input
+                     className="w-full bg-transparent text-sm text-gray-300 leading-relaxed focus:outline-none focus:ring-1 focus:ring-dagger-gold rounded p-2"
+                     placeholder="e.g. They/Them"
+                     defaultValue={character.pronouns || ''}
+                     onBlur={(e) => updateLore({ pronouns: e.target.value })}
+                   />
                 </div>
+
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                   <h4 className="font-bold text-white mb-2">Appearance</h4>
+                   <textarea
+                     className="w-full bg-transparent text-sm text-gray-300 leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-dagger-gold rounded p-2"
+                     rows={4}
+                     placeholder="Describe your character's physical appearance..."
+                     defaultValue={character.appearance || ''}
+                     onBlur={(e) => updateLore({ appearance: e.target.value })}
+                   />
+                </div>
+
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                   <h4 className="font-bold text-white mb-2">Background</h4>
+                   <textarea
+                     className="w-full bg-transparent text-sm text-gray-300 leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-dagger-gold rounded p-2"
+                     rows={6}
+                     placeholder="Write your character's origin, beliefs, and pivotal moments..."
+                     defaultValue={character.background || ''}
+                     onBlur={(e) => updateLore({ background: e.target.value })}
+                   />
+                </div>
+
                 <div className="bg-white/5 p-4 rounded-xl border border-white/10">
                    <h4 className="font-bold text-white mb-2">Connections</h4>
-                   <p className="text-sm text-gray-400 leading-relaxed">
-                     List allies, rivals, and organizations here.
-                   </p>
+                   <textarea
+                     className="w-full bg-transparent text-sm text-gray-300 leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-dagger-gold rounded p-2"
+                     rows={4}
+                     placeholder="List allies, rivals, and organizations..."
+                     defaultValue={character.connections || ''}
+                     onBlur={(e) => updateLore({ connections: e.target.value })}
+                   />
                 </div>
              </div>
           </div>
