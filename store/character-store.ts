@@ -79,6 +79,14 @@ export interface Character {
     chests: number;
   };
   image_url?: string;
+  background_image_url?: string;
+
+  // Lore
+  appearance?: string;
+  background?: string;
+  connections?: string;
+  pronouns?: string;
+  gallery_images?: string[];
 
   // Relations
   character_cards?: CharacterCard[];
@@ -128,6 +136,10 @@ interface CharacterState {
   updateExperiences: (experiences: Experience[]) => Promise<void>;
   moveCard: (cardId: string, destination: 'loadout' | 'vault') => Promise<void>;
   addCardToCollection: (item: LibraryItem) => Promise<void>;
+  updateLore: (fields: Partial<Pick<Character, 'appearance' | 'background' | 'connections' | 'pronouns'>>) => Promise<void>;
+  updateGallery: (images: string[]) => Promise<void>;
+  updateImage: (url: string) => Promise<void>;
+  updateBackgroundImage: (url: string) => Promise<void>;
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({
@@ -852,6 +864,98 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       },
       () => createClient().from('characters').update({ vitals: updatedVitals }).eq('id', characterId),
       `Failed to update ${type.replace('_', ' ')}`
+    );
+  },
+
+  updateLore: async (fields) => {
+    const state = get();
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const previousCharacter = { ...get().character! };
+        set((s) => ({
+          character: s.character ? { ...s.character, ...fields } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? { ...s.character, ...previousCharacter } : null,
+          }));
+        };
+      },
+      () => createClient().from('characters').update(fields).eq('id', characterId),
+      'Failed to update lore'
+    );
+  },
+
+  updateGallery: async (images) => {
+    const state = get();
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const previousImages = get().character!.gallery_images;
+        set((s) => ({
+          character: s.character ? { ...s.character, gallery_images: images } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? { ...s.character, gallery_images: previousImages } : null,
+          }));
+        };
+      },
+      () => createClient().from('characters').update({ gallery_images: images }).eq('id', characterId),
+      'Failed to update gallery'
+    );
+  },
+
+  updateImage: async (url) => {
+    const state = get();
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const previousImage = get().character!.image_url;
+        set((s) => ({
+          character: s.character ? { ...s.character, image_url: url } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? { ...s.character, image_url: previousImage } : null,
+          }));
+        };
+      },
+      () => createClient().from('characters').update({ image_url: url }).eq('id', characterId),
+      'Failed to update profile image'
+    );
+  },
+
+  updateBackgroundImage: async (url) => {
+    const state = get();
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const previousImage = get().character!.background_image_url;
+        set((s) => ({
+          character: s.character ? { ...s.character, background_image_url: url } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? { ...s.character, background_image_url: previousImage } : null,
+          }));
+        };
+      },
+      () => createClient().from('characters').update({ background_image_url: url }).eq('id', characterId),
+      'Failed to update background image'
     );
   },
 }));

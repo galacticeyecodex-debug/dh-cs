@@ -66,8 +66,18 @@ CREATE TABLE IF NOT EXISTS public.characters (
   gold JSONB DEFAULT '{"handfuls": 0, "bags": 0, "chests": 0}'::jsonb,
   
   image_url TEXT,
+  background_image_url TEXT,
   
   modifiers JSONB DEFAULT '{}'::jsonb, -- Store user modifiers here
+  
+  -- Lore fields
+  appearance TEXT,
+  background TEXT,
+  connections TEXT,
+  pronouns TEXT,
+  
+  -- Gallery
+  gallery_images JSONB DEFAULT '[]'::jsonb,
   
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -262,7 +272,8 @@ BEGIN
   INSERT INTO public.characters (
     user_id, name, level, class_id, subclass_id, ancestry, community,
     stats, vitals, damage_thresholds, hope, fear, evasion, proficiency,
-    experiences, domains, gold, image_url, modifiers
+    experiences, domains, gold, image_url, modifiers,
+    appearance, background, connections, pronouns, gallery_images, background_image_url
   ) VALUES (
     v_user_id,
     p_character->>'name',
@@ -282,7 +293,13 @@ BEGIN
     (SELECT array_agg(x) FROM jsonb_array_elements_text(p_character->'domains') t(x)),
     COALESCE(p_character->'gold', '{}'::jsonb),
     p_character->>'image_url',
-    COALESCE(p_character->'modifiers', '{}'::jsonb)
+    COALESCE(p_character->'modifiers', '{}'::jsonb),
+    p_character->>'appearance',
+    p_character->>'background',
+    p_character->>'connections',
+    p_character->>'pronouns',
+    COALESCE(p_character->'gallery_images', '[]'::jsonb),
+    p_character->>'background_image_url'
   ) RETURNING id INTO v_character_id;
 
   -- 2. Insert Cards
@@ -312,3 +329,44 @@ BEGIN
   RETURN v_character_id;
 END;
 $$;
+
+-- STORAGE --
+
+-- Create storage bucket for character gallery (Concept Art)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('character-gallery', 'character-gallery', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Set up storage policies for character gallery
+-- Allow authenticated users to upload their own images
+CREATE POLICY "Users can upload character gallery images"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'character-gallery' AND
+  auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Allow users to update their own images
+CREATE POLICY "Users can update their character gallery images"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'character-gallery' AND
+  auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Allow users to delete their own images
+CREATE POLICY "Users can delete their character gallery images"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'character-gallery' AND
+  auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Allow public read access to all gallery images
+CREATE POLICY "Character gallery images are publicly accessible"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'character-gallery');
