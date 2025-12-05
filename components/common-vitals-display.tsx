@@ -69,7 +69,7 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
         <VitalCard
           label="Evasion"
           current={totalEvasion}
-          color={isEvasionModified ? "text-dagger-gold" : "text-white"}
+          color="text-cyan-400"
           icon={Eye}
           isModified={isEvasionModified}
           expectedValue={classBaseEvasion}
