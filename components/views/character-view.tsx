@@ -5,13 +5,13 @@ import { getSystemModifiers } from '@/lib/utils';
 import StatButton from '@/components/stat-button';
 import CommonVitalsDisplay from '@/components/common-vitals-display';
 import ExperienceSheet from '../experience-sheet';
-import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User } from 'lucide-react';
+import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/supabase/storage';
 import { toast } from 'sonner';
 
 export default function CharacterView() {
-  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage } = useCharacterStore();
+  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage } = useCharacterStore();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [showVitals, setShowVitals] = useState(true);
   const [activeTab, setActiveTab] = useState<'stats' | 'gallery' | 'lore'>('stats');
@@ -79,9 +79,16 @@ export default function CharacterView() {
     <div className="pb-24">
       {/* Social Profile Header */}
       <div className="relative w-full h-48 bg-gray-900 overflow-hidden">
-        {/* Banner Background (Blurred Character Image or Default Pattern) */}
+        {/* Banner Background (Character Background, Blurred Profile Image, or Default Gradient) */}
         <div className="absolute inset-0 opacity-50">
-           {character.image_url ? (
+           {character.background_image_url ? (
+             <Image 
+               src={character.background_image_url} 
+               alt="Banner Background" 
+               fill
+               className="object-cover" 
+             />
+           ) : character.image_url ? (
             <Image 
               src={character.image_url} 
               alt="Background" 
@@ -284,6 +291,18 @@ export default function CharacterView() {
                          title="Set as Profile Picture"
                        >
                          <User size={14} />
+                       </button>
+                       <button 
+                         onClick={() => {
+                            if(confirm('Set this image as your background banner?')) {
+                               updateBackgroundImage(url);
+                               toast.success('Background updated');
+                            }
+                         }}
+                         className="p-1.5 bg-black/60 text-white rounded-full hover:bg-dagger-gold hover:text-black transition-colors"
+                         title="Set as Background"
+                       >
+                         <ImageIcon size={14} />
                        </button>
                        <button 
                          onClick={() => handleDeleteImage(url)}
