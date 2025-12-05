@@ -50,12 +50,14 @@ export default function InventoryView() {
   const inventoryItems = character.character_inventory || [];
 
   // Sort: Equipped items first, then by name
-  const sortedItems = [...inventoryItems].sort((a, b) => {
-    const aEquipped = a.location.startsWith('equipped') ? 1 : 0;
-    const bEquipped = b.location.startsWith('equipped') ? 1 : 0;
-    if (aEquipped !== bEquipped) return bEquipped - aEquipped;
-    return a.name.localeCompare(b.name);
-  });
+  const sortedItems = [...inventoryItems]
+    .filter(item => item.name !== 'Gold')
+    .sort((a, b) => {
+      const aEquipped = a.location.startsWith('equipped') ? 1 : 0;
+      const bEquipped = b.location.startsWith('equipped') ? 1 : 0;
+      if (aEquipped !== bEquipped) return bEquipped - aEquipped;
+      return a.name.localeCompare(b.name);
+    });
 
   const handleEquip = (itemId: string, slot: 'equipped_primary' | 'equipped_secondary' | 'equipped_armor' | 'backpack') => {
     equipItem(itemId, slot);
@@ -69,10 +71,9 @@ export default function InventoryView() {
     <div className="space-y-6">
       {/* Gold Tracker */}
       <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-4 text-dagger-gold">
-          <Coins size={18} />
-          <h2 className="text-sm font-bold uppercase tracking-wider">Wealth</h2>
-        </div>
+        <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2 mb-4">
+          <Coins size={14} /> Wealth
+        </h3>
         
         <div className="grid grid-cols-3 gap-4 text-center">
           <GoldCounter 
@@ -98,9 +99,9 @@ export default function InventoryView() {
 
       {/* Items List Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-bold text-white uppercase tracking-wider flex items-center gap-2">
-          <Package size={20} /> Inventory Items
-        </h2>
+        <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
+          <Package size={14} /> Inventory Items
+        </h3>
         <button 
           onClick={() => setIsAddItemModalOpen(true)}
           className="bg-dagger-gold text-black px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 hover:scale-105 transition-transform"
