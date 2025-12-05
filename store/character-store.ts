@@ -88,6 +88,10 @@ export interface Character {
   pronouns?: string;
   gallery_images?: string[];
 
+  // Leveling tracking
+  marked_traits_jsonb?: Record<string, any>;
+  advancement_history_jsonb?: Record<string, any>;
+
   // Relations
   character_cards?: CharacterCard[];
   character_inventory?: CharacterInventoryItem[];
@@ -140,6 +144,16 @@ interface CharacterState {
   updateGallery: (images: string[]) => Promise<void>;
   updateImage: (url: string) => Promise<void>;
   updateBackgroundImage: (url: string) => Promise<void>;
+  levelUpCharacter: (options: {
+    newLevel: number;
+    selectedAdvancements: string[];
+    selectedDomainCardId: string;
+    exchangeExistingCardId?: string;
+    traitIncrements?: { trait: string; amount: number }[];
+    experienceIncrements?: { experienceId: string; amount: number }[];
+    hpSlotsAdded?: number;
+    stressSlotsAdded?: number;
+  }) => Promise<void>;
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({
@@ -957,5 +971,125 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       async () => createClient().from('characters').update({ background_image_url: url }).eq('id', characterId),
       'Failed to update background image'
     );
+  },
+
+  levelUpCharacter: async (options) => {
+    const state = get();
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+    const supabase = createClient();
+
+    // Import helper functions for leveling
+    const {
+      calculateTierAchievements,
+      calculateNewDamageThresholds,
+      addExperienceAtLevelUp,
+      calculateProficiencyIncrease,
+    } = await import('@/lib/level-up-helpers');
+
+    // Calculate automatic tier achievements
+    const tierAchievements = calculateTierAchievements(options.newLevel);
+
+    // Build updated character data
+    const updatedCharacter = { ...state.character };
+    updatedCharacter.level = options.newLevel;
+
+    // Apply tier achievements
+    if (tierAchievements.newExperienceValue !== null) {
+      updatedCharacter.experiences = addExperienceAtLevelUp(
+        updatedCharacter.experiences,
+        options.newLevel,
+        tierAchievements.newExperienceValue
+      );
+    }
+
+    // Update proficiency
+    updatedCharacter.proficiency += tierAchievements.proficiencyIncrease;
+    if (options.selectedAdvancements.includes('increase_proficiency')) {
+      updatedCharacter.proficiency += 1;
+    }
+
+    // Apply damage threshold increases
+    updatedCharacter.damage_thresholds = calculateNewDamageThresholds(
+      updatedCharacter.damage_thresholds
+    );
+
+    // Apply trait increments (from "Increase Traits" advancement)
+    if (options.traitIncrements && options.traitIncrements.length > 0) {
+      for (const increment of options.traitIncrements) {
+        if (updatedCharacter.stats[increment.trait as keyof typeof updatedCharacter.stats]) {
+          updatedCharacter.stats[increment.trait as keyof typeof updatedCharacter.stats] += increment.amount;
+        }
+      }
+    }
+
+    // Apply experience increments (from "Increase Experience" advancement)
+    if (options.experienceIncrements && options.experienceIncrements.length > 0) {
+      for (const increment of options.experienceIncrements) {
+        const expIndex = parseInt(increment.experienceId);
+        if (expIndex >= 0 && expIndex < updatedCharacter.experiences.length) {
+          updatedCharacter.experiences[expIndex] = {
+            ...updatedCharacter.experiences[expIndex],
+            value: updatedCharacter.experiences[expIndex].value + increment.amount,
+          };
+        }
+      }
+    }
+
+    // Apply vital slot additions
+    if (options.hpSlotsAdded && options.hpSlotsAdded > 0) {
+      updatedCharacter.vitals.hit_points_max += options.hpSlotsAdded;
+      updatedCharacter.vitals.hit_points_current += options.hpSlotsAdded;
+    }
+
+    if (options.stressSlotsAdded && options.stressSlotsAdded > 0) {
+      updatedCharacter.vitals.stress_max += options.stressSlotsAdded;
+    }
+
+    // Apply evasion increase if advancement selected
+    if (options.selectedAdvancements.includes('increase_evasion')) {
+      updatedCharacter.evasion += 1;
+    }
+
+    // Build database update payload
+    const updatePayload: Record<string, any> = {
+      level: options.newLevel,
+      stats: updatedCharacter.stats,
+      vitals: updatedCharacter.vitals,
+      damage_thresholds: updatedCharacter.damage_thresholds,
+      proficiency: updatedCharacter.proficiency,
+      evasion: updatedCharacter.evasion,
+      experiences: updatedCharacter.experiences,
+      advancement_history_jsonb: {
+        ...updatedCharacter.advancement_history_jsonb || {},
+        [options.newLevel]: options.selectedAdvancements,
+      },
+    };
+
+    // Clear marked traits if applicable
+    if (tierAchievements.shouldClearMarkedTraits) {
+      updatePayload.marked_traits_jsonb = {};
+    }
+
+    // Optimistic update
+    await withOptimisticUpdate(
+      () => {
+        const previousCharacter = get().character;
+        set((s) => ({
+          character: s.character ? updatedCharacter : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: previousCharacter,
+          }));
+        };
+      },
+      async () => supabase.from('characters').update(updatePayload).eq('id', characterId),
+      'Failed to apply level up'
+    );
+
+    // After successful level up, recalculate derived stats
+    await get().recalculateDerivedStats();
   },
 }));
