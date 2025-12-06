@@ -69,7 +69,6 @@ export default function ManageCharacterModal({
 
   if (!isOpen) return null;
 
-  const isLeveling = level > currentLevel;
   const isDeLeveling = level < currentLevel;
   const hasChanges = level !== currentLevel || ancestry !== currentAncestry || community !== currentCommunity;
 
@@ -85,8 +84,8 @@ export default function ManageCharacterModal({
   const handleSave = async () => {
     setError('');
 
-    if (level < 1 || level > 10) {
-      setError('Level must be between 1 and 10');
+    if (level < 1 || level > currentLevel) {
+      setError('Level can only be reduced');
       return;
     }
 
@@ -252,13 +251,13 @@ export default function ManageCharacterModal({
           {/* Level */}
           <div>
             <label className="block text-sm font-bold text-gray-300 mb-2">
-              Level <span className="text-gray-500">(1-10)</span>
+              Level <span className="text-gray-500">(reduce only)</span>
             </label>
             <div className="flex items-center gap-2">
               <input
                 type="number"
                 min={1}
-                max={10}
+                max={currentLevel}
                 value={level}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
@@ -267,7 +266,7 @@ export default function ManageCharacterModal({
                 className="flex-1 px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
               />
               <span className="text-gray-400 text-sm">
-                {isLeveling ? '↑' : isDeLeveling ? '↓' : '='}
+                {isDeLeveling ? '↓' : '='}
               </span>
             </div>
             {isDeLeveling && (
