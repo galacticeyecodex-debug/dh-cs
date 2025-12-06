@@ -26,19 +26,20 @@ export default function CharacterView() {
   const [activeTab, setActiveTab] = useState<'stats' | 'gallery' | 'lore'>('stats');
   const [isUploading, setIsUploading] = useState(false);
   const [domainCards, setDomainCards] = useState<any[]>([]);
+  const [ancestryCard, setAncestryCard] = useState<any>(null);
+  const [communityCard, setCommunityCard] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch domain cards from library
+  // Fetch domain cards, ancestry, and community from library
   useEffect(() => {
-    const fetchDomainCards = async () => {
+    const fetchLibraryData = async () => {
       const supabase = createClient();
       const { data, error } = await supabase
         .from('library')
-        .select('*')
-        .in('type', ['class', 'subclass', 'card']); // Fetch domain card types
+        .select('*');
 
       if (!error && data) {
-        // Parse the JSONB data field to get card properties
+        // Parse cards
         const cards = data.map((lib: any) => ({
           id: lib.id,
           name: lib.name,
@@ -46,12 +47,37 @@ export default function CharacterView() {
           type: lib.data?.type || '',
           data: lib.data || {},
         }));
-        setDomainCards(cards);
+
+        // Filter domain cards
+        const domainCardsList = cards.filter((c: any) => c.domain && c.type);
+        setDomainCards(domainCardsList);
+
+        // Find ancestry card
+        if (character?.ancestry) {
+          const ancestry = data.find((lib: any) => lib.name === character.ancestry);
+          if (ancestry) {
+            setAncestryCard({
+              name: ancestry.name,
+              description: ancestry.data?.description || ancestry.data?.markdown || '',
+            });
+          }
+        }
+
+        // Find community card
+        if (character?.community) {
+          const community = data.find((lib: any) => lib.name === character.community);
+          if (community) {
+            setCommunityCard({
+              name: community.name,
+              description: community.data?.description || community.data?.markdown || '',
+            });
+          }
+        }
       }
     };
 
-    fetchDomainCards();
-  }, []);
+    fetchLibraryData();
+  }, [character?.ancestry, character?.community]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !character || !user) return;
@@ -236,6 +262,38 @@ export default function CharacterView() {
                 </button>
               </div>
               {showVitals && <CommonVitalsDisplay character={character} />}
+            </div>
+
+            {/* Ancestry & Community Section */}
+            <div className="space-y-2">
+              <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Heritage</h3>
+              <div className="space-y-3">
+                {/* Ancestry Card */}
+                {ancestryCard && (
+                  <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
+                    <div className="p-3 bg-gradient-to-r from-dagger-gold/10 to-transparent border-b border-white/10">
+                      <h4 className="font-bold text-dagger-gold text-sm">Ancestry</h4>
+                    </div>
+                    <div className="p-4">
+                      <p className="font-semibold text-white mb-2">{ancestryCard.name}</p>
+                      <p className="text-sm text-gray-300 leading-relaxed">{ancestryCard.description}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Community Card */}
+                {communityCard && (
+                  <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
+                    <div className="p-3 bg-gradient-to-r from-dagger-gold/10 to-transparent border-b border-white/10">
+                      <h4 className="font-bold text-dagger-gold text-sm">Community</h4>
+                    </div>
+                    <div className="p-4">
+                      <p className="font-semibold text-white mb-2">{communityCard.name}</p>
+                      <p className="text-sm text-gray-300 leading-relaxed">{communityCard.description}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
                         {/* Stats Grid */}
