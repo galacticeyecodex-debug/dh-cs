@@ -1,25 +1,27 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Check, Eye, EyeOff } from 'lucide-react';
+import { ChevronDown, ChevronRight, Check, Eye, EyeOff, Heart, Zap, Shield, Star, Swords } from 'lucide-react';
 import { AdvancementRecord } from '@/store/character-store';
+import { Experience } from '@/types/modifiers';
 
 interface AdvancementHistoryProps {
   advancementHistory: Record<string, AdvancementRecord>;
+  experiences?: Experience[];
 }
 
 const ADVANCEMENT_NAMES: Record<string, string> = {
-  increase_traits: 'Increase Traits',
-  add_hp: 'Add HP',
-  add_stress: 'Add Stress',
-  increase_experience: 'Increase Experience',
-  domain_card: 'Additional Domain Card',
-  increase_evasion: 'Increase Evasion',
-  subclass_card: 'Upgraded Subclass Card',
-  increase_proficiency: 'Increase Proficiency',
+  increase_traits: 'Traits',
+  add_hp: 'Hit Points',
+  add_stress: 'Stress',
+  increase_experience: 'Experience',
+  domain_card: 'Domain Card',
+  increase_evasion: 'Evasion',
+  subclass_card: 'Subclass',
+  increase_proficiency: 'Proficiency',
 };
 
-export default function AdvancementHistory({ advancementHistory }: AdvancementHistoryProps) {
+export default function AdvancementHistory({ advancementHistory, experiences = [] }: AdvancementHistoryProps) {
   const [isCollapsed, setIsCollapsed] = useState(true); // Hidden by default
   const [expandedLevels, setExpandedLevels] = useState<Set<number>>(new Set());
 
@@ -84,57 +86,35 @@ export default function AdvancementHistory({ advancementHistory }: AdvancementHi
                     )}
                     <span className="font-bold text-white">Level {level}</span>
                     <span className="text-xs text-gray-500">
-                      ({record.advancements.length} advancement{record.advancements.length > 1 ? 's' : ''})
+                      • {record.advancements.length} upgrades
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {record.advancements.slice(0, 2).map((adv, i) => (
+                    {record.advancements.slice(0, 3).map((adv, i) => (
                       <span
                         key={i}
-                        className="text-xs bg-dagger-gold/20 text-dagger-gold px-2 py-0.5 rounded"
+                        className="text-[10px] text-gray-400 bg-white/5 px-1.5 py-0.5 rounded border border-white/5"
                       >
                         {ADVANCEMENT_NAMES[adv] || adv}
                       </span>
                     ))}
-                    {record.advancements.length > 2 && (
-                      <span className="text-xs text-gray-400">
-                        +{record.advancements.length - 2} more
-                      </span>
-                    )}
                   </div>
                 </button>
 
                 {/* Expanded Details */}
                 {isExpanded && (
-                  <div className="border-t border-white/10 p-4 bg-black/20 space-y-3">
-                    {/* Advancements */}
-                    <div>
-                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                        Advancements Selected
-                      </h4>
-                      <div className="space-y-1">
-                        {record.advancements.map((adv, i) => (
-                          <div key={i} className="flex items-center gap-2 text-sm">
-                            <Check size={14} className="text-dagger-gold" />
-                            <span className="text-gray-300">{ADVANCEMENT_NAMES[adv] || adv}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
+                  <div className="border-t border-white/10 p-3 bg-black/20 space-y-2 text-sm">
+                    
                     {/* Trait Increments */}
                     {record.traitIncrements && record.traitIncrements.length > 0 && (
-                      <div>
-                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                          Traits Increased
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
+                      <div className="flex items-start gap-2">
+                        <div className="mt-0.5 text-dagger-gold"><Star size={14} /></div>
+                        <div className="text-gray-300">
+                          <span className="font-bold text-white">Traits: </span>
                           {record.traitIncrements.map((inc, i) => (
-                            <span
-                              key={i}
-                              className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded border border-green-500/30"
-                            >
-                              {inc.trait.charAt(0).toUpperCase() + inc.trait.slice(1)} +{inc.amount}
+                            <span key={i}>
+                              {i > 0 && ', '}
+                              <span className="capitalize">{inc.trait}</span> (+{inc.amount})
                             </span>
                           ))}
                         </div>
@@ -143,58 +123,73 @@ export default function AdvancementHistory({ advancementHistory }: AdvancementHi
 
                     {/* Experience Increments */}
                     {record.experienceIncrements && record.experienceIncrements.length > 0 && (
-                      <div>
-                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                          Experiences Increased
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {record.experienceIncrements.map((inc, i) => (
-                            <span
-                              key={i}
-                              className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded border border-blue-500/30"
-                            >
-                              Experience #{inc.experienceId} +{inc.amount}
-                            </span>
-                          ))}
+                      <div className="flex items-start gap-2">
+                        <div className="mt-0.5 text-blue-400"><Swords size={14} /></div>
+                        <div className="text-gray-300">
+                          <span className="font-bold text-white">Experiences: </span>
+                          {record.experienceIncrements.map((inc, i) => {
+                            const expIndex = parseInt(inc.experienceId);
+                            const expName = experiences[expIndex]?.name || `Experience #${expIndex + 1}`;
+                            return (
+                              <span key={i}>
+                                {i > 0 && ', '}
+                                {expName} (+{inc.amount})
+                              </span>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
 
                     {/* HP Added */}
                     {record.hpAdded && record.hpAdded > 0 && (
-                      <div>
-                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                          Hit Points Added
-                        </h4>
-                        <span className="text-sm bg-red-500/20 text-red-300 px-2 py-1 rounded border border-red-500/30">
-                          +{record.hpAdded} HP slots
+                      <div className="flex items-center gap-2 text-gray-300">
+                        <Heart size={14} className="text-red-400" />
+                        <span>
+                          <strong className="text-white">Hit Points:</strong> +{record.hpAdded} slots
                         </span>
                       </div>
                     )}
 
                     {/* Stress Added */}
                     {record.stressAdded && record.stressAdded > 0 && (
-                      <div>
-                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                          Stress Added
-                        </h4>
-                        <span className="text-sm bg-purple-500/20 text-purple-300 px-2 py-1 rounded border border-purple-500/30">
-                          +{record.stressAdded} Stress slots
+                      <div className="flex items-center gap-2 text-gray-300">
+                        <Zap size={14} className="text-purple-400" />
+                        <span>
+                          <strong className="text-white">Stress:</strong> +{record.stressAdded} slots
                         </span>
                       </div>
                     )}
 
                     {/* Domain Card Selected */}
                     {record.domainCardSelected && (
-                      <div>
-                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                          Domain Card Acquired
-                        </h4>
-                        <span className="text-sm bg-dagger-gold/20 text-dagger-gold px-2 py-1 rounded border border-dagger-gold/30">
-                          {record.domainCardSelected}
+                      <div className="flex items-center gap-2 text-gray-300">
+                        <Shield size={14} className="text-dagger-gold" />
+                        <span>
+                          <strong className="text-white">New Card:</strong> {record.domainCardSelected}
                         </span>
                       </div>
                     )}
+                    
+                    {/* Other Advancements (e.g., Evasion, Proficiency) */}
+                    {record.advancements.includes('increase_evasion') && (
+                      <div className="flex items-center gap-2 text-gray-300">
+                        <Eye size={14} className="text-cyan-400" />
+                        <span>
+                          <strong className="text-white">Evasion:</strong> +1
+                        </span>
+                      </div>
+                    )}
+                    
+                    {record.advancements.includes('increase_proficiency') && (
+                      <div className="flex items-center gap-2 text-gray-300">
+                        <Check size={14} className="text-dagger-gold" />
+                        <span>
+                          <strong className="text-white">Proficiency:</strong> +1 Damage Die
+                        </span>
+                      </div>
+                    )}
+
                   </div>
                 )}
               </div>
