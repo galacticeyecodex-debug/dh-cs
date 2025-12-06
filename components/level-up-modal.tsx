@@ -1,5 +1,8 @@
+'use client';
+
 import React, { useState } from 'react';
 import { X, Zap, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { calculateTierAchievements, calculateNewDamageThresholds, getTier } from '@/lib/level-up-helpers';
 import { validateNewLevel, validateAdvancementSelections } from '@/lib/level-up-validation';
 
@@ -142,35 +145,58 @@ export default function LevelUpModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-dagger-dark border border-dagger-gold/30 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="bg-dagger-gold/10 border-b border-dagger-gold/20 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Zap size={24} className="text-dagger-gold" />
-            <h2 className="text-2xl font-bold text-white">Level Up to {newLevel}</h2>
-          </div>
-          <button
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
+            className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
+          />
 
-        {/* Progress Indicator */}
-        <div className="bg-black/20 px-6 py-3 flex items-center justify-center gap-2">
-          {[1, 2, 3, 4].map((s) => (
-            <div key={s} className="flex items-center gap-2">
-              <div
-                className={`w-3 h-3 rounded-full transition-all ${
-                  s <= step ? 'bg-dagger-gold w-4' : 'bg-gray-600'
-                }`}
-              />
-              {s < 4 && <div className={`w-6 h-0.5 ${s < step ? 'bg-dagger-gold' : 'bg-gray-600'}`} />}
+          {/* Bottom Sheet */}
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col"
+          >
+            {/* Drag Handle */}
+            <div className="flex justify-center p-3" onClick={onClose}>
+              <div className="w-12 h-1.5 bg-white/20 rounded-full" />
             </div>
-          ))}
-        </div>
+
+            {/* Header */}
+            <div className="px-6 pb-4 border-b border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Zap size={24} className="text-dagger-gold" />
+                <h2 className="text-2xl font-bold text-white">Level Up to {newLevel}</h2>
+              </div>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Progress Indicator */}
+            <div className="px-6 py-3 flex items-center justify-center gap-2 border-b border-white/10">
+              {[1, 2, 3, 4].map((s) => (
+                <div key={s} className="flex items-center gap-2">
+                  <div
+                    className={`w-3 h-3 rounded-full transition-all ${
+                      s <= step ? 'bg-dagger-gold w-4' : 'bg-gray-600'
+                    }`}
+                  />
+                  {s < 4 && <div className={`w-6 h-0.5 ${s < step ? 'bg-dagger-gold' : 'bg-gray-600'}`} />}
+                </div>
+              ))}
+            </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-6">
@@ -325,37 +351,39 @@ export default function LevelUpModal({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="bg-black/20 border-t border-dagger-gold/20 px-6 py-4 flex items-center justify-between">
-          <button
-            onClick={handleBack}
-            disabled={step === 1}
-            className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:text-white hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold"
-          >
-            Back
-          </button>
-          <span className="text-sm text-gray-400">
-            Step {step} of 4
-          </span>
-          {step < 4 ? (
-            <button
-              onClick={handleNext}
-              disabled={!canProceed() || isLoading}
-              className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Next
-            </button>
-          ) : (
-            <button
-              onClick={handleComplete}
-              disabled={!canProceed() || isLoading}
-              className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-            >
-              {isLoading ? 'Leveling up...' : 'Complete Level Up'}
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
+            {/* Footer */}
+            <div className="border-t border-white/10 px-6 py-4 flex items-center justify-between">
+              <button
+                onClick={handleBack}
+                disabled={step === 1}
+                className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:text-white hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold"
+              >
+                Back
+              </button>
+              <span className="text-sm text-gray-400">
+                Step {step} of 4
+              </span>
+              {step < 4 ? (
+                <button
+                  onClick={handleNext}
+                  disabled={!canProceed() || isLoading}
+                  className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  onClick={handleComplete}
+                  disabled={!canProceed() || isLoading}
+                  className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {isLoading ? 'Leveling up...' : 'Complete Level Up'}
+                </button>
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

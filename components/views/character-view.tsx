@@ -6,16 +6,19 @@ import StatButton from '@/components/stat-button';
 import CommonVitalsDisplay from '@/components/common-vitals-display';
 import ExperienceSheet from '../experience-sheet';
 import LevelUpModal from '../level-up-modal';
+import ManageCharacterModal from '../manage-character-modal';
 import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/supabase/storage';
 import { toast } from 'sonner';
 
 export default function CharacterView() {
-  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter } = useCharacterStore();
+  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails } = useCharacterStore();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
   const [isLevelUpLoading, setIsLevelUpLoading] = useState(false);
+  const [isManageOpen, setIsManageOpen] = useState(false);
+  const [isManageLoading, setIsManageLoading] = useState(false);
   const [showVitals, setShowVitals] = useState(false);
   const [showTraits, setShowTraits] = useState(true);
   const [showExperiences, setShowExperiences] = useState(true);
@@ -144,6 +147,13 @@ export default function CharacterView() {
               >
                 <Zap size={12} />
                 Level Up
+              </button>
+              <button
+                onClick={() => setIsManageOpen(true)}
+                className="text-xs font-bold bg-gray-700 hover:bg-gray-600 text-gray-100 backdrop-blur-md px-3 py-0.5 rounded-full transition-all flex items-center gap-1 shadow-sm"
+              >
+                <Settings size={12} />
+                Manage
               </button>
             </div>
           </div>
@@ -430,6 +440,39 @@ export default function CharacterView() {
             toast.error('Failed to complete level up');
           } finally {
             setIsLevelUpLoading(false);
+          }
+        }}
+      />
+
+      <ManageCharacterModal
+        isOpen={isManageOpen}
+        onClose={() => setIsManageOpen(false)}
+        currentLevel={character?.level || 1}
+        currentAncestry={character?.ancestry}
+        currentCommunity={character?.community}
+        advancementHistory={character?.advancement_history_jsonb}
+        isLoading={isManageLoading}
+        onUpdate={async (updates) => {
+          setIsManageLoading(true);
+          try {
+            await updateCharacterDetails(updates);
+            const changes = [];
+            if (updates.level) {
+              if (updates.level > character!.level) {
+                changes.push(`leveled to ${updates.level}`);
+              } else {
+                changes.push(`de-leveled to ${updates.level}`);
+              }
+            }
+            if (updates.ancestry) changes.push(`ancestry: ${updates.ancestry}`);
+            if (updates.community) changes.push(`community: ${updates.community}`);
+            toast.success(`Character updated: ${changes.join(', ')}`);
+            setIsManageOpen(false);
+          } catch (err) {
+            console.error('Failed to update character:', err);
+            toast.error('Failed to update character');
+          } finally {
+            setIsManageLoading(false);
           }
         }}
       />
