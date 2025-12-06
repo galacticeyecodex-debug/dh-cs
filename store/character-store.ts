@@ -1306,23 +1306,35 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       const advancement_history = { ...state.character.advancement_history_jsonb || {} };
       const currentLevel = state.character.level;
       const newLevel = updates.level;
+      
+      // Clone modifiers to work on
+      let updatedModifiers = { ...character.modifiers || {} };
 
       // Reverse all advancement changes for levels being removed
       for (let level = newLevel + 1; level <= currentLevel; level++) {
         const levelRecord = advancement_history[String(level)] as AdvancementRecord | undefined;
 
-        if (levelRecord) {
-          // Reverse trait increments
-          if (levelRecord.traitIncrements) {
-            for (const increment of levelRecord.traitIncrements) {
-              const trait = increment.trait as keyof typeof character.stats;
-              if (character.stats[trait]) {
-                character.stats[trait] -= increment.amount;
-              }
-            }
-          }
+        // Reverse Tier Achievements (Proficiency +1 at Lvl 2, 5, 8)
+        // Note: Experience is handled separately via array modification below, but Proficiency is a flat value.
+        // Wait, Proficiency is NOT a modifier, it is a base stat in the current model (unfortunately).
+        // So we must manually decrement it if we cross a tier achievement level.
+        // Levels with tier achievements: 2, 5, 8.
+        if (level === 2 || level === 5 || level === 8) {
+           character.proficiency -= 1;
+        }
 
-          // Reverse experience increments
+        if (levelRecord) {
+          // Remove System Modifiers created for this level advancement
+          // This handles Traits, HP, Stress, Evasion which are all stored as modifiers now.
+          // We look for modifiers with name `Level ${level} Advancement`
+          
+          Object.keys(updatedModifiers).forEach(stat => {
+             updatedModifiers[stat] = updatedModifiers[stat].filter(mod => 
+                mod.name !== `Level ${level} Advancement`
+             );
+          });
+
+          // Reverse experience increments (still stored in array)
           if (levelRecord.experienceIncrements) {
             for (const increment of levelRecord.experienceIncrements) {
               const expIndex = parseInt(increment.experienceId);
@@ -1334,29 +1346,21 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
               }
             }
           }
-
-          // Reverse HP and Stress increases
-          if (levelRecord.hpAdded && levelRecord.hpAdded > 0) {
-            character.vitals.hit_points_max -= levelRecord.hpAdded;
-            character.vitals.hit_points_current = Math.min(
-              character.vitals.hit_points_current,
-              character.vitals.hit_points_max
-            );
+          
+          // Reverse automatic new experience from Tier Achievements (Level 2, 5, 8)
+          // The new experience is added to the END of the array.
+          // If we are de-leveling past 2, 5, or 8, we should remove the last experience?
+          // Risk: User might have reordered them. But usually last one.
+          // Actually `addExperienceAtLevelUp` pushes to end.
+          if (level === 2 || level === 5 || level === 8) {
+             // Remove the last experience
+             if (character.experiences.length > 0) {
+                character.experiences.pop();
+             }
           }
 
-          if (levelRecord.stressAdded && levelRecord.stressAdded > 0) {
-            character.vitals.stress_max -= levelRecord.stressAdded;
-            character.vitals.stress_current = Math.min(
-              character.vitals.stress_current,
-              character.vitals.stress_max
-            );
-          }
-
-          // Reverse advancements that added permanent bonuses
+          // Reverse Proficiency Advancement (if chosen manually)
           for (const advancement of levelRecord.advancements) {
-            if (advancement === 'increase_evasion') {
-              character.evasion -= 1;
-            }
             if (advancement === 'increase_proficiency') {
               character.proficiency -= 1;
             }
@@ -1394,6 +1398,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         marked_traits = {};
       }
 
+      updatePayload.modifiers = updatedModifiers;
       updatePayload.advancement_history_jsonb = advancement_history;
       updatePayload.marked_traits_jsonb = marked_traits;
       updatePayload.stats = character.stats;
