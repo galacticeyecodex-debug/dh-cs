@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS public.characters (
   -- Leveling tracking
   marked_traits_jsonb JSONB DEFAULT '{}'::jsonb, -- Traits marked in current tier
   advancement_history_jsonb JSONB DEFAULT '{}'::jsonb, -- Complete advancement records per level
+  subclass_progression JSONB DEFAULT '{}'::jsonb, -- Tracks obtained subclass features
 
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
