@@ -98,6 +98,15 @@ export interface Character {
   class_data?: LibraryItem; // Joined class data
 }
 
+export interface AdvancementRecord {
+  advancements: string[];
+  traitIncrements?: { trait: string; amount: number }[];
+  experienceIncrements?: { experienceId: string; amount: number }[];
+  hpAdded?: number;
+  stressAdded?: number;
+  domainCardSelected?: string;
+}
+
 export interface RollResult {
   hope: number;
   fear: number;
@@ -1057,7 +1066,16 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       updatedCharacter.evasion += 1;
     }
 
-    // Build database update payload
+    // Build database update payload with complete advancement record
+    const advancementRecord: AdvancementRecord = {
+      advancements: options.selectedAdvancements,
+      traitIncrements: options.traitIncrements,
+      experienceIncrements: options.experienceIncrements,
+      hpAdded: options.hpSlotsAdded,
+      stressAdded: options.stressSlotsAdded,
+      domainCardSelected: options.selectedDomainCardId,
+    };
+
     const updatePayload: Record<string, any> = {
       level: options.newLevel,
       stats: updatedCharacter.stats,
@@ -1068,7 +1086,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       experiences: updatedCharacter.experiences,
       advancement_history_jsonb: {
         ...updatedCharacter.advancement_history_jsonb || {},
-        [options.newLevel]: options.selectedAdvancements,
+        [options.newLevel]: advancementRecord,
       },
     };
 
@@ -1105,27 +1123,113 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     const characterId = state.character.id;
     const supabase = createClient();
 
-    // Handle de-leveling: remove advancement history for removed levels
+    // Handle de-leveling: rollback all advancement changes
     let updatePayload: Record<string, any> = { ...updates };
+    let character = { ...state.character };
 
     if (updates.level !== undefined && updates.level < state.character.level) {
       const advancement_history = { ...state.character.advancement_history_jsonb || {} };
       const currentLevel = state.character.level;
       const newLevel = updates.level;
 
-      // Remove advancement entries for levels being removed
+      // Reverse all advancement changes for levels being removed
       for (let level = newLevel + 1; level <= currentLevel; level++) {
+        const levelRecord = advancement_history[String(level)] as AdvancementRecord | undefined;
+
+        if (levelRecord) {
+          // Reverse trait increments
+          if (levelRecord.traitIncrements) {
+            for (const increment of levelRecord.traitIncrements) {
+              const trait = increment.trait as keyof typeof character.stats;
+              if (character.stats[trait]) {
+                character.stats[trait] -= increment.amount;
+              }
+            }
+          }
+
+          // Reverse experience increments
+          if (levelRecord.experienceIncrements) {
+            for (const increment of levelRecord.experienceIncrements) {
+              const expIndex = parseInt(increment.experienceId);
+              if (expIndex >= 0 && expIndex < character.experiences.length) {
+                character.experiences[expIndex] = {
+                  ...character.experiences[expIndex],
+                  value: character.experiences[expIndex].value - increment.amount,
+                };
+              }
+            }
+          }
+
+          // Reverse HP and Stress increases
+          if (levelRecord.hpAdded && levelRecord.hpAdded > 0) {
+            character.vitals.hit_points_max -= levelRecord.hpAdded;
+            character.vitals.hit_points_current = Math.min(
+              character.vitals.hit_points_current,
+              character.vitals.hit_points_max
+            );
+          }
+
+          if (levelRecord.stressAdded && levelRecord.stressAdded > 0) {
+            character.vitals.stress_max -= levelRecord.stressAdded;
+            character.vitals.stress_current = Math.min(
+              character.vitals.stress_current,
+              character.vitals.stress_max
+            );
+          }
+
+          // Reverse advancements that added permanent bonuses
+          for (const advancement of levelRecord.advancements) {
+            if (advancement === 'increase_evasion') {
+              character.evasion -= 1;
+            }
+            if (advancement === 'increase_proficiency') {
+              character.proficiency -= 1;
+            }
+          }
+
+          // Delete domain card if one was selected at this level
+          if (levelRecord.domainCardSelected) {
+            const cardToRemove = character.character_cards?.find(
+              card => card.card_id === levelRecord.domainCardSelected
+            );
+            if (cardToRemove) {
+              await supabase
+                .from('character_cards')
+                .delete()
+                .eq('id', cardToRemove.id);
+              character.character_cards = character.character_cards?.filter(
+                c => c.id !== cardToRemove.id
+              ) || [];
+            }
+          }
+        }
+
+        // Remove the level from history
         delete advancement_history[String(level)];
       }
+
+      // Recalculate damage thresholds
+      const { calculateNewDamageThresholds } = await import('@/lib/level-up-helpers');
+      character.damage_thresholds = {
+        minor: newLevel,
+        major: newLevel + 2,
+        severe: newLevel + 4,
+      };
 
       // Clear marked traits if de-leveling past a clearing tier (5, 8)
       let marked_traits = { ...state.character.marked_traits_jsonb || {} };
       if (newLevel < 5 && currentLevel >= 5) {
-        marked_traits = {}; // Clear if going back below tier 3
+        marked_traits = {};
       }
 
       updatePayload.advancement_history_jsonb = advancement_history;
       updatePayload.marked_traits_jsonb = marked_traits;
+      updatePayload.stats = character.stats;
+      updatePayload.vitals = character.vitals;
+      updatePayload.evasion = character.evasion;
+      updatePayload.proficiency = character.proficiency;
+      updatePayload.experiences = character.experiences;
+      updatePayload.damage_thresholds = character.damage_thresholds;
     }
 
     await withOptimisticUpdate(
