@@ -66,9 +66,21 @@ CREATE TABLE IF NOT EXISTS public.characters (
   gold JSONB DEFAULT '{"handfuls": 0, "bags": 0, "chests": 0}'::jsonb,
   
   image_url TEXT,
-  
+  background_image_url TEXT,
+
   modifiers JSONB DEFAULT '{}'::jsonb, -- Store user modifiers here
-  
+
+  -- Lore fields
+  appearance TEXT,
+  background TEXT,
+  connections TEXT,
+  pronouns TEXT,
+  gallery_images TEXT[],
+
+  -- Leveling tracking
+  marked_traits_jsonb JSONB DEFAULT '{}'::jsonb, -- Traits marked in current tier
+  advancement_history_jsonb JSONB DEFAULT '{}'::jsonb, -- Complete advancement records per level
+
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -312,3 +324,12 @@ BEGIN
   RETURN v_character_id;
 END;
 $$;
+
+-- INDEXES for Performance
+-- Index for efficient queries on advancement history
+CREATE INDEX IF NOT EXISTS idx_characters_advancement_history
+  ON public.characters USING GIN (advancement_history_jsonb);
+
+-- Index for efficient queries on marked traits
+CREATE INDEX IF NOT EXISTS idx_characters_marked_traits
+  ON public.characters USING GIN (marked_traits_jsonb);
