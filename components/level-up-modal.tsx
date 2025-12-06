@@ -45,6 +45,19 @@ const ADVANCEMENT_OPTIONS = [
   { id: 'multiclass', name: 'Multiclass', description: 'Gain access to a second class domain (available at level 5+)', cost: 2, minLevel: 5 },
 ];
 
+// Max times an advancement can be taken per Tier
+const TIER_LIMITS: Record<string, number> = {
+  increase_traits: 1,
+  add_hp: 1,
+  add_stress: 1,
+  increase_experience: 1,
+  increase_evasion: 1,
+  subclass_card: 1,
+  increase_proficiency: 1,
+  multiclass: 1,
+  domain_card: 3, // Allow taking domain cards multiple times in a tier
+};
+
 export default function LevelUpModal({
   isOpen,
   onClose,
@@ -95,18 +108,25 @@ export default function LevelUpModal({
   }, 0);
 
   // Check for Tier-based restrictions (Subclass vs Multiclass)
-  // Iterate through previous levels in the same tier to see if restricted options were taken
+  // And calculate usage counts for this tier
   let takenSubclassInTier = false;
   let takenMulticlassInTier = false;
+  const selectionsInTier: Record<string, number> = {};
 
   if (character.advancement_history_jsonb) {
-    for (let l = 1; l < newLevel; l++) {
-      // Only check levels within the *new* tier (or current tier if leveling within it)
-      if (getTier(l) === getTier(newLevel)) {
-        const record = character.advancement_history_jsonb[l.toString()];
-        if (record?.advancements) {
-          if (record.advancements.includes('subclass_card')) takenSubclassInTier = true;
-          if (record.advancements.includes('multiclass')) takenMulticlassInTier = true;
+    for (const [lvlStr, record] of Object.entries(character.advancement_history_jsonb)) {
+      const lvl = parseInt(lvlStr);
+      // Check if this past level is in the SAME tier as the NEW level
+      if (getTier(lvl) === getTier(newLevel)) {
+        const rec = record as any;
+        if (rec?.advancements) {
+          if (rec.advancements.includes('subclass_card')) takenSubclassInTier = true;
+          if (rec.advancements.includes('multiclass')) takenMulticlassInTier = true;
+          
+          // Count selections
+          rec.advancements.forEach((adv: string) => {
+             selectionsInTier[adv] = (selectionsInTier[adv] || 0) + 1;
+          });
         }
       }
     }
@@ -413,7 +433,12 @@ export default function LevelUpModal({
                   // Multiclass can only be taken once
                   const isAlreadyTaken = advancement.id === 'multiclass' && character.multiclass_id;
 
-                  const canSelect = !isSelected && totalSlots + advancement.cost <= 2 && meetsLevelRequirement && !isAlreadyTaken && !isBlockedByTier;
+                  // Check limits per tier
+                  const limit = TIER_LIMITS[advancement.id] || 1;
+                  const currentCount = selectionsInTier[advancement.id] || 0;
+                  const isMaxed = currentCount >= limit;
+
+                  const canSelect = !isSelected && totalSlots + advancement.cost <= 2 && meetsLevelRequirement && !isAlreadyTaken && !isBlockedByTier && !isMaxed;
 
                   return (
                     <button
@@ -433,7 +458,8 @@ export default function LevelUpModal({
                           <p className="font-bold text-white">
                             {advancement.name}
                             {isAlreadyTaken && <span className="text-xs text-gray-500 ml-2">(Already Taken)</span>}
-                            {isBlockedByTier && !isAlreadyTaken && <span className="text-xs text-gray-500 ml-2">(Locked this Tier)</span>}
+                            {isMaxed && !isAlreadyTaken && <span className="text-xs text-gray-500 ml-2">(Max for Tier)</span>}
+                            {isBlockedByTier && !isAlreadyTaken && !isMaxed && <span className="text-xs text-gray-500 ml-2">(Locked this Tier)</span>}
                             {!meetsLevelRequirement && <span className="text-xs text-gray-500 ml-2">(Level {advancement.minLevel}+)</span>}
                           </p>
                           <p className="text-sm text-gray-400">{advancement.description}</p>
