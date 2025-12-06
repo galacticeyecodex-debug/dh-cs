@@ -428,6 +428,7 @@ export default function CharacterView() {
         onClose={() => setIsLevelUpOpen(false)}
         currentLevel={character?.level || 1}
         currentDamageThresholds={character?.damage_thresholds || { minor: 1, major: 2, severe: 3 }}
+        characterDomains={character?.domains || []}
         isLoading={isLevelUpLoading}
         onComplete={async (options) => {
           setIsLevelUpLoading(true);
