@@ -12,6 +12,7 @@ interface LevelUpModalProps {
   currentLevel: number;
   currentDamageThresholds?: { minor: number; major: number; severe: number };
   characterDomains?: string[];
+  domainCards?: any[]; // Library cards (abilities, spells, grimoires)
   onComplete?: (options: {
     newLevel: number;
     selectedAdvancements: string[];
@@ -84,6 +85,7 @@ export default function LevelUpModal({
   currentLevel,
   currentDamageThresholds = { minor: 1, major: 2, severe: 3 },
   characterDomains = [],
+  domainCards = [],
   onComplete,
   isLoading = false,
 }: LevelUpModalProps) {
@@ -98,6 +100,11 @@ export default function LevelUpModal({
   const tierAchievements = calculateTierAchievements(newLevel);
   const newThresholds = calculateNewDamageThresholds(currentDamageThresholds);
   const currentTier = getTier(newLevel);
+
+  // Filter available domain cards by character's domains
+  const availableDomainCards = domainCards.filter((card: any) =>
+    characterDomains.includes(card.domain)
+  );
 
   // Calculate total advancement slots used
   const totalSlots = selectedAdvancements.reduce((sum, id) => {
@@ -360,10 +367,12 @@ export default function LevelUpModal({
                 <p className="text-gray-500 text-sm p-4 bg-black/20 rounded-lg">No domains available. Ensure your character has at least one domain.</p>
               ) : (
                 <div className="grid grid-cols-1 gap-2">
-                  {DOMAIN_CARDS.filter(
-                    card => card.level <= newLevel && characterDomains.includes(card.domain)
+                  {availableDomainCards.filter(
+                    card => (card.data?.level || card.level) <= newLevel
                   ).map((card) => {
                     const isSelected = selectedDomainCard === card.id;
+                    const cardLevel = card.data?.level || card.level || 1;
+                    const cardDescription = card.data?.description || card.description || '';
 
                     return (
                       <button
@@ -379,10 +388,10 @@ export default function LevelUpModal({
                           <div className="flex-1">
                             <p className="font-bold text-dagger-gold">{card.name}</p>
                             <p className="text-xs text-gray-400 mb-1">
-                              {card.type} • Level {card.level}
+                              {card.type} • Level {cardLevel}
                             </p>
                             <p className="text-sm text-gray-300 line-clamp-2">
-                              {card.description}
+                              {cardDescription}
                             </p>
                           </div>
                           {isSelected && (

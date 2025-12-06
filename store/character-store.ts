@@ -1112,6 +1112,47 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       'Failed to apply level up'
     );
 
+    // After successful level up, add the selected domain card to vault
+    if (options.selectedDomainCardId) {
+      try {
+        // First check if the card exists in the library
+        const { data: libraryCard } = await supabase
+          .from('library')
+          .select('id')
+          .eq('id', options.selectedDomainCardId)
+          .single();
+
+        // Only insert if card exists in library
+        if (libraryCard) {
+          const { data: newCard, error: cardError } = await supabase
+            .from('character_cards')
+            .insert([{
+              character_id: characterId,
+              card_id: options.selectedDomainCardId,
+              location: 'vault',
+              state: { tokens: 0, exhausted: false },
+              sort_order: 0,
+            }])
+            .select()
+            .single();
+
+          if (!cardError && newCard) {
+            // Update local state to include the new card
+            set((s) => ({
+              character: s.character ? {
+                ...s.character,
+                character_cards: [...(s.character.character_cards || []), newCard as CharacterCard],
+              } : null,
+            }));
+          }
+        } else {
+          console.warn(`Domain card '${options.selectedDomainCardId}' not found in library. Card will not be added to vault.`);
+        }
+      } catch (err) {
+        console.error('Failed to add domain card to vault:', err);
+      }
+    }
+
     // After successful level up, recalculate derived stats
     await get().recalculateDerivedStats();
   },
