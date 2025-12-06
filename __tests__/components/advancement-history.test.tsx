@@ -32,6 +32,7 @@ describe('AdvancementHistory', () => {
   describe('basic rendering', () => {
     it('should render advancement history', () => {
       render(<AdvancementHistory advancementHistory={mockAdvancementHistory} />);
+      fireEvent.click(screen.getByText('Show'));
       expect(screen.getByText('Advancement History')).toBeInTheDocument();
       expect(screen.getByText('Level 2')).toBeInTheDocument();
       expect(screen.getByText('Level 3')).toBeInTheDocument();
@@ -40,12 +41,17 @@ describe('AdvancementHistory', () => {
 
     it('should show empty state when no history', () => {
       render(<AdvancementHistory advancementHistory={{}} />);
+      // Empty state is shown regardless of collapse state? 
+      // Component: if (!history) return ... (early return). 
+      // So this test works without clicking Show.
       expect(screen.getByText(/no advancement history yet/i)).toBeInTheDocument();
     });
 
     it('should display advancement counts', () => {
       render(<AdvancementHistory advancementHistory={mockAdvancementHistory} />);
-      const advancementCounts = screen.getAllByText(/\(\d+ advancements?\)/);
+      fireEvent.click(screen.getByText('Show'));
+      // Component renders "• X upgrades"
+      const advancementCounts = screen.getAllByText(/• \d+ upgrades/);
       expect(advancementCounts.length).toBeGreaterThan(0);
     });
   });
@@ -54,81 +60,90 @@ describe('AdvancementHistory', () => {
     it('should be collapsed by default', () => {
       render(<AdvancementHistory advancementHistory={mockAdvancementHistory} />);
       // Details should not be visible
-      expect(screen.queryByText('Advancements Selected')).not.toBeInTheDocument();
+      expect(screen.queryByText('Level 2')).not.toBeInTheDocument();
     });
 
     it('should expand when clicked', () => {
       render(<AdvancementHistory advancementHistory={mockAdvancementHistory} />);
-      const level2Button = screen.getByText('Level 2').closest('button');
-      fireEvent.click(level2Button!);
-      expect(screen.getByText('Advancements Selected')).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Show')); // Show list
+      const level2Button = screen.getByText(/Level 2/).closest('button');
+      fireEvent.click(level2Button!); // Expand level
+      expect(screen.getByText(/Traits:/)).toBeInTheDocument();
     });
 
     it('should collapse when clicked again', () => {
       render(<AdvancementHistory advancementHistory={mockAdvancementHistory} />);
-      const level2Button = screen.getByText('Level 2').closest('button');
+      fireEvent.click(screen.getByText('Show'));
+      const level2Button = screen.getByText(/Level 2/).closest('button');
 
       // Expand
       fireEvent.click(level2Button!);
-      expect(screen.getByText('Advancements Selected')).toBeInTheDocument();
+      expect(screen.getByText(/Traits:/)).toBeInTheDocument();
 
       // Collapse
       fireEvent.click(level2Button!);
-      expect(screen.queryByText('Advancements Selected')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Traits:/)).not.toBeInTheDocument();
     });
 
     it('should support multiple expanded levels', () => {
       render(<AdvancementHistory advancementHistory={mockAdvancementHistory} />);
+      fireEvent.click(screen.getByText('Show'));
 
       // Expand level 2
-      fireEvent.click(screen.getByText('Level 2').closest('button')!);
+      fireEvent.click(screen.getByText(/Level 2/).closest('button')!);
       // Expand level 3
-      fireEvent.click(screen.getByText('Level 3').closest('button')!);
+      fireEvent.click(screen.getByText(/Level 3/).closest('button')!);
 
       // Both should be visible
-      const advancementHeaders = screen.getAllByText('Advancements Selected');
-      expect(advancementHeaders).toHaveLength(2);
+      // Level 2 has Traits
+      expect(screen.getAllByText(/Traits:/).length).toBeGreaterThan(0);
+      // Level 3 has HP/Exp
+      expect(screen.getByText(/Hit Points:/)).toBeInTheDocument();
     });
   });
 
   describe('advancement details display', () => {
     it('should display advancement names', () => {
       render(<AdvancementHistory advancementHistory={mockAdvancementHistory} />);
-      fireEvent.click(screen.getByText('Level 2').closest('button')!);
-
-      expect(screen.getAllByText('Increase Traits').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Increase Evasion').length).toBeGreaterThan(0);
+      fireEvent.click(screen.getByText('Show'));
+      // Badges are visible in header
+      expect(screen.getAllByText('Traits').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Evasion').length).toBeGreaterThan(0);
     });
 
     it('should display trait increments', () => {
       render(<AdvancementHistory advancementHistory={mockAdvancementHistory} />);
-      fireEvent.click(screen.getByText('Level 2').closest('button')!);
+      fireEvent.click(screen.getByText('Show'));
+      fireEvent.click(screen.getByText(/Level 2/).closest('button')!);
 
-      expect(screen.getByText('Traits Increased')).toBeInTheDocument();
-      expect(screen.getByText(/Agility \+1/i)).toBeInTheDocument();
-      expect(screen.getByText(/Presence \+1/i)).toBeInTheDocument();
+      expect(screen.getByText(/Traits:/)).toBeInTheDocument();
+      expect(screen.getByText(/Agility/i)).toBeInTheDocument();
+      expect(screen.getByText(/Presence/i)).toBeInTheDocument();
     });
 
     it('should display HP added', () => {
       render(<AdvancementHistory advancementHistory={mockAdvancementHistory} />);
-      fireEvent.click(screen.getByText('Level 3').closest('button')!);
+      fireEvent.click(screen.getByText('Show'));
+      fireEvent.click(screen.getByText(/Level 3/).closest('button')!);
 
-      expect(screen.getByText('Hit Points Added')).toBeInTheDocument();
-      expect(screen.getByText('+1 HP slots')).toBeInTheDocument();
+      expect(screen.getByText(/Hit Points:/)).toBeInTheDocument();
+      expect(screen.getByText(/\+1 slots/)).toBeInTheDocument();
     });
 
     it('should display experience increments', () => {
       render(<AdvancementHistory advancementHistory={mockAdvancementHistory} />);
-      fireEvent.click(screen.getByText('Level 3').closest('button')!);
+      fireEvent.click(screen.getByText('Show'));
+      fireEvent.click(screen.getByText(/Level 3/).closest('button')!);
 
-      expect(screen.getByText('Experiences Increased')).toBeInTheDocument();
+      expect(screen.getByText(/Experiences:/)).toBeInTheDocument();
     });
 
     it('should display domain card selected', () => {
       render(<AdvancementHistory advancementHistory={mockAdvancementHistory} />);
-      fireEvent.click(screen.getByText('Level 2').closest('button')!);
+      fireEvent.click(screen.getByText('Show'));
+      fireEvent.click(screen.getByText(/Level 2/).closest('button')!);
 
-      expect(screen.getByText('Domain Card Acquired')).toBeInTheDocument();
+      expect(screen.getByText(/New Card:/)).toBeInTheDocument();
       expect(screen.getByText('card-shield-bash')).toBeInTheDocument();
     });
   });
@@ -147,10 +162,11 @@ describe('AdvancementHistory', () => {
         },
       };
       render(<AdvancementHistory advancementHistory={minimalHistory} />);
-      fireEvent.click(screen.getByText('Level 2').closest('button')!);
+      fireEvent.click(screen.getByText('Show'));
+      fireEvent.click(screen.getByText(/Level 2/).closest('button')!);
 
-      expect(screen.getAllByText('Increase Evasion').length).toBeGreaterThan(0);
-      expect(screen.queryByText('Traits Increased')).not.toBeInTheDocument();
+      expect(screen.getAllByText('Evasion').length).toBeGreaterThan(0);
+      expect(screen.queryByText(/Traits:/)).not.toBeInTheDocument();
     });
 
     it('should sort levels numerically', () => {
@@ -160,6 +176,7 @@ describe('AdvancementHistory', () => {
         '5': { advancements: ['increase_evasion'], domainCardSelected: 'card-test' },
       };
       render(<AdvancementHistory advancementHistory={unsortedHistory} />);
+      fireEvent.click(screen.getByText('Show'));
 
       const levels = screen.getAllByText(/^Level \d+$/);
       expect(levels[0]).toHaveTextContent('Level 2');

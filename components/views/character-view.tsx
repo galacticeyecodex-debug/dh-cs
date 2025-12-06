@@ -704,12 +704,7 @@ export default function CharacterView() {
       <LevelUpModal
         isOpen={isLevelUpOpen}
         onClose={() => setIsLevelUpOpen(false)}
-        currentLevel={character?.level || 1}
-        currentDamageThresholds={character?.damage_thresholds || { minor: 1, major: 2, severe: 3 }}
-        characterDomains={character?.domains || []}
-        characterClassId={character?.class_id}
-        characterCards={character?.character_cards || []}
-        multiclassId={character?.multiclass_id}
+        character={character}
         domainCards={domainCards}
         isLoading={isLevelUpLoading}
         onComplete={async (options) => {

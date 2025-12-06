@@ -438,7 +438,14 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     }
 
     // === EVASION CALCULATION ===
-    const newEvasion = calculateBaseEvasion(tempChar);
+    let newEvasion = calculateBaseEvasion(tempChar);
+
+    // Apply Manual Modifiers (from Ledger or Level Up)
+    if (character.modifiers?.['evasion']) {
+      character.modifiers['evasion'].forEach(mod => {
+        newEvasion += mod.value;
+      });
+    }
 
     // Apply updates
     const currentVitals = character.vitals;
@@ -1041,11 +1048,20 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
 
     // Apply trait increments (from "Increase Traits" advancement)
     if (options.traitIncrements && options.traitIncrements.length > 0) {
+      const currentModifiers = { ...(updatedCharacter.modifiers || {}) };
+      
       for (const increment of options.traitIncrements) {
-        if (updatedCharacter.stats[increment.trait as keyof typeof updatedCharacter.stats]) {
-          updatedCharacter.stats[increment.trait as keyof typeof updatedCharacter.stats] += increment.amount;
-        }
+        const trait = increment.trait;
+        if (!currentModifiers[trait]) currentModifiers[trait] = [];
+        
+        currentModifiers[trait].push({
+            id: crypto.randomUUID(),
+            name: `Level ${options.newLevel} Advancement`,
+            value: increment.amount,
+            source: 'system'
+        });
       }
+      updatedCharacter.modifiers = currentModifiers;
     }
 
     // Apply experience increments (from "Increase Experience" advancement)
@@ -1063,17 +1079,43 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
 
     // Apply vital slot additions
     if (options.hpSlotsAdded && options.hpSlotsAdded > 0) {
-      updatedCharacter.vitals.hit_points_max += options.hpSlotsAdded;
-      updatedCharacter.vitals.hit_points_current += options.hpSlotsAdded;
+      const currentModifiers = { ...(updatedCharacter.modifiers || {}) };
+      if (!currentModifiers['hit_points']) currentModifiers['hit_points'] = [];
+      
+      currentModifiers['hit_points'].push({
+           id: crypto.randomUUID(),
+           name: `Level ${options.newLevel} Advancement`,
+           value: options.hpSlotsAdded,
+           source: 'system'
+      });
+      updatedCharacter.modifiers = currentModifiers;
     }
 
     if (options.stressSlotsAdded && options.stressSlotsAdded > 0) {
-      updatedCharacter.vitals.stress_max += options.stressSlotsAdded;
+      const currentModifiers = { ...(updatedCharacter.modifiers || {}) };
+      if (!currentModifiers['stress']) currentModifiers['stress'] = [];
+      
+      currentModifiers['stress'].push({
+           id: crypto.randomUUID(),
+           name: `Level ${options.newLevel} Advancement`,
+           value: options.stressSlotsAdded,
+           source: 'system'
+      });
+      updatedCharacter.modifiers = currentModifiers;
     }
 
     // Apply evasion increase if advancement selected
     if (options.selectedAdvancements.includes('increase_evasion')) {
-      updatedCharacter.evasion += 1;
+      const currentModifiers = { ...(updatedCharacter.modifiers || {}) };
+       if (!currentModifiers['evasion']) currentModifiers['evasion'] = [];
+       
+       currentModifiers['evasion'].push({
+            id: crypto.randomUUID(),
+            name: `Level ${options.newLevel} Advancement`,
+            value: 1,
+            source: 'system'
+       });
+       updatedCharacter.modifiers = currentModifiers;
     }
 
     // Apply multiclass if selected
@@ -1127,6 +1169,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       evasion: updatedCharacter.evasion,
       experiences: updatedCharacter.experiences,
       subclass_progression: updatedCharacter.subclass_progression,
+      modifiers: updatedCharacter.modifiers,
       advancement_history_jsonb: {
         ...updatedCharacter.advancement_history_jsonb || {},
         [options.newLevel]: advancementRecord,
@@ -1139,10 +1182,20 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       updatePayload.domains = updatedCharacter.domains;
     }
 
-    // Clear marked traits if applicable
+    // Handle Marked Traits (Clear if new tier, then mark new ones)
+    let newMarkedTraits = { ...(updatedCharacter.marked_traits_jsonb || {}) };
+
     if (tierAchievements.shouldClearMarkedTraits) {
-      updatePayload.marked_traits_jsonb = {};
+      newMarkedTraits = {};
     }
+
+    if (options.traitIncrements) {
+      options.traitIncrements.forEach(inc => {
+        newMarkedTraits[inc.trait] = true;
+      });
+    }
+    
+    updatePayload.marked_traits_jsonb = newMarkedTraits;
 
     // Optimistic update
     await withOptimisticUpdate(
