@@ -265,42 +265,6 @@ export default function CharacterView() {
               {showVitals && <CommonVitalsDisplay character={character} />}
             </div>
 
-            {/* Heritage Section */}
-            {(ancestryCard || communityCard) && (
-              <div className="space-y-2 mt-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Heritage</h3>
-                  <button
-                    onClick={() => setShowHeritage(!showHeritage)}
-                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                  >
-                    {showHeritage ? <EyeOff size={14} /> : <Eye size={14} />}
-                    {showHeritage ? 'Hide' : 'Show'}
-                  </button>
-                </div>
-
-                {showHeritage && (
-                  <div className="space-y-3">
-                    {/* Ancestry */}
-                    {ancestryCard && (
-                      <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-                        <h4 className="font-serif font-bold text-white mb-1">{ancestryCard.name}</h4>
-                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{ancestryCard.description}</p>
-                      </div>
-                    )}
-
-                    {/* Community */}
-                    {communityCard && (
-                      <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-                        <h4 className="font-serif font-bold text-white mb-1">{communityCard.name}</h4>
-                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{communityCard.description}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
                         {/* Stats Grid */}
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
@@ -375,6 +339,42 @@ export default function CharacterView() {
                 </div>
               )}
             </div>
+
+            {/* Heritage Section */}
+            {(ancestryCard || communityCard) && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Heritage</h3>
+                  <button
+                    onClick={() => setShowHeritage(!showHeritage)}
+                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                  >
+                    {showHeritage ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showHeritage ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+
+                {showHeritage && (
+                  <div className="space-y-3">
+                    {/* Ancestry */}
+                    {ancestryCard && (
+                      <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                        <h4 className="font-serif font-bold text-white mb-1">{ancestryCard.name}</h4>
+                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{ancestryCard.description}</p>
+                      </div>
+                    )}
+
+                    {/* Community */}
+                    {communityCard && (
+                      <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                        <h4 className="font-serif font-bold text-white mb-1">{communityCard.name}</h4>
+                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{communityCard.description}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
