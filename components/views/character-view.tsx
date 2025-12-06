@@ -525,7 +525,10 @@ export default function CharacterView() {
             {/* Advancement History Section */}
             {character.advancement_history_jsonb && Object.keys(character.advancement_history_jsonb).length > 0 && (
               <div className="space-y-2">
-                <AdvancementHistory advancementHistory={character.advancement_history_jsonb} />
+                <AdvancementHistory 
+                  advancementHistory={character.advancement_history_jsonb} 
+                  experiences={character.experiences}
+                />
               </div>
             )}
           </div>
