@@ -32,6 +32,7 @@ export default function CombatView() {
   const allProfMods = [...systemProfMods, ...userProfMods];
 
   const totalProficiency = Math.max(1, baseProficiency + allProfMods.reduce((acc, mod) => acc + mod.value, 0));
+  const isProficiencyModified = totalProficiency !== baseProficiency;
 
   return (
     <div className="space-y-6 pb-24">
@@ -69,9 +70,13 @@ export default function CombatView() {
                 <>
                   <div className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 border border-white/5">
                     <span className="text-sm font-medium text-gray-300">Proficiency</span>
-                    <button 
+                    <button
                       onClick={() => setShowProficiencyModifiers(true)}
-                      className="flex items-center gap-1 text-xs bg-dagger-gold/10 border border-dagger-gold/20 text-dagger-gold px-2 py-1 rounded-full font-bold hover:bg-dagger-gold/20 transition-colors"
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-bold transition-colors ${
+                        isProficiencyModified
+                          ? 'bg-dagger-gold/10 border border-dagger-gold/20 text-dagger-gold hover:bg-dagger-gold/20'
+                          : 'bg-white/10 border border-white/10 text-white hover:bg-white/20'
+                      }`}
                     >
                       <Crosshair size={12} />
                       {totalProficiency}
