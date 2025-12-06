@@ -1197,6 +1197,11 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     
     updatePayload.marked_traits_jsonb = newMarkedTraits;
 
+    // CRITICAL FIX: Update the local object with the new history and marked traits 
+    // so the optimistic update (set) has the complete state.
+    updatedCharacter.advancement_history_jsonb = updatePayload.advancement_history_jsonb;
+    updatedCharacter.marked_traits_jsonb = updatePayload.marked_traits_jsonb;
+
     // Optimistic update
     await withOptimisticUpdate(
       () => {
