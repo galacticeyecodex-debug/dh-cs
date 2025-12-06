@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, AlertCircle, Settings } from 'lucide-react';
+import { X, AlertCircle, Settings, Plus, Minus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ManageCharacterModalProps {
@@ -253,21 +253,24 @@ export default function ManageCharacterModal({
             <label className="block text-sm font-bold text-gray-300 mb-2">
               Level <span className="text-gray-500">(reduce only)</span>
             </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min={1}
-                max={currentLevel}
-                value={level}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  if (!isNaN(val)) setLevel(val);
-                }}
-                className="flex-1 px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
-              />
-              <span className="text-gray-400 text-sm">
-                {isDeLeveling ? '↓' : '='}
-              </span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => level > 1 && setLevel(level - 1)}
+                disabled={level <= 1}
+                className="px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-gray-300 hover:text-white hover:border-dagger-gold/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <Minus size={20} />
+              </button>
+              <div className="flex-1 text-center">
+                <span className="text-2xl font-bold text-dagger-gold">{level}</span>
+              </div>
+              <button
+                onClick={() => level < currentLevel && setLevel(level + 1)}
+                disabled={level >= currentLevel}
+                className="px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-gray-300 hover:text-white hover:border-dagger-gold/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <Plus size={20} />
+              </button>
             </div>
             {isDeLeveling && (
               <p className="text-xs text-yellow-200 mt-2">
