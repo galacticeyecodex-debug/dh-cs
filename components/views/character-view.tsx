@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import Image from 'next/image';
 import { getSystemModifiers } from '@/lib/utils';
@@ -11,6 +11,7 @@ import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/supabase/storage';
 import { toast } from 'sonner';
+import createClient from '@/lib/supabase/client';
 
 export default function CharacterView() {
   const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails } = useCharacterStore();
@@ -24,7 +25,33 @@ export default function CharacterView() {
   const [showExperiences, setShowExperiences] = useState(true);
   const [activeTab, setActiveTab] = useState<'stats' | 'gallery' | 'lore'>('stats');
   const [isUploading, setIsUploading] = useState(false);
+  const [domainCards, setDomainCards] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch domain cards from library
+  useEffect(() => {
+    const fetchDomainCards = async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('library')
+        .select('*')
+        .in('type', ['class', 'subclass', 'card']); // Fetch domain card types
+
+      if (!error && data) {
+        // Parse the JSONB data field to get card properties
+        const cards = data.map((lib: any) => ({
+          id: lib.id,
+          name: lib.name,
+          domain: lib.domain,
+          type: lib.data?.type || '',
+          data: lib.data || {},
+        }));
+        setDomainCards(cards);
+      }
+    };
+
+    fetchDomainCards();
+  }, []);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !character || !user) return;
@@ -429,6 +456,7 @@ export default function CharacterView() {
         currentLevel={character?.level || 1}
         currentDamageThresholds={character?.damage_thresholds || { minor: 1, major: 2, severe: 3 }}
         characterDomains={character?.domains || []}
+        domainCards={domainCards}
         isLoading={isLevelUpLoading}
         onComplete={async (options) => {
           setIsLevelUpLoading(true);
