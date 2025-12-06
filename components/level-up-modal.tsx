@@ -32,53 +32,6 @@ const ADVANCEMENT_OPTIONS = [
   { id: 'increase_proficiency', name: 'Increase Proficiency', description: 'Gain +1 to Proficiency and +1 damage die', cost: 2 },
 ];
 
-const DOMAIN_CARDS = [
-  // Arcana Domain Cards
-  { id: 'arcana_1', name: 'Arcane Bolt', level: 1, domain: 'Arcana', type: 'Spell', description: 'Unleash raw magical energy as a projectile, dealing arcane damage to a target.' },
-  { id: 'arcana_2', name: 'Mana Shield', level: 2, domain: 'Arcana', type: 'Ability', description: 'Create a protective barrier of magical energy that absorbs damage and regenerates slowly.' },
-  { id: 'arcana_3', name: 'Spell Weaving', level: 3, domain: 'Arcana', type: 'Ability', description: 'Combine multiple spells into a single powerful effect, allowing creative magical combinations.' },
-
-  // Blade Domain Cards
-  { id: 'blade_1', name: 'Riposte', level: 1, domain: 'Blade', type: 'Ability', description: 'Quickly counterattack after successfully defending, turning defense into offense.' },
-  { id: 'blade_2', name: 'Cleave', level: 2, domain: 'Blade', type: 'Ability', description: 'Strike with overwhelming force, damaging multiple enemies in a wide arc.' },
-  { id: 'blade_3', name: 'Blade Mastery', level: 3, domain: 'Blade', type: 'Ability', description: 'Perfect your combat technique, increasing accuracy and critical strike chance with all weapons.' },
-
-  // Bone Domain Cards
-  { id: 'bone_1', name: 'Body Control', level: 1, domain: 'Bone', type: 'Ability', description: 'Master your physical form, gaining enhanced reflexes and precise body control in combat.' },
-  { id: 'bone_2', name: 'Tactical Strike', level: 2, domain: 'Bone', type: 'Ability', description: 'Analyze enemy weaknesses and exploit them with surgical precision for massive damage.' },
-  { id: 'bone_3', name: 'Perfect Form', level: 3, domain: 'Bone', type: 'Ability', description: 'Achieve ideal physical condition, gaining immunity to certain status effects and enhanced durability.' },
-
-  // Codex Domain Cards
-  { id: 'codex_1', name: 'Spellbook Study', level: 1, domain: 'Codex', type: 'Grimoire', description: 'Learn fundamental spells from ancient tomes, gaining access to basic magical abilities.' },
-  { id: 'codex_2', name: 'Arcane Knowledge', level: 2, domain: 'Codex', type: 'Grimoire', description: 'Decipher complex magical theory, unlocking powerful spells and improving spell effectiveness.' },
-  { id: 'codex_3', name: 'Magical Mastery', level: 3, domain: 'Codex', type: 'Grimoire', description: 'Achieve profound understanding of magic itself, casting legendary spells with reduced cost.' },
-
-  // Grace Domain Cards
-  { id: 'grace_1', name: 'Charm', level: 1, domain: 'Grace', type: 'Ability', description: 'Use your charisma to influence others, making them more receptive to your suggestions.' },
-  { id: 'grace_2', name: 'Persuasion', level: 2, domain: 'Grace', type: 'Ability', description: 'Master the art of negotiation, bending wills and turning enemies into allies.' },
-  { id: 'grace_3', name: 'Captivating Presence', level: 3, domain: 'Grace', type: 'Ability', description: 'Command attention with your mere presence, inspiring allies and demoralizing enemies simultaneously.' },
-
-  // Midnight Domain Cards
-  { id: 'midnight_1', name: 'Shadow Dance', level: 1, domain: 'Midnight', type: 'Ability', description: 'Merge with shadows to move unseen, gaining invisibility and evasion bonuses.' },
-  { id: 'midnight_2', name: 'Cloak of Night', level: 2, domain: 'Midnight', type: 'Ability', description: 'Weave darkness around yourself, becoming immune to detection and gaining concealment.' },
-  { id: 'midnight_3', name: 'Master of Shadows', level: 3, domain: 'Midnight', type: 'Ability', description: 'Command shadows as your allies, summoning them to attack, defend, or manipulate the battlefield.' },
-
-  // Sage Domain Cards
-  { id: 'sage_1', name: 'Nature\'s Grasp', level: 1, domain: 'Sage', type: 'Spell', description: 'Call upon nature to entangle enemies with vines and roots, immobilizing them temporarily.' },
-  { id: 'sage_2', name: 'Wild Ally', level: 2, domain: 'Sage', type: 'Ability', description: 'Bond with a creature of the wilderness, gaining a loyal companion that fights alongside you.' },
-  { id: 'sage_3', name: 'Primal Power', level: 3, domain: 'Sage', type: 'Ability', description: 'Unlock primal instincts, transforming into a mighty beast form with enhanced strength and abilities.' },
-
-  // Splendor Domain Cards
-  { id: 'splendor_1', name: 'Healing Touch', level: 1, domain: 'Splendor', type: 'Spell', description: 'Channel divine energy to mend wounds, restoring hit points to yourself or an ally.' },
-  { id: 'splendor_2', name: 'Life Restoration', level: 2, domain: 'Splendor', type: 'Spell', description: 'Perform powerful healing magic that not only restores health but also cures diseases and curses.' },
-  { id: 'splendor_3', name: 'Divine Intervention', level: 3, domain: 'Splendor', type: 'Spell', description: 'Call upon divine power to perform a miracle, resurrecting fallen allies or preventing certain death.' },
-
-  // Valor Domain Cards
-  { id: 'valor_1', name: 'Protective Shield', level: 1, domain: 'Valor', type: 'Ability', description: 'Raise your defenses to shield allies nearby, reducing incoming damage for the group.' },
-  { id: 'valor_2', name: 'Guardian\'s Resolve', level: 2, domain: 'Valor', type: 'Ability', description: 'Stand your ground with unwavering determination, becoming a bastion against overwhelming odds.' },
-  { id: 'valor_3', name: 'Bastion', level: 3, domain: 'Valor', type: 'Ability', description: 'Become an impenetrable fortress, protecting everyone nearby and reflecting damage back to attackers.' },
-];
-
 export default function LevelUpModal({
   isOpen,
   onClose,
@@ -103,7 +56,7 @@ export default function LevelUpModal({
 
   // Filter available domain cards by character's domains
   const availableDomainCards = domainCards.filter((card: any) =>
-    characterDomains.includes(card.domain)
+    characterDomains.some(d => d.trim().toLowerCase() === card.domain?.trim().toLowerCase())
   );
 
   // Calculate total advancement slots used
@@ -114,7 +67,15 @@ export default function LevelUpModal({
 
   const canProceed = () => {
     if (step === 2) return totalSlots === 2;
-    if (step === 4) return selectedDomainCard !== '';
+    if (step === 4) {
+      // If no cards are available to pick, allow proceeding (skip)
+      const validCards = availableDomainCards.filter(
+        card => (card.data?.level || card.level) <= newLevel
+      );
+      if (validCards.length === 0) return true;
+      
+      return selectedDomainCard !== '';
+    }
     return true;
   };
 
@@ -439,7 +400,7 @@ export default function LevelUpModal({
                 <button
                   onClick={handleComplete}
                   disabled={!canProceed() || isLoading}
-                  className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  className="px-3 py-1.5 text-sm rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                 >
                   {isLoading ? 'Leveling up...' : 'Complete Level Up'}
                 </button>
