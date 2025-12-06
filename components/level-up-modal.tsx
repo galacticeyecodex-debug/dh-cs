@@ -1,45 +1,149 @@
 import React, { useState } from 'react';
-import { X, Zap } from 'lucide-react';
+import { X, Zap, Check } from 'lucide-react';
+import { calculateTierAchievements, calculateNewDamageThresholds, getTier } from '@/lib/level-up-helpers';
+import { validateNewLevel, validateAdvancementSelections } from '@/lib/level-up-validation';
 
 interface LevelUpModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentLevel: number;
-  onComplete?: (options: any) => void;
+  currentDamageThresholds?: { minor: number; major: number; severe: number };
+  onComplete?: (options: {
+    newLevel: number;
+    selectedAdvancements: string[];
+    selectedDomainCardId: string;
+  }) => Promise<void>;
+  isLoading?: boolean;
 }
 
-export default function LevelUpModal({ isOpen, onClose, currentLevel, onComplete }: LevelUpModalProps) {
-  const [step, setStep] = useState(1);
+const ADVANCEMENT_OPTIONS = [
+  { id: 'increase_traits', name: 'Increase Traits', description: 'Choose 2 unmarked traits and gain +1 to them', cost: 1 },
+  { id: 'add_hp', name: 'Add HP', description: 'Permanently increase max Hit Points by 1', cost: 1 },
+  { id: 'add_stress', name: 'Add Stress', description: 'Permanently increase max Stress by 1', cost: 1 },
+  { id: 'increase_experience', name: 'Increase Experience', description: 'Choose 2 experiences and gain +1 to both', cost: 1 },
+  { id: 'domain_card', name: 'Additional Domain Card', description: 'Gain an additional domain card', cost: 1 },
+  { id: 'increase_evasion', name: 'Increase Evasion', description: 'Gain +1 to your Evasion', cost: 1 },
+  { id: 'subclass_card', name: 'Upgraded Subclass Card', description: 'Take your next subclass card (Specialization or Mastery)', cost: 1 },
+  { id: 'increase_proficiency', name: 'Increase Proficiency', description: 'Gain +1 to Proficiency and +1 damage die', cost: 2 },
+];
+
+const DOMAIN_CARDS = [
+  { id: 'card_1', name: 'Heroic Intervention', level: 1, domain: 'Warrior' },
+  { id: 'card_2', name: 'Cunning Strike', level: 1, domain: 'Rogue' },
+  { id: 'card_3', name: 'Arcane Bolt', level: 1, domain: 'Caster' },
+  { id: 'card_4', name: 'Guardian\'s Shield', level: 2, domain: 'Warrior' },
+  { id: 'card_5', name: 'Shadow Dance', level: 2, domain: 'Rogue' },
+  { id: 'card_6', name: 'Fireball', level: 3, domain: 'Caster' },
+];
+
+export default function LevelUpModal({
+  isOpen,
+  onClose,
+  currentLevel,
+  currentDamageThresholds = { minor: 1, major: 2, severe: 3 },
+  onComplete,
+  isLoading = false,
+}: LevelUpModalProps) {
   const newLevel = currentLevel + 1;
+  const [step, setStep] = useState(1);
+  const [selectedAdvancements, setSelectedAdvancements] = useState<string[]>([]);
+  const [selectedDomainCard, setSelectedDomainCard] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
   if (!isOpen) return null;
 
+  const tierAchievements = calculateTierAchievements(newLevel);
+  const newThresholds = calculateNewDamageThresholds(currentDamageThresholds);
+  const currentTier = getTier(newLevel);
+
+  // Calculate total advancement slots used
+  const totalSlots = selectedAdvancements.reduce((sum, id) => {
+    const advancement = ADVANCEMENT_OPTIONS.find(a => a.id === id);
+    return sum + (advancement?.cost || 0);
+  }, 0);
+
+  const canProceed = () => {
+    if (step === 2) return totalSlots === 2;
+    if (step === 4) return selectedDomainCard !== '';
+    return true;
+  };
+
   const handleNext = () => {
+    setError('');
+    if (step === 2) {
+      if (totalSlots !== 2) {
+        setError('You must select exactly 2 advancement slots');
+        return;
+      }
+    }
+    if (step === 4) {
+      if (!selectedDomainCard) {
+        setError('You must select a domain card');
+        return;
+      }
+    }
     if (step < 4) {
       setStep(step + 1);
     }
   };
 
   const handleBack = () => {
+    setError('');
     if (step > 1) {
       setStep(step - 1);
     }
   };
 
-  const handleComplete = () => {
-    if (onComplete) {
-      onComplete({
-        newLevel,
-        selectedAdvancements: [],
-        selectedDomainCardId: '',
-      });
+  const handleComplete = async () => {
+    setError('');
+
+    if (!selectedDomainCard) {
+      setError('You must select a domain card');
+      return;
     }
-    onClose();
+
+    if (onComplete) {
+      try {
+        await onComplete({
+          newLevel,
+          selectedAdvancements,
+          selectedDomainCardId: selectedDomainCard,
+        });
+        onClose();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to complete level up');
+      }
+    }
+  };
+
+  const toggleAdvancement = (advancementId: string) => {
+    setSelectedAdvancements(prev => {
+      const newSelected = [...prev];
+      const index = newSelected.indexOf(advancementId);
+
+      if (index === -1) {
+        // Adding
+        const advancement = ADVANCEMENT_OPTIONS.find(a => a.id === advancementId);
+        const currentCost = newSelected.reduce((sum, id) => {
+          const adv = ADVANCEMENT_OPTIONS.find(a => a.id === id);
+          return sum + (adv?.cost || 0);
+        }, 0);
+
+        if (currentCost + (advancement?.cost || 0) <= 2) {
+          newSelected.push(advancementId);
+        }
+      } else {
+        // Removing
+        newSelected.splice(index, 1);
+      }
+
+      return newSelected;
+    });
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-dagger-dark border border-dagger-gold/30 rounded-lg w-full max-w-2xl max-h-96 overflow-hidden flex flex-col">
+      <div className="bg-dagger-dark border border-dagger-gold/30 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-dagger-gold/10 border-b border-dagger-gold/20 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -57,13 +161,14 @@ export default function LevelUpModal({ isOpen, onClose, currentLevel, onComplete
         {/* Progress Indicator */}
         <div className="bg-black/20 px-6 py-3 flex items-center justify-center gap-2">
           {[1, 2, 3, 4].map((s) => (
-            <React.Fragment key={s}>
+            <div key={s} className="flex items-center gap-2">
               <div
-                className={`w-2 h-2 rounded-full transition-all ${
-                  s <= step ? 'bg-dagger-gold w-3' : 'bg-gray-600'
+                className={`w-3 h-3 rounded-full transition-all ${
+                  s <= step ? 'bg-dagger-gold w-4' : 'bg-gray-600'
                 }`}
               />
-            </React.Fragment>
+              {s < 4 && <div className={`w-6 h-0.5 ${s < step ? 'bg-dagger-gold' : 'bg-gray-600'}`} />}
+            </div>
           ))}
         </div>
 
@@ -73,30 +178,71 @@ export default function LevelUpModal({ isOpen, onClose, currentLevel, onComplete
             <div>
               <h3 className="text-xl font-bold text-white mb-4">Tier Achievements</h3>
               <div className="space-y-3 text-gray-300">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-dagger-gold rounded-full" />
-                  <span>✓ New Experience: +2</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-dagger-gold rounded-full" />
-                  <span>✓ Proficiency: +1</span>
-                </div>
-                {newLevel === 5 || newLevel === 8 ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-dagger-gold rounded-full" />
-                    <span>✓ Clear Marked Traits</span>
+                <div className="flex items-start gap-3 p-3 bg-black/30 rounded-lg">
+                  <Check size={20} className="text-dagger-gold mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-bold text-white">New Experience</p>
+                    <p className="text-sm">You gain a new Experience at +{tierAchievements.newExperienceValue || 0}</p>
                   </div>
-                ) : null}
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-black/30 rounded-lg">
+                  <Check size={20} className="text-dagger-gold mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-bold text-white">Proficiency</p>
+                    <p className="text-sm">Your Proficiency increases by +{tierAchievements.proficiencyIncrease}</p>
+                  </div>
+                </div>
+                {tierAchievements.shouldClearMarkedTraits && (
+                  <div className="flex items-start gap-3 p-3 bg-black/30 rounded-lg">
+                    <Check size={20} className="text-dagger-gold mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-bold text-white">Clear Marked Traits</p>
+                      <p className="text-sm">All traits marked in previous tiers are cleared and available to upgrade again</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           {step === 2 && (
             <div>
-              <h3 className="text-xl font-bold text-white mb-4">Select Advancements</h3>
-              <p className="text-gray-400 mb-4">Choose 2 advancement slots (some options cost 2 slots)</p>
-              <div className="text-gray-400">
-                Advancement options will appear here...
+              <h3 className="text-xl font-bold text-white mb-2">Select Advancements</h3>
+              <p className="text-gray-400 mb-4">
+                Choose advancements totaling exactly 2 slots. (Current: <span className={totalSlots === 2 ? 'text-dagger-gold font-bold' : 'text-gray-400'}>{totalSlots}</span> slots)
+              </p>
+              <div className="grid grid-cols-1 gap-2">
+                {ADVANCEMENT_OPTIONS.map((advancement) => {
+                  const isSelected = selectedAdvancements.includes(advancement.id);
+                  const canSelect = !isSelected && totalSlots + advancement.cost <= 2;
+
+                  return (
+                    <button
+                      key={advancement.id}
+                      onClick={() => toggleAdvancement(advancement.id)}
+                      disabled={!isSelected && !canSelect}
+                      className={`text-left p-3 rounded-lg border transition-all ${
+                        isSelected
+                          ? 'border-dagger-gold bg-dagger-gold/10'
+                          : canSelect
+                          ? 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
+                          : 'border-gray-700 bg-black/20 opacity-50 cursor-not-allowed'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-bold text-white">{advancement.name}</p>
+                          <p className="text-sm text-gray-400">{advancement.description}</p>
+                        </div>
+                        <span className={`text-xs font-bold px-2 py-1 rounded ml-2 ${
+                          isSelected ? 'bg-dagger-gold text-black' : 'bg-gray-700 text-gray-300'
+                        }`}>
+                          {advancement.cost} slot{advancement.cost > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -104,12 +250,37 @@ export default function LevelUpModal({ isOpen, onClose, currentLevel, onComplete
           {step === 3 && (
             <div>
               <h3 className="text-xl font-bold text-white mb-4">Damage Thresholds</h3>
-              <div className="space-y-2 text-gray-300">
-                <p>Your damage thresholds will increase by +1:</p>
-                <div className="pl-4 space-y-1">
-                  <p>Minor: 1 → 2</p>
-                  <p>Major: 2 → 3</p>
-                  <p>Severe: 3 → 4</p>
+              <p className="text-gray-300 mb-4">All your damage thresholds increase by +1:</p>
+              <div className="space-y-3">
+                <div className="p-4 bg-black/30 rounded-lg border border-dagger-gold/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300">Minor Threshold</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400">{currentDamageThresholds.minor}</span>
+                      <span className="text-dagger-gold">→</span>
+                      <span className="text-dagger-gold font-bold">{newThresholds.minor}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 bg-black/30 rounded-lg border border-dagger-gold/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300">Major Threshold</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400">{currentDamageThresholds.major}</span>
+                      <span className="text-dagger-gold">→</span>
+                      <span className="text-dagger-gold font-bold">{newThresholds.major}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 bg-black/30 rounded-lg border border-dagger-gold/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300">Severe Threshold</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400">{currentDamageThresholds.severe}</span>
+                      <span className="text-dagger-gold">→</span>
+                      <span className="text-dagger-gold font-bold">{newThresholds.severe}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -117,11 +288,39 @@ export default function LevelUpModal({ isOpen, onClose, currentLevel, onComplete
 
           {step === 4 && (
             <div>
-              <h3 className="text-xl font-bold text-white mb-4">Domain Card</h3>
-              <p className="text-gray-400 mb-4">Select a new domain card at level {newLevel} or below</p>
-              <div className="text-gray-400">
-                Domain card selection will appear here...
+              <h3 className="text-xl font-bold text-white mb-2">Select Domain Card</h3>
+              <p className="text-gray-400 mb-4">Choose a new domain card at level {newLevel} or below:</p>
+              <div className="grid grid-cols-1 gap-2">
+                {DOMAIN_CARDS.filter(card => card.level <= newLevel).map((card) => {
+                  const isSelected = selectedDomainCard === card.id;
+
+                  return (
+                    <button
+                      key={card.id}
+                      onClick={() => setSelectedDomainCard(card.id)}
+                      className={`text-left p-3 rounded-lg border transition-all ${
+                        isSelected
+                          ? 'border-dagger-gold bg-dagger-gold/10'
+                          : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-bold text-white">{card.name}</p>
+                          <p className="text-xs text-gray-400">{card.domain} • Level {card.level}</p>
+                        </div>
+                        {isSelected && <Check size={20} className="text-dagger-gold" />}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="mt-4 p-3 bg-red-900/20 border border-red-700 rounded-lg text-red-200 text-sm">
+              {error}
             </div>
           )}
         </div>
@@ -131,7 +330,7 @@ export default function LevelUpModal({ isOpen, onClose, currentLevel, onComplete
           <button
             onClick={handleBack}
             disabled={step === 1}
-            className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:text-white hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:text-white hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold"
           >
             Back
           </button>
@@ -141,16 +340,18 @@ export default function LevelUpModal({ isOpen, onClose, currentLevel, onComplete
           {step < 4 ? (
             <button
               onClick={handleNext}
-              className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 transition-colors"
+              disabled={!canProceed() || isLoading}
+              className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Next
             </button>
           ) : (
             <button
               onClick={handleComplete}
-              className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 transition-colors"
+              disabled={!canProceed() || isLoading}
+              className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
-              Complete Level Up
+              {isLoading ? 'Leveling up...' : 'Complete Level Up'}
             </button>
           )}
         </div>

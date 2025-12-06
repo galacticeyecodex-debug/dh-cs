@@ -12,9 +12,10 @@ import { uploadCharacterImage } from '@/lib/supabase/storage';
 import { toast } from 'sonner';
 
 export default function CharacterView() {
-  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage } = useCharacterStore();
+  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter } = useCharacterStore();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
+  const [isLevelUpLoading, setIsLevelUpLoading] = useState(false);
   const [showVitals, setShowVitals] = useState(false);
   const [showTraits, setShowTraits] = useState(true);
   const [showExperiences, setShowExperiences] = useState(true);
@@ -416,9 +417,20 @@ export default function CharacterView() {
         isOpen={isLevelUpOpen}
         onClose={() => setIsLevelUpOpen(false)}
         currentLevel={character?.level || 1}
-        onComplete={(options) => {
-          console.log('Level up with options:', options);
-          setIsLevelUpOpen(false);
+        currentDamageThresholds={character?.damage_thresholds || { minor: 1, major: 2, severe: 3 }}
+        isLoading={isLevelUpLoading}
+        onComplete={async (options) => {
+          setIsLevelUpLoading(true);
+          try {
+            await levelUpCharacter(options);
+            toast.success(`Level up to ${options.newLevel}!`);
+            setIsLevelUpOpen(false);
+          } catch (err) {
+            console.error('Failed to level up:', err);
+            toast.error('Failed to complete level up');
+          } finally {
+            setIsLevelUpLoading(false);
+          }
         }}
       />
     </div>
