@@ -26,7 +26,8 @@ export default function CharacterView() {
   const [activeTab, setActiveTab] = useState<'stats' | 'gallery' | 'lore'>('stats');
   const [isUploading, setIsUploading] = useState(false);
   const [domainCards, setDomainCards] = useState<any[]>([]);
-  const [showHeritage, setShowHeritage] = useState(true);
+  const [showAncestry, setShowAncestry] = useState(true);
+  const [showCommunity, setShowCommunity] = useState(true);
   const [ancestryCard, setAncestryCard] = useState<any>(null);
   const [communityCard, setCommunityCard] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +61,7 @@ export default function CharacterView() {
             setAncestryCard({
               name: ancestry.name,
               description: ancestry.data?.description || ancestry.data?.markdown || '',
+              features: ancestry.data?.features || [],
             });
           }
         }
@@ -71,6 +73,7 @@ export default function CharacterView() {
             setCommunityCard({
               name: community.name,
               description: community.data?.description || community.data?.markdown || '',
+              features: community.data?.features || [],
             });
           }
         }
@@ -140,9 +143,9 @@ export default function CharacterView() {
   return (
     <div className="pb-24">
       {/* Social Profile Header */}
-      <div className="relative w-full h-48 bg-gray-900 overflow-hidden">
-        {/* Banner Background (Character Background, Blurred Profile Image, or Default Gradient) */}
-        <div className="absolute inset-0 opacity-50">
+      <div className="relative w-full h-48 md:h-64 bg-gray-900 overflow-hidden group/header">
+        {/* Banner Background */}
+        <div className="absolute inset-0 opacity-60 transition-opacity duration-700 group-hover/header:opacity-70">
           {character.background_image_url ? (
             <Image
               src={character.background_image_url}
@@ -161,59 +164,92 @@ export default function CharacterView() {
             <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black" />
           )}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-dagger-dark via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-dagger-dark via-dagger-dark/40 to-transparent" />
+
+        {/* Top Right Controls */}
+        <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+           <button
+            onClick={() => setIsManageOpen(true)}
+            className="bg-black/40 hover:bg-black/60 text-white backdrop-blur-md px-4 py-2 rounded-full transition-all flex items-center gap-2 border border-white/10 shadow-lg"
+          >
+            <Settings size={16} />
+            <span className="text-sm font-bold hidden sm:inline">Manage</span>
+          </button>
+        </div>
 
         {/* Profile Avatar & Basic Info */}
-        <div className="absolute bottom-0 left-0 w-full p-4 flex items-end gap-4">
-          <div className="w-24 h-24 bg-gray-800 rounded-full p-1 border-4 border-dagger-dark shadow-xl flex-shrink-0 relative group cursor-pointer">
-            <div className="w-full h-full rounded-full overflow-hidden relative">
+        <div className="absolute bottom-0 left-0 w-full p-4 md:p-6 flex items-end gap-4 md:gap-6">
+          {/* Avatar */}
+          <div className="w-24 h-24 md:w-32 md:h-32 bg-gray-800 rounded-2xl rotate-3 p-1 border-4 border-dagger-gold shadow-2xl flex-shrink-0 relative group cursor-pointer hover:rotate-0 transition-transform duration-300 overflow-hidden">
+            <div className="w-full h-full rounded-xl overflow-hidden relative">
               {character.image_url ? (
                 <Image
                   src={character.image_url}
-                  alt={character.name}
-                  width={96}
-                  height={96}
+                  alt={character.name || "Character Avatar"}
+                  width={128}
+                  height={128}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-dagger-gold text-black">
+                <div className="w-full h-full flex items-center justify-center text-3xl md:text-4xl font-bold bg-dagger-gold text-black">
                   {character.name[0]}
                 </div>
               )}
             </div>
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-              <Camera className="text-white" size={20} />
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <Camera className="text-white" size={24} />
+            </div>
+             <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleUpload}
+              />
+              {/* Hidden Overlay Button for clicking the avatar to upload */}
+             <div 
+              className="absolute inset-0 z-20" 
+              onClick={() => fileInputRef.current?.click()}
+             />
+          </div>
+
+          {/* Info Block */}
+          <div className="mb-1 flex-1 min-w-0">
+            <h1 className="text-3xl md:text-5xl font-serif font-bold text-white drop-shadow-lg leading-tight truncate">
+              {character.name}
+            </h1>
+            
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 mt-2">
+              {/* Level & Class Badge */}
+              <div className="flex items-center gap-2 text-dagger-gold font-bold text-sm md:text-lg uppercase tracking-wider drop-shadow-md bg-black/30 px-2 md:px-3 py-1 rounded-lg border border-dagger-gold/20 backdrop-blur-sm">
+                <span>Lvl {character.level}</span>
+                <span className="w-1 h-3 md:h-4 bg-dagger-gold/50 rounded-full" />
+                <span>{character.class_id}</span>
+              </div>
+
+              {/* Heritage Info */}
+              <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-200 font-medium drop-shadow-md hidden sm:flex">
+                 {character.ancestry && (
+                   <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm">
+                      <User size={14} className="text-gray-400" />
+                      {character.ancestry}
+                   </div>
+                 )}
+                 {character.community && (
+                   <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm">
+                      <User size={14} className="text-gray-400" />
+                      {character.community}
+                   </div>
+                 )}
+              </div>
             </div>
           </div>
 
-          <div className="mb-2">
-            <h1 className="text-2xl font-bold text-white drop-shadow-md">{character.name}</h1>
-            <div className="flex flex-wrap gap-2 mt-1 items-center">
-              <span className="text-xs font-bold bg-white/20 text-white backdrop-blur-md px-2 py-0.5 rounded-full">
-                Lvl {character.level} {character.class_id}
-              </span>
-              <span className="text-xs bg-black/40 text-gray-300 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
-                {character.ancestry}
-              </span>
-              <button
-                onClick={() => setIsLevelUpOpen(true)}
-                className="text-xs font-bold bg-dagger-gold hover:bg-dagger-gold/90 text-black backdrop-blur-md px-3 py-0.5 rounded-full transition-all flex items-center gap-1 shadow-sm"
-              >
-                <Zap size={12} />
-                Level Up
-              </button>
-              <button
-                onClick={() => setIsManageOpen(true)}
-                className="text-xs font-bold bg-gray-700 hover:bg-gray-600 text-gray-100 backdrop-blur-md px-3 py-0.5 rounded-full transition-all flex items-center gap-1 shadow-sm"
-              >
-                <Settings size={12} />
-                Manage
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
 
+
+        </div> {/* Closes Profile Avatar & Basic Info */}
+      </div> {/* Closes Social Profile Header */}
+      
       {/* Segmented Control (Sticky Tab Bar) */}
       <div className="sticky top-0 z-10 bg-dagger-dark/95 backdrop-blur border-b border-white/10 px-4 py-2 flex justify-between items-center shadow-sm">
         <div className="flex p-1 bg-white/5 rounded-lg w-full">
@@ -340,35 +376,85 @@ export default function CharacterView() {
               )}
             </div>
 
-            {/* Heritage Section */}
-            {(ancestryCard || communityCard) && (
+            {/* Ancestry Section */}
+            {character.ancestry && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Heritage</h3>
+                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Ancestry</h3>
                   <button
-                    onClick={() => setShowHeritage(!showHeritage)}
+                    onClick={() => setShowAncestry(!showAncestry)}
                     className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
                   >
-                    {showHeritage ? <EyeOff size={14} /> : <Eye size={14} />}
-                    {showHeritage ? 'Hide' : 'Show'}
+                    {showAncestry ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showAncestry ? 'Hide' : 'Show'}
                   </button>
                 </div>
-
-                {showHeritage && (
-                  <div className="space-y-3">
-                    {/* Ancestry */}
-                    {ancestryCard && (
-                      <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                
+                {showAncestry && (
+                  <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                    {ancestryCard ? (
+                      <>
                         <h4 className="font-serif font-bold text-white mb-1">{ancestryCard.name}</h4>
-                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{ancestryCard.description}</p>
+                        <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3">{ancestryCard.description}</p>
+                        {ancestryCard.features?.map((feature: any, i: number) => (
+                          <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
+                            <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
+                              {feature.name}
+                            </div>
+                            <div className="text-sm text-gray-300 leading-relaxed">
+                              {feature.text?.split('**').map((part: string, j: number) => 
+                                j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="text-gray-400 italic text-sm">
+                        {character.ancestry} details not found.
                       </div>
                     )}
+                  </div>
+                )}
+              </div>
+            )}
 
-                    {/* Community */}
-                    {communityCard && (
-                      <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+            {/* Community Section */}
+            {character.community && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Community</h3>
+                  <button
+                    onClick={() => setShowCommunity(!showCommunity)}
+                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                  >
+                    {showCommunity ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showCommunity ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                
+                {showCommunity && (
+                  <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                    {communityCard ? (
+                      <>
                         <h4 className="font-serif font-bold text-white mb-1">{communityCard.name}</h4>
-                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{communityCard.description}</p>
+                        <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3">{communityCard.description}</p>
+                        {communityCard.features?.map((feature: any, i: number) => (
+                          <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
+                            <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
+                              {feature.name}
+                            </div>
+                            <div className="text-sm text-gray-300 leading-relaxed">
+                              {feature.text?.split('**').map((part: string, j: number) => 
+                                j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="text-gray-400 italic text-sm">
+                        {character.community} details not found.
                       </div>
                     )}
                   </div>
@@ -539,16 +625,22 @@ export default function CharacterView() {
       <ManageCharacterModal
         isOpen={isManageOpen}
         onClose={() => setIsManageOpen(false)}
+        currentName={character?.name}
         currentLevel={character?.level || 1}
         currentAncestry={character?.ancestry}
         currentCommunity={character?.community}
         advancementHistory={character?.advancement_history_jsonb}
         isLoading={isManageLoading}
+        onLevelUp={() => {
+          setIsManageOpen(false);
+          setIsLevelUpOpen(true);
+        }}
         onUpdate={async (updates) => {
           setIsManageLoading(true);
           try {
             await updateCharacterDetails(updates);
             const changes = [];
+            if (updates.name) changes.push(`name: ${updates.name}`);
             if (updates.level) {
               if (updates.level > character!.level) {
                 changes.push(`leveled to ${updates.level}`);

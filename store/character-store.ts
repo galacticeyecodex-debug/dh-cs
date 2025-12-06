@@ -164,6 +164,7 @@ interface CharacterState {
     stressSlotsAdded?: number;
   }) => Promise<void>;
   updateCharacterDetails: (updates: {
+    name?: string;
     level?: number;
     ancestry?: string;
     community?: string;
