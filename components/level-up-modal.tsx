@@ -11,6 +11,7 @@ interface LevelUpModalProps {
   onClose: () => void;
   currentLevel: number;
   currentDamageThresholds?: { minor: number; major: number; severe: number };
+  characterDomains?: string[];
   onComplete?: (options: {
     newLevel: number;
     selectedAdvancements: string[];
@@ -31,12 +32,50 @@ const ADVANCEMENT_OPTIONS = [
 ];
 
 const DOMAIN_CARDS = [
-  { id: 'card_1', name: 'Heroic Intervention', level: 1, domain: 'Warrior' },
-  { id: 'card_2', name: 'Cunning Strike', level: 1, domain: 'Rogue' },
-  { id: 'card_3', name: 'Arcane Bolt', level: 1, domain: 'Caster' },
-  { id: 'card_4', name: 'Guardian\'s Shield', level: 2, domain: 'Warrior' },
-  { id: 'card_5', name: 'Shadow Dance', level: 2, domain: 'Rogue' },
-  { id: 'card_6', name: 'Fireball', level: 3, domain: 'Caster' },
+  // Arcana Domain Cards
+  { id: 'arcana_1', name: 'Arcane Bolt', level: 1, domain: 'Arcana' },
+  { id: 'arcana_2', name: 'Mana Shield', level: 2, domain: 'Arcana' },
+  { id: 'arcana_3', name: 'Spell Weaving', level: 3, domain: 'Arcana' },
+
+  // Blade Domain Cards
+  { id: 'blade_1', name: 'Riposte', level: 1, domain: 'Blade' },
+  { id: 'blade_2', name: 'Cleave', level: 2, domain: 'Blade' },
+  { id: 'blade_3', name: 'Blade Mastery', level: 3, domain: 'Blade' },
+
+  // Bone Domain Cards
+  { id: 'bone_1', name: 'Body Control', level: 1, domain: 'Bone' },
+  { id: 'bone_2', name: 'Tactical Strike', level: 2, domain: 'Bone' },
+  { id: 'bone_3', name: 'Perfect Form', level: 3, domain: 'Bone' },
+
+  // Codex Domain Cards
+  { id: 'codex_1', name: 'Spellbook Study', level: 1, domain: 'Codex' },
+  { id: 'codex_2', name: 'Arcane Knowledge', level: 2, domain: 'Codex' },
+  { id: 'codex_3', name: 'Magical Mastery', level: 3, domain: 'Codex' },
+
+  // Grace Domain Cards
+  { id: 'grace_1', name: 'Charm', level: 1, domain: 'Grace' },
+  { id: 'grace_2', name: 'Persuasion', level: 2, domain: 'Grace' },
+  { id: 'grace_3', name: 'Captivating Presence', level: 3, domain: 'Grace' },
+
+  // Midnight Domain Cards
+  { id: 'midnight_1', name: 'Shadow Dance', level: 1, domain: 'Midnight' },
+  { id: 'midnight_2', name: 'Cloak of Night', level: 2, domain: 'Midnight' },
+  { id: 'midnight_3', name: 'Master of Shadows', level: 3, domain: 'Midnight' },
+
+  // Sage Domain Cards
+  { id: 'sage_1', name: 'Nature\'s Grasp', level: 1, domain: 'Sage' },
+  { id: 'sage_2', name: 'Wild Ally', level: 2, domain: 'Sage' },
+  { id: 'sage_3', name: 'Primal Power', level: 3, domain: 'Sage' },
+
+  // Splendor Domain Cards
+  { id: 'splendor_1', name: 'Healing Touch', level: 1, domain: 'Splendor' },
+  { id: 'splendor_2', name: 'Life Restoration', level: 2, domain: 'Splendor' },
+  { id: 'splendor_3', name: 'Divine Intervention', level: 3, domain: 'Splendor' },
+
+  // Valor Domain Cards
+  { id: 'valor_1', name: 'Protective Shield', level: 1, domain: 'Valor' },
+  { id: 'valor_2', name: 'Guardian\'s Resolve', level: 2, domain: 'Valor' },
+  { id: 'valor_3', name: 'Bastion', level: 3, domain: 'Valor' },
 ];
 
 export default function LevelUpModal({
@@ -44,6 +83,7 @@ export default function LevelUpModal({
   onClose,
   currentLevel,
   currentDamageThresholds = { minor: 1, major: 2, severe: 3 },
+  characterDomains = [],
   onComplete,
   isLoading = false,
 }: LevelUpModalProps) {
@@ -316,31 +356,37 @@ export default function LevelUpModal({
             <div>
               <h3 className="text-xl font-bold text-white mb-2">Select Domain Card</h3>
               <p className="text-gray-400 mb-4">Choose a new domain card at level {newLevel} or below:</p>
-              <div className="grid grid-cols-1 gap-2">
-                {DOMAIN_CARDS.filter(card => card.level <= newLevel).map((card) => {
-                  const isSelected = selectedDomainCard === card.id;
+              {characterDomains.length === 0 ? (
+                <p className="text-gray-500 text-sm p-4 bg-black/20 rounded-lg">No domains available. Ensure your character has at least one domain.</p>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  {DOMAIN_CARDS.filter(
+                    card => card.level <= newLevel && characterDomains.includes(card.domain)
+                  ).map((card) => {
+                    const isSelected = selectedDomainCard === card.id;
 
-                  return (
-                    <button
-                      key={card.id}
-                      onClick={() => setSelectedDomainCard(card.id)}
-                      className={`text-left p-3 rounded-lg border transition-all ${
-                        isSelected
-                          ? 'border-dagger-gold bg-dagger-gold/10'
-                          : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-bold text-white">{card.name}</p>
-                          <p className="text-xs text-gray-400">{card.domain} • Level {card.level}</p>
+                    return (
+                      <button
+                        key={card.id}
+                        onClick={() => setSelectedDomainCard(card.id)}
+                        className={`text-left p-3 rounded-lg border transition-all ${
+                          isSelected
+                            ? 'border-dagger-gold bg-dagger-gold/10'
+                            : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-bold text-white">{card.name}</p>
+                            <p className="text-xs text-gray-400">Domain: {card.domain} • Level {card.level}</p>
+                          </div>
+                          {isSelected && <Check size={20} className="text-dagger-gold" />}
                         </div>
-                        {isSelected && <Check size={20} className="text-dagger-gold" />}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
