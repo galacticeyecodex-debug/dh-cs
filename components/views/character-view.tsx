@@ -26,6 +26,7 @@ export default function CharacterView() {
   const [activeTab, setActiveTab] = useState<'stats' | 'gallery' | 'lore'>('stats');
   const [isUploading, setIsUploading] = useState(false);
   const [domainCards, setDomainCards] = useState<any[]>([]);
+  const [showHeritage, setShowHeritage] = useState(true);
   const [ancestryCard, setAncestryCard] = useState<any>(null);
   const [communityCard, setCommunityCard] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -264,37 +265,41 @@ export default function CharacterView() {
               {showVitals && <CommonVitalsDisplay character={character} />}
             </div>
 
-            {/* Ancestry & Community Section */}
-            <div className="space-y-2">
-              <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Heritage</h3>
-              <div className="space-y-3">
-                {/* Ancestry Card */}
-                {ancestryCard && (
-                  <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
-                    <div className="p-3 bg-gradient-to-r from-dagger-gold/10 to-transparent border-b border-white/10">
-                      <h4 className="font-bold text-dagger-gold text-sm">Ancestry</h4>
-                    </div>
-                    <div className="p-4">
-                      <p className="font-semibold text-white mb-2">{ancestryCard.name}</p>
-                      <p className="text-sm text-gray-300 leading-relaxed">{ancestryCard.description}</p>
-                    </div>
-                  </div>
-                )}
+            {/* Heritage Section */}
+            {(ancestryCard || communityCard) && (
+              <div className="space-y-2 mt-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Heritage</h3>
+                  <button
+                    onClick={() => setShowHeritage(!showHeritage)}
+                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                  >
+                    {showHeritage ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showHeritage ? 'Hide' : 'Show'}
+                  </button>
+                </div>
 
-                {/* Community Card */}
-                {communityCard && (
-                  <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
-                    <div className="p-3 bg-gradient-to-r from-dagger-gold/10 to-transparent border-b border-white/10">
-                      <h4 className="font-bold text-dagger-gold text-sm">Community</h4>
-                    </div>
-                    <div className="p-4">
-                      <p className="font-semibold text-white mb-2">{communityCard.name}</p>
-                      <p className="text-sm text-gray-300 leading-relaxed">{communityCard.description}</p>
-                    </div>
+                {showHeritage && (
+                  <div className="space-y-3">
+                    {/* Ancestry */}
+                    {ancestryCard && (
+                      <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                        <h4 className="font-serif font-bold text-white mb-1">{ancestryCard.name}</h4>
+                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{ancestryCard.description}</p>
+                      </div>
+                    )}
+
+                    {/* Community */}
+                    {communityCard && (
+                      <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                        <h4 className="font-serif font-bold text-white mb-1">{communityCard.name}</h4>
+                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{communityCard.description}</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            </div>
+            )}
 
                         {/* Stats Grid */}
                         <div className="space-y-2">
