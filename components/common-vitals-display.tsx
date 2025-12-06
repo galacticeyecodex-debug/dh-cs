@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useCharacterStore, Character, CharacterInventoryItem } from '@/store/character-store';
-import { Shield, Zap, Heart, Eye } from 'lucide-react';
+import { Shield, Zap, Heart, Eye, Swords } from 'lucide-react';
 import { getClassBaseStat, getSystemModifiers } from '@/lib/utils';
 import VitalCard from '@/components/vital-card';
 
@@ -56,16 +56,20 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
   const { total: totalStressMax, allMods: stressMods } = getStatDetails('stress', classBaseStress);
 
   // --- HOPE ---
-  // Max Hope is generally a fixed value (6) and not directly modified by items in the SRD, 
+  // Max Hope is generally a fixed value (6) and not directly modified by items in the SRD,
   // but it can have user modifiers, so we calculate totalHopeMax for consistency with the Ledger.
   const baseHope = 6;
   const { total: totalHopeMax, allMods: hopeMods } = getStatDetails('hope', baseHope);
 
+  // --- PROFICIENCY ---
+  const baseProficiency = character.proficiency;
+  const { total: totalProficiency, allMods: proficiencyMods } = getStatDetails('proficiency', baseProficiency);
+  const isProficiencyModified = totalProficiency !== baseProficiency;
 
   return (
     <div className="space-y-3">
-      {/* Row 1: Evasion & Armor (Squares) */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Row 1: Evasion, Armor & Proficiency (Squares) */}
+      <div className="grid grid-cols-3 gap-3">
         <VitalCard
           label="Evasion"
           current={totalEvasion}
@@ -90,6 +94,16 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
           disableCritColor={true}
           modifiers={armorMods}
           onUpdateModifiers={(mods) => updateModifiers('armor', mods)}
+        />
+        <VitalCard
+          label="Proficiency"
+          current={totalProficiency}
+          color="text-orange-400"
+          icon={Swords}
+          isModified={isProficiencyModified}
+          expectedValue={baseProficiency}
+          modifiers={proficiencyMods}
+          onUpdateModifiers={(mods) => updateModifiers('proficiency', mods)}
         />
       </div>
 
