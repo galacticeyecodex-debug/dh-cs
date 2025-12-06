@@ -7,6 +7,7 @@ import CommonVitalsDisplay from '@/components/common-vitals-display';
 import ExperienceSheet from '../experience-sheet';
 import LevelUpModal from '../level-up-modal';
 import ManageCharacterModal from '../manage-character-modal';
+import AdvancementHistory from '../advancement-history';
 import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/supabase/storage';
@@ -14,7 +15,7 @@ import { toast } from 'sonner';
 import createClient from '@/lib/supabase/client';
 
 export default function CharacterView() {
-  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails } = useCharacterStore();
+  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits } = useCharacterStore();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
   const [isLevelUpLoading, setIsLevelUpLoading] = useState(false);
@@ -31,6 +32,43 @@ export default function CharacterView() {
   const [ancestryCard, setAncestryCard] = useState<any>(null);
   const [communityCard, setCommunityCard] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [savingField, setSavingField] = useState<string>('');
+  const [savedField, setSavedField] = useState<string>('');
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced save handler for lore fields
+  const handleLoreChange = (field: string, value: string) => {
+    setSavingField(field);
+    setSavedField('');
+
+    // Clear any existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Set new timeout
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        await updateLore({ [field]: value } as any);
+        setSavingField('');
+        setSavedField(field);
+        // Clear saved indicator after 2 seconds
+        setTimeout(() => setSavedField(''), 2000);
+      } catch (err) {
+        setSavingField('');
+        toast.error(`Failed to save ${field}`);
+      }
+    }, 800);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Fetch domain cards, ancestry, and community from library
   useEffect(() => {
@@ -316,16 +354,40 @@ export default function CharacterView() {
                           {showTraits && (
                             <div className="grid grid-cols-2 gap-3">
                               {Object.entries(character.stats).map(([key, value]) => {
-                                const { total, allMods } = getStatDetails(key, value); 
+                                const { total, allMods } = getStatDetails(key, value);
+                                const isMarked = character.marked_traits_jsonb?.[key] || false;
+
+                                const toggleMark = () => {
+                                  const newMarked = { ...(character.marked_traits_jsonb || {}) };
+                                  if (isMarked) {
+                                    delete newMarked[key];
+                                  } else {
+                                    newMarked[key] = true;
+                                  }
+                                  updateMarkedTraits(newMarked);
+                                };
+
                                 return (
-                                  <StatButton 
-                                    key={key} 
-                                    label={key} 
-                                    value={total} 
-                                    baseValue={value}
-                                    modifiers={allMods}
-                                    onUpdateModifiers={(mods) => updateModifiers(key, mods)}
-                                  />
+                                  <div key={key} className="relative">
+                                    <StatButton
+                                      label={key}
+                                      value={total}
+                                      baseValue={value}
+                                      modifiers={allMods}
+                                      onUpdateModifiers={(mods) => updateModifiers(key, mods)}
+                                    />
+                                    <button
+                                      onClick={toggleMark}
+                                      className={`absolute top-1 left-1 w-5 h-5 rounded-full border-2 flex items-center justify-center text-xs transition-all ${
+                                        isMarked
+                                          ? 'bg-red-500/80 border-red-400 text-white'
+                                          : 'bg-black/40 border-gray-600 text-gray-500 hover:border-gray-400'
+                                      }`}
+                                      title={isMarked ? 'Trait is marked (cannot be increased until tier clear)' : 'Mark trait as used'}
+                                    >
+                                      {isMarked ? '✕' : '○'}
+                                    </button>
+                                  </div>
                                 );
                               })}
                             </div>
@@ -461,6 +523,13 @@ export default function CharacterView() {
                 )}
               </div>
             )}
+
+            {/* Advancement History Section */}
+            {character.advancement_history_jsonb && Object.keys(character.advancement_history_jsonb).length > 0 && (
+              <div className="space-y-2">
+                <AdvancementHistory advancementHistory={character.advancement_history_jsonb} />
+              </div>
+            )}
           </div>
         )}
 
@@ -545,46 +614,78 @@ export default function CharacterView() {
         {activeTab === 'lore' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="space-y-4">
-              <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                <h4 className="font-bold text-white mb-2">Pronouns</h4>
+              <div className="bg-white/5 p-4 rounded-xl border border-white/10 relative">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-bold text-white">Pronouns</h4>
+                  {savingField === 'pronouns' && (
+                    <span className="text-xs text-gray-400 animate-pulse">Saving...</span>
+                  )}
+                  {savedField === 'pronouns' && (
+                    <span className="text-xs text-green-400">Saved</span>
+                  )}
+                </div>
                 <input
                   className="w-full bg-transparent text-sm text-gray-300 leading-relaxed focus:outline-none focus:ring-1 focus:ring-dagger-gold rounded p-2"
                   placeholder="e.g. They/Them"
                   defaultValue={character.pronouns || ''}
-                  onBlur={(e) => updateLore({ pronouns: e.target.value })}
+                  onChange={(e) => handleLoreChange('pronouns', e.target.value)}
                 />
               </div>
 
-              <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                <h4 className="font-bold text-white mb-2">Appearance</h4>
+              <div className="bg-white/5 p-4 rounded-xl border border-white/10 relative">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-bold text-white">Appearance</h4>
+                  {savingField === 'appearance' && (
+                    <span className="text-xs text-gray-400 animate-pulse">Saving...</span>
+                  )}
+                  {savedField === 'appearance' && (
+                    <span className="text-xs text-green-400">Saved</span>
+                  )}
+                </div>
                 <textarea
                   className="w-full bg-transparent text-sm text-gray-300 leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-dagger-gold rounded p-2"
                   rows={4}
                   placeholder="Describe your character's physical appearance..."
                   defaultValue={character.appearance || ''}
-                  onBlur={(e) => updateLore({ appearance: e.target.value })}
+                  onChange={(e) => handleLoreChange('appearance', e.target.value)}
                 />
               </div>
 
-              <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                <h4 className="font-bold text-white mb-2">Background</h4>
+              <div className="bg-white/5 p-4 rounded-xl border border-white/10 relative">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-bold text-white">Background</h4>
+                  {savingField === 'background' && (
+                    <span className="text-xs text-gray-400 animate-pulse">Saving...</span>
+                  )}
+                  {savedField === 'background' && (
+                    <span className="text-xs text-green-400">Saved</span>
+                  )}
+                </div>
                 <textarea
                   className="w-full bg-transparent text-sm text-gray-300 leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-dagger-gold rounded p-2"
                   rows={6}
                   placeholder="Write your character's origin, beliefs, and pivotal moments..."
                   defaultValue={character.background || ''}
-                  onBlur={(e) => updateLore({ background: e.target.value })}
+                  onChange={(e) => handleLoreChange('background', e.target.value)}
                 />
               </div>
 
-              <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                <h4 className="font-bold text-white mb-2">Connections</h4>
+              <div className="bg-white/5 p-4 rounded-xl border border-white/10 relative">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-bold text-white">Connections</h4>
+                  {savingField === 'connections' && (
+                    <span className="text-xs text-gray-400 animate-pulse">Saving...</span>
+                  )}
+                  {savedField === 'connections' && (
+                    <span className="text-xs text-green-400">Saved</span>
+                  )}
+                </div>
                 <textarea
                   className="w-full bg-transparent text-sm text-gray-300 leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-dagger-gold rounded p-2"
                   rows={4}
                   placeholder="List allies, rivals, and organizations..."
                   defaultValue={character.connections || ''}
-                  onBlur={(e) => updateLore({ connections: e.target.value })}
+                  onChange={(e) => handleLoreChange('connections', e.target.value)}
                 />
               </div>
             </div>
@@ -605,6 +706,9 @@ export default function CharacterView() {
         currentLevel={character?.level || 1}
         currentDamageThresholds={character?.damage_thresholds || { minor: 1, major: 2, severe: 3 }}
         characterDomains={character?.domains || []}
+        characterClassId={character?.class_id}
+        characterCards={character?.character_cards || []}
+        multiclassId={character?.multiclass_id}
         domainCards={domainCards}
         isLoading={isLevelUpLoading}
         onComplete={async (options) => {

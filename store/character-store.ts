@@ -92,6 +92,11 @@ export interface Character {
   // Leveling tracking
   marked_traits_jsonb?: Record<string, any>;
   advancement_history_jsonb?: Record<string, any>;
+  subclass_progression?: {
+    foundation_obtained?: boolean;
+    specialization_obtained?: boolean;
+    mastery_obtained?: boolean;
+  };
 
   // Relations
   character_cards?: CharacterCard[];
@@ -158,6 +163,8 @@ interface CharacterState {
     newLevel: number;
     selectedAdvancements: string[];
     selectedDomainCardId: string;
+    multiclassId?: string;
+    multiclassDomain?: string;
     exchangeExistingCardId?: string;
     traitIncrements?: { trait: string; amount: number }[];
     experienceIncrements?: { experienceId: string; amount: number }[];
@@ -1069,6 +1076,38 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       updatedCharacter.evasion += 1;
     }
 
+    // Apply multiclass if selected
+    if (options.selectedAdvancements.includes('multiclass') && options.multiclassId && options.multiclassDomain) {
+      updatedCharacter.multiclass_id = options.multiclassId;
+      // Add the new domain to the domains array
+      if (!updatedCharacter.domains) {
+        updatedCharacter.domains = [];
+      }
+      if (!updatedCharacter.domains.includes(options.multiclassDomain)) {
+        updatedCharacter.domains = [...updatedCharacter.domains, options.multiclassDomain];
+      }
+    }
+
+    // Track subclass progression
+    if (options.selectedAdvancements.includes('subclass_card')) {
+      const progression = updatedCharacter.subclass_progression || {
+        foundation_obtained: false,
+        specialization_obtained: false,
+        mastery_obtained: false,
+      };
+
+      // Determine which card to mark as obtained
+      if (!progression.foundation_obtained) {
+        progression.foundation_obtained = true;
+      } else if (!progression.specialization_obtained) {
+        progression.specialization_obtained = true;
+      } else if (!progression.mastery_obtained) {
+        progression.mastery_obtained = true;
+      }
+
+      updatedCharacter.subclass_progression = progression;
+    }
+
     // Build database update payload with complete advancement record
     const advancementRecord: AdvancementRecord = {
       advancements: options.selectedAdvancements,
@@ -1087,11 +1126,18 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       proficiency: updatedCharacter.proficiency,
       evasion: updatedCharacter.evasion,
       experiences: updatedCharacter.experiences,
+      subclass_progression: updatedCharacter.subclass_progression,
       advancement_history_jsonb: {
         ...updatedCharacter.advancement_history_jsonb || {},
         [options.newLevel]: advancementRecord,
       },
     };
+
+    // Add multiclass data if selected
+    if (updatedCharacter.multiclass_id) {
+      updatePayload.multiclass_id = updatedCharacter.multiclass_id;
+      updatePayload.domains = updatedCharacter.domains;
+    }
 
     // Clear marked traits if applicable
     if (tierAchievements.shouldClearMarkedTraits) {
@@ -1114,6 +1160,33 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       async () => supabase.from('characters').update(updatePayload).eq('id', characterId),
       'Failed to apply level up'
     );
+
+    // Handle domain card exchange if selected
+    if (options.exchangeExistingCardId) {
+      try {
+        // Delete the old card
+        const { error: deleteError } = await supabase
+          .from('character_cards')
+          .delete()
+          .eq('id', options.exchangeExistingCardId);
+
+        if (deleteError) {
+          console.error('Failed to delete exchanged card:', deleteError);
+        } else {
+          // Remove from local state
+          set((s) => ({
+            character: s.character ? {
+              ...s.character,
+              character_cards: (s.character.character_cards || []).filter(
+                c => c.id !== options.exchangeExistingCardId
+              )
+            } : null
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to exchange domain card:', err);
+      }
+    }
 
     // After successful level up, add the selected domain card to vault
     if (options.selectedDomainCardId) {
