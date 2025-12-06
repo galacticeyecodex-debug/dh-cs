@@ -941,4 +941,61 @@ describe('Character Store - Complex Scenarios', () => {
     updatedChar = useCharacterStore.getState().character!;
     expect(updatedChar.vitals).toBeDefined();
   });
+
+  describe('updateMarkedTraits', () => {
+    it('should update marked traits successfully', async () => {
+      const state = useCharacterStore.getState();
+      const markedTraits = { agility: true, strength: true };
+
+      await state.updateMarkedTraits(markedTraits);
+
+      const updatedChar = useCharacterStore.getState().character!;
+      expect(updatedChar.marked_traits_jsonb).toEqual(markedTraits);
+    });
+
+    it('should handle empty marked traits', async () => {
+      const state = useCharacterStore.getState();
+
+      await state.updateMarkedTraits({});
+
+      const updatedChar = useCharacterStore.getState().character!;
+      expect(updatedChar.marked_traits_jsonb).toEqual({});
+    });
+
+    it('should allow clearing specific traits', async () => {
+      const state = useCharacterStore.getState();
+
+      // First mark some traits
+      await state.updateMarkedTraits({ agility: true, strength: true });
+
+      // Then clear one
+      await state.updateMarkedTraits({ strength: true });
+
+      const updatedChar = useCharacterStore.getState().character!;
+      expect(updatedChar.marked_traits_jsonb).toEqual({ strength: true });
+    });
+
+    it('should rollback on database error', async () => {
+      const state = useCharacterStore.getState();
+      const originalMarked = { agility: true };
+
+      // Set initial state
+      state.setCharacter({
+        ...state.character!,
+        marked_traits_jsonb: originalMarked
+      });
+
+      // Mock DB error
+      mockSupabase.from = vi.fn(() => ({
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ error: new Error('DB Error') })
+      }));
+
+      await state.updateMarkedTraits({ strength: true });
+
+      // Should rollback to original
+      const updatedChar = useCharacterStore.getState().character!;
+      expect(updatedChar.marked_traits_jsonb).toEqual(originalMarked);
+    });
+  });
 });
