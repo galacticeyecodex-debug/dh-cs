@@ -378,15 +378,13 @@ export default function CharacterView() {
                                     />
                                     <button
                                       onClick={toggleMark}
-                                      className={`absolute top-1 left-1 w-5 h-5 rounded-full border-2 flex items-center justify-center text-xs transition-all ${
+                                      className={`absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full transition-all ${
                                         isMarked
-                                          ? 'bg-red-500/80 border-red-400 text-white'
-                                          : 'bg-black/40 border-gray-600 text-gray-500 hover:border-gray-400'
+                                          ? 'bg-dagger-gold'
+                                          : 'bg-transparent hover:bg-white/10'
                                       }`}
                                       title={isMarked ? 'Trait is marked (cannot be increased until tier clear)' : 'Mark trait as used'}
-                                    >
-                                      {isMarked ? '✕' : '○'}
-                                    </button>
+                                    />
                                   </div>
                                 );
                               })}
