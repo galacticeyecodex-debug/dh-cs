@@ -5,6 +5,7 @@ import {
   createNewExperience,
   addExperienceAtLevelUp,
   calculateNewDamageThresholds,
+  calculateDamageThresholdsForLevel,
   getAdvancementsForTier,
   isAdvancementAvailable,
   getAdvancementSlotCost,
@@ -154,6 +155,134 @@ describe('calculateNewDamageThresholds', () => {
     expect(result.minor).toBe(2);
     expect(result.major).toBe(2);
     expect(result.severe).toBe(3);
+  });
+});
+
+describe('calculateDamageThresholdsForLevel', () => {
+  describe('unarmored characters', () => {
+    it('should use SRD unarmored rules at level 1', () => {
+      const result = calculateDamageThresholdsForLevel(1, null);
+      expect(result.minor).toBe(1);
+      expect(result.major).toBe(1);
+      expect(result.severe).toBe(2);
+    });
+
+    it('should use SRD unarmored rules at level 5', () => {
+      const result = calculateDamageThresholdsForLevel(5, null);
+      expect(result.minor).toBe(1);
+      expect(result.major).toBe(5);
+      expect(result.severe).toBe(10);
+    });
+
+    it('should use SRD unarmored rules at level 10', () => {
+      const result = calculateDamageThresholdsForLevel(10, null);
+      expect(result.minor).toBe(1);
+      expect(result.major).toBe(10);
+      expect(result.severe).toBe(20);
+    });
+
+    it('should handle undefined armor', () => {
+      const result = calculateDamageThresholdsForLevel(3, undefined);
+      expect(result.minor).toBe(1);
+      expect(result.major).toBe(3);
+      expect(result.severe).toBe(6);
+    });
+  });
+
+  describe('armored characters', () => {
+    it('should add base thresholds to level (light armor 3/5)', () => {
+      const equippedArmor = {
+        library_item: {
+          data: {
+            base_thresholds: '3/5',
+          },
+        },
+      };
+      const result = calculateDamageThresholdsForLevel(2, equippedArmor);
+      expect(result.minor).toBe(1);
+      expect(result.major).toBe(5); // 3 + 2
+      expect(result.severe).toBe(7); // 5 + 2
+    });
+
+    it('should add base thresholds to level (heavy armor 5/8)', () => {
+      const equippedArmor = {
+        library_item: {
+          data: {
+            base_thresholds: '5/8',
+          },
+        },
+      };
+      const result = calculateDamageThresholdsForLevel(6, equippedArmor);
+      expect(result.minor).toBe(1);
+      expect(result.major).toBe(11); // 5 + 6
+      expect(result.severe).toBe(14); // 8 + 6
+    });
+
+    it('should handle armor with whitespace in thresholds', () => {
+      const equippedArmor = {
+        library_item: {
+          data: {
+            base_thresholds: ' 4 / 7 ',
+          },
+        },
+      };
+      const result = calculateDamageThresholdsForLevel(3, equippedArmor);
+      expect(result.minor).toBe(1);
+      expect(result.major).toBe(7); // 4 + 3
+      expect(result.severe).toBe(10); // 7 + 3
+    });
+  });
+
+  describe('edge cases', () => {
+    it('should fall back to unarmored if armor data is missing', () => {
+      const equippedArmor = {
+        library_item: {
+          data: {},
+        },
+      };
+      const result = calculateDamageThresholdsForLevel(4, equippedArmor);
+      expect(result.minor).toBe(1);
+      expect(result.major).toBe(4);
+      expect(result.severe).toBe(8);
+    });
+
+    it('should fall back to unarmored if thresholds are malformed', () => {
+      const equippedArmor = {
+        library_item: {
+          data: {
+            base_thresholds: 'invalid',
+          },
+        },
+      };
+      const result = calculateDamageThresholdsForLevel(5, equippedArmor);
+      expect(result.minor).toBe(1);
+      expect(result.major).toBe(5);
+      expect(result.severe).toBe(10);
+    });
+
+    it('should fall back to unarmored if thresholds are not numbers', () => {
+      const equippedArmor = {
+        library_item: {
+          data: {
+            base_thresholds: 'abc/def',
+          },
+        },
+      };
+      const result = calculateDamageThresholdsForLevel(7, equippedArmor);
+      expect(result.minor).toBe(1);
+      expect(result.major).toBe(7);
+      expect(result.severe).toBe(14);
+    });
+
+    it('should handle armor without library_item data', () => {
+      const equippedArmor = {
+        library_item: undefined,
+      };
+      const result = calculateDamageThresholdsForLevel(2, equippedArmor);
+      expect(result.minor).toBe(1);
+      expect(result.major).toBe(2);
+      expect(result.severe).toBe(4);
+    });
   });
 });
 

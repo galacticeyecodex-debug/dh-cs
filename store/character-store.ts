@@ -45,6 +45,7 @@ export interface Character {
   community?: string;
   class_id?: string;
   subclass_id?: string;
+  multiclass_id?: string;
   domains?: string[];
   stats: {
     agility: number;
@@ -169,6 +170,7 @@ interface CharacterState {
     ancestry?: string;
     community?: string;
   }) => Promise<void>;
+  updateMarkedTraits: (markedTraits: Record<string, boolean>) => Promise<void>;
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({
@@ -1250,13 +1252,10 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         delete advancement_history[String(level)];
       }
 
-      // Recalculate damage thresholds
-      const { calculateNewDamageThresholds } = await import('@/lib/level-up-helpers');
-      character.damage_thresholds = {
-        minor: newLevel,
-        major: newLevel + 2,
-        severe: newLevel + 4,
-      };
+      // Recalculate damage thresholds based on equipped armor
+      const { calculateDamageThresholdsForLevel } = await import('@/lib/level-up-helpers');
+      const equippedArmor = character.character_inventory?.find(i => i.location === 'equipped_armor');
+      character.damage_thresholds = calculateDamageThresholdsForLevel(newLevel, equippedArmor);
 
       // Clear marked traits if de-leveling past a clearing tier (5, 8)
       let marked_traits = { ...state.character.marked_traits_jsonb || {} };
@@ -1294,5 +1293,28 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     if (updates.level !== undefined) {
       await get().recalculateDerivedStats();
     }
+  },
+
+  updateMarkedTraits: async (markedTraits) => {
+    const state = get();
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const previousMarkedTraits = { ...get().character!.marked_traits_jsonb };
+        set((s) => ({
+          character: s.character ? { ...s.character, marked_traits_jsonb: markedTraits } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? { ...s.character, marked_traits_jsonb: previousMarkedTraits } : null,
+          }));
+        };
+      },
+      async () => createClient().from('characters').update({ marked_traits_jsonb: markedTraits }).eq('id', characterId),
+      'Failed to update marked traits'
+    );
   },
 }));
