@@ -1,76 +1,70 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, AlertCircle, Settings, Plus, Minus } from 'lucide-react';
+import { X, AlertCircle, Settings, Plus, Minus, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import createClient from '@/lib/supabase/client';
 
 interface ManageCharacterModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentLevel: number;
+  currentName: string;
   currentAncestry?: string;
   currentCommunity?: string;
   advancementHistory?: Record<string, any>;
   onUpdate?: (updates: {
+    name?: string;
     level?: number;
     ancestry?: string;
     community?: string;
   }) => Promise<void>;
   isLoading?: boolean;
+  onLevelUp?: () => void;
 }
 
-const ANCESTRIES = [
-  'Aarakocra',
-  'Bugbear',
-  'Dragonborn',
-  'Dwarf',
-  'Elf',
-  'Fairy',
-  'Goliath',
-  'Half-Orc',
-  'Halfling',
-  'Human',
-  'Kenku',
-  'Orc',
-  'Tabaxi',
-  'Tiefling',
-];
-
-const COMMUNITIES = [
-  'Caravan Folk',
-  'City-Dweller',
-  'Diasporic Refugee',
-  'Island Shipfolk',
-  'Outland Exile',
-  'Shire-Folk',
-  'Sunken Depths',
-  'Temple Bound',
-  'Underground Dweller',
-  'Wandering Merchant',
-  'Wild Folk',
-  'Woodland Warden',
-];
 
 export default function ManageCharacterModal({
   isOpen,
   onClose,
   currentLevel,
+  currentName,
   currentAncestry = '',
   currentCommunity = '',
   advancementHistory = {},
   onUpdate,
   isLoading = false,
+  onLevelUp,
 }: ManageCharacterModalProps) {
+  const [name, setName] = useState<string>(currentName);
   const [level, setLevel] = useState<number>(currentLevel);
   const [ancestry, setAncestry] = useState<string>(currentAncestry);
   const [community, setCommunity] = useState<string>(currentCommunity);
   const [error, setError] = useState<string>('');
   const [confirmDeLevelOpen, setConfirmDeLevelOpen] = useState(false);
 
+  // Dynamic lists
+  const [availableAncestries, setAvailableAncestries] = useState<{name: string}[]>([]);
+  const [availableCommunities, setAvailableCommunities] = useState<{name: string}[]>([]);
+
+  // Fetch dynamic options on mount
+  React.useEffect(() => {
+    const fetchOptions = async () => {
+      const supabase = createClient();
+      const { data: ancestries } = await supabase.from('library').select('name').eq('type', 'ancestry');
+      const { data: communities } = await supabase.from('library').select('name').eq('type', 'community');
+
+      if (ancestries) setAvailableAncestries(ancestries);
+      if (communities) setAvailableCommunities(communities);
+    };
+
+    if (isOpen) fetchOptions();
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const isDeLeveling = level < currentLevel;
-  const hasChanges = level !== currentLevel || ancestry !== currentAncestry || community !== currentCommunity;
+  const hasChanges = name !== currentName || level !== currentLevel || ancestry !== currentAncestry || community !== currentCommunity;
 
   const getLeveledUpString = () => {
     const levels = Object.keys(advancementHistory)
@@ -86,6 +80,11 @@ export default function ManageCharacterModal({
 
     if (level < 1 || level > currentLevel) {
       setError('Level can only be reduced');
+      return;
+    }
+
+    if (!name.trim()) {
+      setError('Character name is required');
       return;
     }
 
@@ -106,6 +105,7 @@ export default function ManageCharacterModal({
     if (onUpdate) {
       try {
         await onUpdate({
+          name: name !== currentName ? name : undefined,
           level: level !== currentLevel ? level : undefined,
           ancestry: ancestry !== currentAncestry ? ancestry : undefined,
           community: community !== currentCommunity ? community : undefined,
@@ -248,10 +248,24 @@ export default function ManageCharacterModal({
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+          {/* Name */}
+          <div>
+            <label className="block text-sm font-bold text-gray-300 mb-2">
+              Character Name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
+              placeholder="Enter character name"
+            />
+          </div>
+
           {/* Level */}
           <div>
             <label className="block text-sm font-bold text-gray-300 mb-2">
-              Level <span className="text-gray-500">(reduce only)</span>
+              Level <span className="text-gray-500">(reduce or level up)</span>
             </label>
             <div className="flex items-center gap-3">
               <button
@@ -265,11 +279,20 @@ export default function ManageCharacterModal({
                 <span className="text-2xl font-bold text-dagger-gold">{level}</span>
               </div>
               <button
-                onClick={() => level < currentLevel && setLevel(level + 1)}
-                disabled={level >= currentLevel}
-                className="px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-gray-300 hover:text-white hover:border-dagger-gold/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                onClick={() => {
+                  if (level < currentLevel) {
+                    setLevel(level + 1);
+                  } else if (onLevelUp) {
+                    onLevelUp();
+                  }
+                }}
+                className={
+                  level >= currentLevel
+                    ? "px-3 py-2 rounded-lg bg-dagger-gold text-black hover:bg-dagger-gold/90 transition-colors shadow-[0_0_10px_rgba(251,191,36,0.3)]"
+                    : "px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-gray-300 hover:text-white hover:border-dagger-gold/50 transition-colors"
+                }
               >
-                <Plus size={20} />
+                {level >= currentLevel ? <Zap size={20} className="fill-black" /> : <Plus size={20} />}
               </button>
             </div>
             {isDeLeveling && (
@@ -290,9 +313,9 @@ export default function ManageCharacterModal({
               className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
             >
               <option value="">Select an ancestry...</option>
-              {ANCESTRIES.map((anc) => (
-                <option key={anc} value={anc}>
-                  {anc}
+              {availableAncestries.map((anc) => (
+                <option key={anc.name} value={anc.name}>
+                  {anc.name}
                 </option>
               ))}
             </select>
@@ -309,9 +332,9 @@ export default function ManageCharacterModal({
               className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
             >
               <option value="">Select a community...</option>
-              {COMMUNITIES.map((com) => (
-                <option key={com} value={com}>
-                  {com}
+              {availableCommunities.map((com) => (
+                <option key={com.name} value={com.name}>
+                  {com.name}
                 </option>
               ))}
             </select>

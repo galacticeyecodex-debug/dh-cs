@@ -22,7 +22,7 @@ import {
 
 describe('calculateArmorScore', () => {
   it('should return 0 for unarmored character', () => {
-    const score = calculateArmorScore(null, [], []);
+    const score = calculateArmorScore([], [], []);
     expect(score).toBe(0);
   });
 
@@ -32,7 +32,7 @@ describe('calculateArmorScore', () => {
         data: { base_score: '5' },
       },
     };
-    const score = calculateArmorScore(armor, [], []);
+    const score = calculateArmorScore([armor], [], []);
     expect(score).toBe(5);
   });
 
@@ -46,7 +46,7 @@ describe('calculateArmorScore', () => {
       { id: '1', name: 'Enchantment', value: 1, source: 'system' },
       { id: '2', name: 'Blessing', value: 2, source: 'system' },
     ];
-    const score = calculateArmorScore(armor, systemMods, []);
+    const score = calculateArmorScore([armor], systemMods, []);
     expect(score).toBe(7); // 4 + 1 + 2
   });
 
@@ -59,7 +59,7 @@ describe('calculateArmorScore', () => {
     const userMods: Modifier[] = [
       { id: '1', name: 'Manual Buff', value: 2, source: 'user' },
     ];
-    const score = calculateArmorScore(armor, [], userMods);
+    const score = calculateArmorScore([armor], [], userMods);
     expect(score).toBe(5); // 3 + 2
   });
 
@@ -75,7 +75,7 @@ describe('calculateArmorScore', () => {
     const userMods: Modifier[] = [
       { id: '2', name: 'Manual Buff', value: 1, source: 'user' },
     ];
-    const score = calculateArmorScore(armor, systemMods, userMods);
+    const score = calculateArmorScore([armor], systemMods, userMods);
     expect(score).toBe(6); // 2 + 3 + 1
   });
 
@@ -92,7 +92,7 @@ describe('calculateArmorScore', () => {
     const userMods: Modifier[] = [
       { id: '3', name: 'Bonus 3', value: 2, source: 'user' },
     ];
-    const score = calculateArmorScore(armor, systemMods, userMods);
+    const score = calculateArmorScore([armor], systemMods, userMods);
     // Would be 8 + 2 + 3 + 2 = 15, but capped at 12
     expect(score).toBe(12);
   });
@@ -106,7 +106,7 @@ describe('calculateArmorScore', () => {
     const systemMods: Modifier[] = [
       { id: '1', name: 'Penalty', value: -2, source: 'system' },
     ];
-    const score = calculateArmorScore(armor, systemMods, []);
+    const score = calculateArmorScore([armor], systemMods, []);
     expect(score).toBe(3); // 5 - 2
   });
 
@@ -116,7 +116,7 @@ describe('calculateArmorScore', () => {
         data: { /* no base_score */ },
       },
     };
-    const score = calculateArmorScore(armor, [], []);
+    const score = calculateArmorScore([armor], [], []);
     expect(score).toBe(0);
   });
 
@@ -126,7 +126,7 @@ describe('calculateArmorScore', () => {
         data: { base_score: 'invalid' },
       },
     };
-    const score = calculateArmorScore(armor, [], []);
+    const score = calculateArmorScore([armor], [], []);
     expect(score).toBe(0); // NaN becomes 0
   });
 });
@@ -137,14 +137,14 @@ describe('calculateArmorScore', () => {
 
 describe('calculateDamageThresholds', () => {
   it('should calculate default thresholds for unarmored character', () => {
-    const thresholds = calculateDamageThresholds(5, null, []);
+    const thresholds = calculateDamageThresholds(5, [], []);
     expect(thresholds.minor).toBe(1);
     expect(thresholds.major).toBe(5); // level
     expect(thresholds.severe).toBe(10); // level * 2
   });
 
   it('should scale thresholds with character level', () => {
-    const thresholds = calculateDamageThresholds(3, null, []);
+    const thresholds = calculateDamageThresholds(3, [], []);
     expect(thresholds.minor).toBe(1);
     expect(thresholds.major).toBe(3);
     expect(thresholds.severe).toBe(6);
@@ -156,7 +156,7 @@ describe('calculateDamageThresholds', () => {
         data: { base_thresholds: '2/4' }, // major_base=2, severe_base=4
       },
     };
-    const thresholds = calculateDamageThresholds(3, armor, []);
+    const thresholds = calculateDamageThresholds(3, [armor], []);
     expect(thresholds.minor).toBe(1);
     expect(thresholds.major).toBe(5); // 2 + 3
     expect(thresholds.severe).toBe(7); // 4 + 3
@@ -166,7 +166,7 @@ describe('calculateDamageThresholds', () => {
     const mods: Modifier[] = [
       { id: '1', name: 'Bonus', value: 1, source: 'system' },
     ];
-    const thresholds = calculateDamageThresholds(4, null, mods);
+    const thresholds = calculateDamageThresholds(4, [], mods);
     expect(thresholds.major).toBe(5); // 4 + 1
     expect(thresholds.severe).toBe(9); // 8 + 1
   });
@@ -180,7 +180,7 @@ describe('calculateDamageThresholds', () => {
     const mods: Modifier[] = [
       { id: '1', name: 'Bonus', value: 2, source: 'system' },
     ];
-    const thresholds = calculateDamageThresholds(2, armor, mods);
+    const thresholds = calculateDamageThresholds(2, [armor], mods);
     expect(thresholds.major).toBe(7); // 3 + 2 + 2
     expect(thresholds.severe).toBe(9); // 5 + 2 + 2
   });
@@ -191,7 +191,7 @@ describe('calculateDamageThresholds', () => {
         data: { base_thresholds: 'invalid' },
       },
     };
-    const thresholds = calculateDamageThresholds(4, armor, []);
+    const thresholds = calculateDamageThresholds(4, [armor], []);
     // Falls back to defaults
     expect(thresholds.major).toBe(4);
     expect(thresholds.severe).toBe(8);
@@ -203,7 +203,7 @@ describe('calculateDamageThresholds', () => {
         data: { base_thresholds: '2' }, // Only one value
       },
     };
-    const thresholds = calculateDamageThresholds(3, armor, []);
+    const thresholds = calculateDamageThresholds(3, [armor], []);
     // Falls back to defaults
     expect(thresholds.major).toBe(3);
     expect(thresholds.severe).toBe(6);
@@ -213,7 +213,7 @@ describe('calculateDamageThresholds', () => {
     const mods: Modifier[] = [
       { id: '1', name: 'Weakness', value: -1, source: 'system' },
     ];
-    const thresholds = calculateDamageThresholds(5, null, mods);
+    const thresholds = calculateDamageThresholds(5, [], mods);
     expect(thresholds.major).toBe(4); // 5 - 1
     expect(thresholds.severe).toBe(9); // 10 - 1
   });
