@@ -84,7 +84,7 @@ export default function CharacterView() {
           id: lib.id,
           name: lib.name,
           domain: lib.domain,
-          type: lib.data?.type || '',
+          type: lib.type || lib.data?.type || '', // Fallback to data.type if row type is empty, but prefer row type
           data: lib.data || {},
         }));
 
