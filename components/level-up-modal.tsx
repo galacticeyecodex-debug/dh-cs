@@ -8,17 +8,16 @@ import { validateNewLevel, validateAdvancementSelections } from '@/lib/level-up-
 import { getCardLevel, getCardDescription, getCardType, isCardInDomain, isCardAvailableAtLevel } from '@/lib/card-helpers';
 import MulticlassSelection from './level-up-substeps/multiclass-selection';
 import DomainExchange from './level-up-substeps/domain-exchange';
+import TraitSelection from './level-up-substeps/trait-selection';
+import ExperienceSelection from './level-up-substeps/experience-selection';
+import VitalSlotSelection from './level-up-substeps/vital-slot-selection';
+import { Character } from '@/store/character-store';
 
 interface LevelUpModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentLevel: number;
-  currentDamageThresholds?: { minor: number; major: number; severe: number };
-  characterDomains?: string[];
-  characterClassId?: string;
-  characterCards?: any[];
-  multiclassId?: string;
-  domainCards?: any[]; // Library cards (abilities, spells, grimoires)
+  character: Character; // Full character object needed for sub-steps
+  domainCards?: any[]; // Library cards
   onComplete?: (options: {
     newLevel: number;
     selectedAdvancements: string[];
@@ -26,6 +25,10 @@ interface LevelUpModalProps {
     multiclassId?: string;
     multiclassDomain?: string;
     exchangeExistingCardId?: string;
+    traitIncrements?: { trait: string; amount: number }[];
+    experienceIncrements?: { experienceId: string; amount: number }[];
+    hpSlotsAdded?: number;
+    stressSlotsAdded?: number;
   }) => Promise<void>;
   isLoading?: boolean;
 }
@@ -45,33 +48,37 @@ const ADVANCEMENT_OPTIONS = [
 export default function LevelUpModal({
   isOpen,
   onClose,
-  currentLevel,
-  currentDamageThresholds = { minor: 1, major: 2, severe: 3 },
-  characterDomains = [],
-  characterClassId,
-  characterCards = [],
-  multiclassId,
+  character,
   domainCards = [],
   onComplete,
   isLoading = false,
 }: LevelUpModalProps) {
+  const currentLevel = character.level;
   const newLevel = currentLevel + 1;
   const [step, setStep] = useState(1);
+  
+  // Selection State
   const [selectedAdvancements, setSelectedAdvancements] = useState<string[]>([]);
   const [selectedDomainCard, setSelectedDomainCard] = useState<string>('');
   const [selectedMulticlass, setSelectedMulticlass] = useState<string>('');
   const [selectedMulticlassDomain, setSelectedMulticlassDomain] = useState<string>('');
   const [exchangeExistingCardId, setExchangeExistingCardId] = useState<string | null>(null);
+  
+  // Configuration State (Sub-steps)
+  const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
+  const [selectedExperienceIndices, setSelectedExperienceIndices] = useState<number[]>([]);
+  const [hpSlotsAdded, setHpSlotsAdded] = useState(1);
+  const [stressSlotsAdded, setStressSlotsAdded] = useState(1);
+
   const [error, setError] = useState<string>('');
 
   if (!isOpen) return null;
 
   const tierAchievements = calculateTierAchievements(newLevel);
-  const newThresholds = calculateNewDamageThresholds(currentDamageThresholds);
-  const currentTier = getTier(newLevel);
+  const newThresholds = calculateNewDamageThresholds(character.damage_thresholds);
 
   // Determine all available domains (primary + multiclass)
-  const allDomains = [...characterDomains];
+  const allDomains = [...(character.domains || [])];
   if (selectedAdvancements.includes('multiclass') && selectedMulticlassDomain) {
     allDomains.push(selectedMulticlassDomain);
   }
@@ -86,6 +93,29 @@ export default function LevelUpModal({
     const advancement = ADVANCEMENT_OPTIONS.find(a => a.id === id);
     return sum + (advancement?.cost || 0);
   }, 0);
+
+  // Check for Tier-based restrictions (Subclass vs Multiclass)
+  // Iterate through previous levels in the same tier to see if restricted options were taken
+  let takenSubclassInTier = false;
+  let takenMulticlassInTier = false;
+
+  if (character.advancement_history_jsonb) {
+    for (let l = 1; l < newLevel; l++) {
+      // Only check levels within the *new* tier (or current tier if leveling within it)
+      if (getTier(l) === getTier(newLevel)) {
+        const record = character.advancement_history_jsonb[l.toString()];
+        if (record?.advancements) {
+          if (record.advancements.includes('subclass_card')) takenSubclassInTier = true;
+          if (record.advancements.includes('multiclass')) takenMulticlassInTier = true;
+        }
+      }
+    }
+  }
+
+  // Determine if configuration step is needed
+  const needsConfiguration = selectedAdvancements.some(id => 
+    ['increase_traits', 'increase_experience'].includes(id)
+  );
 
   const canProceed = () => {
     // Step 1: Display only (tier achievements) - always allow next
@@ -104,16 +134,30 @@ export default function LevelUpModal({
       return true;
     }
 
-    // Step 3: Display only (new damage thresholds) - always allow next
-    if (step === 3) return true;
+    // Step 3: Configuration (if needed)
+    if (step === 3 && needsConfiguration) {
+      if (selectedAdvancements.includes('increase_traits')) {
+        if (selectedTraits.length !== 2) return false;
+      }
+      if (selectedAdvancements.includes('increase_experience')) {
+        if (selectedExperienceIndices.length !== 2) return false;
+      }
+      return true;
+    }
 
-    // Step 4: Domain card selection
-    if (step === 4) {
+    // Step 4: Display only (new damage thresholds) - always allow next
+    // (Adjusted logic: if no config needed, this is step 3)
+    const thresholdStep = needsConfiguration ? 4 : 3;
+    if (step === thresholdStep) return true;
+
+    // Step 5: Domain card selection
+    const domainStep = needsConfiguration ? 5 : 4;
+    if (step === domainStep) {
       // Check if any valid cards are available for selection
       const validCards = availableDomainCards.filter(
         card => isCardAvailableAtLevel(card, newLevel)
       );
-      // If no cards available, allow skip (user can proceed without selecting)
+      // If no cards available, allow skip
       if (validCards.length === 0) return true;
       // If cards available, require a selection
       return selectedDomainCard !== '';
@@ -133,12 +177,24 @@ export default function LevelUpModal({
       }
     }
 
-    // Step 4: Validate domain card selection (if applicable)
-    if (step === 4) {
+    // Step 3: Validate configuration
+    if (step === 3 && needsConfiguration) {
+      if (selectedAdvancements.includes('increase_traits') && selectedTraits.length !== 2) {
+        setError('Please select exactly 2 traits to increase.');
+        return;
+      }
+      if (selectedAdvancements.includes('increase_experience') && selectedExperienceIndices.length !== 2) {
+        setError('Please select exactly 2 experiences to increase.');
+        return;
+      }
+    }
+
+    // Step 5 (or 4): Validate domain card selection
+    const domainStep = needsConfiguration ? 5 : 4;
+    if (step === domainStep) {
       const validCards = availableDomainCards.filter(
         card => isCardAvailableAtLevel(card, newLevel)
       );
-      // Only require selection if valid cards are available
       if (validCards.length > 0 && !selectedDomainCard) {
         setError('You must select a domain card');
         return;
@@ -146,7 +202,10 @@ export default function LevelUpModal({
     }
 
     // Proceed to next step
-    if (step < 4) {
+    // Skip configuration step if not needed
+    if (step === 2 && !needsConfiguration) {
+      setStep(4); // Skip to thresholds (mapped to logical step 3 in UI, but state 4 here? No, let's keep state linear)
+    } else if (step < (needsConfiguration ? 5 : 4)) {
       setStep(step + 1);
     }
   };
@@ -154,25 +213,23 @@ export default function LevelUpModal({
   const handleBack = () => {
     setError('');
     if (step > 1) {
-      setStep(step - 1);
+      if (step === 4 && !needsConfiguration) {
+        setStep(2);
+      } else {
+        setStep(step - 1);
+      }
     }
   };
 
   const handleComplete = async () => {
     setError('');
-
-    // Validate domain card selection (if applicable)
-    const validCards = availableDomainCards.filter(
-      card => isCardAvailableAtLevel(card, newLevel)
-    );
-    // Only require selection if valid cards are available
-    if (validCards.length > 0 && !selectedDomainCard) {
-      setError('You must select a domain card');
-      return;
-    }
-
+    
     if (onComplete) {
       try {
+        // Prepare data
+        const traitIncrements = selectedTraits.map(trait => ({ trait, amount: 1 }));
+        const experienceIncrements = selectedExperienceIndices.map(idx => ({ experienceId: idx.toString(), amount: 1 }));
+
         await onComplete({
           newLevel,
           selectedAdvancements,
@@ -180,6 +237,10 @@ export default function LevelUpModal({
           multiclassId: selectedMulticlass || undefined,
           multiclassDomain: selectedMulticlassDomain || undefined,
           exchangeExistingCardId: exchangeExistingCardId || undefined,
+          traitIncrements: selectedAdvancements.includes('increase_traits') ? traitIncrements : [],
+          experienceIncrements: selectedAdvancements.includes('increase_experience') ? experienceIncrements : [],
+          hpSlotsAdded: selectedAdvancements.includes('add_hp') ? 1 : 0,
+          stressSlotsAdded: selectedAdvancements.includes('add_stress') ? 1 : 0,
         });
         onClose();
       } catch (err) {
@@ -203,15 +264,24 @@ export default function LevelUpModal({
 
         if (currentCost + (advancement?.cost || 0) <= 2) {
           newSelected.push(advancementId);
+          // Reset configuration for this new addition if needed
+           if (advancementId === 'add_hp') setHpSlotsAdded(1);
+           if (advancementId === 'add_stress') setStressSlotsAdded(1);
         }
       } else {
         // Removing
         newSelected.splice(index, 1);
+        // Clear configuration
+        if (advancementId === 'increase_traits') setSelectedTraits([]);
+        if (advancementId === 'increase_experience') setSelectedExperienceIndices([]);
       }
 
       return newSelected;
     });
   };
+
+  // Determine step label/count for UI
+  const maxSteps = needsConfiguration ? 5 : 4;
 
   return (
     <AnimatePresence>
@@ -255,16 +325,27 @@ export default function LevelUpModal({
 
             {/* Progress Indicator */}
             <div className="px-6 py-3 flex items-center justify-center gap-2 border-b border-white/10">
-              {[1, 2, 3, 4].map((s) => (
-                <div key={s} className="flex items-center gap-2">
-                  <div
-                    className={`w-3 h-3 rounded-full transition-all ${
-                      s <= step ? 'bg-dagger-gold w-4' : 'bg-gray-600'
-                    }`}
-                  />
-                  {s < 4 && <div className={`w-6 h-0.5 ${s < step ? 'bg-dagger-gold' : 'bg-gray-600'}`} />}
-                </div>
-              ))}
+              {Array.from({ length: maxSteps }, (_, i) => i + 1).map((s) => {
+                 // Map UI step `s` to internal `step`
+                 // If needsConfig: 1, 2, 3, 4, 5. 
+                 // If !needsConfig: 1, 2, 3(mapped to 4), 4(mapped to 5).
+                 let internalStepForS = s;
+                 if (!needsConfiguration && s > 2) internalStepForS = s + 1;
+
+                 const isActive = internalStepForS === step;
+                 const isPast = internalStepForS < step;
+
+                 return (
+                    <div key={s} className="flex items-center gap-2">
+                      <div
+                        className={`w-3 h-3 rounded-full transition-all ${
+                          isActive || isPast ? 'bg-dagger-gold w-4' : 'bg-gray-600'
+                        }`}
+                      />
+                      {s < maxSteps && <div className={`w-6 h-0.5 ${isPast ? 'bg-dagger-gold' : 'bg-gray-600'}`} />}
+                    </div>
+                 );
+              })}
             </div>
 
         {/* Content */}
@@ -314,9 +395,25 @@ export default function LevelUpModal({
                   const meetsLevelRequirement = !advancement.minLevel || newLevel >= advancement.minLevel;
 
                   // Multiclass can only be taken once
-                  const isAlreadyTaken = advancement.id === 'multiclass' && multiclassId;
+                  // AND cannot be taken if Subclass Upgrade was taken in this tier
+                  let isBlockedByTier = false;
+                  
+                  if (advancement.id === 'multiclass' && takenSubclassInTier) {
+                     isBlockedByTier = true;
+                  }
+                  
+                  if (advancement.id === 'subclass_card' && (takenMulticlassInTier || selectedAdvancements.includes('multiclass'))) {
+                     isBlockedByTier = true;
+                  }
+                  
+                  if (advancement.id === 'multiclass' && selectedAdvancements.includes('subclass_card')) {
+                     isBlockedByTier = true;
+                  }
 
-                  const canSelect = !isSelected && totalSlots + advancement.cost <= 2 && meetsLevelRequirement && !isAlreadyTaken;
+                  // Multiclass can only be taken once
+                  const isAlreadyTaken = advancement.id === 'multiclass' && character.multiclass_id;
+
+                  const canSelect = !isSelected && totalSlots + advancement.cost <= 2 && meetsLevelRequirement && !isAlreadyTaken && !isBlockedByTier;
 
                   return (
                     <button
@@ -336,6 +433,7 @@ export default function LevelUpModal({
                           <p className="font-bold text-white">
                             {advancement.name}
                             {isAlreadyTaken && <span className="text-xs text-gray-500 ml-2">(Already Taken)</span>}
+                            {isBlockedByTier && !isAlreadyTaken && <span className="text-xs text-gray-500 ml-2">(Locked this Tier)</span>}
                             {!meetsLevelRequirement && <span className="text-xs text-gray-500 ml-2">(Level {advancement.minLevel}+)</span>}
                           </p>
                           <p className="text-sm text-gray-400">{advancement.description}</p>
@@ -355,7 +453,7 @@ export default function LevelUpModal({
               {selectedAdvancements.includes('multiclass') && (
                 <div className="mt-6 p-4 bg-black/20 rounded-lg border border-dagger-gold/30">
                   <MulticlassSelection
-                    primaryClassId={characterClassId}
+                    primaryClassId={character.class_id}
                     selectedClass={selectedMulticlass}
                     selectedDomain={selectedMulticlassDomain}
                     onSelectClass={setSelectedMulticlass}
@@ -366,7 +464,28 @@ export default function LevelUpModal({
             </div>
           )}
 
-          {step === 3 && (
+          {step === 3 && needsConfiguration && (
+             <div className="space-y-6">
+                {selectedAdvancements.includes('increase_traits') && (
+                   <TraitSelection 
+                      character={character}
+                      selectedTraits={selectedTraits}
+                      onSelectTraits={setSelectedTraits}
+                      markedTraits={character.marked_traits_jsonb}
+                   />
+                )}
+                
+                {selectedAdvancements.includes('increase_experience') && (
+                   <ExperienceSelection 
+                      experiences={character.experiences || []}
+                      selectedExperienceIndices={selectedExperienceIndices}
+                      onSelectExperiences={setSelectedExperienceIndices}
+                   />
+                )}
+             </div>
+          )}
+
+          {step === 4 && (
             <div>
               <h3 className="text-xl font-bold text-white mb-4">Damage Thresholds</h3>
               <p className="text-gray-300 mb-4">All your damage thresholds increase by +1:</p>
@@ -375,7 +494,7 @@ export default function LevelUpModal({
                   <div className="flex items-center justify-between">
                     <span className="text-gray-300">Minor Threshold</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-400">{currentDamageThresholds.minor}</span>
+                      <span className="text-gray-400">{character.damage_thresholds.minor}</span>
                       <span className="text-dagger-gold">→</span>
                       <span className="text-dagger-gold font-bold">{newThresholds.minor}</span>
                     </div>
@@ -385,7 +504,7 @@ export default function LevelUpModal({
                   <div className="flex items-center justify-between">
                     <span className="text-gray-300">Major Threshold</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-400">{currentDamageThresholds.major}</span>
+                      <span className="text-gray-400">{character.damage_thresholds.major}</span>
                       <span className="text-dagger-gold">→</span>
                       <span className="text-dagger-gold font-bold">{newThresholds.major}</span>
                     </div>
@@ -395,7 +514,7 @@ export default function LevelUpModal({
                   <div className="flex items-center justify-between">
                     <span className="text-gray-300">Severe Threshold</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-400">{currentDamageThresholds.severe}</span>
+                      <span className="text-gray-400">{character.damage_thresholds.severe}</span>
                       <span className="text-dagger-gold">→</span>
                       <span className="text-dagger-gold font-bold">{newThresholds.severe}</span>
                     </div>
@@ -405,11 +524,11 @@ export default function LevelUpModal({
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div>
               <h3 className="text-xl font-bold text-white mb-2">Select Domain Card</h3>
               <p className="text-gray-400 mb-4">Choose a new domain card at level {newLevel} or below:</p>
-              {characterDomains.length === 0 ? (
+              {character.domains?.length === 0 ? (
                 <p className="text-gray-500 text-sm p-4 bg-black/20 rounded-lg">No domains available. Ensure your character has at least one domain.</p>
               ) : (
                 <div className="grid grid-cols-1 gap-2">
@@ -457,7 +576,7 @@ export default function LevelUpModal({
               {selectedDomainCard && (
                 <DomainExchange
                   selectedNewCard={domainCards.find(c => c.id === selectedDomainCard)!}
-                  characterCards={characterCards}
+                  characterCards={character.character_cards || []}
                   onSelectExchangeCard={setExchangeExistingCardId}
                 />
               )}
@@ -481,9 +600,9 @@ export default function LevelUpModal({
                 Back
               </button>
               <span className="text-sm text-gray-400">
-                Step {step} of 4
+                Step {step > 2 && !needsConfiguration ? step - 1 : step} of {maxSteps}
               </span>
-              {step < 4 ? (
+              {step < (needsConfiguration ? 5 : 4) ? (
                 <button
                   onClick={handleNext}
                   disabled={!canProceed() || isLoading}
