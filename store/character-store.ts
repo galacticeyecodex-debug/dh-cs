@@ -1249,10 +1249,10 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // After successful level up, add the selected domain card to vault
     if (options.selectedDomainCardId) {
       try {
-        // First check if the card exists in the library
+        // First check if the card exists in the library and get its data
         const { data: libraryCard } = await supabase
           .from('library')
-          .select('id')
+          .select('*')
           .eq('id', options.selectedDomainCardId)
           .single();
 
@@ -1271,11 +1271,16 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
             .single();
 
           if (!cardError && newCard) {
-            // Update local state to include the new card
+            // Update local state to include the new card WITH library data
+            const cardWithLibrary: CharacterCard = {
+              ...newCard,
+              library_item: libraryCard as LibraryItem,
+            };
+
             set((s) => ({
               character: s.character ? {
                 ...s.character,
-                character_cards: [...(s.character.character_cards || []), newCard as CharacterCard],
+                character_cards: [...(s.character.character_cards || []), cardWithLibrary],
               } : null,
             }));
           }
