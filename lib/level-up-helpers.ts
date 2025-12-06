@@ -102,6 +102,48 @@ export function calculateNewDamageThresholds(
 }
 
 /**
+ * Calculates damage thresholds for a specific level based on equipped armor.
+ *
+ * SRD Rules (Armor.md):
+ * - Unarmored: minor=1, major=level, severe=level*2
+ * - Armored: minor=1, major=baseMajor+level, severe=baseSevere+level
+ *
+ * This is used during de-leveling to recalculate thresholds from scratch.
+ */
+export function calculateDamageThresholdsForLevel(
+  newLevel: number,
+  equippedArmor?: { library_item?: { data?: any } } | null
+): { minor: number; major: number; severe: number } {
+  const minorThreshold = 1;
+  let majorThreshold = newLevel;
+  let severeThreshold = newLevel * 2;
+
+  // Check if character has equipped armor
+  if (equippedArmor?.library_item?.data) {
+    const armorData = equippedArmor.library_item.data;
+
+    // Parse base_thresholds (format: "major/severe")
+    if (armorData.base_thresholds) {
+      const parts = armorData.base_thresholds.split('/');
+      if (parts.length === 2) {
+        const baseMajor = parseInt(parts[0].trim());
+        const baseSevere = parseInt(parts[1].trim());
+        if (!isNaN(baseMajor) && !isNaN(baseSevere)) {
+          majorThreshold = baseMajor + newLevel;
+          severeThreshold = baseSevere + newLevel;
+        }
+      }
+    }
+  }
+
+  return {
+    minor: minorThreshold,
+    major: majorThreshold,
+    severe: severeThreshold,
+  };
+}
+
+/**
  * Gets the available advancements for a given tier.
  *
  * The SRD defines different advancement options based on tier.
@@ -268,4 +310,32 @@ export function getLevelUpConfig(newLevel: number): {
     tierAchievements,
     maxDomainCardLevel,
   };
+}
+
+/**
+ * Gets the two domains for a given class.
+ *
+ * Reference: srd/markdown/contents/Classes.md
+ */
+export function getClassDomains(className: string): string[] {
+  const classDomains: Record<string, string[]> = {
+    'Bard': ['Codex', 'Grace'],
+    'Druid': ['Arcana', 'Sage'],
+    'Guardian': ['Blade', 'Valor'],
+    'Ranger': ['Bone', 'Sage'],
+    'Rogue': ['Grace', 'Midnight'],
+    'Seraph': ['Splendor', 'Valor'],
+    'Sorcerer': ['Arcana', 'Midnight'],
+    'Warrior': ['Blade', 'Bone'],
+    'Wizard': ['Codex', 'Splendor'],
+  };
+
+  return classDomains[className] || [];
+}
+
+/**
+ * Gets all available class names.
+ */
+export function getAllClassNames(): string[] {
+  return ['Bard', 'Druid', 'Guardian', 'Ranger', 'Rogue', 'Seraph', 'Sorcerer', 'Warrior', 'Wizard'];
 }
