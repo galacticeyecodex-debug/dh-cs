@@ -61,6 +61,16 @@ export default function ManageCharacterModal({
     if (isOpen) fetchOptions();
   }, [isOpen]);
 
+  // Sync state with props when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setName(currentName || '');
+      setLevel(currentLevel);
+      setAncestry(currentAncestry || '');
+      setCommunity(currentCommunity || '');
+    }
+  }, [isOpen, currentName, currentLevel, currentAncestry, currentCommunity]);
+
   if (!isOpen) return null;
 
   const isDeLeveling = level < currentLevel;
@@ -83,7 +93,7 @@ export default function ManageCharacterModal({
       return;
     }
 
-    if (!name.trim()) {
+    if (!name || !name.trim()) {
       setError('Character name is required');
       return;
     }
