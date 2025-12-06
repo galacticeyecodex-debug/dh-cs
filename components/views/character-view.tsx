@@ -378,7 +378,7 @@ export default function CharacterView() {
                                     />
                                     <button
                                       onClick={toggleMark}
-                                      className={`absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full transition-all border border-white ${
+                                      className={`absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full transition-all border border-gray-500 ${
                                         isMarked
                                           ? 'bg-dagger-gold'
                                           : 'bg-transparent hover:bg-white/10'
