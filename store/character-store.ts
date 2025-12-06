@@ -154,6 +154,11 @@ interface CharacterState {
     hpSlotsAdded?: number;
     stressSlotsAdded?: number;
   }) => Promise<void>;
+  updateCharacterDetails: (updates: {
+    level?: number;
+    ancestry?: string;
+    community?: string;
+  }) => Promise<void>;
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({
@@ -1091,5 +1096,57 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
 
     // After successful level up, recalculate derived stats
     await get().recalculateDerivedStats();
+  },
+
+  updateCharacterDetails: async (updates) => {
+    const state = get();
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+    const supabase = createClient();
+
+    // Handle de-leveling: remove advancement history for removed levels
+    let updatePayload: Record<string, any> = { ...updates };
+
+    if (updates.level !== undefined && updates.level < state.character.level) {
+      const advancement_history = { ...state.character.advancement_history_jsonb || {} };
+      const currentLevel = state.character.level;
+      const newLevel = updates.level;
+
+      // Remove advancement entries for levels being removed
+      for (let level = newLevel + 1; level <= currentLevel; level++) {
+        delete advancement_history[String(level)];
+      }
+
+      // Clear marked traits if de-leveling past a clearing tier (5, 8)
+      let marked_traits = { ...state.character.marked_traits_jsonb || {} };
+      if (newLevel < 5 && currentLevel >= 5) {
+        marked_traits = {}; // Clear if going back below tier 3
+      }
+
+      updatePayload.advancement_history_jsonb = advancement_history;
+      updatePayload.marked_traits_jsonb = marked_traits;
+    }
+
+    await withOptimisticUpdate(
+      () => {
+        const previousCharacter = { ...get().character! };
+        set((s) => ({
+          character: s.character ? { ...s.character, ...updatePayload } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? previousCharacter : null,
+          }));
+        };
+      },
+      async () => supabase.from('characters').update(updatePayload).eq('id', characterId),
+      'Failed to update character details'
+    );
+
+    // Recalculate if level changed
+    if (updates.level !== undefined) {
+      await get().recalculateDerivedStats();
+    }
   },
 }));
