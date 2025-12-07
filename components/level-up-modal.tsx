@@ -21,7 +21,7 @@ interface LevelUpModalProps {
   onComplete?: (options: {
     newLevel: number;
     selectedAdvancements: string[];
-    selectedDomainCardId: string;
+    selectedDomainCardIds: string[];
     multiclassId?: string;
     multiclassDomain?: string;
     exchangeExistingCardId?: string;
@@ -72,7 +72,7 @@ export default function LevelUpModal({
 
   // Selection State
   const [selectedAdvancements, setSelectedAdvancements] = useState<string[]>([]);
-  const [selectedDomainCard, setSelectedDomainCard] = useState<string>('');
+  const [selectedDomainCards, setSelectedDomainCards] = useState<string[]>([]);
   const [selectedMulticlass, setSelectedMulticlass] = useState<string>('');
   const [selectedMulticlassDomain, setSelectedMulticlassDomain] = useState<string>('');
   const [exchangeExistingCardId, setExchangeExistingCardId] = useState<string | null>(null);
@@ -90,7 +90,7 @@ export default function LevelUpModal({
     if (isOpen) {
       setStep(1);
       setSelectedAdvancements([]);
-      setSelectedDomainCard('');
+      setSelectedDomainCards([]);
       setSelectedMulticlass('');
       setSelectedMulticlassDomain('');
       setExchangeExistingCardId(null);
@@ -123,6 +123,9 @@ export default function LevelUpModal({
     const advancement = ADVANCEMENT_OPTIONS.find(a => a.id === id);
     return sum + (advancement?.cost || 0);
   }, 0);
+
+  // Determine max domain cards to select (1 automatic + extra for advancements)
+  const maxDomainCards = 1 + selectedAdvancements.filter(id => id === 'domain_card').length;
 
   // Check for Tier-based restrictions (Subclass vs Multiclass)
   // And calculate usage counts for this tier
@@ -193,8 +196,9 @@ export default function LevelUpModal({
       );
       // If no cards available, allow skip
       if (validCards.length === 0) return true;
-      // If cards available, require a selection
-      return selectedDomainCard !== '';
+      // If cards available, require selection of exactly maxDomainCards (or all available if less)
+      const required = Math.min(maxDomainCards, validCards.length);
+      return selectedDomainCards.length === required;
     }
 
     return true;
@@ -228,8 +232,10 @@ export default function LevelUpModal({
       const validCards = availableDomainCards.filter(
         card => isCardAvailableAtLevel(card, newLevel)
       );
-      if (validCards.length > 0 && !selectedDomainCard) {
-        setError('You must select a domain card');
+      const required = Math.min(maxDomainCards, validCards.length);
+      
+      if (validCards.length > 0 && selectedDomainCards.length !== required) {
+        setError(`You must select exactly ${required} domain card${required > 1 ? 's' : ''}`);
         return;
       }
     }
@@ -266,7 +272,7 @@ export default function LevelUpModal({
         await onComplete({
           newLevel,
           selectedAdvancements,
-          selectedDomainCardId: selectedDomainCard,
+          selectedDomainCardIds: selectedDomainCards,
           multiclassId: selectedMulticlass || undefined,
           multiclassDomain: selectedMulticlassDomain || undefined,
           exchangeExistingCardId: exchangeExistingCardId || undefined,
@@ -280,6 +286,19 @@ export default function LevelUpModal({
         setError(err instanceof Error ? err.message : 'Failed to complete level up');
       }
     }
+  };
+
+  const toggleDomainCard = (cardId: string) => {
+    setSelectedDomainCards(prev => {
+      if (prev.includes(cardId)) {
+        return prev.filter(id => id !== cardId);
+      } else {
+        if (prev.length < maxDomainCards) {
+          return [...prev, cardId];
+        }
+        return prev;
+      }
+    });
   };
 
   const toggleAdvancement = (advancementId: string) => {
@@ -562,8 +581,13 @@ export default function LevelUpModal({
 
               {step === 5 && (
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-2">Select Domain Card</h3>
-                  <p className="text-gray-400 mb-4">Choose a new domain card at level {newLevel} or below:</p>
+                  <h3 className="text-xl font-bold text-white mb-2">Select Domain Card{maxDomainCards > 1 ? 's' : ''}</h3>
+                  <p className="text-gray-400 mb-4">
+                    Choose {maxDomainCards} new domain card{maxDomainCards > 1 ? 's' : ''} at level {newLevel} or below.
+                    <span className="block text-sm text-dagger-gold mt-1">
+                      (Selected: {selectedDomainCards.length}/{maxDomainCards})
+                    </span>
+                  </p>
                   {character.domains?.length === 0 ? (
                     <p className="text-gray-500 text-sm p-4 bg-black/20 rounded-lg">No domains available. Ensure your character has at least one domain.</p>
                   ) : (
@@ -571,7 +595,7 @@ export default function LevelUpModal({
                       {availableDomainCards.filter(
                         card => isCardAvailableAtLevel(card, newLevel)
                       ).map((card) => {
-                        const isSelected = selectedDomainCard === card.id;
+                        const isSelected = selectedDomainCards.includes(card.id);
                         const cardLevel = getCardLevel(card);
                         const cardDescription = getCardDescription(card);
                         const cardType = getCardType(card);
@@ -579,7 +603,7 @@ export default function LevelUpModal({
                         return (
                           <button
                             key={card.id}
-                            onClick={() => setSelectedDomainCard(card.id)}
+                            onClick={() => toggleDomainCard(card.id)}
                             className={`text-left p-3 rounded-lg border transition-all ${isSelected
                                 ? 'border-dagger-gold bg-dagger-gold/10'
                                 : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
@@ -607,10 +631,10 @@ export default function LevelUpModal({
                     </div>
                   )}
 
-                  {/* Domain Exchange */}
-                  {selectedDomainCard && (
+                  {/* Domain Exchange - Show if at least one card selected */}
+                  {selectedDomainCards.length > 0 && (
                     <DomainExchange
-                      selectedNewCard={domainCards.find(c => c.id === selectedDomainCard)!}
+                      selectedNewCard={domainCards.find(c => c.id === selectedDomainCards[0])!} // Pass first selected for visual context if needed
                       characterCards={character.character_cards || []}
                       onSelectExchangeCard={setExchangeExistingCardId}
                     />

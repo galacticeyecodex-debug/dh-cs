@@ -110,7 +110,7 @@ export interface AdvancementRecord {
   experienceIncrements?: { experienceId: string; amount: number }[];
   hpAdded?: number;
   stressAdded?: number;
-  domainCardSelected?: string;
+  domainCardsSelected?: string[];
 }
 
 export interface RollResult {
@@ -162,7 +162,7 @@ interface CharacterState {
   levelUpCharacter: (options: {
     newLevel: number;
     selectedAdvancements: string[];
-    selectedDomainCardId: string;
+    selectedDomainCardIds: string[];
     multiclassId?: string;
     multiclassDomain?: string;
     exchangeExistingCardId?: string;
@@ -1157,7 +1157,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       experienceIncrements: options.experienceIncrements,
       hpAdded: options.hpSlotsAdded,
       stressAdded: options.stressSlotsAdded,
-      domainCardSelected: options.selectedDomainCardId,
+      domainCardsSelected: options.selectedDomainCardIds,
     };
 
     const updatePayload: Record<string, any> = {
@@ -1246,49 +1246,51 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       }
     }
 
-    // After successful level up, add the selected domain card to vault
-    if (options.selectedDomainCardId) {
+    // After successful level up, add the selected domain cards to vault
+    if (options.selectedDomainCardIds && options.selectedDomainCardIds.length > 0) {
       try {
-        // First check if the card exists in the library and get its data
-        const { data: libraryCard } = await supabase
-          .from('library')
-          .select('*')
-          .eq('id', options.selectedDomainCardId)
-          .single();
-
-        // Only insert if card exists in library
-        if (libraryCard) {
-          const { data: newCard, error: cardError } = await supabase
-            .from('character_cards')
-            .insert([{
-              character_id: characterId,
-              card_id: options.selectedDomainCardId,
-              location: 'vault',
-              state: { tokens: 0, exhausted: false },
-              sort_order: 0,
-            }])
-            .select()
+        for (const cardId of options.selectedDomainCardIds) {
+          // First check if the card exists in the library and get its data
+          const { data: libraryCard } = await supabase
+            .from('library')
+            .select('*')
+            .eq('id', cardId)
             .single();
 
-          if (!cardError && newCard) {
-            // Update local state to include the new card WITH library data
-            const cardWithLibrary: CharacterCard = {
-              ...newCard,
-              library_item: libraryCard as LibraryItem,
-            };
+          // Only insert if card exists in library
+          if (libraryCard) {
+            const { data: newCard, error: cardError } = await supabase
+              .from('character_cards')
+              .insert([{
+                character_id: characterId,
+                card_id: cardId,
+                location: 'vault',
+                state: { tokens: 0, exhausted: false },
+                sort_order: 0,
+              }])
+              .select()
+              .single();
 
-            set((s) => ({
-              character: s.character ? {
-                ...s.character,
-                character_cards: [...(s.character.character_cards || []), cardWithLibrary],
-              } : null,
-            }));
+            if (!cardError && newCard) {
+              // Update local state to include the new card WITH library data
+              const cardWithLibrary: CharacterCard = {
+                ...newCard,
+                library_item: libraryCard as LibraryItem,
+              };
+
+              set((s) => ({
+                character: s.character ? {
+                  ...s.character,
+                  character_cards: [...(s.character.character_cards || []), cardWithLibrary],
+                } : null,
+              }));
+            }
+          } else {
+            console.warn(`Domain card '${cardId}' not found in library. Card will not be added to vault.`);
           }
-        } else {
-          console.warn(`Domain card '${options.selectedDomainCardId}' not found in library. Card will not be added to vault.`);
         }
       } catch (err) {
-        console.error('Failed to add domain card to vault:', err);
+        console.error('Failed to add domain cards to vault:', err);
       }
     }
 
@@ -1372,9 +1374,25 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           }
 
           // Delete domain card if one was selected at this level
-          if (levelRecord.domainCardSelected) {
+          if (levelRecord.domainCardsSelected) {
+            for (const cardId of levelRecord.domainCardsSelected) {
+              const cardToRemove = character.character_cards?.find(
+                card => card.card_id === cardId
+              );
+              if (cardToRemove) {
+                await supabase
+                  .from('character_cards')
+                  .delete()
+                  .eq('id', cardToRemove.id);
+                character.character_cards = character.character_cards?.filter(
+                  c => c.id !== cardToRemove.id
+                ) || [];
+              }
+            }
+          } else if ((levelRecord as any).domainCardSelected) {
+            // Legacy support for single card
             const cardToRemove = character.character_cards?.find(
-              card => card.card_id === levelRecord.domainCardSelected
+              card => card.card_id === (levelRecord as any).domainCardSelected
             );
             if (cardToRemove) {
               await supabase

@@ -162,11 +162,14 @@ export default function AdvancementHistory({ advancementHistory, experiences = [
                     )}
 
                     {/* Domain Card Selected */}
-                    {record.domainCardSelected && (
+                    {(record.domainCardsSelected?.length || (record as any).domainCardSelected) && (
                       <div className="flex items-center gap-2 text-gray-300">
                         <Shield size={14} className="text-dagger-gold" />
                         <span>
-                          <strong className="text-white">New Card:</strong> {record.domainCardSelected}
+                          <strong className="text-white">New Card{record.domainCardsSelected && record.domainCardsSelected.length > 1 ? 's' : ''}:</strong>{' '}
+                          {record.domainCardsSelected 
+                            ? record.domainCardsSelected.join(', ') 
+                            : (record as any).domainCardSelected}
                         </span>
                       </div>
                     )}
