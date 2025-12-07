@@ -19,7 +19,7 @@ export function getTier(level: number): 1 | 2 | 3 | 4 {
   if (level === 1) return 1;
   if (level >= 2 && level <= 4) return 2;
   if (level >= 5 && level <= 7) return 3;
-  if (level >= 8 && level <= 10) return 4;
+  if (level >= 8) return 4;
   throw new Error(`Invalid level: ${level}`);
 }
 

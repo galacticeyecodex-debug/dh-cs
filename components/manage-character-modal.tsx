@@ -296,10 +296,11 @@ export default function ManageCharacterModal({
                     onLevelUp();
                   }
                 }}
+                disabled={level >= 10}
                 className={
                   level >= currentLevel
-                    ? "px-3 py-2 rounded-lg bg-dagger-gold text-black hover:bg-dagger-gold/90 transition-colors shadow-[0_0_10px_rgba(251,191,36,0.3)]"
-                    : "px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-gray-300 hover:text-white hover:border-dagger-gold/50 transition-colors"
+                    ? "px-3 py-2 rounded-lg bg-dagger-gold text-black hover:bg-dagger-gold/90 transition-colors shadow-[0_0_10px_rgba(251,191,36,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                    : "px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-gray-300 hover:text-white hover:border-dagger-gold/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 }
               >
                 {level >= currentLevel ? <Zap size={20} className="fill-black" /> : <Plus size={20} />}
