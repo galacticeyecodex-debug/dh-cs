@@ -1,5 +1,20 @@
 "use client"
 
+/**
+ * SHEET COMPONENT
+ * ----------------------------------------------------------------------------
+ * A sidebar navigation/modal component (also known as a Drawer) built on Radix UI's Dialog primitive.
+ * 
+ * FEATURES:
+ * - Positionable: Supports sliding in from any side (top, right, bottom, left).
+ * - Animated: Uses smoother transition animations for opening/closing.
+ * - Overlay: Includes a background overlay that handles "click outside" to close.
+ * - Composition: Structured similarly to Dialog/Modal with Header, Footer, Title, and Description areas.
+ * - Accessibility: Manages focus trap and standard dialog accessibility features.
+ * 
+ * Commonly used for mobile navigation menus, filters, or detail views that slide over the main content.
+ */
+
 import * as React from "react"
 import * as SheetPrimitive from "@radix-ui/react-dialog"
 import { XIcon } from "lucide-react"
@@ -60,13 +75,13 @@ function SheetContent({
         className={cn(
           "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
           side === "right" &&
-            "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm",
+          "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm",
           side === "left" &&
-            "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm",
+          "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm",
           side === "top" &&
-            "data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b",
+          "data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b",
           side === "bottom" &&
-            "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t",
+          "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t",
           className
         )}
         {...props}

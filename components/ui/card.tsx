@@ -1,3 +1,21 @@
+/**
+ * CARD COMPONENT
+ * ----------------------------------------------------------------------------
+ * This collection of components provides a flexible and composable Card system
+ * for grouping related content and actions.
+ *
+ * STRUCTURE:
+ * - Card: The main container with background, border, and shadow.
+ * - CardHeader: Container for title and description, supports an optional action slot.
+ * - CardTitle: The primary heading of the card.
+ * - CardDescription: Subtext or explanatory content below the title.
+ * - CardAction: A slot for action elements (buttons, menus) positioned in the header.
+ * - CardContent: The main body area of the card.
+ * - CardFooter: The bottom section, usually for actions or summary info.
+ *
+ * It uses Tailwind classes for styling and `cn` for easy class merging.
+ */
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"

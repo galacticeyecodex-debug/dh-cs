@@ -1,5 +1,20 @@
 'use client';
 
+/**
+ * TRAIT SELECTION COMPONENT
+ * ----------------------------------------------------------------------------
+ * This component handles the "Increase Traits" advancement option during level up.
+ * Players choose two different traits to permanently increase by +1.
+ * 
+ * FUNCTIONALITY:
+ * - Displays all six main stats (Agility, Strength, Finesse, Instinct, Presence, Knowledge).
+ * - Enforces Daggerheart's "Marking" rule: Traits that have already been increased 
+ *   in the current tier are "Marked" and cannot be selected again until the next tier
+ *   (when all marks are cleared).
+ * - Allows selection of exactly two UNMARKED traits.
+ * - Provides immediate visual feedback of the stat increase (e.g., 0 → 1).
+ */
+
 import React from 'react';
 import { Check } from 'lucide-react';
 import { Character } from '@/store/character-store';
@@ -76,13 +91,12 @@ export default function TraitSelection({
               key={trait.id}
               onClick={() => toggleTrait(trait.id)}
               disabled={!selectable}
-              className={`relative p-4 rounded-lg border transition-all ${
-                selected
+              className={`relative p-4 rounded-lg border transition-all ${selected
                   ? 'border-dagger-gold bg-dagger-gold/10'
                   : selectable
-                  ? 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
-                  : 'border-gray-700 bg-black/20 opacity-50 cursor-not-allowed'
-              }`}
+                    ? 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
+                    : 'border-gray-700 bg-black/20 opacity-50 cursor-not-allowed'
+                }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 text-left">

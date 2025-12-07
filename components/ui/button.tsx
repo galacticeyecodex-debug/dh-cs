@@ -1,3 +1,17 @@
+/**
+ * BUTTON COMPONENT
+ * ----------------------------------------------------------------------------
+ * This is a highly reusable, accessible Button component built with Radix UI's Slot primitive
+ * and styled using `class-variance-authority` (cva).
+ * 
+ * FEATURES:
+ * - Variants: Supports multiple visual styles (default, destructive, outline, secondary, ghost, link).
+ * - Sizes: Provides different sizing options (default, sm, lg, icon).
+ * - Polymorphism: The `asChild` prop allows it to render as a different element (like a Next.js Link)
+ *   while maintaining the button styling and behavior, thanks to the Radix Slot component.
+ * - Accessibility: Includes standard focus states and disables pointer events when disabled.
+ */
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"

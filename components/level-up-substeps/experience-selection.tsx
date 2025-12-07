@@ -1,5 +1,20 @@
 'use client';
 
+/**
+ * EXPERIENCE SELECTION COMPONENT
+ * ----------------------------------------------------------------------------
+ * This component handles the "Increase Experience" advancement option during level up.
+ * When a player chooses to increase an experience, they select one of their existing
+ * experiences to permanently boost by +1.
+ * 
+ * FUNCTIONALITY:
+ * - Displays the character's current list of experiences with their current values.
+ * - Allows the user to select exactly ONE experience to upgrade.
+ * - Provides immediate visual feedback showing the old value vs. the new value (e.g., +2 → +3).
+ * - Enforces validation: The user cannot proceed if they haven't made a selection,
+ *   and meaningful error messages are shown if the character has no experiences to upgrade.
+ */
+
 import React from 'react';
 import { Check } from 'lucide-react';
 import { Experience } from '@/types/modifiers';

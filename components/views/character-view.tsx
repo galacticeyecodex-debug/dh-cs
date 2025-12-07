@@ -1,3 +1,18 @@
+'use client';
+
+/**
+ * CHARACTER VIEW
+ * ----------------------------------------------------------------------------
+ * This is the main dashboard for viewing a character's core information.
+ * 
+ * FUNCTIONALITY:
+ * - Displays critical character data: Vitals (HP, Stress), Stats (Traits), and Experiences.
+ * - Manages sub-panels for "Stats", "Gallery" (character images), and "Lore" (backstory details).
+ * - Integrates leveling up and character management interactions via modals.
+ * - Handles image uploads for profile and background banners.
+ * - Provides quick toggles to show/hide sections for a cleaner interface.
+ */
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import Image from 'next/image';
@@ -27,6 +42,8 @@ export default function CharacterView() {
   const [activeTab, setActiveTab] = useState<'stats' | 'gallery' | 'lore'>('stats');
   const [isUploading, setIsUploading] = useState(false);
   const [domainCards, setDomainCards] = useState<any[]>([]);
+  const [subclasses, setSubclasses] = useState<any[]>([]);
+  const [classes, setClasses] = useState<any[]>([]);
   const [showAncestry, setShowAncestry] = useState(true);
   const [showCommunity, setShowCommunity] = useState(true);
   const [ancestryCard, setAncestryCard] = useState<any>(null);
@@ -91,6 +108,14 @@ export default function CharacterView() {
         // Filter domain cards
         const domainCardsList = cards.filter((c: any) => c.domain && c.type);
         setDomainCards(domainCardsList);
+
+        // Filter subclasses
+        const subclassesList = cards.filter((c: any) => c.type === 'subclass');
+        setSubclasses(subclassesList);
+
+        // Filter classes (for linking subclasses)
+        const classesList = cards.filter((c: any) => c.type === 'class');
+        setClasses(classesList);
 
         // Find ancestry card
         if (character?.ancestry) {
@@ -206,7 +231,7 @@ export default function CharacterView() {
 
         {/* Top Right Controls */}
         <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-           <button
+          <button
             onClick={() => setIsManageOpen(true)}
             className="bg-black/40 hover:bg-black/60 text-white backdrop-blur-md px-4 py-2 rounded-full transition-all flex items-center gap-2 border border-white/10 shadow-lg"
           >
@@ -237,18 +262,18 @@ export default function CharacterView() {
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <Camera className="text-white" size={24} />
             </div>
-             <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleUpload}
-              />
-              {/* Hidden Overlay Button for clicking the avatar to upload */}
-             <div 
-              className="absolute inset-0 z-20" 
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleUpload}
+            />
+            {/* Hidden Overlay Button for clicking the avatar to upload */}
+            <div
+              className="absolute inset-0 z-20"
               onClick={() => fileInputRef.current?.click()}
-             />
+            />
           </div>
 
           {/* Info Block */}
@@ -256,7 +281,7 @@ export default function CharacterView() {
             <h1 className="text-3xl md:text-5xl font-serif font-bold text-white drop-shadow-lg leading-tight truncate">
               {character.name}
             </h1>
-            
+
             <div className="flex flex-wrap items-center gap-y-2 gap-x-4 mt-2">
               {/* Level & Class Badge */}
               <div className="flex items-center gap-2 text-dagger-gold font-bold text-sm md:text-lg uppercase tracking-wider drop-shadow-md bg-black/30 px-2 md:px-3 py-1 rounded-lg border border-dagger-gold/20 backdrop-blur-sm">
@@ -267,18 +292,18 @@ export default function CharacterView() {
 
               {/* Heritage Info */}
               <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-200 font-medium drop-shadow-md hidden sm:flex">
-                 {character.ancestry && (
-                   <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm">
-                      <User size={14} className="text-gray-400" />
-                      {character.ancestry}
-                   </div>
-                 )}
-                 {character.community && (
-                   <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm">
-                      <User size={14} className="text-gray-400" />
-                      {character.community}
-                   </div>
-                 )}
+                {character.ancestry && (
+                  <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm">
+                    <User size={14} className="text-gray-400" />
+                    {character.ancestry}
+                  </div>
+                )}
+                {character.community && (
+                  <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm">
+                    <User size={14} className="text-gray-400" />
+                    {character.community}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -287,7 +312,7 @@ export default function CharacterView() {
 
         </div> {/* Closes Profile Avatar & Basic Info */}
       </div> {/* Closes Social Profile Header */}
-      
+
       {/* Segmented Control (Sticky Tab Bar) */}
       <div className="sticky top-0 z-10 bg-dagger-dark/95 backdrop-blur border-b border-white/10 px-4 py-2 flex justify-between items-center shadow-sm">
         <div className="flex p-1 bg-white/5 rounded-lg w-full">
@@ -339,100 +364,99 @@ export default function CharacterView() {
               {showVitals && <CommonVitalsDisplay character={character} />}
             </div>
 
-                        {/* Stats Grid */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Traits</h3>
-                            <button 
-                              onClick={() => setShowTraits(!showTraits)}
-                              className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                            >
-                              {showTraits ? <EyeOff size={14} /> : <Eye size={14} />}
-                              {showTraits ? 'Hide' : 'Show'}
-                            </button>
-                          </div>
-                          {showTraits && (
-                            <div className="grid grid-cols-2 gap-3">
-                              {Object.entries(character.stats).map(([key, value]) => {
-                                const { total, allMods } = getStatDetails(key, value);
-                                const isMarked = character.marked_traits_jsonb?.[key] || false;
+            {/* Stats Grid */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Traits</h3>
+                <button
+                  onClick={() => setShowTraits(!showTraits)}
+                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                >
+                  {showTraits ? <EyeOff size={14} /> : <Eye size={14} />}
+                  {showTraits ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              {showTraits && (
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(character.stats).map(([key, value]) => {
+                    const { total, allMods } = getStatDetails(key, value);
+                    const isMarked = character.marked_traits_jsonb?.[key] || false;
 
-                                const toggleMark = () => {
-                                  const newMarked = { ...(character.marked_traits_jsonb || {}) };
-                                  if (isMarked) {
-                                    delete newMarked[key];
-                                  } else {
-                                    newMarked[key] = true;
-                                  }
-                                  updateMarkedTraits(newMarked);
-                                };
+                    const toggleMark = () => {
+                      const newMarked = { ...(character.marked_traits_jsonb || {}) };
+                      if (isMarked) {
+                        delete newMarked[key];
+                      } else {
+                        newMarked[key] = true;
+                      }
+                      updateMarkedTraits(newMarked);
+                    };
 
-                                return (
-                                  <div key={key} className="relative">
-                                    <StatButton
-                                      label={key}
-                                      value={total}
-                                      baseValue={value}
-                                      modifiers={allMods}
-                                      onUpdateModifiers={(mods) => updateModifiers(key, mods)}
-                                    />
-                                    <button
-                                      onClick={toggleMark}
-                                      className={`absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full transition-all border border-gray-500 ${
-                                        isMarked
-                                          ? 'bg-dagger-gold'
-                                          : 'bg-transparent hover:bg-white/10'
-                                      }`}
-                                      title={isMarked ? 'Trait is marked (cannot be increased until tier clear)' : 'Mark trait as used'}
-                                    />
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                        {/* Experiences Section */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Experiences</h3>
-                              <button 
-                                onClick={() => setIsExperienceSheetOpen(true)}
-                                className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
-                              >
-                                <Settings size={12} /> Manage
-                              </button>
-                            </div>
-                            <button 
-                              onClick={() => setShowExperiences(!showExperiences)}
-                              className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                            >
-                              {showExperiences ? <EyeOff size={14} /> : <Eye size={14} />}
-                              {showExperiences ? 'Hide' : 'Show'}
-                            </button>
-                          </div>
-                          
-                          {showExperiences && (                <div className="space-y-2">
-                  {character.experiences && character.experiences.length > 0 ? (
-                    character.experiences.map((exp, index) => (
-                      <div key={index} className="flex bg-white/5 border border-white/5 rounded-lg overflow-hidden">
-                        <div className="flex-1 p-3 flex items-center justify-start text-left">
-                          <span className="capitalize font-medium text-gray-300">{exp.name}</span>
-                        </div>
-                        <div className="p-3 min-w-[3rem] flex items-center justify-center font-bold text-xl border-l border-white/5 text-white">
-                          {exp.value >= 0 ? `+${exp.value}` : exp.value}
-                        </div>
+                    return (
+                      <div key={key} className="relative">
+                        <StatButton
+                          label={key}
+                          value={total}
+                          baseValue={value}
+                          modifiers={allMods}
+                          onUpdateModifiers={(mods) => updateModifiers(key, mods)}
+                        />
+                        <button
+                          onClick={toggleMark}
+                          className={`absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full transition-all border border-gray-500 ${isMarked
+                            ? 'bg-dagger-gold'
+                            : 'bg-transparent hover:bg-white/10'
+                            }`}
+                          title={isMarked ? 'Trait is marked (cannot be increased until tier clear)' : 'Mark trait as used'}
+                        />
                       </div>
-                    ))
-                  ) : (
-                    <div
-                      onClick={() => setIsExperienceSheetOpen(true)}
-                      className="text-gray-500 text-sm italic p-4 border border-dashed border-white/10 rounded-lg text-center cursor-pointer hover:bg-white/5"
-                    >
-                      No experiences recorded. Tap to add.
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
+              )}
+            </div>
+            {/* Experiences Section */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Experiences</h3>
+                  <button
+                    onClick={() => setIsExperienceSheetOpen(true)}
+                    className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                  >
+                    <Settings size={12} /> Manage
+                  </button>
+                </div>
+                <button
+                  onClick={() => setShowExperiences(!showExperiences)}
+                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                >
+                  {showExperiences ? <EyeOff size={14} /> : <Eye size={14} />}
+                  {showExperiences ? 'Hide' : 'Show'}
+                </button>
+              </div>
+
+              {showExperiences && (<div className="space-y-2">
+                {character.experiences && character.experiences.length > 0 ? (
+                  character.experiences.map((exp, index) => (
+                    <div key={index} className="flex bg-white/5 border border-white/5 rounded-lg overflow-hidden">
+                      <div className="flex-1 p-3 flex items-center justify-start text-left">
+                        <span className="capitalize font-medium text-gray-300">{exp.name}</span>
+                      </div>
+                      <div className="p-3 min-w-[3rem] flex items-center justify-center font-bold text-xl border-l border-white/5 text-white">
+                        {exp.value >= 0 ? `+${exp.value}` : exp.value}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div
+                    onClick={() => setIsExperienceSheetOpen(true)}
+                    className="text-gray-500 text-sm italic p-4 border border-dashed border-white/10 rounded-lg text-center cursor-pointer hover:bg-white/5"
+                  >
+                    No experiences recorded. Tap to add.
+                  </div>
+                )}
+              </div>
               )}
             </div>
 
@@ -449,7 +473,7 @@ export default function CharacterView() {
                     {showAncestry ? 'Hide' : 'Show'}
                   </button>
                 </div>
-                
+
                 {showAncestry && (
                   <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
                     {ancestryCard ? (
@@ -462,7 +486,7 @@ export default function CharacterView() {
                               {feature.name}
                             </div>
                             <div className="text-sm text-gray-300 leading-relaxed">
-                              {feature.text?.split('**').map((part: string, j: number) => 
+                              {feature.text?.split('**').map((part: string, j: number) =>
                                 j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
                               )}
                             </div>
@@ -492,7 +516,7 @@ export default function CharacterView() {
                     {showCommunity ? 'Hide' : 'Show'}
                   </button>
                 </div>
-                
+
                 {showCommunity && (
                   <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
                     {communityCard ? (
@@ -505,7 +529,7 @@ export default function CharacterView() {
                               {feature.name}
                             </div>
                             <div className="text-sm text-gray-300 leading-relaxed">
-                              {feature.text?.split('**').map((part: string, j: number) => 
+                              {feature.text?.split('**').map((part: string, j: number) =>
                                 j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
                               )}
                             </div>
@@ -525,8 +549,8 @@ export default function CharacterView() {
             {/* Advancement History Section */}
             {character.advancement_history_jsonb && Object.keys(character.advancement_history_jsonb).length > 0 && (
               <div className="space-y-2">
-                <AdvancementHistory 
-                  advancementHistory={character.advancement_history_jsonb} 
+                <AdvancementHistory
+                  advancementHistory={character.advancement_history_jsonb}
                   experiences={character.experiences}
                   domainCards={domainCards}
                 />
@@ -707,6 +731,8 @@ export default function CharacterView() {
         onClose={() => setIsLevelUpOpen(false)}
         character={character}
         domainCards={domainCards}
+        subclasses={subclasses}
+        classes={classes}
         isLoading={isLevelUpLoading}
         onComplete={async (options) => {
           setIsLevelUpLoading(true);

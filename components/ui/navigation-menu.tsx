@@ -1,4 +1,19 @@
 import * as React from "react"
+
+/**
+ * NAVIGATION MENU COMPONENT
+ * ----------------------------------------------------------------------------
+ * A responsive navigation menu built on Radix UI's Navigation Menu primitive.
+ * 
+ * FEATURES:
+ * - Viewport-aware positioning: The content automatically adjusts its width and height to fit the viewport.
+ * - Smooth Animations: Uses CSS animations for entering/exiting states.
+ * - Accessibility: Fully accessible with keyboard navigation and screen reader support.
+ * - Composition: Includes components for List, Item, Trigger, Content, Link, and Indicator.
+ * - Styling: Extensively styled with Tailwind CSS for a consistent look and feel using `cn` utility.
+ * 
+ * Used for building complex site navigation bars with dropdowns and links.
+ */
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu"
 import { cva } from "class-variance-authority"
 import { ChevronDownIcon } from "lucide-react"

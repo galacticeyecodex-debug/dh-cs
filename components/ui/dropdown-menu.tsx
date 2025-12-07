@@ -1,5 +1,17 @@
 "use client"
 
+/**
+ * DROPDOWN MENU COMPONENT
+ * ----------------------------------------------------------------------------
+ * A complete Dropdown Menu system built on Radix UI primitives.
+ * 
+ * FEATURES:
+ * - Comprehensive Composition: Includes Trigger, Content, Items, CheckboxItems, RadioItems, Submenus, and Separators.
+ * - Accessibility: Fully keyboard navigable, supports screen readers, and handles focus management.
+ * - Animations: Smooth enter/exit animations using Tailwind and data-attributes from Radix.
+ * - Interaction: Handles pointer events and "click outside" behavior robustly.
+ */
+
 import * as React from "react"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"

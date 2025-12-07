@@ -1,12 +1,26 @@
 'use client';
 
+/**
+ * COMBAT VIEW
+ * ----------------------------------------------------------------------------
+ * This view focuses on the combat capabilities of the character.
+ * 
+ * FUNCTIONALITY:
+ * - Displays active attack options (Weapons) with calculated damage and attack bonuses.
+ * - Shows active defensive stats (Armor, Evasion).
+ * - Lists Class Features that are relevant to combat (e.g., Hope features).
+ * - Provides interactive buttons to roll attacks and damage directly from the UI.
+ * - Allows toggling visibility of detailed proficiency modifiers.
+ */
+
 import React, { useState } from 'react';
-import { useCharacterStore } from '@/store/character-store';
-import { Shield, Swords, Zap, Skull, Info, Crosshair, Eye, EyeOff } from 'lucide-react';
+import { useCharacterStore, CharacterCard } from '@/store/character-store';
+import { Shield, Swords, Zap, Skull, Info, Crosshair, Eye, EyeOff, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
 import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers } from '@/lib/utils';
 import CommonVitalsDisplay from '@/components/common-vitals-display'; // Import the new common component
 import ModifierSheet from '@/components/modifier-sheet';
+import SubclassFeatureCard from '@/components/subclass-feature-card';
 
 export default function CombatView() {
   const { character, prepareRoll, updateModifiers } = useCharacterStore();
@@ -15,6 +29,7 @@ export default function CombatView() {
   const [showWeapons, setShowWeapons] = useState(true);
   const [showArmor, setShowArmor] = useState(true);
   const [showClassFeatures, setShowClassFeatures] = useState(true);
+  const [showSubclassFeatures, setShowSubclassFeatures] = useState(true);
 
   if (!character) return null;
 
@@ -51,93 +66,92 @@ export default function CombatView() {
         {showVitals && <CommonVitalsDisplay character={character} />}
       </div>
 
-            {/* Weapons List */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                  <Swords size={14} /> Active Weapons
-                </h3>
-                <button 
-                  onClick={() => setShowWeapons(!showWeapons)}
-                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                >
-                  {showWeapons ? <EyeOff size={14} /> : <Eye size={14} />}
-                  {showWeapons ? 'Hide' : 'Show'}
-                </button>
-              </div>
-              
-              {showWeapons && (
-                <>
-                  <div className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 border border-white/5">
-                    <span className="text-sm font-medium text-gray-300">Proficiency</span>
-                    <button
-                      onClick={() => setShowProficiencyModifiers(true)}
-                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-bold transition-colors ${
-                        isProficiencyModified
-                          ? 'bg-dagger-gold/10 border border-dagger-gold/20 text-dagger-gold hover:bg-dagger-gold/20'
-                          : 'bg-white/10 border border-white/10 text-white hover:bg-white/20'
-                      }`}
-                    >
-                      <Crosshair size={12} />
-                      {totalProficiency}
-                    </button>
-                  </div>
+      {/* Weapons List */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
+            <Swords size={14} /> Active Weapons
+          </h3>
+          <button
+            onClick={() => setShowWeapons(!showWeapons)}
+            className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+          >
+            {showWeapons ? <EyeOff size={14} /> : <Eye size={14} />}
+            {showWeapons ? 'Hide' : 'Show'}
+          </button>
+        </div>
 
-                  {weapons.length > 0 ? (
-                    weapons.map((weapon) => {
-                      const libData = weapon.library_item?.data;
-                      const trait = libData?.trait || 'Strength';
-                      const baseDamage = libData?.damage || '1d8';
-                      const range = libData?.range || 'Melee';
-                      const traitValue = character.stats[trait.toLowerCase() as keyof typeof character.stats] || 0;
-
-                      const calculatedDamage = calculateWeaponDamage(baseDamage, totalProficiency);
-
-                      return (
-                        <div key={weapon.id} className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden group">
-                          <div className="p-4 flex justify-between items-start">
-                            <div>
-                              <h4 className="font-serif font-bold text-white text-lg">{weapon.name}</h4>
-                              <div className="flex gap-2 text-xs text-gray-400 mt-1">
-                                <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{trait}</span>
-                                <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{range}</span>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-xl font-bold text-dagger-gold">{calculatedDamage}</div>
-                              <div className="text-[10px] text-gray-500 uppercase">
-                                {baseDamage} × {totalProficiency}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Action Bar */}
-                          <div className="bg-black/40 p-2 flex gap-2">
-                            <button
-                              onClick={() => prepareRoll(`${weapon.name} Attack`, traitValue)}
-                              className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
-                            >
-                              <Zap size={16} className="text-yellow-400" /> Attack ({traitValue >= 0 ? `+${traitValue}` : traitValue})
-                            </button>
-                            <button
-                              onClick={() => {
-                                const { dice, modifier } = parseDamageRoll(calculatedDamage);
-                                prepareRoll(`${weapon.name} Damage`, modifier, dice);
-                              }}
-                              className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
-                            >
-                              <Skull size={16} className="text-red-400" /> Damage
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="text-gray-500 text-center py-4 italic">No active weapons equipped.</div>
-                  )}
-                </>
-              )}
+        {showWeapons && (
+          <>
+            <div className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 border border-white/5">
+              <span className="text-sm font-medium text-gray-300">Proficiency</span>
+              <button
+                onClick={() => setShowProficiencyModifiers(true)}
+                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-bold transition-colors ${isProficiencyModified
+                    ? 'bg-dagger-gold/10 border border-dagger-gold/20 text-dagger-gold hover:bg-dagger-gold/20'
+                    : 'bg-white/10 border border-white/10 text-white hover:bg-white/20'
+                  }`}
+              >
+                <Crosshair size={12} />
+                {totalProficiency}
+              </button>
             </div>
+
+            {weapons.length > 0 ? (
+              weapons.map((weapon) => {
+                const libData = weapon.library_item?.data;
+                const trait = libData?.trait || 'Strength';
+                const baseDamage = libData?.damage || '1d8';
+                const range = libData?.range || 'Melee';
+                const traitValue = character.stats[trait.toLowerCase() as keyof typeof character.stats] || 0;
+
+                const calculatedDamage = calculateWeaponDamage(baseDamage, totalProficiency);
+
+                return (
+                  <div key={weapon.id} className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden group">
+                    <div className="p-4 flex justify-between items-start">
+                      <div>
+                        <h4 className="font-serif font-bold text-white text-lg">{weapon.name}</h4>
+                        <div className="flex gap-2 text-xs text-gray-400 mt-1">
+                          <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{trait}</span>
+                          <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{range}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold text-dagger-gold">{calculatedDamage}</div>
+                        <div className="text-[10px] text-gray-500 uppercase">
+                          {baseDamage} × {totalProficiency}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Bar */}
+                    <div className="bg-black/40 p-2 flex gap-2">
+                      <button
+                        onClick={() => prepareRoll(`${weapon.name} Attack`, traitValue)}
+                        className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                      >
+                        <Zap size={16} className="text-yellow-400" /> Attack ({traitValue >= 0 ? `+${traitValue}` : traitValue})
+                      </button>
+                      <button
+                        onClick={() => {
+                          const { dice, modifier } = parseDamageRoll(calculatedDamage);
+                          prepareRoll(`${weapon.name} Damage`, modifier, dice);
+                        }}
+                        className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                      >
+                        <Skull size={16} className="text-red-400" /> Damage
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-gray-500 text-center py-4 italic">No active weapons equipped.</div>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Active Armor */}
       {armor && (
@@ -208,6 +222,109 @@ export default function CombatView() {
                 </div>
               ))}
             </>
+          )}
+        </div>
+      )}
+
+      {/* Subclass Features */}
+      {(character.subclass_progression || character.multiclass_progression) && (
+        <div className="space-y-4 mt-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
+              <Sparkles size={14} /> Subclass Features
+            </h3>
+            <button
+              onClick={() => setShowSubclassFeatures(!showSubclassFeatures)}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+            >
+              {showSubclassFeatures ? <EyeOff size={14} /> : <Eye size={14} />}
+              {showSubclassFeatures ? 'Hide' : 'Show'}
+            </button>
+          </div>
+
+          {showSubclassFeatures && (
+            <div className="space-y-3">
+              {/* Primary Subclass Features */}
+              {character.subclass_progression && (
+                <>
+                  {character.subclass_progression.foundation_obtained && (
+                    <SubclassFeatureCard
+                      card={character.character_cards?.find(c =>
+                        c.location === 'feature' &&
+                        !c.library_item?.data?.multiclass &&
+                        (c.library_item?.data?.tier === 'foundation' || c.library_item?.type === 'subclass')
+                      )}
+                      tier="Foundation"
+                      isMulticlass={false}
+                    />
+                  )}
+
+                  {character.subclass_progression.specialization_obtained && (
+                    <SubclassFeatureCard
+                      card={character.character_cards?.find(c =>
+                        c.location === 'feature' &&
+                        !c.library_item?.data?.multiclass &&
+                        c.library_item?.data?.tier === 'specialization'
+                      )}
+                      tier="Specialization"
+                      isMulticlass={false}
+                    />
+                  )}
+
+                  {character.subclass_progression.mastery_obtained && (
+                    <SubclassFeatureCard
+                      card={character.character_cards?.find(c =>
+                        c.location === 'feature' &&
+                        !c.library_item?.data?.multiclass &&
+                        c.library_item?.data?.tier === 'mastery'
+                      )}
+                      tier="Mastery"
+                      isMulticlass={false}
+                    />
+                  )}
+                </>
+              )}
+
+              {/* Multiclass Subclass Features */}
+              {character.multiclass_progression && (
+                <>
+                  {character.multiclass_progression.foundation_obtained && (
+                    <SubclassFeatureCard
+                      card={character.character_cards?.find(c =>
+                        c.location === 'feature' &&
+                        c.library_item?.data?.multiclass === true
+                      )}
+                      tier="Foundation"
+                      isMulticlass={true}
+                    />
+                  )}
+
+                  {character.multiclass_progression.specialization_obtained && (
+                    <SubclassFeatureCard
+                      card={character.character_cards?.find(c =>
+                        c.location === 'feature' &&
+                        c.library_item?.data?.multiclass === true &&
+                        c.library_item?.data?.tier === 'specialization'
+                      )}
+                      tier="Specialization"
+                      isMulticlass={true}
+                    />
+                  )}
+
+                  {character.multiclass_progression.mastery_obtained && (
+                    <SubclassFeatureCard
+                      card={character.character_cards?.find(c =>
+                        c.location === 'feature' &&
+                        c.library_item?.data?.multiclass === true &&
+                        c.library_item?.data?.tier === 'mastery'
+                      )}
+                      tier="Mastery"
+                      isMulticlass={true}
+                    />
+                  )}
+                </>
+              )}
+            </div>
           )}
         </div>
       )}

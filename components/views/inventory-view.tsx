@@ -1,5 +1,18 @@
 'use client';
 
+/**
+ * INVENTORY VIEW
+ * ----------------------------------------------------------------------------
+ * Manages the character's physical possessions and wealth.
+ * 
+ * FUNCTIONALITY:
+ * - Lists all items in the character's inventory (Weapons, Armor, Consumables, Misc).
+ * - Provides filtering and sorting options to help manage large inventories.
+ * - Tracks Wealth (Gold in Handfuls, Bags, Chests) with increment/decrement controls.
+ * - Allows equipping/unequipping items, which updates their status in other views (like Combat).
+ * - Includes an "Add Item" flow to browse the game library and add new items.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useCharacterStore, CharacterInventoryItem, LibraryItem } from '@/store/character-store';
 import { Coins, Package, Sword, Shield, ArrowRightLeft, Plus, Heart, Gem, Eye, EyeOff } from 'lucide-react';
@@ -56,15 +69,15 @@ export default function InventoryView() {
   const sortedItems = [...inventoryItems]
     .filter(item => item.name !== 'Gold')
     .filter(item => {
-       let matchesCategory = true;
-       const type = item.library_item?.type;
+      let matchesCategory = true;
+      const type = item.library_item?.type;
 
-       if (selectedCategory === 'weapon') matchesCategory = type === 'weapon';
-       else if (selectedCategory === 'armor') matchesCategory = type === 'armor';
-       else if (selectedCategory === 'consumable') matchesCategory = type === 'consumable';
-       else if (selectedCategory === 'item') matchesCategory = type === 'item';
+      if (selectedCategory === 'weapon') matchesCategory = type === 'weapon';
+      else if (selectedCategory === 'armor') matchesCategory = type === 'armor';
+      else if (selectedCategory === 'consumable') matchesCategory = type === 'consumable';
+      else if (selectedCategory === 'item') matchesCategory = type === 'item';
 
-       return matchesCategory;
+      return matchesCategory;
     })
     .sort((a, b) => {
       const aEquipped = a.location.startsWith('equipped') ? 1 : 0;
@@ -89,7 +102,7 @@ export default function InventoryView() {
           <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
             <Coins size={14} /> Wealth
           </h3>
-          <button 
+          <button
             onClick={() => setShowWealth(!showWealth)}
             className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
           >
@@ -97,25 +110,25 @@ export default function InventoryView() {
             {showWealth ? 'Hide' : 'Show'}
           </button>
         </div>
-        
+
         {showWealth && (
           <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
             <div className="grid grid-cols-3 gap-4 text-center">
-              <GoldCounter 
-                label="Handfuls" 
-                value={character.gold.handfuls} 
+              <GoldCounter
+                label="Handfuls"
+                value={character.gold.handfuls}
                 onIncrement={() => updateGold('handfuls', character.gold.handfuls + 1)}
                 onDecrement={() => updateGold('handfuls', character.gold.handfuls - 1)}
               />
-              <GoldCounter 
-                label="Bags" 
-                value={character.gold.bags} 
+              <GoldCounter
+                label="Bags"
+                value={character.gold.bags}
                 onIncrement={() => updateGold('bags', character.gold.bags + 1)}
                 onDecrement={() => updateGold('bags', character.gold.bags - 1)}
               />
-              <GoldCounter 
-                label="Chests" 
-                value={character.gold.chests} 
+              <GoldCounter
+                label="Chests"
+                value={character.gold.chests}
                 onIncrement={() => updateGold('chests', character.gold.chests + 1)}
                 onDecrement={() => updateGold('chests', character.gold.chests - 1)}
               />
@@ -195,7 +208,7 @@ export default function InventoryView() {
         <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
           <Package size={14} /> Inventory Items
         </h3>
-        <button 
+        <button
           onClick={() => setIsAddItemModalOpen(true)}
           className="bg-dagger-gold text-black px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 hover:scale-105 transition-transform"
         >
@@ -208,8 +221,8 @@ export default function InventoryView() {
         {error && <div className="p-3 bg-red-800/50 border border-red-500 rounded text-red-300 text-sm">{error}</div>}
         {sortedItems.length > 0 ? (
           sortedItems.map((item) => (
-            <ItemRow 
-              key={item.id} 
+            <ItemRow
+              key={item.id}
               item={item}
               onEquip={handleEquip}
             />
@@ -221,9 +234,9 @@ export default function InventoryView() {
         )}
       </div>
 
-      <AddItemModal 
-        isOpen={isAddItemModalOpen} 
-        onClose={() => setIsAddItemModalOpen(false)} 
+      <AddItemModal
+        isOpen={isAddItemModalOpen}
+        onClose={() => setIsAddItemModalOpen(false)}
         onAddItem={handleAddItem}
         libraryItems={allLibraryItems}
         isLoading={libraryLoading}
@@ -249,7 +262,7 @@ function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id
   const type = item.library_item?.type;
   const isEquipped = item.location.startsWith('equipped');
   const data = item.library_item?.data;
-  
+
   let locationLabel = '';
   if (item.location === 'equipped_primary') locationLabel = 'Primary';
   if (item.location === 'equipped_secondary') locationLabel = 'Secondary';
@@ -289,7 +302,7 @@ function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id
               item.description || data?.markdown || 'No description'
             )}
           </div>
-          
+
           {/* Modifiers Tags */}
           {data?.modifiers && Array.isArray(data.modifiers) && data.modifiers.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
@@ -297,14 +310,14 @@ function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id
                 const isPositive = mod.value > 0;
                 const sign = mod.value > 0 ? '+' : '';
                 const label = `${sign}${mod.value} ${mod.target.charAt(0).toUpperCase() + mod.target.slice(1)}`;
-                
+
                 return (
-                  <span 
-                    key={idx} 
+                  <span
+                    key={idx}
                     className={clsx(
                       "text-[10px] px-1.5 py-0.5 rounded border uppercase font-bold",
-                      isPositive 
-                        ? "bg-green-500/10 border-green-500/30 text-green-400" 
+                      isPositive
+                        ? "bg-green-500/10 border-green-500/30 text-green-400"
                         : "bg-red-500/10 border-red-500/30 text-red-400"
                     )}
                   >
@@ -327,7 +340,7 @@ function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id
         {type === 'weapon' && (
           <>
             {item.location !== 'equipped_primary' && (
-              <button 
+              <button
                 onClick={() => onEquip(item.id, 'equipped_primary')}
                 className="text-[10px] font-bold uppercase px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white flex items-center gap-1"
               >
@@ -335,7 +348,7 @@ function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id
               </button>
             )}
             {item.location !== 'equipped_secondary' && (
-              <button 
+              <button
                 onClick={() => onEquip(item.id, 'equipped_secondary')}
                 className="text-[10px] font-bold uppercase px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white flex items-center gap-1"
               >
@@ -344,9 +357,9 @@ function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id
             )}
           </>
         )}
-        
+
         {type === 'armor' && item.location !== 'equipped_armor' && (
-          <button 
+          <button
             onClick={() => onEquip(item.id, 'equipped_armor')}
             className="text-[10px] font-bold uppercase px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white flex items-center gap-1"
           >
@@ -355,7 +368,7 @@ function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id
         )}
 
         {isEquipped && (
-          <button 
+          <button
             onClick={() => onEquip(item.id, 'backpack')}
             className="text-[10px] font-bold uppercase px-2 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded flex items-center gap-1 ml-auto"
           >

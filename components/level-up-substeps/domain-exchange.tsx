@@ -1,5 +1,22 @@
 'use client';
 
+/**
+ * DOMAIN EXCHANGE COMPONENT
+ * ----------------------------------------------------------------------------
+ * This component handles the optional "Domain Exchange" mechanic during the level-up process.
+ * According to Daggerheart rules, when a player selects a new Domain Card, they may optionally
+ * choose to swap out (remove) an existing Domain Card from their current loadout or vault.
+ * 
+ * FUNCTIONALITY:
+ * - It filters the character's existing inventory to find "eligible" cards for exchange.
+ * - Eligibility rules enforced here:
+ *   1. The existing card must match the domain of the newly selected card.
+ *   2. The existing card must be of a level equal to or greater than the new card's level.
+ *      (This prevents players from swapping a low-level card to gain a high-level slot).
+ * - If exchange is enabled, the selected existing card ID is passed back to the parent to be queued for removal.
+ * - This allows players to refine their builds by replacing cards they no longer need with the new selection.
+ */
+
 import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 
@@ -91,14 +108,12 @@ export default function DomainExchange({
       <div className="flex items-center gap-3 mb-3">
         <button
           onClick={handleToggleExchange}
-          className={`w-12 h-6 rounded-full transition-colors relative ${
-            isExchangeEnabled ? 'bg-dagger-gold' : 'bg-gray-600'
-          }`}
+          className={`w-12 h-6 rounded-full transition-colors relative ${isExchangeEnabled ? 'bg-dagger-gold' : 'bg-gray-600'
+            }`}
         >
           <div
-            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
-              isExchangeEnabled ? 'translate-x-6' : 'translate-x-0'
-            }`}
+            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${isExchangeEnabled ? 'translate-x-6' : 'translate-x-0'
+              }`}
           />
         </button>
         <label className="text-sm font-bold text-white cursor-pointer" onClick={handleToggleExchange}>
@@ -122,11 +137,10 @@ export default function DomainExchange({
                 <button
                   key={card.id}
                   onClick={() => handleSelectCard(card.id)}
-                  className={`w-full text-left p-3 rounded-lg border transition-all ${
-                    isSelected
+                  className={`w-full text-left p-3 rounded-lg border transition-all ${isSelected
                       ? 'border-dagger-gold bg-dagger-gold/10'
                       : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">

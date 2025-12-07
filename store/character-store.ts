@@ -173,6 +173,8 @@ interface CharacterState {
     selectedDomainCardIds: string[];
     multiclassId?: string;
     multiclassDomain?: string;
+    multiclassSubclassId?: string;
+    multiclassFoundationCardId?: string;
     exchangeExistingCardId?: string;
     traitIncrements?: { trait: string; amount: number }[];
     experienceIncrements?: { experienceId: string; amount: number }[];
@@ -1129,6 +1131,12 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // Apply multiclass if selected
     if (options.selectedAdvancements.includes('multiclass') && options.multiclassId && options.multiclassDomain) {
       updatedCharacter.multiclass_id = options.multiclassId;
+      updatedCharacter.multiclass_subclass_id = options.multiclassSubclassId;
+      updatedCharacter.multiclass_progression = {
+        foundation_obtained: true,
+        specialization_obtained: false,
+        mastery_obtained: false,
+      };
       // Add the new domain to the domains array
       if (!updatedCharacter.domains) {
         updatedCharacter.domains = [];
@@ -1187,6 +1195,8 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // Add multiclass data if selected
     if (updatedCharacter.multiclass_id) {
       updatePayload.multiclass_id = updatedCharacter.multiclass_id;
+      updatePayload.multiclass_subclass_id = updatedCharacter.multiclass_subclass_id;
+      updatePayload.multiclass_progression = updatedCharacter.multiclass_progression;
       updatePayload.domains = updatedCharacter.domains;
     }
 
@@ -1299,6 +1309,52 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         }
       } catch (err) {
         console.error('Failed to add domain cards to vault:', err);
+      }
+    }
+
+    // Insert multiclass foundation card if selected
+    if (options.multiclassFoundationCardId) {
+      try {
+        // First check if the card exists in the library and get its data
+        const { data: libraryCard } = await supabase
+          .from('library')
+          .select('*')
+          .eq('id', options.multiclassFoundationCardId)
+          .single();
+
+        // Only insert if card exists in library
+        if (libraryCard) {
+          const { data: newCard, error: cardError } = await supabase
+            .from('character_cards')
+            .insert([{
+              character_id: characterId,
+              card_id: options.multiclassFoundationCardId,
+              location: 'feature', // Subclass cards stored as 'feature'
+              state: { tokens: 0, exhausted: false },
+              sort_order: 0,
+            }])
+            .select()
+            .single();
+
+          if (!cardError && newCard) {
+            // Update local state to include the new foundation card WITH library data
+            const cardWithLibrary: CharacterCard = {
+              ...newCard,
+              library_item: libraryCard as LibraryItem,
+            };
+
+            set((s) => ({
+              character: s.character ? {
+                ...s.character,
+                character_cards: [...(s.character.character_cards || []), cardWithLibrary],
+              } : null,
+            }));
+          }
+        } else {
+          console.warn(`Multiclass foundation card '${options.multiclassFoundationCardId}' not found in library.`);
+        }
+      } catch (err) {
+        console.error('Failed to add multiclass foundation card:', err);
       }
     }
 

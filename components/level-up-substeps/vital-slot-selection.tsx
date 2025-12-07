@@ -1,5 +1,19 @@
 'use client';
 
+/**
+ * VITAL SLOT SELECTION COMPONENT
+ * ----------------------------------------------------------------------------
+ * This component handles the configuration for "Add HP" and "Add Stress" advancements
+ * during level up.
+ * 
+ * FUNCTIONALITY:
+ * - If the user selected the "Add HP" advancement, they can configure how many HP slots to add (typically 1).
+ *   (Note: While the rules generally specify +1, this component supports adding up to 5 for flexibility/homebrew).
+ * - Similarly handles configuration for the "Add Stress" advancement.
+ * - Shows a live preview of the character's new Maximum HP and Stress values.
+ * - This step only appears if at least one of these advancements was selected in the previous step.
+ */
+
 import React from 'react';
 import { Plus, Minus, Heart, Zap } from 'lucide-react';
 

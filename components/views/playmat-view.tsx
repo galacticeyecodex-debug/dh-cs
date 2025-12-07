@@ -1,5 +1,18 @@
 'use client';
 
+/**
+ * PLAYMAT VIEW
+ * ----------------------------------------------------------------------------
+ * Represents the character's "Playmat" - the active area for Domain Cards.
+ * 
+ * FUNCTIONALITY:
+ * - Displays the character's active "Loadout" (limited slots for cards in play).
+ * - Manages the "Vault" (all other known cards not currently active).
+ * - Allows moving cards between Loadout and Vault.
+ * - Shows detailed card information (Abilities, Spells, Grimoires) in a visual card format.
+ * - Provides access to the Library to add new cards to the collection.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character-store';
 import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap } from 'lucide-react';
@@ -88,22 +101,22 @@ export default function PlaymatView() {
           </button>
         </div>
 
-        <button 
+        <button
           onClick={() => setIsAddCardModalOpen(true)}
           className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-full text-sm font-bold flex items-center gap-1 transition-colors border border-white/10"
         >
           <Plus size={16} /> <span className="hidden sm:inline">Add Card</span>
         </button>
       </div>
-      
+
       {/* Loadout View */}
       {viewMode === 'loadout' && (
         <div className="grid grid-cols-2 gap-4">
           {loadoutCards.length > 0 ? (
             loadoutCards.map((charCard) => (
-              <CardThumbnail 
-                key={charCard.id} 
-                charCard={charCard} 
+              <CardThumbnail
+                key={charCard.id}
+                charCard={charCard}
                 onClick={() => setSelectedCard(charCard)}
                 actionLabel="To Vault"
                 onAction={() => handleMoveCard(charCard.id, 'vault')}
@@ -116,7 +129,7 @@ export default function PlaymatView() {
               <span className="text-xs">Add from Vault or create new!</span>
             </div>
           )}
-          
+
           {/* Fill remaining slots up to 5 */}
           {Array.from({ length: Math.max(0, 5 - loadoutCards.length) }).map((_, i) => (
             <div key={`empty-${i}`} className="aspect-[2/3] border-2 border-dashed border-white/5 rounded-lg flex items-center justify-center text-gray-600">
@@ -132,9 +145,9 @@ export default function PlaymatView() {
           {vaultCards.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {vaultCards.map((charCard) => (
-                <CardThumbnail 
-                  key={charCard.id} 
-                  charCard={charCard} 
+                <CardThumbnail
+                  key={charCard.id}
+                  charCard={charCard}
                   onClick={() => setSelectedCard(charCard)}
                   actionLabel="To Loadout"
                   onAction={() => handleMoveCard(charCard.id, 'loadout')}
@@ -150,9 +163,9 @@ export default function PlaymatView() {
       )}
 
       {/* Add Card Modal */}
-      <AddItemModal 
-        isOpen={isAddCardModalOpen} 
-        onClose={() => setIsAddCardModalOpen(false)} 
+      <AddItemModal
+        isOpen={isAddCardModalOpen}
+        onClose={() => setIsAddCardModalOpen(false)}
         onAddItem={handleAddCard}
         libraryItems={allLibraryItems}
         filterType="cards"
@@ -160,9 +173,9 @@ export default function PlaymatView() {
 
       {/* Card Detail Modal */}
       {selectedCard && (
-        <CardDetailModal 
-          charCard={selectedCard} 
-          onClose={() => setSelectedCard(null)} 
+        <CardDetailModal
+          charCard={selectedCard}
+          onClose={() => setSelectedCard(null)}
         />
       )}
     </div>
@@ -176,7 +189,7 @@ function CardThumbnail({ charCard, onClick, actionLabel, onAction }: { charCard:
 
   return (
     <div className="group relative">
-      <div 
+      <div
         className="aspect-[2/3] bg-zinc-800 border border-white/10 rounded-lg p-2 flex flex-col overflow-hidden hover:border-dagger-gold transition-colors cursor-pointer relative"
         onClick={onClick}
       >
@@ -186,7 +199,7 @@ function CardThumbnail({ charCard, onClick, actionLabel, onAction }: { charCard:
           <div className="relative w-8 h-10 flex items-center justify-center text-white font-bold text-sm shadow-md" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 80%, 50% 100%, 0% 80%)', backgroundColor: 'black' }}>
             {tier}
           </div>
-          
+
           {/* Top Right: Recall Cost */}
           <div className="relative w-7 h-7 rounded-full bg-black/80 border border-white/20 flex items-center justify-center text-white font-bold text-xs shadow-md">
             {recallCost}
@@ -208,7 +221,7 @@ function CardThumbnail({ charCard, onClick, actionLabel, onAction }: { charCard:
 
         {/* Full Description (Small Text) */}
         <div className="flex-1 mt-2 overflow-hidden text-[9px] text-gray-300 leading-snug text-center px-1">
-           {data?.description || data?.text ? (
+          {data?.description || data?.text ? (
             <div className="prose prose-invert prose-p:text-[9px] prose-p:leading-snug line-clamp-[8]">
               <ReactMarkdown>
                 {data.description || data.text}
@@ -220,9 +233,9 @@ function CardThumbnail({ charCard, onClick, actionLabel, onAction }: { charCard:
         </div>
 
       </div>
-      
+
       {actionLabel && onAction && (
-        <button 
+        <button
           onClick={(e) => { e.stopPropagation(); onAction(); }}
           className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-zinc-900 border border-white/20 text-[10px] font-bold text-gray-300 px-2 py-1 rounded-full hover:bg-zinc-700 hover:text-white whitespace-nowrap shadow-md z-30 flex items-center gap-1"
         >
@@ -235,12 +248,12 @@ function CardThumbnail({ charCard, onClick, actionLabel, onAction }: { charCard:
 
 function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClose: () => void }) {
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown', domain: '', tier: 0, type: '', data: {} };
-  const recallCost = data?.recall || '0'; 
+  const recallCost = data?.recall || '0';
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
-      <div 
-        className="bg-zinc-800 text-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh] relative" 
+      <div
+        className="bg-zinc-800 text-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh] relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header Section */}
@@ -249,7 +262,7 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
           <div className="relative w-12 h-16 flex items-center justify-center text-white font-bold text-xl" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 80%, 50% 100%, 0% 80%)', backgroundColor: 'black' }}>
             {tier}
           </div>
-          
+
           {/* Top Right: Recall Cost */}
           <div className="relative w-10 h-10 rounded-full bg-black/90 flex items-center justify-center text-white font-bold text-lg shadow-md">
             {recallCost}
@@ -285,7 +298,7 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
           ) : (
             <p className="italic text-gray-500">No description available.</p>
           )}
-          
+
           {/* Render specific fields based on card type if needed, e.g. Grimoire abilities */}
         </div>
 
