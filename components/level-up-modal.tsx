@@ -21,24 +21,28 @@
  *      - Level 8: +1 Proficiency, New Experience (+2), Clear all Marked Traits.
  *
  * 3. Advancements (User Selection):
- *    - Every level up, the user must select exactly TWO advancement options.
+ *    - Every level up, the user must select up to 2 "slots" worth of advancements from a list of available options.
  *    - Costs: Most options cost 1 slot. "Increase Proficiency" and "Multiclass" cost 2 slots.
  *
  * 4. Restrictions & Limits:
- *    - "Once Per Tier" Rule: Most advancements (Increase Traits, HP, Stress, Evasion,
- *      Subclass, Proficiency) can only be selected ONCE per Tier.
+ *    - Domain Cards:
+ *      - Users ALWAYS gain ONE free domain card every level.
+ *    - Other Advancements that can only be selected a certain number of times per Tier:
+ *      1. Traits: Gain a "+1" to 2 *Unmarked* Traits; 3 times per tier (but not the same trait multiple times; hence marking the upgraded traits until the next tier)
+ *      2. Permenantly add 1 additional Hit Point slot; 2 times per tier
+ *      3. Permenantly add 1 additional Stress slot; 2 times per tier
+ *      4. Increase one Experience to gain a permanent +1 to that experience; 2 times per tier
+ *      5. Gain 1 additional +2 Experience; 1 time per tier
+ *      6. Add an additional domain card from the character's initial domains at the character's level or lower; 1 time per tier (however, if you chose a card from a multiclassed domain, you can choose a card at only half your level.)
+ *      7. Permenantly add 1 to Evasion; 1 time per tier
+ *      8. Upgrade a Subclass card; 1 time per tier (unless Multiclass was chosen this tier)
+ *      9. Increase Proficiency; 1 time per tier (costs 2 slots)
  *      (e.g. If you take +1 HP at Level 2, you cannot take it again until Tier 3 at Level 5).
- *    - "Domain Cards": Exception to the rule. Can be taken multiple times per tier.
- *    - "Multiclass":
+ *    - Multiclass:
  *      - Can only be selected ONCE per character lifetime.
  *      - Costs 2 slots.
  *      - Cannot be taken in the same Tier as a Subclass upgrade.
  *      - NOTE: Multi-class has not yet been fully implemented.
- *
- * 5. Domain Cards:
- *    - Users ALWAYS gain ONE free domain card every level.
- *    - Users can gain ADDITIONAL domain cards by spending advancement slots.
- *    - Logic: Total Cards = 1 (Base) + N (Number of "domain_card" advancements selected).
  */
 
 import React, { useState } from 'react';
@@ -79,24 +83,25 @@ const ADVANCEMENT_OPTIONS = [
   { id: 'add_hp', name: 'Add HP', description: 'Permanently increase max Hit Points by 1', cost: 1 },
   { id: 'add_stress', name: 'Add Stress', description: 'Permanently increase max Stress by 1', cost: 1 },
   { id: 'increase_experience', name: 'Increase Experience', description: 'Choose 2 experiences and gain +1 to both', cost: 1 },
-  { id: 'domain_card', name: 'Additional Domain Card', description: 'Gain an additional domain card', cost: 1 },
+  { id: 'additional_domain_card', name: 'Additional Domain Card', description: 'Gain an additional domain card', cost: 1 },
   { id: 'increase_evasion', name: 'Increase Evasion', description: 'Gain +1 to your Evasion', cost: 1 },
   { id: 'subclass_card', name: 'Upgraded Subclass Card', description: 'Take your next subclass card (Specialization or Mastery)', cost: 1 },
-  { id: 'increase_proficiency', name: 'Increase Proficiency', description: 'Gain +1 to Proficiency and +1 damage die', cost: 2 },
-  { id: 'multiclass', name: 'Multiclass', description: 'Gain access to a second class domain (available at level 5+)', cost: 2, minLevel: 5 },
+  { id: 'increase_proficiency', name: 'Increase Proficiency', description: 'Gain +1 to Proficiency (+1 damage die)', cost: 2 },
+  { id: 'multiclass', name: 'Multiclass', description: 'Gain access to a second class and domain (available at level 5+)', cost: 2, minLevel: 5 },
 ];
 
 // Max times an advancement can be taken per Tier
 const TIER_LIMITS: Record<string, number> = {
-  increase_traits: 1,
-  add_hp: 1,
-  add_stress: 1,
+  increase_traits: 3,
+  add_hp: 2,
+  add_stress: 2,
+  additional_domain_card: 1,
   increase_experience: 1,
   increase_evasion: 1,
   subclass_card: 1,
   increase_proficiency: 1,
   multiclass: 1,
-  domain_card: 3, // Allow taking domain cards multiple times in a tier
+  level_domain_card: 3, // Allow taking domain cards once per level in a tier
 };
 
 export default function LevelUpModal({
@@ -166,7 +171,7 @@ export default function LevelUpModal({
   }, 0);
 
   // Determine max domain cards to select (1 automatic + extra for advancements)
-  const maxDomainCards = 1 + selectedAdvancements.filter(id => id === 'domain_card').length;
+  const maxDomainCards = 1 + selectedAdvancements.filter(id => id === 'additional_domain_card').length;
 
   // Check for Tier-based restrictions (Subclass vs Multiclass)
   // And calculate usage counts for this tier
@@ -235,13 +240,13 @@ export default function LevelUpModal({
       const validCards = availableDomainCards.filter(
         card => isCardAvailableAtLevel(card, newLevel)
       );
-      
+
       // Strict requirement: must select exactly required amount
       // If validCards is 0, they can't select, so they can't proceed.
       // They must resolve the data issue (or we show a "Contact Support" / "No Cards" blocking state)
       // Per user request: DO NOT SKIP.
       const required = Math.min(maxDomainCards, validCards.length);
-      
+
       // If there are NO cards available, we still block progress because the user
       // explicitly asked to NOT skip. They will see the "No domain cards available" message.
       if (validCards.length === 0) return false;
@@ -280,14 +285,14 @@ export default function LevelUpModal({
       const validCards = availableDomainCards.filter(
         card => isCardAvailableAtLevel(card, newLevel)
       );
-      
+
       if (validCards.length === 0) {
         setError('No domain cards available for this level. Cannot proceed.');
         return;
       }
 
       const required = Math.min(maxDomainCards, validCards.length);
-      
+
       if (selectedDomainCards.length !== required) {
         setError(`You must select exactly ${required} domain card${required > 1 ? 's' : ''}`);
         return;
@@ -531,10 +536,10 @@ export default function LevelUpModal({
                           onClick={() => toggleAdvancement(advancement.id)}
                           disabled={!isSelected && !canSelect}
                           className={`text-left p-3 rounded-lg border transition-all ${isSelected
-                              ? 'border-dagger-gold bg-dagger-gold/10'
-                              : canSelect
-                                ? 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
-                                : 'border-gray-700 bg-black/20 opacity-50 cursor-not-allowed'
+                            ? 'border-dagger-gold bg-dagger-gold/10'
+                            : canSelect
+                              ? 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
+                              : 'border-gray-700 bg-black/20 opacity-50 cursor-not-allowed'
                             }`}
                         >
                           <div className="flex items-start justify-between">
@@ -667,8 +672,8 @@ export default function LevelUpModal({
                             key={card.id}
                             onClick={() => toggleDomainCard(card.id)}
                             className={`text-left p-3 rounded-lg border transition-all ${isSelected
-                                ? 'border-dagger-gold bg-dagger-gold/10'
-                                : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
+                              ? 'border-dagger-gold bg-dagger-gold/10'
+                              : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
                               }`}
                           >
                             <div className="flex items-start justify-between gap-3">
