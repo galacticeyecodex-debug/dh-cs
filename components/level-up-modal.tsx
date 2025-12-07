@@ -85,6 +85,23 @@ export default function LevelUpModal({
 
   const [error, setError] = useState<string>('');
 
+  // Reset state when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setStep(1);
+      setSelectedAdvancements([]);
+      setSelectedDomainCard('');
+      setSelectedMulticlass('');
+      setSelectedMulticlassDomain('');
+      setExchangeExistingCardId(null);
+      setSelectedTraits([]);
+      setSelectedExperienceIndices([]);
+      setHpSlotsAdded(1);
+      setStressSlotsAdded(1);
+      setError('');
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const tierAchievements = calculateTierAchievements(newLevel);
