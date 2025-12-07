@@ -101,7 +101,7 @@ const TIER_LIMITS: Record<string, number> = {
   subclass_card: 1,
   increase_proficiency: 1,
   multiclass: 1,
-  level_domain_card: 3, // Allow taking domain cards once per level in a tier
+  // level_domain_card: 3, // Allow taking domain cards once per level in a tier
 };
 
 export default function LevelUpModal({
