@@ -1,5 +1,46 @@
 'use client';
 
+/**
+ * LEVEL UP MODAL DOCUMENTATION
+ * ----------------------------------------------------------------------------
+ * This component handles the complex logic of leveling up a Daggerheart character.
+ *
+ * GAME RULES & MECHANICS:
+ *
+ * 1. Tiers:
+ *    - Characters progress through 4 Tiers over 10 Levels.
+ *    - Tier 1: Level 1
+ *    - Tier 2: Levels 2-4
+ *    - Tier 3: Levels 5-7
+ *    - Tier 4: Levels 8-10
+ *
+ * 2. Tier Achievements (Automatic):
+ *    - At specific levels (2, 5, 8), characters automatically gain benefits:
+ *      - Level 2: +1 Proficiency, New Experience (+2).
+ *      - Level 5: +1 Proficiency, New Experience (+2), Clear all Marked Traits.
+ *      - Level 8: +1 Proficiency, New Experience (+2), Clear all Marked Traits.
+ *
+ * 3. Advancements (User Selection):
+ *    - Every level up, the user must select exactly TWO advancement options.
+ *    - Costs: Most options cost 1 slot. "Increase Proficiency" and "Multiclass" cost 2 slots.
+ *
+ * 4. Restrictions & Limits:
+ *    - "Once Per Tier" Rule: Most advancements (Increase Traits, HP, Stress, Evasion,
+ *      Subclass, Proficiency) can only be selected ONCE per Tier.
+ *      (e.g. If you take +1 HP at Level 2, you cannot take it again until Tier 3 at Level 5).
+ *    - "Domain Cards": Exception to the rule. Can be taken multiple times per tier.
+ *    - "Multiclass":
+ *      - Can only be selected ONCE per character lifetime.
+ *      - Costs 2 slots.
+ *      - Cannot be taken in the same Tier as a Subclass upgrade.
+ *      - NOTE: Multi-class has not yet been fully implemented.
+ *
+ * 5. Domain Cards:
+ *    - Users ALWAYS gain ONE free domain card every level.
+ *    - Users can gain ADDITIONAL domain cards by spending advancement slots.
+ *    - Logic: Total Cards = 1 (Base) + N (Number of "domain_card" advancements selected).
+ */
+
 import React, { useState } from 'react';
 import { X, Zap, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
