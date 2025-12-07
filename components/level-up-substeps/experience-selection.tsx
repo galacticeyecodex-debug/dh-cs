@@ -20,9 +20,12 @@ export default function ExperienceSelection({
     const currentIndex = newSelected.indexOf(index);
 
     if (currentIndex === -1) {
-      // Adding - only allow if we have less than 2
-      if (newSelected.length < 2) {
+      // Adding - only allow if we have less than 1
+      if (newSelected.length < 1) {
         newSelected.push(index);
+      } else {
+        // Optional: Replace existing selection if limit is 1
+        newSelected[0] = index;
       }
     } else {
       // Removing
@@ -37,29 +40,22 @@ export default function ExperienceSelection({
   };
 
   const canSelect = (index: number): boolean => {
-    if (isSelected(index)) return true;
-    return selectedExperienceIndices.length < 2;
+    // Always allow trying to select (it will replace if we implement replace logic)
+    // Or strictly:
+    // if (isSelected(index)) return true;
+    // return selectedExperienceIndices.length < 1;
+
+    // Improving UX: Just allow clicking any to select it (auto-replace)
+    return true;
   };
 
   // Handle edge case: no experiences
   if (!experiences || experiences.length === 0) {
     return (
       <div>
-        <h3 className="text-xl font-bold text-white mb-2">Select Experiences to Boost</h3>
+        <h3 className="text-xl font-bold text-white mb-2">Select Experience to Boost</h3>
         <div className="p-4 bg-yellow-900/20 border border-yellow-700 rounded-lg text-yellow-200 text-sm">
-          You don&apos;t have any experiences yet. You must have at least 2 experiences to select this advancement.
-        </div>
-      </div>
-    );
-  }
-
-  // Handle edge case: less than 2 experiences
-  if (experiences.length < 2) {
-    return (
-      <div>
-        <h3 className="text-xl font-bold text-white mb-2">Select Experiences to Boost</h3>
-        <div className="p-4 bg-yellow-900/20 border border-yellow-700 rounded-lg text-yellow-200 text-sm">
-          You only have {experiences.length} experience{experiences.length === 1 ? '' : 's'}. You need at least 2 experiences to select this advancement.
+          You don&apos;t have any experiences yet. You must have at least 1 experience to select this advancement.
         </div>
       </div>
     );
@@ -67,9 +63,9 @@ export default function ExperienceSelection({
 
   return (
     <div>
-      <h3 className="text-xl font-bold text-white mb-2">Select Experiences to Boost</h3>
+      <h3 className="text-xl font-bold text-white mb-2">Select Experience to Boost</h3>
       <p className="text-gray-400 mb-4">
-        Choose 2 experiences to permanently increase by +1. (Selected: {selectedExperienceIndices.length}/2)
+        Choose 1 experience to permanently increase by +1. (Selected: {selectedExperienceIndices.length}/1)
       </p>
 
       <div className="grid grid-cols-1 gap-2">
@@ -82,13 +78,10 @@ export default function ExperienceSelection({
               key={`${experience.name}-${index}`}
               onClick={() => toggleExperience(index)}
               disabled={!selectable}
-              className={`relative p-4 rounded-lg border transition-all ${
-                selected
-                  ? 'border-dagger-gold bg-dagger-gold/10'
-                  : selectable
-                  ? 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
-                  : 'border-gray-700 bg-black/20 opacity-50 cursor-not-allowed'
-              }`}
+              className={`relative p-4 rounded-lg border transition-all ${selected
+                ? 'border-dagger-gold bg-dagger-gold/10'
+                : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
+                }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 text-left">
@@ -120,9 +113,9 @@ export default function ExperienceSelection({
         })}
       </div>
 
-      {selectedExperienceIndices.length < 2 && (
+      {selectedExperienceIndices.length < 1 && (
         <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700 rounded-lg text-blue-200 text-sm">
-          Select {2 - selectedExperienceIndices.length} more experience{selectedExperienceIndices.length === 1 ? '' : 's'} to continue
+          Select 1 experience to continue
         </div>
       )}
     </div>
