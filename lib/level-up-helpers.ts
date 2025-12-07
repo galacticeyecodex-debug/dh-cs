@@ -19,7 +19,7 @@ export function getTier(level: number): 1 | 2 | 3 | 4 {
   if (level === 1) return 1;
   if (level >= 2 && level <= 4) return 2;
   if (level >= 5 && level <= 7) return 3;
-  if (level >= 8) return 4;
+  if (level >= 8 && level <= 10) return 4;
   throw new Error(`Invalid level: ${level}`);
 }
 
@@ -338,4 +338,66 @@ export function getClassDomains(className: string): string[] {
  */
 export function getAllClassNames(): string[] {
   return ['Bard', 'Druid', 'Guardian', 'Ranger', 'Rogue', 'Seraph', 'Sorcerer', 'Warrior', 'Wizard'];
+}
+
+/**
+ * Gets valid subclasses for a given class.
+ *
+ * @param className - The class name (e.g., "Warrior", "Bard")
+ * @returns Array of subclass IDs for the class
+ *
+ * TODO: This should query the library table for subclasses:
+ *   WHERE type='subclass' AND class_id=className
+ * For now, returns empty array as placeholder.
+ */
+export function getSubclassesForClass(className: string): string[] {
+  // Placeholder implementation
+  // In production, this should query the library table
+  return [];
+}
+
+/**
+ * Calculate maximum card level for a domain based on SRD multiclass rules.
+ *
+ * IMPORTANT: This function should only be called for domains the character has access to.
+ * Pre-filter cards by character.domains BEFORE calling this function.
+ *
+ * @param characterLevel - Current character level
+ * @param domain - The domain to check (case-insensitive)
+ * @param primaryDomains - Array of primary class domains
+ * @param multiclassDomain - Optional multiclass domain (if character has multiclassed)
+ * @returns Maximum card level allowed for this domain
+ *
+ * Rules:
+ * - Primary domains: Character's current level
+ * - Multiclass domain: Half character level (rounded up)
+ * - Unknown domains: Throws error (indicates a bug in filtering logic)
+ *
+ * Reference: srd/markdown/contents/Multiclassing.md
+ */
+export function getMaxCardLevelForDomain(
+  characterLevel: number,
+  domain: string,
+  primaryDomains: string[],
+  multiclassDomain?: string
+): number {
+  const normalizedDomain = domain.toLowerCase().trim();
+
+  // Check if it's a primary domain
+  const isPrimaryDomain = primaryDomains.some(
+    d => d.toLowerCase().trim() === normalizedDomain
+  );
+  if (isPrimaryDomain) return characterLevel;
+
+  // Check if it's the multiclass domain
+  const isMulticlassDomain = multiclassDomain &&
+    multiclassDomain.toLowerCase().trim() === normalizedDomain;
+  if (isMulticlassDomain) return Math.ceil(characterLevel / 2);
+
+  // Unknown domain - this is a bug in the calling code
+  throw new Error(
+    `getMaxCardLevelForDomain called with unknown domain "${domain}". ` +
+    `Character has access to: ${primaryDomains.join(', ')}${multiclassDomain ? `, ${multiclassDomain}` : ''}. ` +
+    `Cards should be pre-filtered by character.domains before calling this function.`
+  );
 }

@@ -82,6 +82,11 @@ CREATE TABLE IF NOT EXISTS public.characters (
   advancement_history_jsonb JSONB DEFAULT '{}'::jsonb, -- Complete advancement records per level
   subclass_progression JSONB DEFAULT '{}'::jsonb, -- Tracks obtained subclass features
 
+  -- Multiclass tracking
+  multiclass_id TEXT, -- Secondary class selected at level 5+ via multiclass advancement
+  multiclass_subclass_id TEXT, -- Subclass chosen for multiclass
+  multiclass_progression JSONB DEFAULT '{}'::jsonb, -- Tracks foundation/specialization/mastery for multiclass subclass
+
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

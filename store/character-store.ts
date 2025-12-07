@@ -98,6 +98,14 @@ export interface Character {
     mastery_obtained?: boolean;
   };
 
+  // Multiclass tracking
+  multiclass_subclass_id?: string;
+  multiclass_progression?: {
+    foundation_obtained?: boolean;
+    specialization_obtained?: boolean;
+    mastery_obtained?: boolean;
+  };
+
   // Relations
   character_cards?: CharacterCard[];
   character_inventory?: CharacterInventoryItem[];

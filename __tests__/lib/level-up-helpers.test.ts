@@ -14,6 +14,8 @@ import {
   validateDamageThresholds,
   calculateProficiencyIncrease,
   getLevelUpConfig,
+  getSubclassesForClass,
+  getMaxCardLevelForDomain,
 } from '@/lib/level-up-helpers';
 
 describe('getTier', () => {
@@ -431,5 +433,100 @@ describe('getLevelUpConfig', () => {
     expect(config.tier).toBe(2);
     expect(config.tierAchievements.newExperienceValue).toBeNull();
     expect(config.maxDomainCardLevel).toBe(3);
+  });
+});
+
+describe('getSubclassesForClass', () => {
+  it('should return empty array (placeholder implementation)', () => {
+    expect(getSubclassesForClass('Warrior')).toEqual([]);
+    expect(getSubclassesForClass('Bard')).toEqual([]);
+  });
+
+  it('should accept all class names without error', () => {
+    const classes = ['Bard', 'Druid', 'Guardian', 'Ranger', 'Rogue', 'Seraph', 'Sorcerer', 'Warrior', 'Wizard'];
+    classes.forEach(className => {
+      expect(() => getSubclassesForClass(className)).not.toThrow();
+    });
+  });
+});
+
+describe('getMaxCardLevelForDomain', () => {
+  describe('primary domains', () => {
+    it('should return character level for primary domains', () => {
+      expect(getMaxCardLevelForDomain(5, 'Blade', ['Blade', 'Valor'])).toBe(5);
+      expect(getMaxCardLevelForDomain(7, 'Valor', ['Blade', 'Valor'])).toBe(7);
+    });
+
+    it('should return character level for any primary domain', () => {
+      expect(getMaxCardLevelForDomain(3, 'Arcana', ['Arcana', 'Midnight'])).toBe(3);
+      expect(getMaxCardLevelForDomain(10, 'Codex', ['Codex', 'Grace'])).toBe(10);
+    });
+  });
+
+  describe('multiclass domain', () => {
+    it('should return half level (rounded up) for multiclass domain', () => {
+      expect(getMaxCardLevelForDomain(5, 'Arcana', ['Blade', 'Valor'], 'Arcana')).toBe(3);
+      expect(getMaxCardLevelForDomain(6, 'Arcana', ['Blade', 'Valor'], 'Arcana')).toBe(3);
+      expect(getMaxCardLevelForDomain(7, 'Arcana', ['Blade', 'Valor'], 'Arcana')).toBe(4);
+    });
+
+    it('should round up half level correctly', () => {
+      expect(getMaxCardLevelForDomain(5, 'Sage', ['Blade'], 'Sage')).toBe(3);  // ceil(5/2) = 3
+      expect(getMaxCardLevelForDomain(9, 'Sage', ['Blade'], 'Sage')).toBe(5);  // ceil(9/2) = 5
+      expect(getMaxCardLevelForDomain(10, 'Sage', ['Blade'], 'Sage')).toBe(5); // ceil(10/2) = 5
+    });
+  });
+
+  describe('case-insensitive matching', () => {
+    it('should handle lowercase domain names', () => {
+      expect(getMaxCardLevelForDomain(5, 'blade', ['Blade', 'Valor'])).toBe(5);
+      expect(getMaxCardLevelForDomain(5, 'ARCANA', ['Blade'], 'arcana')).toBe(3);
+    });
+
+    it('should handle mixed case and whitespace', () => {
+      expect(getMaxCardLevelForDomain(6, ' BlAdE ', ['Blade', 'Valor'])).toBe(6);
+      expect(getMaxCardLevelForDomain(7, ' Valor  ', ['Blade', 'Valor'])).toBe(7);
+    });
+  });
+
+  describe('unknown domains (error cases)', () => {
+    it('should throw error for unknown domains', () => {
+      expect(() => getMaxCardLevelForDomain(5, 'Unknown', ['Blade', 'Valor']))
+        .toThrow('getMaxCardLevelForDomain called with unknown domain');
+    });
+
+    it('should throw error with helpful message', () => {
+      expect(() => getMaxCardLevelForDomain(5, 'Sage', ['Blade', 'Valor']))
+        .toThrow('Character has access to: Blade, Valor');
+    });
+
+    it('should include multiclass domain in error message', () => {
+      expect(() => getMaxCardLevelForDomain(5, 'Codex', ['Blade', 'Valor'], 'Arcana'))
+        .toThrow('Character has access to: Blade, Valor, Arcana');
+    });
+
+    it('should throw for domain not in primary or multiclass list', () => {
+      expect(() => getMaxCardLevelForDomain(7, 'Splendor', ['Blade', 'Bone'], 'Arcana'))
+        .toThrow('unknown domain "Splendor"');
+    });
+  });
+
+  describe('edge cases', () => {
+    it('should handle level 1 character', () => {
+      expect(getMaxCardLevelForDomain(1, 'Blade', ['Blade', 'Valor'])).toBe(1);
+    });
+
+    it('should handle level 10 character', () => {
+      expect(getMaxCardLevelForDomain(10, 'Blade', ['Blade', 'Valor'])).toBe(10);
+    });
+
+    it('should handle multiclass at level 5 (minimum multiclass level)', () => {
+      expect(getMaxCardLevelForDomain(5, 'Arcana', ['Blade'], 'Arcana')).toBe(3);
+    });
+
+    it('should prioritize primary domain over multiclass if both match', () => {
+      // If a domain appears in both primary and multiclass (shouldn't happen, but test it)
+      expect(getMaxCardLevelForDomain(6, 'Blade', ['Blade', 'Valor'], 'Blade')).toBe(6);
+    });
   });
 });
