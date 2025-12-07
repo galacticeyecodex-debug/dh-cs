@@ -1,4 +1,4 @@
-# Daggerheart Web Companion
+# Daggerheart Dice & Character Creator
 
 A mobile-first, digital character sheet for the [Daggerheart](https://darringtonpress.com/daggerheart/) Tabletop RPG. Built with Next.js 15, TypeScript, and Supabase.
 
@@ -19,14 +19,16 @@ You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](ht
   <img src="images/combat-page.png" alt="Combat View" width="45%" />
 </p>
 
-## Features
+## Features & Roadmap
 
-- **Mobile-First Design** - Optimized for portrait mobile usage with touch interactions
-- **3D Dice Rolling** - Interactive dice roller with physics simulation
-- **Card-Based UI** - Manage abilities, equipment, and features as interactive cards
-- **Cloud Sync** - Character data stored securely in Supabase
-- **Google OAuth** - Easy authentication with your Google account
-- **Real-Time Updates** - Optimistic UI updates for smooth interactions
+- [x] **Mobile-First Design** - Optimized for portrait mobile usage with touch interactions
+- [x] **Cloud Sync** - Character data stored securely in Supabase
+- [x] **Google OAuth** - Easy authentication with your Google account
+- [x] **3D Dice Rolling** - Interactive dice roller with physics simulation and customizable Hope and Fear dice
+- [x] **Card-Based UI** - Manage abilities, equipment, and features as interactive cards
+- [x] **Real-Time Updates** - Optimistic UI updates for smooth interactions
+- [ ] **Multiclassing Support** - (In Progress) Full support for multiclassing
+- [ ] **Homebrew Content** - Support for custom domains and cards
 
 ## Tech Stack
 
