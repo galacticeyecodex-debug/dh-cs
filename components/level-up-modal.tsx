@@ -194,10 +194,17 @@ export default function LevelUpModal({
       const validCards = availableDomainCards.filter(
         card => isCardAvailableAtLevel(card, newLevel)
       );
-      // If no cards available, allow skip
-      if (validCards.length === 0) return true;
-      // If cards available, require selection of exactly maxDomainCards (or all available if less)
+      
+      // Strict requirement: must select exactly required amount
+      // If validCards is 0, they can't select, so they can't proceed.
+      // They must resolve the data issue (or we show a "Contact Support" / "No Cards" blocking state)
+      // Per user request: DO NOT SKIP.
       const required = Math.min(maxDomainCards, validCards.length);
+      
+      // If there are NO cards available, we still block progress because the user
+      // explicitly asked to NOT skip. They will see the "No domain cards available" message.
+      if (validCards.length === 0) return false;
+
       return selectedDomainCards.length === required;
     }
 
@@ -232,9 +239,15 @@ export default function LevelUpModal({
       const validCards = availableDomainCards.filter(
         card => isCardAvailableAtLevel(card, newLevel)
       );
+      
+      if (validCards.length === 0) {
+        setError('No domain cards available for this level. Cannot proceed.');
+        return;
+      }
+
       const required = Math.min(maxDomainCards, validCards.length);
       
-      if (validCards.length > 0 && selectedDomainCards.length !== required) {
+      if (selectedDomainCards.length !== required) {
         setError(`You must select exactly ${required} domain card${required > 1 ? 's' : ''}`);
         return;
       }
@@ -590,6 +603,14 @@ export default function LevelUpModal({
                   </p>
                   {character.domains?.length === 0 ? (
                     <p className="text-gray-500 text-sm p-4 bg-black/20 rounded-lg">No domains available. Ensure your character has at least one domain.</p>
+                  ) : availableDomainCards.filter(card => isCardAvailableAtLevel(card, newLevel)).length === 0 ? (
+                    <div className="p-4 bg-red-900/20 border border-red-700/50 rounded-lg">
+                      <p className="text-red-200 font-bold mb-1">No Domain Cards Found</p>
+                      <p className="text-sm text-red-300">
+                        There are no domain cards available for your domains (<strong>{character.domains?.join(', ')}</strong>) at Level {newLevel}.
+                        This might be a data issue or you may have collected all available cards.
+                      </p>
+                    </div>
                   ) : (
                     <div className="grid grid-cols-1 gap-2">
                       {availableDomainCards.filter(
