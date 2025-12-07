@@ -253,10 +253,16 @@ export default function CombatView() {
                         c.location === 'feature' &&
                         !c.library_item?.data?.multiclass &&
                         (c.library_item?.data?.tier === 'foundation' || c.library_item?.type === 'subclass')
-                      )}
+                      ) || (character.subclass_data && character.subclass_id ? { // Use subclass_data as fallback
+                          id: 'primary-subclass-foundation-fallback', // Unique ID for fallback card
+                          character_id: character.id,
+                          card_id: character.subclass_data.id,
+                          location: 'feature',
+                          state: {},
+                          library_item: character.subclass_data
+                      } : undefined)}
                       tier="Foundation"
                       isMulticlass={false}
-                      onCardNotFound={() => console.error("Error: Primary subclass Foundation feature card not found for character:", character.id)}
                     />
                   )}
 
@@ -266,10 +272,16 @@ export default function CombatView() {
                         c.location === 'feature' &&
                         !c.library_item?.data?.multiclass &&
                         c.library_item?.data?.tier === 'specialization'
-                      )}
+                      ) || (character.subclass_data && character.subclass_id ? { // Use subclass_data as fallback
+                          id: 'primary-subclass-specialization-fallback', // Unique ID for fallback card
+                          character_id: character.id,
+                          card_id: character.subclass_data.id,
+                          location: 'feature',
+                          state: {},
+                          library_item: character.subclass_data
+                      } : undefined)}
                       tier="Specialization"
                       isMulticlass={false}
-                      onCardNotFound={() => console.error("Error: Primary subclass Specialization feature card not found for character:", character.id)}
                     />
                   )}
 
@@ -279,10 +291,16 @@ export default function CombatView() {
                         c.location === 'feature' &&
                         !c.library_item?.data?.multiclass &&
                         c.library_item?.data?.tier === 'mastery'
-                      )}
+                      ) || (character.subclass_data && character.subclass_id ? { // Use subclass_data as fallback
+                          id: 'primary-subclass-mastery-fallback', // Unique ID for fallback card
+                          character_id: character.id,
+                          card_id: character.subclass_data.id,
+                          location: 'feature',
+                          state: {},
+                          library_item: character.subclass_data
+                      } : undefined)}
                       tier="Mastery"
                       isMulticlass={false}
-                      onCardNotFound={() => console.error("Error: Primary subclass Mastery feature card not found for character:", character.id)}
                     />
                   )}
                 </>

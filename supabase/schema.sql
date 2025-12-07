@@ -280,7 +280,8 @@ BEGIN
   INSERT INTO public.characters (
     user_id, name, level, class_id, subclass_id, ancestry, community,
     stats, vitals, damage_thresholds, hope, fear, evasion, proficiency,
-    experiences, domains, gold, image_url, modifiers
+    experiences, domains, gold, image_url, modifiers,
+    subclass_progression
   ) VALUES (
     v_user_id,
     p_character->>'name',
@@ -300,7 +301,8 @@ BEGIN
     (SELECT array_agg(x) FROM jsonb_array_elements_text(p_character->'domains') t(x)),
     COALESCE(p_character->'gold', '{}'::jsonb),
     p_character->>'image_url',
-    COALESCE(p_character->'modifiers', '{}'::jsonb)
+    COALESCE(p_character->'modifiers', '{}'::jsonb),
+    COALESCE(p_character->'subclass_progression', '{}'::jsonb)
   ) RETURNING id INTO v_character_id;
 
   -- 2. Insert Cards
