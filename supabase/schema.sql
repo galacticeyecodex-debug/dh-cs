@@ -1,3 +1,22 @@
+/*
+ * DATABASE SCHEMA (Daggerheart Character Sheet)
+ * ----------------------------------------------------------------------------
+ * This SQL file defines the complete database structure for the application. It is the sole source of truth for the database schema (no migrations needed).
+ * 
+ * FUNCTIONALITY:
+ * 1. PROFILES: Manages user accounts linked to Supabase Auth.
+ * 2. LIBRARY: Stores static game data (Classes, Ancestries, Cards, Items) modeled after the Daggerheart system.
+ * 3. CHARACTERS: The core table storing all dynamic character state (Stats, Vitals, Experiences, Progression).
+ *    - Includes JSONB fields for flexible data storage (stats, inventory, progression tracking).
+ *    - Tracks leveling history and multiclassing details.
+ * 4. CHARACTER_CARDS: Manages the collection of Domain and Ability cards a character owns, including their state (active/vault).
+ * 5. CHARACTER_INVENTORY: Tracks equipment and items.
+ * 
+ * SECURITY:
+ * - Implements Row Level Security (RLS) policies to ensure users can only access and modify their own data.
+ * - Includes helper functions (RPCs) for atomic operations like creating a complete character.
+ */
+
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

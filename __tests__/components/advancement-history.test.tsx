@@ -1,3 +1,16 @@
+/**
+ * ADVANCEMENT HISTORY TESTS
+ * ----------------------------------------------------------------------------
+ * This test suite validates the functionality of the `AdvancementHistory` component.
+ * 
+ * FUNCTIONALITY TESTED:
+ * - Rendering: Ensures the history list renders correctly with mock data.
+ * - Empty States: Verifies behavior when no history exists.
+ * - Interactions: Tests the expand/collapse logic for individual level details.
+ * - Data Display: Checks that specific advancement details (traits, HP, cards) are shown correctly.
+ * - Edge Cases: Validates handling of undefined data and numerical sorting of levels.
+ */
+
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';

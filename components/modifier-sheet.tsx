@@ -1,5 +1,18 @@
 'use client';
 
+/**
+ * MODIFIER SHEET COMPONENT
+ * ----------------------------------------------------------------------------
+ * A bottom-sheet interface for inspecting and modifying a specific character stat.
+ * 
+ * FUNCTIONALITY:
+ * - Stat Breakdown: Displays the Base Value, active System Modifiers (e.g., from Armor), 
+ *   and User Modifiers to show how the Final Total is calculated.
+ * - Quick Adjustments: Provides a stepper interface to quickly add/remove temporary modifiers.
+ * - Modifier Management: Allows users to rename or delete their manual adjustments.
+ * - Source tracking: Visually distinguishes between 'System' (read-only) and 'User' (editable) modifiers.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Check, Pencil } from 'lucide-react';
 import clsx from 'clsx';
@@ -36,13 +49,13 @@ export default function ModifierSheet({
 
   // Calculate Total
   const total = baseValue + currentModifiers.reduce((acc, mod) => acc + mod.value, 0);
-  
+
   // Pending Value for Stepper
   const [pendingValue, setPendingValue] = useState(0);
 
   const handleApplyPending = () => {
     if (pendingValue === 0) return;
-    
+
     const newMod: Modifier = {
       id: crypto.randomUUID(),
       name: 'Adjustment',
@@ -64,7 +77,7 @@ export default function ModifierSheet({
 
   const saveEdit = () => {
     if (!editingId) return;
-    const updated = currentModifiers.map(m => 
+    const updated = currentModifiers.map(m =>
       m.id === editingId ? { ...m, name: editName } : m
     );
     onUpdateModifiers(updated);
@@ -83,7 +96,7 @@ export default function ModifierSheet({
             onClick={onClose}
             className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
           />
-          
+
           {/* Sheet */}
           <motion.div
             initial={{ y: '100%' }}
@@ -113,36 +126,36 @@ export default function ModifierSheet({
 
             {/* Stepper / Quick Actions */}
             <div className="p-4 border-b border-white/10 bg-black/20 flex flex-col items-center gap-3">
-               <div className="flex items-center gap-4">
-                  <button 
-                    onClick={() => setPendingValue(prev => prev - 1)}
-                    className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-2xl font-bold text-white transition-colors"
-                  >
-                    -
-                  </button>
-                  
-                  <div className={clsx(
-                    "w-16 text-center text-3xl font-bold",
-                    pendingValue > 0 ? "text-green-400" : pendingValue < 0 ? "text-red-400" : "text-gray-500"
-                  )}>
-                    {pendingValue > 0 ? `+${pendingValue}` : pendingValue}
-                  </div>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setPendingValue(prev => prev - 1)}
+                  className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-2xl font-bold text-white transition-colors"
+                >
+                  -
+                </button>
 
-                  <button 
-                    onClick={() => setPendingValue(prev => prev + 1)}
-                    className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-2xl font-bold text-white transition-colors"
-                  >
-                    +
-                  </button>
-               </div>
-               
-               <button 
-                 onClick={handleApplyPending}
-                 disabled={pendingValue === 0}
-                 className="w-full py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-               >
-                 Apply Adjustment
-               </button>
+                <div className={clsx(
+                  "w-16 text-center text-3xl font-bold",
+                  pendingValue > 0 ? "text-green-400" : pendingValue < 0 ? "text-red-400" : "text-gray-500"
+                )}>
+                  {pendingValue > 0 ? `+${pendingValue}` : pendingValue}
+                </div>
+
+                <button
+                  onClick={() => setPendingValue(prev => prev + 1)}
+                  className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-2xl font-bold text-white transition-colors"
+                >
+                  +
+                </button>
+              </div>
+
+              <button
+                onClick={handleApplyPending}
+                disabled={pendingValue === 0}
+                className="w-full py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                Apply Adjustment
+              </button>
             </div>
 
             {/* List */}
@@ -150,20 +163,20 @@ export default function ModifierSheet({
               {currentModifiers.length === 0 && (
                 <div className="text-center text-gray-600 italic py-4">No modifiers active.</div>
               )}
-              
+
               {currentModifiers.map(mod => (
                 <div key={mod.id} className="flex items-center justify-between bg-white/5 border border-white/5 rounded-lg p-3">
                   <div className="flex-1">
                     {editingId === mod.id ? (
                       <div className="flex items-center gap-2">
-                        <input 
+                        <input
                           autoFocus
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
                           className="bg-black/40 border border-white/20 rounded px-2 py-1 text-sm w-full focus:border-dagger-gold outline-none"
                           onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
                         />
-                        <button onClick={saveEdit} className="p-1 text-green-400 hover:bg-white/10 rounded"><Check size={16}/></button>
+                        <button onClick={saveEdit} className="p-1 text-green-400 hover:bg-white/10 rounded"><Check size={16} /></button>
                       </div>
                     ) : (
                       <div onClick={() => mod.source === 'user' && startEdit(mod)} className={clsx("font-bold", mod.source === 'user' ? "text-white cursor-pointer flex items-center gap-2" : "text-gray-400")}>
@@ -172,11 +185,11 @@ export default function ModifierSheet({
                       </div>
                     )}
                     <div className="text-xs text-gray-500 uppercase flex items-center gap-1">
-                       {mod.source === 'system' && <span className="bg-blue-900/50 text-blue-300 px-1.5 rounded text-[10px]">SYSTEM</span>}
-                       {mod.source === 'user' && <span className="bg-white/10 text-gray-400 px-1.5 rounded text-[10px]">USER</span>}
+                      {mod.source === 'system' && <span className="bg-blue-900/50 text-blue-300 px-1.5 rounded text-[10px]">SYSTEM</span>}
+                      {mod.source === 'user' && <span className="bg-white/10 text-gray-400 px-1.5 rounded text-[10px]">USER</span>}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3">
                     <div className={clsx("text-xl font-bold", mod.value >= 0 ? "text-green-400" : "text-red-400")}>
                       {mod.value >= 0 ? `+${mod.value}` : mod.value}

@@ -1,3 +1,17 @@
+/**
+ * STATE HELPER TESTS
+ * ----------------------------------------------------------------------------
+ * This test suite verifies the `withOptimisticUpdate` utility, which manages optimistic UI updates.
+ * 
+ * FUNCTIONALITY TESTED:
+ * - Success Path: Confirms that when a DB operation succeeds, the UI update persists and no rollback occurs.
+ * - Error Path: Ensures that if the DB operation fails, the rollback function is called to revert the UI 
+ *   to its previous state and an error toast is displayed.
+ * - Closure State: Validates that the rollback function correctly captures the "previous" state at the time of execution.
+ * - Toast Notifications: Checks that appropriate success/error messages are shown to the user via toast.
+ * - Edge Cases: Handles falsy error values and ensures console logging occurs only on actual failures.
+ */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { toast } from 'sonner';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
@@ -247,7 +261,7 @@ describe('withOptimisticUpdate', () => {
 
   describe('console logging', () => {
     it('should log error to console on database failure', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
       const error = new Error('DB connection failed');
       const updateFn = vi.fn(() => vi.fn());
       const dbOperation = vi.fn().mockResolvedValue({ error });
@@ -260,7 +274,7 @@ describe('withOptimisticUpdate', () => {
     });
 
     it('should NOT log to console on success', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
       const updateFn = vi.fn(() => vi.fn());
       const dbOperation = vi.fn().mockResolvedValue({ error: null });
 

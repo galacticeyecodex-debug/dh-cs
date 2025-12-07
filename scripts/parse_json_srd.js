@@ -1,3 +1,30 @@
+/**
+ * JSON SRD PARSER & SQL GENERATOR
+ * ----------------------------------------------------------------------------
+ * This script transforms raw JSON data (the Daggerheart System Reference Document) 
+ * into a SQL seed file for the Supabase database.
+ * 
+ * FUNCTIONALITY:
+ * - Reads multiple JSON files (classes, ancestries, weapons, etc.) from the `srd/json` directory.
+ * - Parses textual content, including extracting stat modifiers using Regex logic.
+ * - Generates properly escaped SQL `INSERT` statements for the `library` table.
+ * - Handles data normalization, slug generation for IDs, and relationship linking 
+ *   (e.g., connecting Subclasses to their parent Classes).
+ * - Outputs the final result to `supabase/seed_library.sql`.
+ * 
+ * DUPLICATE LOGIC WARNING:
+ * - This script contains logic for parsing modifiers (RegEx) that is IDENTICAL to 
+ *   `lib/modifier-parser.ts`. 
+ * - This script is used for SEEDING static data (database initialization).
+ * - `lib/modifier-parser.ts` is intended for RUNTIME parsing (e.g., user-created homebrew).
+ * - If you update the parsing logic here, you MUST update it in `lib/modifier-parser.ts` as well
+ *   to ensure consistency between official content and dynamically parsed content.
+ * 
+ * USAGE:
+ * - Run via Node.js (e.g., `node scripts/parse_json_srd.js`) whenever the source JSON 
+ *   data is updated to refresh the database seed file.
+ */
+
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto'); // Native in Node 19+, check version or use fallback

@@ -1,5 +1,21 @@
 'use client';
 
+/**
+ * DAGGERHEART APP COMPONENT
+ * ----------------------------------------------------------------------------
+ * The primary application shell and state manager for the authenticated user experience.
+ *
+ * FUNCTIONALITY:
+ * - Session Management: Detailed handling of user authentication, ensuring the correct `clientUser` 
+ *   is synced with the global store.
+ * - Data Initialization: Orchestrates the initial fetching of the user's profile and active character data.
+ * - Route Protection: Manages different view states based on authentication status:
+ *   - Loading: Shows a spinner/message while fetching data.
+ *   - Unauthenticated: Displays a welcome screen with a login prompt.
+ *   - No Character: Prompts the user to create their first character if none exists.
+ *   - Active Session: Renders the main `MobileLayout` and switches between views (Character, Combat, Playmat, Inventory) based on the active tab.
+ */
+
 import MobileLayout from '@/components/mobile-layout';
 import CharacterView from '@/components/views/character-view';
 import PlaymatView from '@/components/views/playmat-view';
@@ -63,7 +79,7 @@ export default function DaggerheartApp({ clientUser }: { clientUser: User | null
       <div className="flex flex-col items-center justify-center h-[100dvh] bg-dagger-dark text-white p-4 text-center">
         <h1 className="text-3xl font-serif font-bold mb-4">No Character Found</h1>
         <p className="mb-6 text-gray-300">It looks like you don&apos;t have a character yet. Would you like to create one?</p>
-        <button 
+        <button
           onClick={() => router.push('/create-character')}
           className="px-6 py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-105 transition-transform"
         >

@@ -1,3 +1,22 @@
+/**
+ * CHARACTER STORE (Zustand)
+ * ----------------------------------------------------------------------------
+ * This is the central state management store for a single character session.
+ * 
+ * FUNCTIONALITY:
+ * - Manages the complete state of the active character: Stats, Vitals, Inventory, Cards, and Lore.
+ * - Handles synchronization with Supabase:
+ *   - Optimistic updates for immediate UI feedback (vitals changes, equipping items).
+ *   - Fetches and joins data from multiple tables (Characters, Cards, Inventory, Library) into a unified object.
+ * - Provides actions for complex game mechanics:
+ *   - Level Up Logic: Calculates stat increases, new thresholds, and applies advancements.
+ *   - Derived Stat Recalculation: Automatically updates Armor, Evasion, and Max HP based on equipment and modifiers.
+ *   - Dice Rolling Interface: Manages the state of the dice overlay.
+ * 
+ * INTERFACES:
+ * - Defines the core data structures for `Character`, `CharacterCard`, `CharacterInventoryItem`, and `LibraryItem`.
+ */
+
 import { create } from 'zustand';
 import createClient from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -372,12 +391,12 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // 1. Base Score from Armor & Thresholds
     if (equippedArmor?.library_item?.data) {
       const armorData = equippedArmor.library_item.data;
-      
+
       // Base Score
       if (armorData.base_score) {
         newArmorScore += parseInt(armorData.base_score) || 0;
       }
-      
+
       // Thresholds
       if (armorData.base_thresholds) {
         const parts = armorData.base_thresholds.split('/');
@@ -391,13 +410,13 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         }
       }
     } else {
-        // Unarmored rules: Score 0, Major = Level, Severe = Level * 2
-        // (Defaults already set)
+      // Unarmored rules: Score 0, Major = Level, Severe = Level * 2
+      // (Defaults already set)
     }
 
     // 2. System Modifiers (Items)
     const tempChar = { ...character, character_inventory: inventory };
-    
+
     // Armor Score Bonuses
     const armorMods = getSystemModifiers(tempChar, 'armor');
     newArmorScore += armorMods.reduce((acc: number, mod: any) => acc + mod.value, 0);
@@ -405,7 +424,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // Threshold Bonuses
     const thresholdMods = getSystemModifiers(tempChar, 'damage_thresholds');
     const thresholdBonus = thresholdMods.reduce((acc: number, mod: any) => acc + mod.value, 0);
-    
+
     majorThreshold += thresholdBonus;
     severeThreshold += thresholdBonus;
 
@@ -460,7 +479,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
 
     // Apply updates
     const currentVitals = character.vitals;
-    
+
     const newVitals = {
       ...currentVitals,
       // Armor
@@ -473,7 +492,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       stress_max: newStressMax,
       stress_current: Math.min(currentVitals.stress_current, newStressMax),
     };
-    
+
     const newThresholds = {
       minor: minorThreshold,
       major: majorThreshold,
@@ -481,8 +500,8 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     };
 
     set((s) => ({
-      character: s.character ? { 
-        ...s.character, 
+      character: s.character ? {
+        ...s.character,
         vitals: newVitals,
         damage_thresholds: newThresholds,
         evasion: newEvasion
@@ -492,7 +511,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     const supabase = createClient();
     await supabase
       .from('characters')
-      .update({ 
+      .update({
         vitals: newVitals,
         damage_thresholds: newThresholds,
         evasion: newEvasion
@@ -837,7 +856,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
 
     // E. Parse and Migrate Vitals
     let rawVitals = typeof charData.vitals === 'string' ? JSON.parse(charData.vitals) : charData.vitals;
-    
+
     // Backward compatibility migration
     const vitals = {
       hit_points_current: rawVitals.hit_points_current ?? rawVitals.hp_current ?? 0,
@@ -865,16 +884,16 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // Calculate initial damage thresholds (default if not stored)
     // We could call recalculateDerivedStats after set, but calculating basic here is safer
     let damage_thresholds;
-    
+
     if (charData.damage_thresholds) {
-      damage_thresholds = typeof charData.damage_thresholds === 'string' 
-        ? JSON.parse(charData.damage_thresholds) 
+      damage_thresholds = typeof charData.damage_thresholds === 'string'
+        ? JSON.parse(charData.damage_thresholds)
         : charData.damage_thresholds;
     } else {
       const minor = 1;
       const major = charData.level;
       const severe = charData.level * 2;
-      
+
       // Note: Real recalculation happens via recalculateDerivedStats() action, 
       // but we need initial state. Use base unarmored values.
       damage_thresholds = {
@@ -1072,16 +1091,16 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // Apply trait increments (from "Increase Traits" advancement)
     if (options.traitIncrements && options.traitIncrements.length > 0) {
       const currentModifiers = { ...(updatedCharacter.modifiers || {}) };
-      
+
       for (const increment of options.traitIncrements) {
         const trait = increment.trait;
         if (!currentModifiers[trait]) currentModifiers[trait] = [];
-        
+
         currentModifiers[trait].push({
-            id: crypto.randomUUID(),
-            name: `Level ${options.newLevel} Advancement`,
-            value: increment.amount,
-            source: 'system'
+          id: crypto.randomUUID(),
+          name: `Level ${options.newLevel} Advancement`,
+          value: increment.amount,
+          source: 'system'
         });
       }
       updatedCharacter.modifiers = currentModifiers;
@@ -1104,12 +1123,12 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     if (options.hpSlotsAdded && options.hpSlotsAdded > 0) {
       const currentModifiers = { ...(updatedCharacter.modifiers || {}) };
       if (!currentModifiers['hit_points']) currentModifiers['hit_points'] = [];
-      
+
       currentModifiers['hit_points'].push({
-           id: crypto.randomUUID(),
-           name: `Level ${options.newLevel} Advancement`,
-           value: options.hpSlotsAdded,
-           source: 'system'
+        id: crypto.randomUUID(),
+        name: `Level ${options.newLevel} Advancement`,
+        value: options.hpSlotsAdded,
+        source: 'system'
       });
       updatedCharacter.modifiers = currentModifiers;
     }
@@ -1117,12 +1136,12 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     if (options.stressSlotsAdded && options.stressSlotsAdded > 0) {
       const currentModifiers = { ...(updatedCharacter.modifiers || {}) };
       if (!currentModifiers['stress']) currentModifiers['stress'] = [];
-      
+
       currentModifiers['stress'].push({
-           id: crypto.randomUUID(),
-           name: `Level ${options.newLevel} Advancement`,
-           value: options.stressSlotsAdded,
-           source: 'system'
+        id: crypto.randomUUID(),
+        name: `Level ${options.newLevel} Advancement`,
+        value: options.stressSlotsAdded,
+        source: 'system'
       });
       updatedCharacter.modifiers = currentModifiers;
     }
@@ -1130,15 +1149,15 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // Apply evasion increase if advancement selected
     if (options.selectedAdvancements.includes('increase_evasion')) {
       const currentModifiers = { ...(updatedCharacter.modifiers || {}) };
-       if (!currentModifiers['evasion']) currentModifiers['evasion'] = [];
-       
-       currentModifiers['evasion'].push({
-            id: crypto.randomUUID(),
-            name: `Level ${options.newLevel} Advancement`,
-            value: 1,
-            source: 'system'
-       });
-       updatedCharacter.modifiers = currentModifiers;
+      if (!currentModifiers['evasion']) currentModifiers['evasion'] = [];
+
+      currentModifiers['evasion'].push({
+        id: crypto.randomUUID(),
+        name: `Level ${options.newLevel} Advancement`,
+        value: 1,
+        source: 'system'
+      });
+      updatedCharacter.modifiers = currentModifiers;
     }
 
     // Apply multiclass if selected
@@ -1225,7 +1244,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         newMarkedTraits[inc.trait] = true;
       });
     }
-    
+
     updatePayload.marked_traits_jsonb = newMarkedTraits;
 
     // CRITICAL FIX: Update the local object with the new history and marked traits 
@@ -1390,7 +1409,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       const advancement_history = { ...state.character.advancement_history_jsonb || {} };
       const currentLevel = state.character.level;
       const newLevel = updates.level;
-      
+
       // Clone modifiers to work on
       let updatedModifiers = { ...character.modifiers || {} };
 
@@ -1404,18 +1423,18 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         // So we must manually decrement it if we cross a tier achievement level.
         // Levels with tier achievements: 2, 5, 8.
         if (level === 2 || level === 5 || level === 8) {
-           character.proficiency -= 1;
+          character.proficiency -= 1;
         }
 
         if (levelRecord) {
           // Remove System Modifiers created for this level advancement
           // This handles Traits, HP, Stress, Evasion which are all stored as modifiers now.
           // We look for modifiers with name `Level ${level} Advancement`
-          
+
           Object.keys(updatedModifiers).forEach(stat => {
-             updatedModifiers[stat] = updatedModifiers[stat].filter(mod => 
-                mod.name !== `Level ${level} Advancement`
-             );
+            updatedModifiers[stat] = updatedModifiers[stat].filter(mod =>
+              mod.name !== `Level ${level} Advancement`
+            );
           });
 
           // Reverse experience increments (still stored in array)
@@ -1430,17 +1449,17 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
               }
             }
           }
-          
+
           // Reverse automatic new experience from Tier Achievements (Level 2, 5, 8)
           // The new experience is added to the END of the array.
           // If we are de-leveling past 2, 5, or 8, we should remove the last experience?
           // Risk: User might have reordered them. But usually last one.
           // Actually `addExperienceAtLevelUp` pushes to end.
           if (level === 2 || level === 5 || level === 8) {
-             // Remove the last experience
-             if (character.experiences.length > 0) {
-                character.experiences.pop();
-             }
+            // Remove the last experience
+            if (character.experiences.length > 0) {
+              character.experiences.pop();
+            }
           }
 
           // Reverse Proficiency Advancement (if chosen manually)

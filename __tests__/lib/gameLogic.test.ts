@@ -1,7 +1,15 @@
 /**
- * Tests for game logic calculations
- * These tests verify that character stats are calculated correctly
- * per the Daggerheart SRD rules
+ * GAME LOGIC TESTS
+ * ----------------------------------------------------------------------------
+ * This test suite verifies the core mathematical rules of the Daggerheart system implemented in `lib/gameLogic.ts`.
+ * 
+ * FUNCTIONALITY TESTED:
+ * - Armor Score: Calculates total armor based on base stats + modifiers, capping at 12 (SRD rule).
+ * - Damage Thresholds: Verifies correct scaling of Minor/Major/Severe thresholds based on Level and Armor.
+ * - Vitals: Tests calculation of Max HP and Stress, including stacking modifiers from multiple sources.
+ * - Clamping: Ensures values like HP remaining do not exceed their maximums or drop below zero.
+ * - Dice Parsing: Validates the Regex logic for splitting dice strings (e.g., "1d8+2") into components.
+ * - Integration: Checks `calculateDerivedStats` to ensure all rules are applied together correctly character-wide.
  */
 
 import { describe, it, expect } from 'vitest';

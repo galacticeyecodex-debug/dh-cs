@@ -1,6 +1,15 @@
 /**
- * Tests for modifier extraction and application
- * Verifies that modifiers from equipment are correctly identified and applied
+ * MODIFIERS TESTS
+ * ----------------------------------------------------------------------------
+ * This test suite verifies the functionality of the `getSystemModifiers` utility.
+ * 
+ * FUNCTIONALITY TESTED:
+ * - Inventory Filtering: Modifiers should only be applied if the item is equipped (not in backpack).
+ * - Structured Data Support: Verifies extraction of explicit modifier objects (target, value) from JSON data.
+ * - Legacy Parsing: Tests the fallback regex logic that parses natural language strings (e.g., "+1 to Strength") 
+ *   from `feat_text` or `feature.text` when structured data is missing.
+ * - Aggregation: Checks that multiple modifiers from different items stack correctly for a given stat.
+ * - Edge Cases: Validates handling of negative values, case-insensitivity, and malformed inputs.
  */
 
 import { describe, it, expect } from 'vitest';

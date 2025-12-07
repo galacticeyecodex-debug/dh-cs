@@ -1,5 +1,18 @@
 'use client';
 
+/**
+ * MOBILE LAYOUT COMPONENT
+ * ----------------------------------------------------------------------------
+ * This component serves as the primary layout wrapper for the mobile-first
+ * character sheet interface. It structures the application into three key zones:
+ * 1. A top header displaying the character's name and providing authentication controls (Sign Out).
+ * 2. A central scrollable content area where specific views (Character, Combat, Playmat, Inventory) are rendered.
+ * 3. A persistent bottom navigation bar for seamless switching between these views.
+ * 
+ * Additionally, it integrates a Floating Action Button (FAB) for quick access to 
+ * the Dice Roller overlay, ensuring dice mechanics are always accessible regardless of the current view.
+ */
+
 import React from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { User, Layers, Backpack, Dices, Swords, LogOut, ChevronDown } from 'lucide-react';

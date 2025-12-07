@@ -1,5 +1,18 @@
 'use client';
 
+/**
+ * EXPERIENCE SHEET COMPONENT
+ * ----------------------------------------------------------------------------
+ * A bottom-sheet interface for creating, editing, and deleting character Experiences.
+ * 
+ * FUNCTIONALITY:
+ * - CRUD Operations: Allows users to Add new experiences, Edit existing ones (name/value), 
+ *   and Delete unwanted entries.
+ * - Value Management: Provides incremental controls for setting experience modifiers (e.g., +2).
+ * - Inline Editing: Enables quick edits directly within the list item without navigating away.
+ * - Responsive Design: Uses a sliding drawer pattern (`framer-motion`) optimized for mobile interaction.
+ */
+
 import React, { useState } from 'react';
 import { X, Trash2, Check, Pencil, Plus } from 'lucide-react';
 import clsx from 'clsx';
@@ -49,7 +62,7 @@ export default function ExperienceSheet({
 
   const saveEdit = () => {
     if (editingIndex === null) return;
-    const updated = experiences.map((exp, i) => 
+    const updated = experiences.map((exp, i) =>
       i === editingIndex ? { name: editName, value: editValue } : exp
     );
     onUpdateExperiences(updated);
@@ -68,7 +81,7 @@ export default function ExperienceSheet({
             onClick={onClose}
             className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
           />
-          
+
           {/* Sheet */}
           <motion.div
             initial={{ y: '100%' }}
@@ -90,27 +103,27 @@ export default function ExperienceSheet({
 
             {/* Add New Section */}
             <div className="p-4 border-b border-white/10 bg-black/20 flex flex-col gap-3">
-               <div className="text-xs font-bold text-gray-400 uppercase">Add New</div>
-               <div className="flex items-center gap-2">
-                 <input 
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Experience Name..."
-                    className="flex-1 bg-black/40 border border-white/20 rounded px-3 py-2 text-sm focus:border-dagger-gold outline-none text-white"
-                 />
-                 <div className="flex items-center bg-white/5 rounded border border-white/10">
-                    <button onClick={() => setNewValue(v => v - 1)} className="px-2 py-1 hover:bg-white/10 text-white">-</button>
-                    <span className="w-8 text-center font-bold text-dagger-gold">+{newValue}</span>
-                    <button onClick={() => setNewValue(v => v + 1)} className="px-2 py-1 hover:bg-white/10 text-white">+</button>
-                 </div>
-               </div>
-               <button 
-                 onClick={handleAdd}
-                 disabled={!newName.trim()}
-                 className="w-full py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-               >
-                 <Plus size={16} /> Add Experience
-               </button>
+              <div className="text-xs font-bold text-gray-400 uppercase">Add New</div>
+              <div className="flex items-center gap-2">
+                <input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Experience Name..."
+                  className="flex-1 bg-black/40 border border-white/20 rounded px-3 py-2 text-sm focus:border-dagger-gold outline-none text-white"
+                />
+                <div className="flex items-center bg-white/5 rounded border border-white/10">
+                  <button onClick={() => setNewValue(v => v - 1)} className="px-2 py-1 hover:bg-white/10 text-white">-</button>
+                  <span className="w-8 text-center font-bold text-dagger-gold">+{newValue}</span>
+                  <button onClick={() => setNewValue(v => v + 1)} className="px-2 py-1 hover:bg-white/10 text-white">+</button>
+                </div>
+              </div>
+              <button
+                onClick={handleAdd}
+                disabled={!newName.trim()}
+                className="w-full py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <Plus size={16} /> Add Experience
+              </button>
             </div>
 
             {/* List */}
@@ -118,28 +131,28 @@ export default function ExperienceSheet({
               {experiences.length === 0 && (
                 <div className="text-center text-gray-600 italic py-4">No experiences recorded.</div>
               )}
-              
+
               {experiences.map((exp, index) => (
                 <div key={index} className="flex items-center justify-between bg-white/5 border border-white/5 rounded-lg p-3">
                   <div className="flex-1">
                     {editingIndex === index ? (
                       <div className="flex flex-col gap-2">
-                        <input 
+                        <input
                           autoFocus
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
                           className="bg-black/40 border border-white/20 rounded px-2 py-1 text-sm w-full focus:border-dagger-gold outline-none text-white"
                         />
                         <div className="flex items-center justify-between">
-                           <div className="flex items-center bg-black/40 rounded border border-white/20">
-                              <button onClick={() => setEditValue(v => v - 1)} className="px-2 py-0.5 hover:bg-white/10 text-white">-</button>
-                              <span className="w-8 text-center font-bold text-dagger-gold">+{editValue}</span>
-                              <button onClick={() => setEditValue(v => v + 1)} className="px-2 py-0.5 hover:bg-white/10 text-white">+</button>
-                           </div>
-                           <div className="flex gap-2">
-                             <button onClick={() => setEditingIndex(null)} className="p-1 text-gray-400 hover:text-white"><X size={16}/></button>
-                             <button onClick={saveEdit} className="p-1 text-green-400 hover:text-green-300"><Check size={16}/></button>
-                           </div>
+                          <div className="flex items-center bg-black/40 rounded border border-white/20">
+                            <button onClick={() => setEditValue(v => v - 1)} className="px-2 py-0.5 hover:bg-white/10 text-white">-</button>
+                            <span className="w-8 text-center font-bold text-dagger-gold">+{editValue}</span>
+                            <button onClick={() => setEditValue(v => v + 1)} className="px-2 py-0.5 hover:bg-white/10 text-white">+</button>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => setEditingIndex(null)} className="p-1 text-gray-400 hover:text-white"><X size={16} /></button>
+                            <button onClick={saveEdit} className="p-1 text-green-400 hover:text-green-300"><Check size={16} /></button>
+                          </div>
                         </div>
                       </div>
                     ) : (
@@ -148,7 +161,7 @@ export default function ExperienceSheet({
                           {exp.name}
                           <Pencil size={12} className="text-gray-600 opacity-50" />
                         </div>
-                        
+
                         <div className="flex items-center gap-3">
                           <div className="text-gray-400 font-medium">
                             +{exp.value}

@@ -1,5 +1,20 @@
 'use client';
 
+/**
+ * ADD ITEM MODAL
+ * ----------------------------------------------------------------------------
+ * A modal dialog that allows users to browse the global game Library and add items 
+ * (Weapons, Armor, Consumables, etc.) or cards (Abilities, Spells, etc.) to their character.
+ * 
+ * FUNCTIONALITY:
+ * - Search: Real-time search by item name.
+ * - Filtering: Category tags (e.g., "Weapon", "Card") to narrow down the list.
+ * - Context Awareness: Accepts a `filterType` prop ('inventory' vs 'cards') to default 
+ *   the view to relevant items based on where the user opened the modal from.
+ * - Preview: Shows item details like damage dice for weapons or armor scores for armor.
+ * - Item Selection: Clicking an item calls `onAddItem` to add it to the character's state.
+ */
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { LibraryItem } from '@/store/character-store';
 import { Search, X, Sword, Shield, Heart, Gem, Package, ScrollText, Loader2 } from 'lucide-react';
@@ -21,7 +36,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
   const filteredItems = useMemo(() => {
     return libraryItems.filter(item => {
       const matchesSearch = searchTerm ? item.name.toLowerCase().includes(searchTerm.toLowerCase()) : true;
-      
+
       // Category filtering
       let matchesCategory = true;
       if (selectedCategory === 'weapon') matchesCategory = item.type === 'weapon';
@@ -29,12 +44,12 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
       else if (selectedCategory === 'consumable') matchesCategory = item.type === 'consumable';
       else if (selectedCategory === 'item') matchesCategory = item.type === 'item';
       else if (selectedCategory === 'card') matchesCategory = ['ability', 'spell', 'grimoire'].includes(item.type);
-      
+
       // Relevant Type check based on context (Inventory vs Playmat/Cards)
       // If filterType is 'cards', we mainly want card types. If 'inventory', we want item types.
       // But the user can toggle. Let's allow the tabs to drive visibility.
       // If NO category selected, show based on filterType default.
-      
+
       const isCardType = ['ability', 'spell', 'grimoire'].includes(item.type);
       const isInventoryType = ['weapon', 'armor', 'consumable', 'item'].includes(item.type);
 
@@ -83,46 +98,46 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
           </div>
 
           <div className="flex gap-2 overflow-x-auto pb-2 -mb-2">
-            <FilterButton 
-              label="All" 
-              icon={<Package size={16} />} 
-              isSelected={selectedCategory === null} 
-              onClick={() => setSelectedCategory(null)} 
+            <FilterButton
+              label="All"
+              icon={<Package size={16} />}
+              isSelected={selectedCategory === null}
+              onClick={() => setSelectedCategory(null)}
             />
             {filterType === 'inventory' && (
               <>
-                <FilterButton 
-                  label="Weapons" 
-                  icon={<Sword size={16} />} 
-                  isSelected={selectedCategory === 'weapon'} 
-                  onClick={() => setSelectedCategory('weapon')} 
+                <FilterButton
+                  label="Weapons"
+                  icon={<Sword size={16} />}
+                  isSelected={selectedCategory === 'weapon'}
+                  onClick={() => setSelectedCategory('weapon')}
                 />
-                <FilterButton 
-                  label="Armor" 
-                  icon={<Shield size={16} />} 
-                  isSelected={selectedCategory === 'armor'} 
-                  onClick={() => setSelectedCategory('armor')} 
+                <FilterButton
+                  label="Armor"
+                  icon={<Shield size={16} />}
+                  isSelected={selectedCategory === 'armor'}
+                  onClick={() => setSelectedCategory('armor')}
                 />
-                <FilterButton 
-                  label="Consumables" 
-                  icon={<Heart size={16} />} 
-                  isSelected={selectedCategory === 'consumable'} 
-                  onClick={() => setSelectedCategory('consumable')} 
+                <FilterButton
+                  label="Consumables"
+                  icon={<Heart size={16} />}
+                  isSelected={selectedCategory === 'consumable'}
+                  onClick={() => setSelectedCategory('consumable')}
                 />
-                <FilterButton 
-                  label="Misc Items" 
-                  icon={<Gem size={16} />} 
-                  isSelected={selectedCategory === 'item'} 
-                  onClick={() => setSelectedCategory('item')} 
+                <FilterButton
+                  label="Misc Items"
+                  icon={<Gem size={16} />}
+                  isSelected={selectedCategory === 'item'}
+                  onClick={() => setSelectedCategory('item')}
                 />
               </>
             )}
             {filterType === 'cards' && (
-              <FilterButton 
-                label="Cards" 
-                icon={<ScrollText size={16} />} 
-                isSelected={selectedCategory === 'card'} 
-                onClick={() => setSelectedCategory('card')} 
+              <FilterButton
+                label="Cards"
+                icon={<ScrollText size={16} />}
+                isSelected={selectedCategory === 'card'}
+                onClick={() => setSelectedCategory('card')}
               />
             )}
           </div>
@@ -137,8 +152,8 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
             </div>
           ) : filteredItems.length > 0 ? (
             filteredItems.map(item => (
-              <div 
-                key={item.id} 
+              <div
+                key={item.id}
                 className="bg-black/20 p-3 rounded-lg border border-white/10 hover:border-dagger-gold cursor-pointer transition-colors"
                 onClick={() => handleAddItemClick(item)}
               >
@@ -155,11 +170,11 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
                   </div>
                 )}
                 {['ability', 'spell', 'grimoire'].includes(item.type) && item.data && (
-                   <div className="text-xs text-gray-500 line-clamp-2">
-                     {item.data.description || item.data.text}
-                   </div>
+                  <div className="text-xs text-gray-500 line-clamp-2">
+                    {item.data.description || item.data.text}
+                  </div>
                 )}
-                
+
                 {/* Modifiers Tags */}
                 {item.data?.modifiers && Array.isArray(item.data.modifiers) && item.data.modifiers.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1.5">
@@ -167,14 +182,14 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
                       const isPositive = mod.value > 0;
                       const sign = mod.value > 0 ? '+' : '';
                       const label = `${sign}${mod.value} ${mod.target.charAt(0).toUpperCase() + mod.target.slice(1)}`;
-                      
+
                       return (
-                        <span 
-                          key={idx} 
+                        <span
+                          key={idx}
                           className={clsx(
                             "text-[10px] px-1.5 py-0.5 rounded border uppercase font-bold",
-                            isPositive 
-                              ? "bg-green-500/10 border-green-500/30 text-green-400" 
+                            isPositive
+                              ? "bg-green-500/10 border-green-500/30 text-green-400"
                               : "bg-red-500/10 border-red-500/30 text-red-400"
                           )}
                         >

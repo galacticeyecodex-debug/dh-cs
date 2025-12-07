@@ -1,3 +1,20 @@
+/*
+ * SUPABASE STORAGE CONFIGURATION
+ * ----------------------------------------------------------------------------
+ * This SQL script sets up the file storage infrastructure for the application.
+ * 
+ * FUNCTIONALITY:
+ * - Creates public storage buckets for 'character-avatars' (profile pictures) 
+ *   and 'character-gallery' (concept art/visual references).
+ * - Defines Row Level Security (RLS) policies for both buckets ensuring:
+ *   1. Authenticated users can upload, update, and delete ONLY their own files
+ *      (enforced via folder naming conventions matching user IDs).
+ *   2. All files are publicly readable (allowing character images to be shared/viewed).
+ * 
+ * USAGE:
+ * - Run this script to initialize storage requirements for image handling.
+ */
+
 -- Create storage bucket for character avatars
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('character-avatars', 'character-avatars', true)

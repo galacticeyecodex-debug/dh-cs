@@ -1,5 +1,21 @@
 'use client';
 
+/**
+ * ADVANCEMENT HISTORY COMPONENT
+ * ----------------------------------------------------------------------------
+ * Displays a collapsible list of all level-up choices made by the user.
+ * 
+ * FUNCTIONALITY:
+ * - History Log: Iterates through `advancementHistory` to show a record for each level.
+ * - Collapsible Details: Users can expand/collapse specific levels to see granular details.
+ * - Granular Tracking: Displays specific choices made, including:
+ *   - Trait increases (e.g., +1 Agility)
+ *   - Stat bumps (HP, Stress, Evasion, etc.)
+ *   - Specific cards selected (Domain cards, Subclass features)
+ *   - Experience boosts
+ * - Visual Feedback: Uses icons and clear formatting to make the history easy to scan.
+ */
+
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Check, Eye, EyeOff, Heart, Zap, Shield, Star, Swords } from 'lucide-react';
 import { AdvancementRecord } from '@/store/character-store';
@@ -105,7 +121,7 @@ export default function AdvancementHistory({ advancementHistory, experiences = [
                 {/* Expanded Details */}
                 {isExpanded && (
                   <div className="border-t border-white/10 p-3 bg-black/20 space-y-2 text-sm">
-                    
+
                     {/* Trait Increments */}
                     {record.traitIncrements && record.traitIncrements.length > 0 && (
                       <div className="flex items-start gap-2">
@@ -178,7 +194,7 @@ export default function AdvancementHistory({ advancementHistory, experiences = [
                         </span>
                       </div>
                     )}
-                    
+
                     {/* Other Advancements (e.g., Evasion, Proficiency) */}
                     {record.advancements.includes('increase_evasion') && (
                       <div className="flex items-center gap-2 text-gray-300">
@@ -188,7 +204,7 @@ export default function AdvancementHistory({ advancementHistory, experiences = [
                         </span>
                       </div>
                     )}
-                    
+
                     {record.advancements.includes('increase_proficiency') && (
                       <div className="flex items-center gap-2 text-gray-300">
                         <Check size={14} className="text-dagger-gold" />

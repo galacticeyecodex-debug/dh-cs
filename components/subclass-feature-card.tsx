@@ -3,14 +3,17 @@
 /**
  * SUBCLASS FEATURE CARD COMPONENT
  * ----------------------------------------------------------------------------
- * This component renders the specific features associated with a character's Subclass
- * at a given tier (Foundation, Specialization, or Mastery).
+ * This component handles the rendering of specific subclass capabilities at distinct progression tiers 
+ * (Foundation, Specialization, and Mastery). It serves as a focused view for class identifiers and abilities.
  * 
- * FUNCTIONALITY:
- * - Dynamically filters and displays features from a Subclass card based on the current tier.
- * - Visual distinction for "Foundation" features (often the core identity of the subclass).
- * - Supports Multiclass cards, adding appropriate badges and styling.
- * - Used within the Character View or Level Up modals to show progression abilities.
+ * CORE FUNCTIONALITY:
+ * - Tiered Feature Display: Extracts and displays only the relevant features for the requested tier 
+ *   from the subclass data structure.
+ * - Robust Error Handling: displays a user-friendly error message if the required card data is missing, 
+ *   helping to debug character state issues (e.g. missing Foundation cards).
+ * - Rich Text Rendering: Utilizes ReactMarkdown to properly format feature descriptions.
+ * - Contextual Styling: Applies distinct visual cues for Foundation features (gold accents) vs 
+ *   generic features, and includes badges for Multiclass contexts.
  */
 
 import React from 'react';
@@ -69,15 +72,15 @@ export default function SubclassFeatureCard({ card, tier, isMulticlass, onCardNo
 
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
-                     {/* Header with Item Name (e.g. "Nightwalker") if it's the subclass itself */}
-                     {item.type === 'subclass' && (
-                       <h4 className={clsx(
-                         "font-serif font-bold text-base text-gray-300 mb-2"
-                       )}>
-                         {item.name} {tier} Features
-                       </h4>
-                     )}
-                  </div>
+          {/* Header with Item Name (e.g. "Nightwalker") if it's the subclass itself */}
+          {item.type === 'subclass' && (
+            <h4 className={clsx(
+              "font-serif font-bold text-base text-gray-300 mb-2"
+            )}>
+              {item.name} {tier} Features
+            </h4>
+          )}
+        </div>
         <div className="flex gap-1">
           <span className="text-[10px] uppercase bg-white/10 px-2 py-0.5 rounded">
             {tier}
@@ -93,10 +96,10 @@ export default function SubclassFeatureCard({ card, tier, isMulticlass, onCardNo
       <div className="space-y-4">
         {featuresToDisplay.map((feature, idx) => (
           <div key={idx} className="relative">
-                         <h5 className="font-bold text-white mb-1">{feature.name}</h5>
-                         <div className="prose prose-invert text-gray-300 text-sm">
-                           <ReactMarkdown>{feature.text}</ReactMarkdown>
-                         </div>          </div>
+            <h5 className="font-bold text-white mb-1">{feature.name}</h5>
+            <div className="prose prose-invert text-gray-300 text-sm">
+              <ReactMarkdown>{feature.text}</ReactMarkdown>
+            </div>          </div>
         ))}
         {featuresToDisplay.length === 0 && (
           <p className="text-sm text-gray-500 italic">No features found for this tier.</p>

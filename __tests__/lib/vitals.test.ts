@@ -1,7 +1,17 @@
 /**
- * Tests for vital tracking and vital mechanics
- * Verifies correct behavior of HP, Armor, Stress, and Hope tracking
- * Per Daggerheart SRD vital mechanics
+ * VITALS TESTS
+ * ----------------------------------------------------------------------------
+ * This test suite validates the tracking logic for Character Vitals (Health, Armor, Stress, Hope).
+ * 
+ * FUNCTIONALITY TESTED:
+ * - Resource Semantics: Distinguishes between "Depletion" resources (HP, Armor) where hitting 0 is bad, 
+ *   and "Accumulation" resources (Stress) where hitting Max is bad.
+ * - Armor Logic: Tests the split between "Armor Score" (max capacity) and "Armor Slots" (current usability),
+ *   ensuring slots clamp correctly when score changes.
+ * - Thresholds & Limits: Verifies that values never exceed their maximums (e.g., healing past Max HP) 
+ *   or drop below zero.
+ * - Critical States: Simulates death triggers (0 HP) and vulnerability triggers (Max Stress).
+ * - Edge Cases: Checks handling of zero-max stats, massive values, and fractional inputs.
  */
 
 import { describe, it, expect } from 'vitest';

@@ -1,5 +1,20 @@
 'use client';
 
+/**
+ * COMMON VITALS DISPLAY COMPONENT
+ * ----------------------------------------------------------------------------
+ * A centralized dashboard for displaying the character's core vitals: Evasion, Armor, 
+ * Hit Points, Stress, and Hope.
+ * 
+ * FUNCTIONALITY:
+ * - Aggregates Data: Calculates final stat values by combining Base Stats (from Class/Level), 
+ *   System Modifiers (from Equipment), and User Modifiers (Manual adjustments).
+ * - Visual Feedback: Displays vitals in uniform cards with color coding (Health = Red, Armor = Blue, etc.).
+ * - Interactivity: Provides direct controls to increment/decrement current values (e.g., taking damage).
+ * - Threshold Tracking: Shows specialized data like Damage Thresholds for Armor.
+ * - Modifier Management: Integrates with `VitalCard` to allow users to view and edit active modifiers for each stat.
+ */
+
 import React from 'react';
 import { useCharacterStore, Character, CharacterInventoryItem } from '@/store/character-store';
 import { Shield, Zap, Heart, Eye } from 'lucide-react';

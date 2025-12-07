@@ -1,3 +1,16 @@
+/**
+ * LANDING PAGE & AUTH REDIRECT
+ * ----------------------------------------------------------------------------
+ * This is the public facing home page of the application, visible at the root URL (`/`).
+ * 
+ * FUNCTIONALITY:
+ * - Authentication Check: Automatically redirects authenticated users to their
+ *   character dashboard (`/client/characters`), skipping this page.
+ * - Public Welcome: Displays the application title, description, and "Get Started" 
+ *   Call-to-Action for new visitors.
+ * - Disclaimer: Includes required legal disclaimers regarding Daggerheart/Darrington Press.
+ */
+
 import Link from 'next/link';
 import { Github } from 'lucide-react';
 import { redirect } from 'next/navigation';

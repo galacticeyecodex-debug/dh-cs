@@ -1,3 +1,17 @@
+/**
+ * AUTH BUTTON COMPONENT
+ * ----------------------------------------------------------------------------
+ * A smart navigation component that renders the appropriate authentication action 
+ * based on the user's current session state.
+ * 
+ * FUNCTIONALITY:
+ * - Session Awareness: Uses the `useUser` hook to detect if a specific user is logged in.
+ * - Dynamic UI: Displays a "Login" button for guests and a "Logout" button for authenticated users.
+ * - Navigation Handling: Automatically redirects to the login page upon signing out.
+ * - Context Sensitivity: Intelligently hides itself when currently viewing the Login page 
+ *   to avoid redundant navigation.
+ */
+
 "use client";
 
 import Link from "next/link";

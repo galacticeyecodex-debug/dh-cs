@@ -1,6 +1,19 @@
 /**
- * Integration tests for realistic game scenarios
- * Tests complete workflows like character creation, combat, equipment changes
+ * INTEGRATION TESTS
+ * ----------------------------------------------------------------------------
+ * This test suite validates realistic user workflows and complex interactions between systems.
+ * 
+ * SCENARIOS TESTED:
+ * - Character Creation: Verifies a character is initialized with correct derived stats (HP, Thresholds) 
+ *   based on their starting level and attributes.
+ * - Combat Flow: Simulates taking damage, prioritizing armor usage before HP reduction, 
+ *   and checking damage threshold calculations.
+ * - Equipment Swapping: Tests how equipping/unequipping items (like heavy armor) dynamically 
+ *   updates stats (Armor Score, Evasion) via system modifiers.
+ * - Resource Management: Validates accumulation and spending of Stress and Hope, including 
+ *   "Vulnerable" condition triggers and recovery actions.
+ * - Dice & Modifiers: Checks that damage rolls and skill checks correctly parse dice notation 
+ *   and apply cumulative bonuses from equipment/abilities.
  */
 
 import { describe, it, expect } from 'vitest';

@@ -1,7 +1,18 @@
 /**
- * Integration tests for character store (Zustand)
- * Tests store actions, state mutations, optimistic updates
- * Mocks Supabase to isolate store logic
+ * CHARACTER STORE TESTS
+ * ----------------------------------------------------------------------------
+ * This test suite validates the Zustand store (`character-store.ts`) that manages
+ * the client-side state of the active character.
+ * 
+ * FUNCTIONALITY TESTED:
+ * - Initialization: Verifies the store starts with empty/loading states correctly.
+ * - UI State: Checks active tab switching (Inventory, Combat, etc.) and Dice Overlay controls.
+ * - Inventory Management: Tests equipping, unequipping (moving to backpack), and swapping items between slots.
+ * - Resource Updates: Validates optimistic updates for Gold, Hope, and Evasion, ensuring UI responsiveness.
+ * - Modifiers: Ensures user-defined stat modifiers (e.g., +1 Strength) are stored and aggregated correctly.
+ * - Derived Stats: Checks the complex logic of recalculating stats (Armor Score, Damage Thresholds) 
+ *   when equipment or level changes occur.
+ * - Data Persistence: Simulates interactions with Supabase (mocked) to ensure data is saved or rolled back on error.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';

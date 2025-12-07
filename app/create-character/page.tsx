@@ -1,3 +1,19 @@
+/**
+ * CHARACTER CREATION PAGE
+ * ----------------------------------------------------------------------------
+ * This component handles the full wizard flow for creating a new character.
+ * 
+ * FUNCTIONALITY:
+ * - Multi-step Form Wizard: Guides the user through 8 steps (Basic Info, Heritage, Class/Domain, 
+ *   Cards, Traits, Experiences, Equipment, Finalize).
+ * - SRD Integration: Fetches valid options for Ancestry, Community, Class, Weapons, etc., from the database.
+ * - Rules Enforcement: Validates choices based on Daggerheart rules (e.g., max 2 domain cards, 
+ *   specific starting trait values, class-specific equipment tiers).
+ * - Dynamic Calculations: Computes starting Vitals, Evasion, and Loadout based on selections.
+ * - Final Asset Generation: Handles image uploads and constructs the complete character payload
+ *   to send to the `create_complete_character` RPC function in Supabase.
+ */
+
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -578,10 +594,10 @@ export default function CreateCharacterPage() {
       1,
       finalArmor
         ? [
-            {
-              library_item: finalArmor,
-            },
-          ]
+          {
+            library_item: finalArmor,
+          },
+        ]
         : [],
       []
     );
@@ -728,11 +744,11 @@ export default function CreateCharacterPage() {
     // Note: Subclass features are often managed via subclass_data lookup, 
     // but adding it as a card with location 'feature' aligns with multiclassing logic
     if (formData.subclass_id) {
-        cardsToInsert.push({
-            card_id: formData.subclass_id,
-            location: 'feature',
-            sort_order: 0
-        });
+      cardsToInsert.push({
+        card_id: formData.subclass_id,
+        location: 'feature',
+        sort_order: 0
+      });
     }
 
     // Prepare RPC Payloads

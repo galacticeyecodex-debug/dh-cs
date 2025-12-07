@@ -1,3 +1,18 @@
+/**
+ * CARD HELPER TESTS
+ * ----------------------------------------------------------------------------
+ * This test suite validates the utility functions in `lib/card-helpers.ts`.
+ * 
+ * FUNCTIONALITY TESTED:
+ * - Property Accessors: specific tests for `getCardLevel`, `getCardDescription`, 
+ *   `getCardType`, etc., ensuring they gracefully handle different data shapes and missing values.
+ * - Logic Checks: Validation for `isCardInDomain` and `isCardAvailableAtLevel`, covering 
+ *   case-insensitivity and level thresholds.
+ * - Filtering: Verifies `filterCardsByDomainAndLevel` correctly filters a list of cards 
+ *   based on multiclass or single-class requirements.
+ * - Edge Cases: Checks handling of null/undefined inputs and fallback behaviors.
+ */
+
 import { describe, it, expect } from 'vitest';
 import {
   getCardLevel,

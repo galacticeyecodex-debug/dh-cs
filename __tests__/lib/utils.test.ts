@@ -1,3 +1,17 @@
+/**
+ * UTILS TESTS
+ * ----------------------------------------------------------------------------
+ * This test suite validates the shared utility functions found in `lib/utils.ts`.
+ * 
+ * FUNCTIONALITY TESTED:
+ * - Weapon Damage Scaling: Verifies the `calculateWeaponDamage` function, which mathematically 
+ *   scales dice counts based on items/attributes (e.g., "d8" -> "2d8" at higher levels).
+ * - Dice & Modifiers: Checks that multipliers apply correctly to the dice count while leaving 
+ *   fixed modifiers (e.g., "+2") unchanged.
+ * - Robustness: Ensures the utility handles mixed dice types (e.g., "d8+d6") and gracefully 
+ *   manages invalid or empty input strings.
+ */
+
 import { describe, it, expect } from 'vitest';
 import { calculateWeaponDamage } from '@/lib/utils';
 
@@ -28,6 +42,6 @@ describe('calculateWeaponDamage', () => {
   it('handles empty or invalid input', () => {
     expect(calculateWeaponDamage('', 2)).toBe('');
     // If no dice found, returns original string
-    expect(calculateWeaponDamage('5', 2)).toBe('5'); 
+    expect(calculateWeaponDamage('5', 2)).toBe('5');
   });
 });

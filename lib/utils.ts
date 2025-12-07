@@ -1,3 +1,18 @@
+/**
+ * SHARED UTILITIES
+ * ----------------------------------------------------------------------------
+ * This file contains general-purpose helper functions used across the application.
+ * 
+ * FUNCTIONALITY:
+ * - Styling Helper (`cn`): Merges Tailwind classes conditionally using `clsx` and `tailwind-merge`.
+ * - Damage Parsing: `parseDamageRoll` and `calculateWeaponDamage` handle the complex string manipulation
+ *   needed to interpret Daggerheart damage dice and scale them by proficiency.
+ * - Modifier Parsing (Legacy/Fallback): `getSystemModifiers` extracts bonuses from equipped items, 
+ *   supporting both structured JSON data and text-based regex parsing (similar to the SRD parser).
+ * - Stat Calculation: Helpers like `getClassBaseStat` and `calculateBaseEvasion` encapsulate 
+ *   core rules for determining derived stats.
+ */
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -8,11 +23,11 @@ export function cn(...inputs: ClassValue[]) {
 export function parseDamageRoll(input: string): { dice: string; modifier: number } {
   // Remove text like "phy", "mag", "physical", "magic" (case insensitive) and whitespace
   const cleanInput = input.replace(/(phy|mag|physical|magic)/gi, '').replace(/\s/g, '');
-  
+
   // Normalize subtraction to addition of negative numbers for easier splitting
   const normalized = cleanInput.replace(/-/g, '+-');
   const parts = normalized.split('+').filter(p => p !== '');
-  
+
   const diceParts: string[] = [];
   let modifier = 0;
 
@@ -42,7 +57,7 @@ export function getSystemModifiers(character: any, stat: string): any[] {
   if (!character || !character.character_inventory) return [];
 
   const systemModifiers: any[] = [];
-  const equippedItems = character.character_inventory.filter((item: any) => 
+  const equippedItems = character.character_inventory.filter((item: any) =>
     ['equipped_primary', 'equipped_secondary', 'equipped_armor'].includes(item.location)
   );
 
@@ -69,7 +84,7 @@ export function getSystemModifiers(character: any, stat: string): any[] {
     const featureText = item.library_item.data.feature?.text || '';
     const featText = item.library_item.data.feat_text || '';
     const combinedText = `${featureText} ${featText}`;
-    
+
     // Regex needs to match the specific stat
     // e.g. "Evasion" -> /... Evasion/
     const regex = new RegExp(`([+-]?\\d+)\\s+(?:to|bonus\\s+to)\\s+${stat.replace('_', '\\s+')}`, 'gi');
@@ -124,15 +139,15 @@ export function calculateBaseEvasion(character: any): number {
 
 export function calculateWeaponDamage(baseDamage: string, proficiency: number): string {
   if (!baseDamage) return '';
-  
+
   // Parse using existing helper
   const { dice, modifier } = parseDamageRoll(baseDamage);
-  
+
   if (!dice) return baseDamage;
 
   // Split dice string (e.g. "1d8+1d6")
   const diceGroups = dice.split('+');
-  
+
   const scaledDice = diceGroups.map(group => {
     const match = group.match(/^(\d+)?d(\d+)$/i);
     if (match) {
@@ -144,10 +159,10 @@ export function calculateWeaponDamage(baseDamage: string, proficiency: number): 
   });
 
   const newDiceString = scaledDice.join('+');
-  
+
   if (modifier !== 0) {
     return `${newDiceString}${modifier >= 0 ? '+' : ''}${modifier}`;
   }
-  
+
   return newDiceString;
 }

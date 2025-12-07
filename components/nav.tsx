@@ -1,3 +1,13 @@
+/**
+ * NAV COMPONENT
+ * ----------------------------------------------------------------------------
+ * This component renders the top-level responsive navigation bar for the application.
+ * It automatically adapts between desktop and mobile layouts:
+ * - Desktop: Displays a horizontal list of links and an authentication button.
+ * - Mobile: Collapses links into a slide-out drawer (Sheet) accessible via a hamburger menu.
+ * It serves as the main entry point for global navigation, linking to key areas like Home, Client, Server, and Profile.
+ */
+
 import Link from "next/link";
 
 import { Menu, Sparkle } from "lucide-react";

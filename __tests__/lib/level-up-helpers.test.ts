@@ -1,3 +1,17 @@
+/**
+ * LEVEL-UP HELPER TESTS
+ * ----------------------------------------------------------------------------
+ * This test suite verifies the complex logic surrounding character advancement in Daggerheart.
+ * 
+ * FUNCTIONALITY TESTED:
+ * - Tier Calculations: Checks correct Tier (1-3) derivation from Character Level.
+ * - Achievement Milestones: Validates special rewards (Stat increases, Mastery access) at Levels 2, 5, 8.
+ * - Advancement Validation: Ensuring users pick valid level-up options (e.g., max 2 picks, valid slot costs).
+ * - Threshold Scaling: Verifies HP and Damage Threshold increases per level.
+ * - Domain Access: Tests that characters can only pick cards from their specific domains, and enforces
+ *   level caps (Full Level for Primary Domains, Half Level for Multiclass Domains).
+ */
+
 import {
   getTier,
   hasTierAchievements,

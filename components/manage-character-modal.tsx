@@ -1,5 +1,20 @@
 'use client';
 
+/**
+ * MANAGE CHARACTER MODAL
+ * ----------------------------------------------------------------------------
+ * A settings interface for modifying core character attributes and level state.
+ * 
+ * FUNCTIONALITY:
+ * - Level Management: 
+ *   - "Level Up": Triggers the Level Up flow if increasing the current level.
+ *   - "De-Level": Allows reducing the character's level, which triggers a destructive confirmation 
+ *     dialog as it removes associated advancements.
+ * - Attribute Editing: Enables changing Name, Ancestry, and Community.
+ *   - Fetches available options for Ancestry/Community dynamically from the library.
+ * - Validation: Ensures required fields are present and warns users about data loss during de-leveling.
+ */
+
 import React, { useState } from 'react';
 import { X, AlertCircle, Settings, Plus, Minus, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -44,8 +59,8 @@ export default function ManageCharacterModal({
   const [confirmDeLevelOpen, setConfirmDeLevelOpen] = useState(false);
 
   // Dynamic lists
-  const [availableAncestries, setAvailableAncestries] = useState<{name: string}[]>([]);
-  const [availableCommunities, setAvailableCommunities] = useState<{name: string}[]>([]);
+  const [availableAncestries, setAvailableAncestries] = useState<{ name: string }[]>([]);
+  const [availableCommunities, setAvailableCommunities] = useState<{ name: string }[]>([]);
 
   // Fetch dynamic options on mount
   React.useEffect(() => {
@@ -258,98 +273,98 @@ export default function ManageCharacterModal({
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-bold text-gray-300 mb-2">
-              Character Name
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
-              placeholder="Enter character name"
-            />
-          </div>
-
-          {/* Level */}
-          <div>
-            <label className="block text-sm font-bold text-gray-300 mb-2">
-              Level <span className="text-gray-500">(reduce or level up)</span>
-            </label>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => level > 1 && setLevel(level - 1)}
-                disabled={level <= 1}
-                className="px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-gray-300 hover:text-white hover:border-dagger-gold/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <Minus size={20} />
-              </button>
-              <div className="flex-1 text-center">
-                <span className="text-2xl font-bold text-dagger-gold">{level}</span>
+              {/* Name */}
+              <div>
+                <label className="block text-sm font-bold text-gray-300 mb-2">
+                  Character Name
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
+                  placeholder="Enter character name"
+                />
               </div>
-              <button
-                onClick={() => {
-                  if (level < currentLevel) {
-                    setLevel(level + 1);
-                  } else if (onLevelUp) {
-                    onLevelUp();
-                  }
-                }}
-                disabled={level >= 10}
-                className={
-                  level >= currentLevel
-                    ? "px-3 py-2 rounded-lg bg-dagger-gold text-black hover:bg-dagger-gold/90 transition-colors shadow-[0_0_10px_rgba(251,191,36,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                    : "px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-gray-300 hover:text-white hover:border-dagger-gold/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                }
-              >
-                {level >= currentLevel ? <Zap size={20} className="fill-black" /> : <Plus size={20} />}
-              </button>
-            </div>
-            {isDeLeveling && (
-              <p className="text-xs text-yellow-200 mt-2">
-                {getLeveledUpString()}
-              </p>
-            )}
-          </div>
 
-          {/* Ancestry */}
-          <div>
-            <label className="block text-sm font-bold text-gray-300 mb-2">
-              Ancestry
-            </label>
-            <select
-              value={ancestry}
-              onChange={(e) => setAncestry(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
-            >
-              <option value="">Select an ancestry...</option>
-              {availableAncestries.map((anc) => (
-                <option key={anc.name} value={anc.name}>
-                  {anc.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              {/* Level */}
+              <div>
+                <label className="block text-sm font-bold text-gray-300 mb-2">
+                  Level <span className="text-gray-500">(reduce or level up)</span>
+                </label>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => level > 1 && setLevel(level - 1)}
+                    disabled={level <= 1}
+                    className="px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-gray-300 hover:text-white hover:border-dagger-gold/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Minus size={20} />
+                  </button>
+                  <div className="flex-1 text-center">
+                    <span className="text-2xl font-bold text-dagger-gold">{level}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (level < currentLevel) {
+                        setLevel(level + 1);
+                      } else if (onLevelUp) {
+                        onLevelUp();
+                      }
+                    }}
+                    disabled={level >= 10}
+                    className={
+                      level >= currentLevel
+                        ? "px-3 py-2 rounded-lg bg-dagger-gold text-black hover:bg-dagger-gold/90 transition-colors shadow-[0_0_10px_rgba(251,191,36,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                        : "px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-gray-300 hover:text-white hover:border-dagger-gold/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    }
+                  >
+                    {level >= currentLevel ? <Zap size={20} className="fill-black" /> : <Plus size={20} />}
+                  </button>
+                </div>
+                {isDeLeveling && (
+                  <p className="text-xs text-yellow-200 mt-2">
+                    {getLeveledUpString()}
+                  </p>
+                )}
+              </div>
 
-          {/* Community */}
-          <div>
-            <label className="block text-sm font-bold text-gray-300 mb-2">
-              Community
-            </label>
-            <select
-              value={community}
-              onChange={(e) => setCommunity(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
-            >
-              <option value="">Select a community...</option>
-              {availableCommunities.map((com) => (
-                <option key={com.name} value={com.name}>
-                  {com.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              {/* Ancestry */}
+              <div>
+                <label className="block text-sm font-bold text-gray-300 mb-2">
+                  Ancestry
+                </label>
+                <select
+                  value={ancestry}
+                  onChange={(e) => setAncestry(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
+                >
+                  <option value="">Select an ancestry...</option>
+                  {availableAncestries.map((anc) => (
+                    <option key={anc.name} value={anc.name}>
+                      {anc.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Community */}
+              <div>
+                <label className="block text-sm font-bold text-gray-300 mb-2">
+                  Community
+                </label>
+                <select
+                  value={community}
+                  onChange={(e) => setCommunity(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
+                >
+                  <option value="">Select a community...</option>
+                  {availableCommunities.map((com) => (
+                    <option key={com.name} value={com.name}>
+                      {com.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               {error && (
                 <div className="p-3 bg-red-900/20 border border-red-700 rounded-lg text-red-200 text-sm">

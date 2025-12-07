@@ -1,3 +1,18 @@
+/**
+ * LEVEL-UP VALIDATION TESTS
+ * ----------------------------------------------------------------------------
+ * This test suite validates the form-like validation rules for the Level-up process.
+ * 
+ * FUNCTIONALITY TESTED:
+ * - Level Progression: Ensures users can only level up forward (e.g., 1 -> 2) and within bounds (1-10).
+ * - Advancement Selections: Validates the user selects exactly 2 "slots" worth of upgrades (e.g., 1 Proficiency or 2 Stat bumps).
+ * - Domain Card Rules: Checks that new cards are within valid level ranges and handles multiclass logic.
+ * - Trait Selection Rules: Enforces Daggerheart specific rules:
+ *   - Cannot check a trait that is already "Marked" (maxed for this tier).
+ *   - Cannot upgrade the same trait twice in one level-up.
+ * - Exchange Logic: Validates trading old cards for new ones adheres to level-swapping rules.
+ */
+
 import {
   validateNewLevel,
   validateAdvancementSelections,
