@@ -6,7 +6,7 @@
   "author": "Alex <galactic.eye.codex.gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/glacticeye/dh-cs.git"
+    "url": "https://github.com/galacticeyecodex-debug/dh-cs.git"
   },
   "scripts": {
     "dev": "next dev --turbopack",

@@ -8,9 +8,16 @@ If you find this project useful or fun to use, consider sending a "Thank you!"
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow?style=for-the-badge&logo=buy-me-a-coffee)](https://buymeacoffee.com/galactic.eye.codex)
 
-You can also try out the live **Demo** here: [https://daggerheart-cs-dev.onrender.com/](https://daggerheart-cs-dev.onrender.com/)
-
 Thank you! ☕
+
+## Demo
+
+You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](https://daggerheart-cs-dev.onrender.com/)
+
+<p align="center">
+  <img src="images/character-page.png" alt="Character Sheet" width="45%" />
+  <img src="images/combat-page.png" alt="Combat View" width="45%" />
+</p>
 
 ## Features
 
@@ -61,7 +68,6 @@ Edit `.env.local` and add your Supabase credentials:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 4. **Supabase Setup**:
@@ -73,31 +79,26 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
        2.  Click "New project" to create a new project.
        3.  Remember your project's **Project URL** and **Anon Key**; these will be needed for your `.env.local` file (Step 3).
 
-   *   **Apply Initial Schema**:
-       1.  In your Supabase project dashboard, navigate to the **SQL Editor** (usually found under "Database" -> "SQL Editor").
-       2.  Open the local file `supabase/schema.sql` from your cloned repository.
-       3.  Copy the *entire content* of `supabase/schema.sql` and paste it into the Supabase SQL Editor.
-       4.  Execute the SQL. This script creates core tables like `profiles`, `character_cards`, `character_inventory` and sets up their initial Row Level Security (RLS) policies.
+   *   **Initialize Database**:
+       In your Supabase project dashboard, navigate to the **SQL Editor** and execute the following scripts **in this order**:
 
-   *   **Generate Game Data (Seed)**:
-       1.  Game data (classes, abilities, etc.) is sourced from JSON files in `srd/json/`.
-       2.  In your local project directory, run the parser script:
+       1.  `supabase/schema.sql` - Creates core tables (`profiles`, `character_cards`, etc.) and RLS policies.
+       2.  `supabase/seed_library.sql` - Creates `characters` and `library` tables and populates game data.
+       3.  `supabase/storage.sql` - Sets up storage buckets for images.
+
+       For each file:
+       1.  Open the local file from your cloned repository.
+       2.  Copy the entire content into the Supabase SQL Editor.
+       3.  Click **Run**.
+
+   *   **Regenerate Game Data (Optional)**:
+       The `seed_library.sql` file comes pre-generated. If you need to update game data from the SRD JSON files:
+       1.  Run the parser script:
            ```bash
            node scripts/parse_json_srd.js
            ```
-       3.  This command generates a new SQL file: `supabase/seed_library.sql`.
-       4.  **Important**: Always examine the output of the parser script for "Total entries" to ensure data was parsed correctly. If "Total entries: 0" appears, there's an issue with the SRD JSON files or the script itself.
-
-   *   **Seed Database with Game Data and Core Tables**:
-       1.  Open the *newly generated* local file `supabase/seed_library.sql`.
-       2.  Copy its entire content and paste it into the Supabase SQL Editor.
-       3.  Execute this SQL. This script will create the `public.characters` and `public.library` tables (along with their RLS policies as defined in the seed script) and populate the `public.library` table with game data.
-
-   *   **Set up Storage Buckets**:
-       The application requires storage buckets for character avatars and gallery images.
-       1.  Open the local file `supabase/storage.sql` from your cloned repository.
-       2.  Copy its entire content and paste it into the Supabase SQL Editor.
-       3.  Execute the SQL. This will create the required buckets (`character-avatars`, `character-gallery`) and set up their security policies.
+       2.  This updates `supabase/seed_library.sql`.
+       3.  Re-run `supabase/seed_library.sql` in the Supabase SQL Editor to apply changes.
 
    *   **Configure Google OAuth (Required for Authentication)**:
 
@@ -132,7 +133,14 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
        5.  Paste your Google **Client ID** and **Client Secret** from Step A into Supabase
        6.  Click **Save**
 
-       **Step C: Add Callback URL to Google Cloud Console**
+       **Step C: Configure Supabase URL Settings**
+
+       1.  In your Supabase project dashboard, navigate to **Authentication** → **URL Configuration**.
+       2.  Set **Site URL** to your default site: `https://your-app-name.onrender.com`. If you don't know this yet, proceed to the section on Deploying to Render. If you don't plan to deploy to Render, you can use `http://localhost:3000`.
+       3.  Under **Redirect URIs**, add `http://localhost:3000/**` if you also want to enable both the Render deployment and local hosting.
+       4.  Click **Save**. If you have redirect issues after Google OAuth, then this is the likely culprit.
+
+       **Step D: Add Callback URL to Google Cloud Console**
 
        1.  Return to [Google Cloud Console](https://console.cloud.google.com/)
        2.  Navigate to **APIs & Services** → **Credentials**
@@ -142,7 +150,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
        6.  For local development, also add: `http://localhost:3000/auth/callback`
        7.  Click **Save**
 
-       **Step D: Test Authentication**
+       **Step E: Test Authentication**
 
        1.  Start your development server (`npm run dev`)
        2.  Navigate to your app and try signing in with Google
@@ -158,21 +166,6 @@ npm run dev
 
 Visit [http://localhost:3000](http://localhost:3000) to see the app.
 
-## Development
-
-### Recommended Workflow
-
-Always lint before building for fastest feedback:
-```bash
-npm run lint         # Fast - catches issues early
-npm run build        # Slower - verifies compilation
-```
-
-Or as a one-liner:
-```bash
-npm run lint && npm run build
-```
-
 ### Project Structure
 
 ```
@@ -183,13 +176,19 @@ dh-cs/
 │   └── create-character/ # Character creation wizard
 ├── components/           # Reusable UI components
 │   ├── ui/               # Shadcn/ui primitives
-│   └── views/            # Feature-specific views (Character, Playmat, Inventory)
+│   ├── views/            # Feature-specific views
+│   └── ...               # Various logic-heavy components
+├── constants/            # Global constants and config
+├── hooks/                # Custom React hooks
+├── lib/                  # Utility functions
+│   ├── supabase/         # Supabase client utilities
+│   └── ...               # Game logic helpers
+├── public/               # Static assets
+├── scripts/              # Node.js data processing scripts
 ├── srd/                  # Source of Truth for game data (JSON files)
 ├── store/                # Zustand state management
-├── lib/supabase/         # Supabase client utilities
-└── scripts/              # Node.js data processing scripts
+└── types/                # TypeScript type definitions
 ```
-For detailed documentation, see [CLAUDE.md](./CLAUDE.md) or [GEMINI.md](./GEMINI.md).
 
 ## Deployment
 
@@ -198,52 +197,49 @@ This application can be easily deployed to [Render](https://render.com), a unifi
 ### Deploying to Render
 
 1.  **Create a New Web Service**:
-    *   Log in to your Render account.
-    *   Go to the Dashboard and click "New" -> "Web Service".
+    *   Log in to your [Render Dashboard](https://dashboard.render.com/).
+    *   Click "New +" -> "Web Service".
+
 2.  **Connect to your Repository**:
     *   Select "Build and deploy from a Git repository".
-    *   Connect your GitHub account and choose the `galacticeyecodex-debug/dh-cs` repository.
-    *   Ensure the branch is set to `main`.
-3.  **Configure your Web Service**:
-    *   **Name**: Choose a unique name for your service (e.g., `daggerheart-companion`).
-    *   **Region**: Select a region close to your users.
-    *   **Root Directory**: Leave empty or set to `/` (if the project root is the repository root).
+    *   Connect your GitHub account if you haven't already.
+    *   Search for and select the `galacticeyecodex-debug/dh-cs` repository.
+
+3.  **Configure Service Details**:
+    *   **Name**: Choose a unique name (e.g., `my-daggerheart-companion`).
+    *   **Region**: Select a nearby region.
+    *   **Branch**: `main`
+    *   **Root Directory**: Leave blank (default).
     *   **Runtime**: `Node`
     *   **Build Command**: `npm run build`
     *   **Start Command**: `npm start`
-    *   **Plan Type**: Choose an appropriate plan (e.g., "Free" for testing, "Starter" for production).
+    *   **Plan Type**: "Free" is enough for a few users.
+
 4.  **Set Environment Variables**:
-    *   Add the following environment variables in the "Environment" section of your Render service settings:
-        *   `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL.
-        *   `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anon key.
-        *   `NEXT_PUBLIC_SITE_URL`: The public URL of your Render app (e.g., `https://your-app-name.onrender.com`). Render provides this after deployment.
-5.  **Create Web Service**: Click "Create Web Service". Render will automatically build and deploy your application.
+    Add the following environment variables under the "Environment" tab:
 
-### Environment Variables for Production
+    | Variable | Value | Description |
+    | :--- | :--- | :--- |
+    | `NEXT_PUBLIC_SUPABASE_URL` | *Your Supabase URL* | From Supabase Settings |
+    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | *Your Anon Key* | From Supabase Settings |
 
-Set these in your hosting platform (e.g., Render Dashboard):
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
-NEXT_PUBLIC_SITE_URL=https://your-app.onrender.com
-```
+5.  **Deploy**:
+    *   Click "Create Web Service".
+    *   Render will start building your app. This process may take a few minutes.
+    *   Once "Live", your app will be accessible at the URL provided (e.g., `https://your-app.onrender.com`).
 
-## Contributing
-
-This is a personal project, but contributions are welcome! Please:
-
-1. Follow the existing code style
-2. Run `npm run lint && npm run build` before committing
-3. Write meaningful commit messages
-4. Update documentation as needed
+6.  **Post-Deployment**:
+    *   **Important**: Copy your new Render URL.
+    *   Go back to **Supabase > Authentication > URL Configuration**.
+    *   Update your **Site URL** to this new Render URL to ensure social login redirects work correctly in production.
 
 ## License
 
-This project is private and not currently licensed for public use.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
 - Built with the amazing [Daggerheart SRD](https://darringtonpress.com/daggerheart/)
 - SRD compilation by [seansbox](https://github.com/seansbox/daggerheart-srd/)
 - Original authentication boilerplate from [shsfwork/supabase-auth-nextjs-google-boilerplate](https://github.com/shsfwork/supabase-auth-nextjs-google-boilerplate)
-
+- LLMs were used to generate a lot of the code for this project, so if you have objections to that, you may not want to use this project.
