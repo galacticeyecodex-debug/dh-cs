@@ -612,6 +612,11 @@ export default function CreateCharacterPage() {
       experiences: formData.experiences!.map(name => ({ name, value: 2 })),
       gold: startingItemsAndCards.gold,
       image_url: uploadedImageUrl || formData.image_url,
+      subclass_progression: {
+        foundation_obtained: true,
+        specialization_obtained: false,
+        mastery_obtained: false,
+      },
     };
 
     // Prepare Cards Payload
@@ -717,6 +722,17 @@ export default function CreateCharacterPage() {
         location: 'backpack',
         quantity: 1 // Quantity 1 for the 'Gold' entry itself
       });
+    }
+
+    // Add subclass foundation card if selected
+    // Note: Subclass features are often managed via subclass_data lookup, 
+    // but adding it as a card with location 'feature' aligns with multiclassing logic
+    if (formData.subclass_id) {
+        cardsToInsert.push({
+            card_id: formData.subclass_id,
+            location: 'feature',
+            sort_order: 0
+        });
     }
 
     // Prepare RPC Payloads

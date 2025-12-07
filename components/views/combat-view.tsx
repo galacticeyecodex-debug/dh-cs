@@ -256,6 +256,7 @@ export default function CombatView() {
                       )}
                       tier="Foundation"
                       isMulticlass={false}
+                      onCardNotFound={() => console.error("Error: Primary subclass Foundation feature card not found for character:", character.id)}
                     />
                   )}
 
@@ -268,6 +269,7 @@ export default function CombatView() {
                       )}
                       tier="Specialization"
                       isMulticlass={false}
+                      onCardNotFound={() => console.error("Error: Primary subclass Specialization feature card not found for character:", character.id)}
                     />
                   )}
 
@@ -280,6 +282,7 @@ export default function CombatView() {
                       )}
                       tier="Mastery"
                       isMulticlass={false}
+                      onCardNotFound={() => console.error("Error: Primary subclass Mastery feature card not found for character:", character.id)}
                     />
                   )}
                 </>

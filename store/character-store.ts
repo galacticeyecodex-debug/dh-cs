@@ -110,6 +110,7 @@ export interface Character {
   character_cards?: CharacterCard[];
   character_inventory?: CharacterInventoryItem[];
   class_data?: LibraryItem; // Joined class data
+  subclass_data?: LibraryItem; // Joined subclass data
 }
 
 export interface AdvancementRecord {
@@ -795,6 +796,16 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       libraryIds.add(classIdToFetch);
     }
 
+    // Add subclass_id if it exists
+    let subclassIdToFetch = null;
+    if (charData.subclass_id) {
+      // Try to match by name if it's a name (e.g. "Nightwalker" -> "subclass-nightwalker")
+      // Or it might be an ID already? Usually stored as Name.
+      const slug = charData.subclass_id.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+      subclassIdToFetch = `subclass-${slug}`;
+      libraryIds.add(subclassIdToFetch);
+    }
+
     // C. Fetch Library Items
     let libraryMap = new Map<string, LibraryItem>();
     if (libraryIds.size > 0) {
@@ -822,6 +833,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     })) || [];
 
     const classData = classIdToFetch ? libraryMap.get(classIdToFetch) : undefined;
+    const subclassData = subclassIdToFetch ? libraryMap.get(subclassIdToFetch) : undefined;
 
     // E. Parse and Migrate Vitals
     let rawVitals = typeof charData.vitals === 'string' ? JSON.parse(charData.vitals) : charData.vitals;
@@ -877,6 +889,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       character_cards: enrichedCards,
       character_inventory: enrichedInventory,
       class_data: classData,
+      subclass_data: subclassData,
       stats: typeof charData.stats === 'string' ? JSON.parse(charData.stats) : charData.stats,
       vitals,
       damage_thresholds, // Injected property
