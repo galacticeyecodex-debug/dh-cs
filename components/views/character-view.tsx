@@ -528,6 +528,7 @@ export default function CharacterView() {
                 <AdvancementHistory 
                   advancementHistory={character.advancement_history_jsonb} 
                   experiences={character.experiences}
+                  domainCards={domainCards}
                 />
               </div>
             )}

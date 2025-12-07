@@ -8,6 +8,7 @@ import { Experience } from '@/types/modifiers';
 interface AdvancementHistoryProps {
   advancementHistory: Record<string, AdvancementRecord>;
   experiences?: Experience[];
+  domainCards?: any[];
 }
 
 const ADVANCEMENT_NAMES: Record<string, string> = {
@@ -21,7 +22,7 @@ const ADVANCEMENT_NAMES: Record<string, string> = {
   increase_proficiency: 'Proficiency',
 };
 
-export default function AdvancementHistory({ advancementHistory, experiences = [] }: AdvancementHistoryProps) {
+export default function AdvancementHistory({ advancementHistory, experiences = [], domainCards = [] }: AdvancementHistoryProps) {
   const [isCollapsed, setIsCollapsed] = useState(true); // Hidden by default
   const [expandedLevels, setExpandedLevels] = useState<Set<number>>(new Set());
 
@@ -167,9 +168,13 @@ export default function AdvancementHistory({ advancementHistory, experiences = [
                         <Shield size={14} className="text-dagger-gold" />
                         <span>
                           <strong className="text-white">New Card{record.domainCardsSelected && record.domainCardsSelected.length > 1 ? 's' : ''}:</strong>{' '}
-                          {record.domainCardsSelected 
-                            ? record.domainCardsSelected.join(', ') 
-                            : (record as any).domainCardSelected}
+                          {(() => {
+                            const ids = record.domainCardsSelected || [(record as any).domainCardSelected];
+                            return ids.map(id => {
+                              const card = domainCards.find(c => c.id === id);
+                              return card ? card.name : id;
+                            }).join(', ');
+                          })()}
                         </span>
                       </div>
                     )}
