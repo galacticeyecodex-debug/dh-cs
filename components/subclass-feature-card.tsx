@@ -16,6 +16,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import { CharacterCard } from '@/store/character-store';
+import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
 
 interface SubclassFeatureCardProps {
   card?: CharacterCard;
@@ -68,17 +69,15 @@ export default function SubclassFeatureCard({ card, tier, isMulticlass, onCardNo
 
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
-          {/* Header with Item Name (e.g. "Nightwalker") if it's the subclass itself */}
-          {item.type === 'subclass' && (
-            <h4 className={clsx(
-              "font-serif font-bold text-sm uppercase tracking-wider mb-2",
-              isFoundation ? "text-dagger-gold/70" : "text-gray-500"
-            )}>
-              {item.name} {tier} Features
-            </h4>
-          )}
-        </div>
-
+                     {/* Header with Item Name (e.g. "Nightwalker") if it's the subclass itself */}
+                     {item.type === 'subclass' && (
+                       <h4 className={clsx(
+                         "font-serif font-bold text-base text-gray-300 mb-2"
+                       )}>
+                         {item.name} {tier} Features
+                       </h4>
+                     )}
+                  </div>
         <div className="flex gap-1">
           <span className="text-[10px] uppercase bg-white/10 px-2 py-0.5 rounded">
             {tier}
@@ -94,9 +93,10 @@ export default function SubclassFeatureCard({ card, tier, isMulticlass, onCardNo
       <div className="space-y-4">
         {featuresToDisplay.map((feature, idx) => (
           <div key={idx} className="relative">
-            <h5 className="font-bold text-white mb-1">{feature.name}</h5>
-            <p className="text-sm text-gray-300 whitespace-pre-wrap">{feature.text}</p>
-          </div>
+                         <h5 className="font-bold text-white mb-1">{feature.name}</h5>
+                         <div className="prose prose-invert text-gray-300 text-sm">
+                           <ReactMarkdown>{feature.text}</ReactMarkdown>
+                         </div>          </div>
         ))}
         {featuresToDisplay.length === 0 && (
           <p className="text-sm text-gray-500 italic">No features found for this tier.</p>
