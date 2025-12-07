@@ -27,7 +27,7 @@ You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](ht
 - [x] **3D Dice Rolling** - Interactive dice roller with physics simulation and customizable Hope and Fear dice
 - [x] **Card-Based UI** - Manage abilities, equipment, and features as interactive cards
 - [x] **Real-Time Updates** - Optimistic UI updates for smooth interactions
-- [ ] **Multiclassing Support** - (In Progress) Full support for multiclassing
+- [X] **Multiclassing Support** - Full support for multiclassing
 - [ ] **Homebrew Content** - Support for custom domains and cards
 
 ## Tech Stack
