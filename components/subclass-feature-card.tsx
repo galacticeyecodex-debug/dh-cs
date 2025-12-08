@@ -34,7 +34,7 @@ export default function SubclassFeatureCard({ card, tier, isMulticlass, onCardNo
     return (
       <div className="bg-red-900/20 border border-red-700/50 rounded-xl p-4 text-red-200">
         <h4 className="font-bold">Error: {tier} Feature Not Found!</h4>
-        <p className="text-sm">The required card data for this {tier} feature is missing. Please contact support or the GM.</p>
+        <p className="text-sm">The required card data for this {tier} feature is missing.</p>
         {!isMulticlass && <p className="text-xs mt-2">*(For primary subclass, ensure character creation was completed correctly or that the feature card exists.)*</p>}
       </div>
     );

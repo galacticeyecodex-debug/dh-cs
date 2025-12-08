@@ -4,14 +4,14 @@
  * EXPERIENCE SELECTION COMPONENT
  * ----------------------------------------------------------------------------
  * This component handles the "Increase Experience" advancement option during level up.
- * When a player chooses to increase an experience, they select one of their existing
- * experiences to permanently boost by +1.
- * 
+ * When a player chooses to increase an experience, they select two of their existing
+ * experiences to permanently boost by +1 each.
+ *
  * FUNCTIONALITY:
  * - Displays the character's current list of experiences with their current values.
- * - Allows the user to select exactly ONE experience to upgrade.
+ * - Allows the user to select exactly TWO experiences to upgrade.
  * - Provides immediate visual feedback showing the old value vs. the new value (e.g., +2 → +3).
- * - Enforces validation: The user cannot proceed if they haven't made a selection,
+ * - Enforces validation: The user cannot proceed if they haven't selected 2 experiences,
  *   and meaningful error messages are shown if the character has no experiences to upgrade.
  */
 
@@ -35,12 +35,9 @@ export default function ExperienceSelection({
     const currentIndex = newSelected.indexOf(index);
 
     if (currentIndex === -1) {
-      // Adding - only allow if we have less than 1
-      if (newSelected.length < 1) {
+      // Adding - only allow if we have less than 2
+      if (newSelected.length < 2) {
         newSelected.push(index);
-      } else {
-        // Optional: Replace existing selection if limit is 1
-        newSelected[0] = index;
       }
     } else {
       // Removing
@@ -55,13 +52,8 @@ export default function ExperienceSelection({
   };
 
   const canSelect = (index: number): boolean => {
-    // Always allow trying to select (it will replace if we implement replace logic)
-    // Or strictly:
-    // if (isSelected(index)) return true;
-    // return selectedExperienceIndices.length < 1;
-
-    // Improving UX: Just allow clicking any to select it (auto-replace)
-    return true;
+    if (isSelected(index)) return true;
+    return selectedExperienceIndices.length < 2;
   };
 
   // Handle edge case: no experiences
@@ -78,9 +70,9 @@ export default function ExperienceSelection({
 
   return (
     <div>
-      <h3 className="text-xl font-bold text-white mb-2">Select Experience to Boost</h3>
+      <h3 className="text-xl font-bold text-white mb-2">Select Experiences to Boost</h3>
       <p className="text-gray-400 mb-4">
-        Choose 1 experience to permanently increase by +1. (Selected: {selectedExperienceIndices.length}/1)
+        Choose 2 experiences to permanently increase by +1 each. (Selected: {selectedExperienceIndices.length}/2)
       </p>
 
       <div className="grid grid-cols-1 gap-2">
@@ -128,9 +120,9 @@ export default function ExperienceSelection({
         })}
       </div>
 
-      {selectedExperienceIndices.length < 1 && (
+      {selectedExperienceIndices.length < 2 && (
         <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700 rounded-lg text-blue-200 text-sm">
-          Select 1 experience to continue
+          Select {2 - selectedExperienceIndices.length} more experience{selectedExperienceIndices.length === 0 ? 's' : ''} to continue
         </div>
       )}
     </div>

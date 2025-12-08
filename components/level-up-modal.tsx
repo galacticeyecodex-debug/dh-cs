@@ -86,7 +86,7 @@ const ADVANCEMENT_OPTIONS = [
   { id: 'increase_traits', name: 'Increase Traits', description: 'Choose 2 unmarked traits and gain +1 to them', cost: 1 },
   { id: 'add_hp', name: 'Add HP', description: 'Permanently increase max Hit Points by 1', cost: 1 },
   { id: 'add_stress', name: 'Add Stress', description: 'Permanently increase max Stress by 1', cost: 1 },
-  { id: 'increase_experience', name: 'Increase Experience', description: 'Choose 1 experience and gain +1 to it', cost: 1 },
+  { id: 'increase_experience', name: 'Increase Experience', description: 'Choose 2 experiences and gain +1 to each', cost: 1 },
   { id: 'additional_domain_card', name: 'Additional Domain Card', description: 'Gain an additional domain card', cost: 1 },
   { id: 'increase_evasion', name: 'Increase Evasion', description: 'Gain +1 to your Evasion', cost: 1 },
   { id: 'subclass_card', name: 'Upgraded Subclass Card', description: 'Take your next subclass card (Specialization or Mastery)', cost: 1 },
@@ -187,10 +187,22 @@ export default function LevelUpModal({
     // Get primary domains from the character's primary class
     const primaryDomains = character.class_id ? getClassDomains(character.class_id) : character.domains || [];
 
-    // Determine multiclass domain: either newly selected or existing
-    const multiclassDomain = selectedAdvancements.includes('multiclass')
-      ? selectedMulticlassDomain
-      : undefined; // If character already has multiclass, it's already in their domains
+    // Determine multiclass domain to apply half-level rule (SRD: multiclass cards limited to half character level)
+    // This handles two scenarios:
+    // A) Character is selecting multiclass advancement RIGHT NOW → use newly selected domain
+    // B) Character previously multiclassed → detect existing multiclass domain from character.domains
+    let multiclassDomain: string | undefined;
+    if (selectedAdvancements.includes('multiclass') && selectedMulticlassDomain) {
+      // Scenario A: Currently selecting multiclass advancement
+      multiclassDomain = selectedMulticlassDomain;
+    } else if (character.multiclass_id) {
+      // Scenario B: Character already has a multiclass - find which domain doesn't match primary class domains
+      // (character.domains contains BOTH primary and multiclass domains, we need to identify the multiclass one)
+      const existingMulticlassDomain = character.domains?.find(
+        d => !primaryDomains.map(p => p.toLowerCase()).includes(d.toLowerCase())
+      );
+      multiclassDomain = existingMulticlassDomain;
+    }
 
     // Use the helper function to get max level for this domain
     const maxLevel = getMaxCardLevelForDomain(
@@ -259,7 +271,7 @@ export default function LevelUpModal({
         if (selectedTraits.length !== 2) return false;
       }
       if (selectedAdvancements.includes('increase_experience')) {
-        if (selectedExperienceIndices.length < 1) return false;
+        if (selectedExperienceIndices.length !== 2) return false;
       }
       if (selectedAdvancements.includes('multiclass')) {
         return selectedMulticlass !== '' && selectedMulticlassDomain !== '' && selectedMulticlassSubclass !== '';
@@ -319,8 +331,8 @@ export default function LevelUpModal({
         setError('Please select exactly 2 traits to increase.');
         return;
       }
-      if (selectedAdvancements.includes('increase_experience') && selectedExperienceIndices.length !== 1) {
-        setError('Please select exactly 1 experience to increase.');
+      if (selectedAdvancements.includes('increase_experience') && selectedExperienceIndices.length !== 2) {
+        setError('Please select exactly 2 experiences to increase.');
         return;
       }
       if (selectedAdvancements.includes('multiclass')) {
