@@ -49,17 +49,45 @@ export function validateNewLevel(currentLevel: number, newLevel: number): LevelU
 }
 
 /**
+ * Tier limits for advancements (max times per tier).
+ */
+const TIER_LIMITS: Record<string, number> = {
+  increase_traits: 3,
+  add_hp: 2,
+  add_stress: 2,
+  additional_domain_card: 1,
+  increase_experience: 1,
+  increase_evasion: 1,
+  subclass_card: 1,
+  increase_proficiency: 1,
+  multiclass: 1,
+};
+
+/**
+ * Minimum level requirements for advancements.
+ */
+const MIN_LEVEL_REQUIREMENTS: Record<string, number> = {
+  multiclass: 5,
+};
+
+/**
  * Validates advancement selections.
  *
  * Rules:
  * - Must select exactly 2 advancement slots (not options, slots)
  * - Some options (Proficiency, Multiclass) cost 2 slots and count as 2
  * - All selections must be available for the character's tier or below
+ * - Tier limits must be respected (e.g., max 3 trait increases per tier)
+ * - Minimum level requirements must be met (e.g., multiclass at level 5+)
+ * - Multiclass and subclass upgrades cannot be taken in the same tier
+ * - Multiclass can only be taken once per character (lifetime restriction)
  */
 export function validateAdvancementSelections(
   selectedAdvancements: string[],
   characterLevel: number,
-  isMulticlassedOrHasMastery: boolean
+  isMulticlassedOrHasMastery: boolean,
+  advancementHistory?: Record<string, any>,
+  hasMulticlassId?: boolean
 ): LevelUpValidationError[] {
   const errors: LevelUpValidationError[] = [];
   const currentTier = getTier(characterLevel);
@@ -89,11 +117,64 @@ export function validateAdvancementSelections(
     });
   }
 
+  // Calculate tier-based selections from advancement history (if provided)
+  let takenSubclassInTier = false;
+  let takenMulticlassInTier = false;
+  const selectionsInTier: Record<string, number> = {};
+
+  if (advancementHistory) {
+    for (const [lvlStr, record] of Object.entries(advancementHistory)) {
+      const lvl = parseInt(lvlStr);
+      // Check if this past level is in the SAME tier as the NEW level
+      if (getTier(lvl) === currentTier) {
+        const rec = record as any;
+        if (rec?.advancements) {
+          if (rec.advancements.includes('subclass_card')) takenSubclassInTier = true;
+          if (rec.advancements.includes('multiclass')) takenMulticlassInTier = true;
+
+          // Count selections
+          rec.advancements.forEach((adv: string) => {
+            selectionsInTier[adv] = (selectionsInTier[adv] || 0) + 1;
+          });
+        }
+      }
+    }
+  }
+
   // Validate each advancement
   for (const advId of selectedAdvancements) {
+    // Check minimum level requirements
+    const minLevel = MIN_LEVEL_REQUIREMENTS[advId];
+    if (minLevel && characterLevel < minLevel) {
+      errors.push({
+        field: 'advancements',
+        message: `${advId} requires level ${minLevel} or higher (current: ${characterLevel})`,
+      });
+    }
+
+    // Check tier limits (if advancement history provided)
+    if (advancementHistory) {
+      const limit = TIER_LIMITS[advId] || 1;
+      const currentCount = selectionsInTier[advId] || 0;
+      if (currentCount >= limit) {
+        errors.push({
+          field: 'advancements',
+          message: `${advId} has reached maximum selections for this tier (${limit}/${limit})`,
+        });
+      }
+    }
+
     // Check if subclass card can be taken
     if (advId === 'subclass_card') {
-      if (isMulticlassedOrHasMastery) {
+      // Tier-based restriction: cannot take if multiclass taken this tier
+      if (takenMulticlassInTier || selectedAdvancements.includes('multiclass')) {
+        errors.push({
+          field: 'advancements',
+          message: 'Cannot take upgraded subclass card in the same tier as multiclass',
+        });
+      }
+      // Fallback to old logic if no history provided
+      else if (!advancementHistory && isMulticlassedOrHasMastery) {
         errors.push({
           field: 'advancements',
           message: 'Cannot take upgraded subclass card - already have mastery or multiclassed',
@@ -103,10 +184,19 @@ export function validateAdvancementSelections(
 
     // Check if multiclass can be taken
     if (advId === 'multiclass') {
-      if (isMulticlassedOrHasMastery) {
+      // Lifetime restriction: can only multiclass once
+      const alreadyMulticlassed = hasMulticlassId !== undefined ? hasMulticlassId : isMulticlassedOrHasMastery;
+      if (alreadyMulticlassed) {
         errors.push({
           field: 'advancements',
           message: 'Cannot take multiclass - already multiclassed',
+        });
+      }
+      // Tier-based restriction: cannot take if subclass taken this tier
+      else if (takenSubclassInTier || selectedAdvancements.includes('subclass_card')) {
+        errors.push({
+          field: 'advancements',
+          message: 'Cannot take multiclass in the same tier as subclass upgrade',
         });
       }
     }

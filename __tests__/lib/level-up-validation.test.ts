@@ -92,6 +92,162 @@ describe('validateAdvancementSelections', () => {
     const errors = validateAdvancementSelections(['multiclass'], 3, true);
     expect(errors.length).toBeGreaterThan(0);
   });
+
+  describe('enhanced validation with advancement history', () => {
+    it('should enforce tier limits for trait increases', () => {
+      const history = {
+        2: { advancements: ['increase_traits'] },
+        3: { advancements: ['increase_traits'] },
+        4: { advancements: ['increase_traits'] },
+      };
+      const errors = validateAdvancementSelections(
+        ['increase_traits', 'add_hp'],
+        4,
+        false,
+        history
+      );
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors[0].message).toContain('maximum selections for this tier');
+    });
+
+    it('should allow trait increase if under tier limit', () => {
+      const history = {
+        2: { advancements: ['increase_traits'] },
+        3: { advancements: ['add_hp', 'add_stress'] },
+      };
+      const errors = validateAdvancementSelections(
+        ['increase_traits', 'add_hp'],
+        4,
+        false,
+        history
+      );
+      expect(errors).toEqual([]);
+    });
+
+    it('should enforce tier limits for HP additions', () => {
+      const history = {
+        2: { advancements: ['add_hp', 'add_stress'] },
+        3: { advancements: ['add_hp', 'increase_evasion'] },
+      };
+      const errors = validateAdvancementSelections(
+        ['add_hp', 'increase_traits'],
+        4,
+        false,
+        history
+      );
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors[0].message).toContain('maximum selections for this tier');
+    });
+
+    it('should enforce minimum level for multiclass', () => {
+      const errors = validateAdvancementSelections(['multiclass'], 3, false);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors[0].message).toContain('requires level 5');
+    });
+
+    it('should allow multiclass at level 5+', () => {
+      const errors = validateAdvancementSelections(['multiclass'], 5, false);
+      expect(errors).toEqual([]);
+    });
+
+    it('should reject multiclass if subclass taken this tier', () => {
+      const history = {
+        5: { advancements: ['subclass_card', 'increase_evasion'] },
+      };
+      const errors = validateAdvancementSelections(
+        ['multiclass'],
+        6,
+        false,
+        history,
+        false
+      );
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors[0].message).toContain('same tier');
+    });
+
+    it('should reject subclass if multiclass taken this tier', () => {
+      const history = {
+        5: { advancements: ['multiclass'] },
+      };
+      const errors = validateAdvancementSelections(
+        ['subclass_card', 'add_hp'],
+        6,
+        false,
+        history,
+        true
+      );
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors[0].message).toContain('same tier');
+    });
+
+    it('should allow multiclass and subclass in different tiers', () => {
+      const history = {
+        3: { advancements: ['subclass_card', 'increase_evasion'] },
+      };
+      const errors = validateAdvancementSelections(
+        ['multiclass'],
+        5,
+        false,
+        history,
+        false
+      );
+      expect(errors).toEqual([]);
+    });
+
+    it('should reject multiclass in same selection as subclass', () => {
+      const errors = validateAdvancementSelections(
+        ['multiclass', 'subclass_card'],
+        5,
+        false,
+        {},
+        false
+      );
+      // Multiclass costs 2 slots, so this would be 3 slots total
+      expect(errors.length).toBeGreaterThan(0);
+    });
+
+    it('should use hasMulticlassId for lifetime restriction', () => {
+      const errors = validateAdvancementSelections(
+        ['multiclass'],
+        5,
+        false,
+        {},
+        true // Already has multiclass
+      );
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors[0].message).toContain('already multiclassed');
+    });
+
+    it('should count selections across different levels in same tier', () => {
+      const history = {
+        2: { advancements: ['add_hp', 'add_stress'] },
+        3: { advancements: ['add_hp', 'increase_evasion'] },
+      };
+      const errors = validateAdvancementSelections(
+        ['add_hp', 'increase_traits'],
+        4,
+        false,
+        history
+      );
+      expect(errors.length).toBeGreaterThan(0);
+    });
+
+    it('should reset tier limit counts when entering new tier', () => {
+      const history = {
+        2: { advancements: ['add_hp', 'add_stress'] },
+        3: { advancements: ['add_hp', 'increase_evasion'] },
+        4: { advancements: ['increase_traits', 'add_stress'] },
+      };
+      // Level 5 is new tier (Tier 3), so HP limit resets
+      const errors = validateAdvancementSelections(
+        ['add_hp', 'add_stress'],
+        5,
+        false,
+        history
+      );
+      expect(errors).toEqual([]);
+    });
+  });
 });
 
 describe('validateDomainCardSelection', () => {
