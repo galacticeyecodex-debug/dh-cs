@@ -48,7 +48,7 @@
 import React, { useState } from 'react';
 import { X, Zap, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { calculateTierAchievements, calculateNewDamageThresholds, getTier, getMaxCardLevelForDomain } from '@/lib/level-up-helpers';
+import { calculateTierAchievements, calculateNewDamageThresholds, getTier, getMaxCardLevelForDomain, getClassDomains } from '@/lib/level-up-helpers';
 import { validateNewLevel, validateAdvancementSelections } from '@/lib/level-up-validation';
 import { getCardLevel, getCardDescription, getCardType, isCardInDomain, isCardAvailableAtLevel } from '@/lib/card-helpers';
 import MulticlassSelection from './level-up-substeps/multiclass-selection';
@@ -169,97 +169,37 @@ export default function LevelUpModal({
     allDomains.push(selectedMulticlassDomain);
   }
 
-  // Helper to check if a card is available for the character based on Multiclass rules
-  const isCardAvailableForCharacter = (card: any) => {
-    if (!card.domain) return false;
-    
-    // Check if card is in one of the character's available domains
-    const isInDomain = isCardInDomain(card, card.domain) && allDomains.includes(card.domain);
-    if (!isInDomain) return false;
-
-    // Determine max level for this specific domain
-    // Use helper to enforce "Half Level" rule for multiclass domains
-    // Note: If character has multiclassed previously, that domain is in character.domains.
-    // We need to identify which domain is the multiclass one.
-    // If selecting multiclass NOW, use selectedMulticlassDomain.
-    // If selected previously, we check character.multiclass_subclass_id or domains?
-    
-    // Ideally we pass the list of PRIMARY domains to the helper.
-    // Primary domains are those associated with the original class.
-    // Since we don't store "primary domains" explicitly, we can infer or pass the full list minus known multiclass.
-    // Actually, character.domains includes all.
-    // But for the helper `getMaxCardLevelForDomain`, we need `primaryDomains`.
-    
-    // Let's assume character.domains (from store) ARE the primary ones unless `multiclass_id` is set.
-    // If `multiclass_id` is set, we might need to know which of the domains in `character.domains` belongs to it.
-    // BUT, for the NEW selection, `selectedMulticlassDomain` is clearly the multiclass one.
-    
-    // For EXISTING multiclass, it's harder without looking up class data.
-    // However, `getMaxCardLevelForDomain` takes (characterLevel, domain, primaryDomains, multiclassDomain).
-    
-    // Construct primary domains:
-    // If we are just leveling up and picking a NEW multiclass, current `character.domains` are primary.
-    // If we ALREADY have a multiclass, `character.domains` has both.
-    // We can fetch primary domains for `character.class_id` using `getClassDomains` if we import it, or just rely on the fact
-    // that `getMaxCardLevelForDomain` handles the logic if we pass the right args.
-    
-    // Simplified Logic:
-    // If card.domain == selectedMulticlassDomain (the one being added NOW), max level is ceil(newLevel/2).
-    // If card.domain is in character.domains AND character has `multiclass_id`... wait.
-    // Let's look at `getMaxCardLevelForDomain` implementation again.
-    // It checks if domain is in `primaryDomains` -> full level.
-    // If domain == `multiclassDomain` -> half level.
-    
-    // We need to pass the correct Primary Domains.
-    // We can assume the first 2 domains in `character.domains` are primary? No, order not guaranteed.
-    // Better: We know `character.class_id`. We can get primary domains for that class.
-    // But `getClassDomains` is in `lib/level-up-helpers`.
-    
-    // Let's import `getClassDomains` (it is not imported currently, but available in lib).
-    // Wait, I need to check imports. `getClassDomains` is exported from `lib/level-up-helpers`.
-    // I should add it to imports.
-    
-    return true; // Placeholder until we refine the filtering inside the render loop
-  };
-
   // Filter available domain cards by character's domains (including multiclass if selected)
-  // AND by level rules
+  // AND by level rules using the helper function
   const availableDomainCards = domainCards.filter((card: any) => {
     if (!card.domain) return false;
-    
+
     // 1. Is card in an allowed domain?
     if (!allDomains.includes(card.domain)) return false;
 
-    // 2. Max Level Rule
-    // Determine if this domain is a "Primary" or "Multiclass" domain
-    let maxLevel = newLevel;
-    
-    const isNewMulticlassDomain = selectedAdvancements.includes('multiclass') && 
-                                  selectedMulticlassDomain === card.domain;
-                                  
-    // If it's the newly selected multiclass domain, apply half-level rule
-    if (isNewMulticlassDomain) {
-      maxLevel = Math.ceil(newLevel / 2);
-    } 
-    // If it's an existing domain...
-    // If character ALREADY has a multiclass, we need to know which domain is which.
-    // Ideally, we check against the primary class domains.
-    // Since we don't have `getClassDomains` imported, let's assume `character.domains` contains primary
-    // unless it matches `character.multiclass_domain` (which isn't stored directly, but inferred).
-    // Actually, `character-store` stores `multiclass_id`.
-    
-    // For now, let's enforce the rule strictly for the NEW selection (since that's what we are adding).
-    // For existing multiclass domains, we might need to fetch `class_id` domains.
-    // But since the user is likely just adding Multiclass now (Level 5+), this covers the immediate need.
-    // If the user ALREADY has multiclass, their `character.domains` includes the secondary ones.
-    // We should strictly filter those too if we can identify them.
-    // But let's stick to the immediate requirement: "If you chose a card from a multiclassed domain, you can choose a card at only half your level."
-    
-    // Let's try to be robust:
-    // If card.domain is NOT in the Primary Class's domains, treat as Multiclass (Half Level).
-    // We need the primary class domains.
-    // We can get them if we import `getClassDomains`.
-    
+    // 2. Exclude cards the character already has
+    const alreadyOwned = character.character_cards?.some(
+      (charCard) => charCard.card_id === card.id
+    );
+    if (alreadyOwned) return false;
+
+    // 3. Max Level Rule - Use helper function to apply half-level rule for multiclass domains
+    // Get primary domains from the character's primary class
+    const primaryDomains = character.class_id ? getClassDomains(character.class_id) : character.domains || [];
+
+    // Determine multiclass domain: either newly selected or existing
+    const multiclassDomain = selectedAdvancements.includes('multiclass')
+      ? selectedMulticlassDomain
+      : undefined; // If character already has multiclass, it's already in their domains
+
+    // Use the helper function to get max level for this domain
+    const maxLevel = getMaxCardLevelForDomain(
+      newLevel,
+      card.domain,
+      primaryDomains,
+      multiclassDomain
+    );
+
     return getCardLevel(card) <= maxLevel;
   });
 
