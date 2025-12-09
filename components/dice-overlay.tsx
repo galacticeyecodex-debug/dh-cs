@@ -321,6 +321,7 @@ export default function DiceOverlay() {
                   <button
                     onClick={closeDiceOverlay}
                     className="p-2 bg-black/40 rounded-full text-white hover:bg-black/60 transition-colors"
+                    aria-label="Close"
                   >
                     <X size={24} />
                   </button>

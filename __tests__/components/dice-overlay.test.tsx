@@ -46,12 +46,12 @@ vi.mock('@3d-dice/dice-box', () => {
         
         config.forEach((die, index) => {
           let value;
-          if (die.sides === 12) { 
-            if (die.themeColor === '#f6c928') value = mockRollValues.d12.hope; // Hope
-            else if (die.themeColor === '#4a148c') value = mockRollValues.d12.fear; // Fear
-            else if (die.themeColor === '#06b6d4') value = mockRollValues.d12.plus; // Plus
-            else if (die.themeColor === '#f97316') value = mockRollValues.d12.minus; // Minus
-            else value = mockRollValues.d12.extra; // Default/Extra
+          if (die.sides === 12) {
+            if (die.themeColor === '#f6c928') value = mockRollValues.d12.hope; // Hope (gold)
+            else if (die.themeColor === '#4a148c') value = mockRollValues.d12.fear; // Fear (purple)
+            else if (die.themeColor === '#ffffff') value = mockRollValues.d12.plus; // Plus (white)
+            else if (die.themeColor === '#000000') value = mockRollValues.d12.minus; // Minus (black)
+            else value = mockRollValues.d12.extra; // Default/Extra (green)
           } else if (die.sides === 8) { // For damage roll test
             value = mockRollValues.d8[index % mockRollValues.d8.length];
           } else if (die.sides === 20) {
@@ -176,24 +176,27 @@ describe('DiceOverlay Component', () => {
 
   it('should remove dice from the pool when the remove button is clicked', () => {
     render(<DiceOverlay />);
-    // Add a die first
-    fireEvent.click(screen.getByText('d8'));
+    // Add a die first - find the picker button specifically
+    const d8PickerButton = screen.getAllByRole('button').find(btn =>
+      btn.textContent === 'd8+' || (btn.textContent?.includes('d8') && btn.querySelector('.lucide-plus'))
+    );
+    fireEvent.click(d8PickerButton);
     const initialDiceCount = screen.getAllByRole('button').filter(btn => btn.textContent?.includes('d')).length;
 
     // Find the d8 'plus' die and its remove button
     const d8PlusButton = findSpecificDieButton(8, 'plus');
     expect(d8PlusButton).toBeInTheDocument();
-    
+
     const parentGroup = d8PlusButton.closest('.relative.group');
     expect(parentGroup).toBeInTheDocument();
 
     const removeButton = parentGroup.querySelector('button:not([role="button"])'); // Find the non-role button (the remove button)
     expect(removeButton).toBeInTheDocument();
-    
+
     fireEvent.click(removeButton);
-    
-    // After removal, the d8 should be gone, and total count reduced.
-    expect(screen.queryByText('d8')).not.toBeInTheDocument(); // Check by text content if it was removed
+
+    // After removal, the d8 plus die should be gone, and total count reduced.
+    expect(findSpecificDieButton(8, 'plus')).not.toBeInTheDocument();
     expect(screen.getAllByRole('button').filter(btn => btn.textContent?.includes('d'))).toHaveLength(initialDiceCount - 1);
   });
 
@@ -270,16 +273,16 @@ describe('DiceOverlay Component', () => {
 
   it('should handle modifier correctly with plus/minus dice', async () => {
     render(<DiceOverlay />);
-    
+
     // Add one plus die (d12) and one minus die (d12)
     fireEvent.click(screen.getByText('d12')); // Adds as 'plus'
-    const firstAddedDieButton = findDieButtonBySidesAndRole(12, 'plus');
+    const firstAddedDieButton = findSpecificDieButton(12, 'plus');
     fireEvent.click(firstAddedDieButton); // Cycle to 'minus'
-    await waitFor(() => expect(findDieButtonBySidesAndRole(12, 'minus')).toBeInTheDocument());
+    await waitFor(() => expect(findSpecificDieButton(12, 'minus')).toBeInTheDocument());
 
     // Add another die to ensure it's 'plus' (default)
     fireEvent.click(screen.getByText('d12'));
-    const secondAddedDieButton = findDieButtonBySidesAndRole(12, 'plus');
+    const secondAddedDieButton = findSpecificDieButton(12, 'plus');
     expect(secondAddedDieButton).toBeInTheDocument();
 
     // Set temp modifier
@@ -325,9 +328,9 @@ describe('DiceOverlay Component', () => {
 
     // Add a plus die and a minus die
     fireEvent.click(screen.getByText('d12')); // Adds as 'plus'
-    const firstAddedDieButton = findDieButtonBySidesAndRole(12, 'plus');
+    const firstAddedDieButton = findSpecificDieButton(12, 'plus');
     fireEvent.click(firstAddedDieButton); // Cycle to 'minus'
-    await waitFor(() => expect(findDieButtonBySidesAndRole(12, 'minus')).toBeInTheDocument());
+    await waitFor(() => expect(findSpecificDieButton(12, 'minus')).toBeInTheDocument());
 
     fireEvent.click(screen.getByText('d12')); // Adds another as 'plus'
 
