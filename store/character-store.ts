@@ -145,6 +145,8 @@ export interface RollResult {
   hope: number;
   fear: number;
   extras?: number;
+  plusTotal?: number;
+  minusTotal?: number;
   dice?: { role: string, value: number, sides: number }[];
   total: number;
   modifier: number;
