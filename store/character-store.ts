@@ -701,19 +701,12 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           }));
         };
       },
-      async () => {
-        const supabase = createClient();
-        for (const update of updates) {
-          const { error } = await supabase
-            .from('character_inventory')
-            .update({ location: update.location })
-            .eq('id', update.id);
-
-          if (error) return { error };
-        }
-        return { error: null };
-      },
-      'Failed to equip item'
+          async () => {
+            // Single atomic RPC call - all updates succeed or all fail
+            return createClient().rpc('swap_equipment_items', {
+              updates_json: updates
+            });
+          },      'Failed to equip item'
     );
 
     // Only recalculate if DB update succeeded
