@@ -24,7 +24,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { X, RotateCcw, Plus, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 
-type DiceRole = 'hope' | 'fear' | 'extra';
+type DiceRole = 'hope' | 'fear' | 'plus' | 'minus';
 
 interface DieConfig {
   id: string;
@@ -78,7 +78,7 @@ export default function DiceOverlay() {
 
   // Builder Handlers
   const addDie = (sides: number) => {
-    setDicePool(prev => [...prev, { id: crypto.randomUUID(), sides, role: 'extra' }]);
+    setDicePool(prev => [...prev, { id: crypto.randomUUID(), sides, role: 'plus' }]);
   };
 
   const removeDie = (id: string) => {
@@ -88,7 +88,7 @@ export default function DiceOverlay() {
   const cycleRole = (id: string) => {
     setDicePool(prev => prev.map(d => {
       if (d.id !== id) return d;
-      const roles: DiceRole[] = ['extra', 'hope', 'fear'];
+      const roles: DiceRole[] = ['plus', 'minus', 'hope', 'fear'];
       const idx = roles.indexOf(d.role);
       return { ...d, role: roles[(idx + 1) % roles.length] };
     }));
@@ -224,7 +224,7 @@ export default function DiceOverlay() {
     try {
       const diceConfig = dicePool.map(d => ({
         sides: d.sides,
-        themeColor: d.role === 'hope' ? '#f6c928' : d.role === 'fear' ? '#4a148c' : '#22c55e'
+        themeColor: d.role === 'hope' ? '#f6c928' : d.role === 'fear' ? '#4a148c' : d.role === 'plus' ? '#ffffff' : d.role === 'minus' ? '#000000' : '#22c55e'
       }));
 
       console.log("Rolling Duality Config", diceConfig);
@@ -243,7 +243,8 @@ export default function DiceOverlay() {
 
         let hopeRoll = 0;
         let fearRoll = 0;
-        let extraTotal = 0;
+        let plusTotal = 0;
+        let minusTotal = 0;
         const individualDieResults: { role: DiceRole, value: number, sides: number }[] = [];
 
         dicePool.forEach((die, idx) => {
@@ -252,28 +253,29 @@ export default function DiceOverlay() {
 
           if (die.role === 'hope' && hopeRoll === 0) hopeRoll = val;
           else if (die.role === 'fear' && fearRoll === 0) fearRoll = val;
-          else extraTotal += val;
+          else if (die.role === 'plus') plusTotal += val;
+          else if (die.role === 'minus') minusTotal += val;
         });
 
-        const total = hopeRoll + fearRoll + totalModifier + extraTotal;
+        const total = hopeRoll + fearRoll + totalModifier + plusTotal - minusTotal;
 
-        console.log("Roll Calculation:", { hopeRoll, fearRoll, extraTotal, total, totalModifier, individualDieResults });
+        console.log("Roll Calculation:", { hopeRoll, fearRoll, plusTotal, minusTotal, total, totalModifier, individualDieResults });
 
         let type: 'Critical' | 'Hope' | 'Fear' | 'Damage' = 'Hope';
         if (hopeRoll === fearRoll && hopeRoll !== 0) type = 'Critical';
         else if (hopeRoll > fearRoll) type = 'Hope';
         else type = 'Fear';
 
-        setLastRollResult({
-          hope: hopeRoll,
-          fear: fearRoll,
-          total,
-          extras: extraTotal,
-          modifier: totalModifier,
-          type,
-          dice: individualDieResults
-        });
-      }
+                  setLastRollResult({
+                    hope: hopeRoll,
+                    fear: fearRoll,
+                    total,
+                    plusTotal: plusTotal,
+                    minusTotal: minusTotal,
+                    modifier: totalModifier,
+                    type,
+                    dice: individualDieResults
+                  });      }
     } catch (e) {
       console.error("Roll failed", e);
     }
@@ -293,7 +295,7 @@ export default function DiceOverlay() {
           "absolute inset-0 bg-dagger-dark transition-opacity duration-300",
           isDiceOverlayOpen ? "opacity-100" : "opacity-0"
         )} />
-        <div id="dice-tray-overlay" ref={containerRef} className="absolute inset-0 w-screen h-screen cursor-pointer z-10" onClick={() => isDiceOverlayOpen && handleRoll()} />
+        <div id="dice-tray-overlay" ref={containerRef} className="absolute inset-0 w-screen h-screen cursor-pointer z-45" onClick={() => isDiceOverlayOpen && handleRoll()} />
       </div>
 
       <AnimatePresence>
@@ -344,13 +346,17 @@ export default function DiceOverlay() {
                                 "flex flex-col items-center justify-center w-12 h-12 rounded-lg transition-colors border",
                                 die.role === 'hope' ? "bg-dagger-gold/20 border-dagger-gold" :
                                   die.role === 'fear' ? "bg-purple-900/40 border-purple-500" :
-                                    "bg-green-900/40 border-green-500"
+                                    die.role === 'plus' ? "bg-white/20 border-white" :
+                                      die.role === 'minus' ? "bg-gray-800/40 border-gray-400" :
+                                        "bg-green-900/40 border-green-500"
                               )}
                             >
                               <span className={clsx("text-[8px] font-bold uppercase",
                                 die.role === 'hope' ? "text-dagger-gold" :
                                   die.role === 'fear' ? "text-purple-400" :
-                                    "text-green-400"
+                                    die.role === 'plus' ? "text-white" :
+                                      die.role === 'minus' ? "text-gray-300" :
+                                        "text-green-400"
                               )}>{die.role}</span>
                               <span className="text-lg font-black text-white">d{die.sides}</span>
                             </button>
@@ -442,7 +448,9 @@ export default function DiceOverlay() {
                               "text-[10px] uppercase font-bold",
                               die.role === 'hope' ? "text-dagger-gold" :
                                 die.role === 'fear' ? "text-purple-400" :
-                                  "text-green-400" // For 'extra'
+                                  die.role === 'plus' ? "text-white" :
+                                    die.role === 'minus' ? "text-gray-300" :
+                                      "text-green-400" // For 'extra'
                             )}>
                               {die.role}
                             </span>
