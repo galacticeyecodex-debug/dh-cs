@@ -32,6 +32,7 @@ const mockSupabase = {
     maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     single: vi.fn().mockResolvedValue({ data: null, error: null }),
   })),
+  rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
 };
 
 vi.mock('@/lib/supabase/client', () => ({
@@ -320,6 +321,57 @@ describe('Character Store - Inventory Management', () => {
     expect(async () => {
       await state.equipItem('any_id', 'equipped_primary');
     }).not.toThrow();
+  });
+  describe('equipItem atomicity', () => {
+    it('should handle database errors without corruption', async () => {
+      const item1 = createMockInventoryItem({ id: 'item1', location: 'equipped_primary' });
+      const item2 = createMockInventoryItem({ id: 'item2', location: 'backpack' });
+      const character = createMockCharacter({
+        character_inventory: [item1, item2],
+      });
+      useCharacterStore.getState().setCharacter(character);
+
+      // Mock RPC error (simulates network failure mid-transaction)
+      mockSupabase.rpc = vi.fn().mockResolvedValue({
+        error: new Error('Network error during swap')
+      });
+
+      const state = useCharacterStore.getState();
+      await state.equipItem('item2', 'equipped_primary');
+
+      // Verify UI state rolled back completely
+      const char = useCharacterStore.getState().character!;
+      const updatedItem1 = char.character_inventory?.find(i => i.id === 'item1');
+      const updatedItem2 = char.character_inventory?.find(i => i.id === 'item2');
+
+      // Should be back to original state
+      expect(updatedItem1?.location).toBe('equipped_primary');
+      expect(updatedItem2?.location).toBe('backpack');
+    });
+
+    it('should verify RPC is called with correct parameters', async () => {
+      const item1 = createMockInventoryItem({ id: 'item1', location: 'equipped_primary' });
+      const item2 = createMockInventoryItem({ id: 'item2', location: 'backpack' });
+      const character = createMockCharacter({
+        character_inventory: [item1, item2],
+      });
+      useCharacterStore.getState().setCharacter(character);
+
+      // Mock successful RPC
+      const mockRpc = vi.fn().mockResolvedValue({ error: null });
+      mockSupabase.rpc = mockRpc;
+
+      const state = useCharacterStore.getState();
+      await state.equipItem('item2', 'equipped_primary');
+
+      // Verify RPC was called with atomic updates array
+      expect(mockRpc).toHaveBeenCalledWith('swap_equipment_items', {
+        updates_json: expect.arrayContaining([
+          expect.objectContaining({ id: 'item1', location: 'backpack' }),
+          expect.objectContaining({ id: 'item2', location: 'equipped_primary' }),
+        ])
+      });
+    });
   });
 });
 
