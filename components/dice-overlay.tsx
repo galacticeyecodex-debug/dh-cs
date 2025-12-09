@@ -39,6 +39,7 @@ export default function DiceOverlay() {
   const [isReady, setIsReady] = useState(false);
   const [tempModifier, setTempModifier] = useState(0);
   const [selectedExpIndices, setSelectedExpIndices] = useState<number[]>([]);
+  const [hasRolled, setHasRolled] = useState(false);
 
   // BUILDER STATE
   const [dicePool, setDicePool] = useState<DieConfig[]>([]);
@@ -51,6 +52,7 @@ export default function DiceOverlay() {
     if (isDiceOverlayOpen) {
       setTempModifier(0);
       setSelectedExpIndices([]);
+      setHasRolled(false);
       // Default Pool: 1 Hope (d12), 1 Fear (d12)
       setDicePool([
         { id: 'default-hope', sides: 12, role: 'hope' },
@@ -171,6 +173,9 @@ export default function DiceOverlay() {
       console.warn("DiceBox not ready");
       return;
     }
+
+    // Mark that we've rolled to trigger UI fade
+    setHasRolled(true);
 
     if (hopeCost > 0) {
       await updateHope(currentHope - hopeCost);
@@ -295,7 +300,7 @@ export default function DiceOverlay() {
           "absolute inset-0 bg-dagger-dark transition-opacity duration-300",
           isDiceOverlayOpen ? "opacity-100" : "opacity-0"
         )} />
-        <div id="dice-tray-overlay" ref={containerRef} className="absolute inset-0 w-screen h-screen cursor-pointer z-45" onClick={() => isDiceOverlayOpen && handleRoll()} />
+        <div id="dice-tray-overlay" ref={containerRef} className="absolute inset-0 w-screen h-screen z-45" />
       </div>
 
       <AnimatePresence>
@@ -307,7 +312,11 @@ export default function DiceOverlay() {
               exit={{ opacity: 0 }}
               className="w-full h-full flex flex-col"
             >
-              <div className="absolute top-0 left-0 right-0 p-4 flex flex-col gap-4 z-20 pointer-events-none">
+              <motion.div
+                className="absolute top-0 left-0 right-0 p-4 flex flex-col gap-4 z-20 pointer-events-none"
+                animate={{ opacity: hasRolled ? 0 : 1 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              >
                 <div className="flex justify-between items-start pointer-events-auto">
                   <button
                     onClick={closeDiceOverlay}
@@ -429,15 +438,26 @@ export default function DiceOverlay() {
                     ROLL
                   </button>
                 </div>
-              </div>
+              </motion.div>
 
               {lastRollResult && lastRollResult.total > 0 && (
                 <motion.div
                   initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-md pointer-events-none"
+                  className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-md pointer-events-auto"
                 >
-                  <div className="bg-dagger-panel/75 border border-white/10 p-6 rounded-2xl shadow-2xl text-center">
+                  <div className="bg-dagger-panel/75 border border-white/10 p-6 rounded-2xl shadow-2xl text-center relative">
+                    <button
+                      onClick={() => {
+                        setHasRolled(false);
+                        setLastRollResult(null);
+                      }}
+                      className="absolute top-4 right-4 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors"
+                      aria-label="Clear result"
+                    >
+                      <X size={16} />
+                    </button>
+
                     <div className="text-sm text-gray-400 uppercase tracking-wider mb-1">Result</div>
                     <div className="text-6xl font-serif font-black text-white mb-4">{lastRollResult.total}</div>
                     {lastRollResult.type !== 'Damage' && (

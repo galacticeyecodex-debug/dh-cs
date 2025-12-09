@@ -169,7 +169,7 @@ interface CharacterState {
   openDiceOverlay: () => void;
   closeDiceOverlay: () => void;
   prepareRoll: (label: string, modifier: number, dice?: string) => void;
-  setLastRollResult: (result: RollResult) => void;
+  setLastRollResult: (result: RollResult | null) => void;
   fetchCharacter: (userId: string, characterId?: string) => Promise<void>;
   fetchUser: () => Promise<void>;
   switchCharacter: (characterId: string) => Promise<void>;
