@@ -21,6 +21,7 @@ import AddItemModal from '@/components/add-item-modal';
 import createClient from '@/lib/supabase/client';
 import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
+import { ErrorBoundary } from '@/components/error-boundary';
 
 export default function PlaymatView() {
   const { character, moveCard, addCardToCollection } = useCharacterStore();
@@ -77,8 +78,9 @@ export default function PlaymatView() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header & Toggle */}
+    <ErrorBoundary>
+      <div className="space-y-6">
+        {/* Header & Toggle */}
       <div className="flex justify-between items-center">
         <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
           <button
@@ -178,7 +180,8 @@ export default function PlaymatView() {
           onClose={() => setSelectedCard(null)}
         />
       )}
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
 

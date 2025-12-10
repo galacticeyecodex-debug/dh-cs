@@ -57,6 +57,7 @@ import TraitSelection from './level-up-substeps/trait-selection';
 import ExperienceSelection from './level-up-substeps/experience-selection';
 import VitalSlotSelection from './level-up-substeps/vital-slot-selection';
 import { Character } from '@/store/character-store';
+import { ErrorBoundary } from '@/components/error-boundary';
 
 interface LevelUpModalProps {
   isOpen: boolean;
@@ -549,7 +550,8 @@ export default function LevelUpModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
+        <ErrorBoundary>
+          <>
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -957,7 +959,8 @@ export default function LevelUpModal({
               )}
             </div>
           </motion.div>
-        </>
+          </>
+        </ErrorBoundary>
       )}
     </AnimatePresence>
   );

@@ -19,6 +19,7 @@ import { Coins, Package, Sword, Shield, ArrowRightLeft, Plus, Heart, Gem, Eye, E
 import clsx from 'clsx';
 import AddItemModal from '@/components/add-item-modal';
 import createClient from '@/lib/supabase/client'; // Import Supabase client
+import { ErrorBoundary } from '@/components/error-boundary';
 
 export default function InventoryView() {
   const { character, equipItem, addItemToInventory, updateGold } = useCharacterStore();
@@ -95,8 +96,9 @@ export default function InventoryView() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Gold Tracker */}
+    <ErrorBoundary>
+      <div className="space-y-6">
+        {/* Gold Tracker */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
@@ -241,7 +243,8 @@ export default function InventoryView() {
         libraryItems={allLibraryItems}
         isLoading={libraryLoading}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
 

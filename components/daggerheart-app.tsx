@@ -26,6 +26,8 @@ import AuthButton from '@/components/auth-buttons';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
+import { ErrorBoundary } from '@/components/error-boundary';
+import DevErrorTriggers from '@/components/dev-error-triggers';
 
 export default function DaggerheartApp({ clientUser }: { clientUser: User | null }) {
   const router = useRouter();
@@ -93,11 +95,14 @@ export default function DaggerheartApp({ clientUser }: { clientUser: User | null
   }
 
   return (
-    <MobileLayout>
-      {activeTab === 'character' && <CharacterView />}
-      {activeTab === 'combat' && <CombatView />}
-      {activeTab === 'playmat' && <PlaymatView />}
-      {activeTab === 'inventory' && <InventoryView />}
-    </MobileLayout>
+    <ErrorBoundary>
+      <MobileLayout>
+        {activeTab === 'character' && <CharacterView />}
+        {activeTab === 'combat' && <CombatView />}
+        {activeTab === 'playmat' && <PlaymatView />}
+        {activeTab === 'inventory' && <InventoryView />}
+      </MobileLayout>
+      <DevErrorTriggers />
+    </ErrorBoundary>
   );
 }
