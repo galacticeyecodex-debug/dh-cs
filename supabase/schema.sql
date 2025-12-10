@@ -133,6 +133,18 @@ CREATE TABLE IF NOT EXISTS public.character_inventory (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 6. HOMEBREW ITEMS (User-Created Custom Items)
+CREATE TABLE IF NOT EXISTS public.homebrew_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('weapon', 'armor', 'item', 'consumable')),
+  name TEXT NOT NULL,
+  description TEXT,
+  data JSONB DEFAULT '{}'::jsonb, -- Contains modifiers, damage, armor_score, burden, etc.
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ROW LEVEL SECURITY (RLS) --
 -- Profiles RLS and policies (drop policy if exists first)
 DO $$
@@ -251,6 +263,29 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Homebrew Items RLS
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = 'homebrew_items' AND n.nspname = 'public') THEN
+
+    ALTER TABLE public.homebrew_items ENABLE ROW LEVEL SECURITY;
+
+    EXECUTE 'DROP POLICY IF EXISTS "Users can view own homebrew items" ON public.homebrew_items';
+    CREATE POLICY "Users can view own homebrew items" ON public.homebrew_items FOR SELECT USING (auth.uid() = user_id);
+
+    EXECUTE 'DROP POLICY IF EXISTS "Users can create own homebrew items" ON public.homebrew_items';
+    CREATE POLICY "Users can create own homebrew items" ON public.homebrew_items FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+    EXECUTE 'DROP POLICY IF EXISTS "Users can update own homebrew items" ON public.homebrew_items';
+    CREATE POLICY "Users can update own homebrew items" ON public.homebrew_items FOR UPDATE USING (auth.uid() = user_id);
+
+    EXECUTE 'DROP POLICY IF EXISTS "Users can delete own homebrew items" ON public.homebrew_items';
+    CREATE POLICY "Users can delete own homebrew items" ON public.homebrew_items FOR DELETE USING (auth.uid() = user_id);
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 -- TRIGGERS --
 -- Recreate trigger function (non-destructive)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -360,3 +395,25 @@ CREATE INDEX IF NOT EXISTS idx_characters_advancement_history
 -- Index for efficient queries on marked traits
 CREATE INDEX IF NOT EXISTS idx_characters_marked_traits
   ON public.characters USING GIN (marked_traits_jsonb);
+
+-- Indexes for homebrew items
+CREATE INDEX IF NOT EXISTS idx_homebrew_items_user_id
+  ON public.homebrew_items(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_homebrew_items_type
+  ON public.homebrew_items(type);
+
+-- Trigger to update updated_at timestamp for homebrew items
+CREATE OR REPLACE FUNCTION update_homebrew_items_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS homebrew_items_updated_at ON public.homebrew_items;
+CREATE TRIGGER homebrew_items_updated_at
+  BEFORE UPDATE ON public.homebrew_items
+  FOR EACH ROW
+  EXECUTE FUNCTION update_homebrew_items_updated_at();

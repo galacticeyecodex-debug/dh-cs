@@ -16,10 +16,11 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { LibraryItem } from '@/store/character-store';
-import { Search, X, Sword, Shield, Heart, Gem, Package, ScrollText, Loader2 } from 'lucide-react';
+import { LibraryItem, HomebrewItem, useCharacterStore } from '@/store/character-store';
+import { Search, X, Sword, Shield, Heart, Gem, Package, ScrollText, Loader2, Plus } from 'lucide-react';
 import clsx from 'clsx';
 import { ErrorBoundary } from '@/components/error-boundary';
+import CreateHomebrewItemModal, { HomebrewItemData } from './create-homebrew-item-modal';
 
 interface AddItemModalProps {
   isOpen: boolean;
@@ -33,9 +34,32 @@ interface AddItemModalProps {
 export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems, filterType = 'inventory', isLoading = false }: AddItemModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // 'weapon', 'armor', 'consumable', 'item', 'card'
+  const [isCreateHomebrewOpen, setIsCreateHomebrewOpen] = useState(false);
+
+  const { homebrewItems, fetchHomebrewItems, addHomebrewItem } = useCharacterStore();
+
+  // Fetch homebrew items when modal opens
+  useEffect(() => {
+    if (isOpen && filterType === 'inventory') {
+      fetchHomebrewItems();
+    }
+  }, [isOpen, filterType, fetchHomebrewItems]);
 
   const filteredItems = useMemo(() => {
-    return libraryItems.filter(item => {
+    // Convert homebrew items to LibraryItem format
+    const homebrewAsLibraryItems: LibraryItem[] = homebrewItems.map(item => ({
+      id: `homebrew-${item.id}`,
+      type: item.type,
+      name: item.name,
+      data: item.data,
+      _isHomebrew: true, // Mark as homebrew for UI
+      _homebrewId: item.id, // Store original ID
+    })) as LibraryItem[];
+
+    // Merge library and homebrew items
+    const allItems = [...libraryItems, ...homebrewAsLibraryItems];
+
+    return allItems.filter(item => {
       const matchesSearch = searchTerm ? item.name.toLowerCase().includes(searchTerm.toLowerCase()) : true;
 
       // Category filtering
@@ -47,10 +71,6 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
       else if (selectedCategory === 'card') matchesCategory = ['ability', 'spell', 'grimoire'].includes(item.type);
 
       // Relevant Type check based on context (Inventory vs Playmat/Cards)
-      // If filterType is 'cards', we mainly want card types. If 'inventory', we want item types.
-      // But the user can toggle. Let's allow the tabs to drive visibility.
-      // If NO category selected, show based on filterType default.
-
       const isCardType = ['ability', 'spell', 'grimoire'].includes(item.type);
       const isInventoryType = ['weapon', 'armor', 'consumable', 'item'].includes(item.type);
 
@@ -65,13 +85,23 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
 
       return matchesSearch && matchesCategory && isRelevantType;
     });
-  }, [libraryItems, searchTerm, selectedCategory, filterType]);
+  }, [libraryItems, homebrewItems, searchTerm, selectedCategory, filterType]);
 
   if (!isOpen) return null;
 
   const handleAddItemClick = (item: LibraryItem) => {
     onAddItem(item);
     onClose();
+  };
+
+  const handleSaveHomebrew = async (itemData: HomebrewItemData) => {
+    await addHomebrewItem({
+      type: itemData.type,
+      name: itemData.name,
+      description: itemData.description,
+      data: itemData.data,
+    });
+    await fetchHomebrewItems(); // Refresh the list
   };
 
   return (
@@ -81,9 +111,20 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
           {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-white/10">
           <h2 className="text-xl font-bold text-dagger-gold">Add {filterType === 'cards' ? 'Card' : 'Item'}</h2>
-          <button onClick={onClose} className="text-white/70 hover:text-white">
-            <X size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            {filterType === 'inventory' && (
+              <button
+                onClick={() => setIsCreateHomebrewOpen(true)}
+                className="flex items-center gap-1 px-3 py-1.5 bg-dagger-gold text-black text-sm font-bold rounded-full hover:scale-105 active:scale-95 transition-all"
+              >
+                <Plus size={16} />
+                Create Custom
+              </button>
+            )}
+            <button onClick={onClose} className="text-white/70 hover:text-white">
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         {/* Search and Filters */}
@@ -159,7 +200,14 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
                 className="bg-black/20 p-3 rounded-lg border border-white/10 hover:border-dagger-gold cursor-pointer transition-colors"
                 onClick={() => handleAddItemClick(item)}
               >
-                <div className="font-bold text-white">{item.name}</div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-bold text-white">{item.name}</div>
+                  {(item as any)._isHomebrew && (
+                    <span className="text-[10px] px-2 py-0.5 bg-purple-500/20 border border-purple-500/40 text-purple-300 rounded-full font-bold uppercase">
+                      Custom
+                    </span>
+                  )}
+                </div>
                 <div className="text-xs text-gray-400 uppercase">{item.type} {item.tier ? `(Tier ${item.tier})` : ''} {item.domain ? `- ${item.domain}` : ''}</div>
                 {item.type === 'weapon' && item.data && (
                   <div className="text-xs text-gray-500">
@@ -209,6 +257,13 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
         </div>
       </div>
       </div>
+
+      {/* Create Homebrew Item Modal */}
+      <CreateHomebrewItemModal
+        isOpen={isCreateHomebrewOpen}
+        onClose={() => setIsCreateHomebrewOpen(false)}
+        onSave={handleSaveHomebrew}
+      />
     </ErrorBoundary>
   );
 }

@@ -55,6 +55,17 @@ export interface CharacterInventoryItem {
   library_item?: LibraryItem; // Joined data for the item itself
 }
 
+export interface HomebrewItem {
+  id: string;
+  user_id: string;
+  type: 'weapon' | 'armor' | 'item' | 'consumable';
+  name: string;
+  description?: string;
+  data: any; // JSONB column content (modifiers, damage, armor_score, etc.)
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Character {
   id: string;
   user_id: string;
@@ -157,6 +168,7 @@ interface CharacterState {
   character: Character | null;
   isLoading: boolean;
   user: User | null;
+  homebrewItems: HomebrewItem[];
 
   activeTab: 'character' | 'playmat' | 'inventory' | 'combat';
   isDiceOverlayOpen: boolean;
@@ -210,12 +222,19 @@ interface CharacterState {
     community?: string;
   }) => Promise<void>;
   updateMarkedTraits: (markedTraits: Record<string, boolean>) => Promise<void>;
+
+  // Homebrew items actions
+  fetchHomebrewItems: () => Promise<void>;
+  addHomebrewItem: (item: Omit<HomebrewItem, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>;
+  updateHomebrewItem: (id: string, updates: Partial<Omit<HomebrewItem, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => Promise<void>;
+  deleteHomebrewItem: (id: string) => Promise<void>;
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({
   character: null,
   isLoading: true,
   user: null,
+  homebrewItems: [],
 
   activeTab: 'character',
   isDiceOverlayOpen: false,
@@ -1565,6 +1584,139 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       },
       async () => createClient().from('characters').update({ marked_traits_jsonb: markedTraits }).eq('id', characterId),
       'Failed to update marked traits'
+    );
+  },
+
+  // Homebrew Items Actions
+  fetchHomebrewItems: async () => {
+    const state = get();
+    if (!state.user) return;
+
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('homebrew_items')
+      .select('*')
+      .eq('user_id', state.user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Failed to fetch homebrew items:', error);
+      return;
+    }
+
+    set({ homebrewItems: data || [] });
+  },
+
+  addHomebrewItem: async (item) => {
+    const state = get();
+    if (!state.user) return;
+
+    const supabase = createClient();
+
+    const result = await withOptimisticUpdate(
+      () => {
+        // Optimistically add item with temporary ID
+        const tempItem: HomebrewItem = {
+          id: `temp-${Date.now()}`,
+          user_id: state.user!.id,
+          ...item,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        set((s) => ({
+          homebrewItems: [tempItem, ...s.homebrewItems],
+        }));
+
+        return () => {
+          // Rollback: Remove temp item
+          set((s) => ({
+            homebrewItems: s.homebrewItems.filter((i) => i.id !== tempItem.id),
+          }));
+        };
+      },
+      async () => {
+        const { data, error } = await supabase
+          .from('homebrew_items')
+          .insert({
+            user_id: state.user!.id,
+            type: item.type,
+            name: item.name,
+            description: item.description,
+            data: item.data,
+          })
+          .select()
+          .single();
+
+        return { data, error };
+      },
+      'Failed to create homebrew item'
+    );
+
+    // Replace temp item with real item if successful
+    if (result.success && result.data) {
+      set((s) => ({
+        homebrewItems: [result.data!, ...s.homebrewItems.filter((i) => !i.id.startsWith('temp-'))],
+      }));
+    }
+  },
+
+  updateHomebrewItem: async (id, updates) => {
+    await withOptimisticUpdate(
+      () => {
+        const previousItems = [...get().homebrewItems];
+        set((s) => ({
+          homebrewItems: s.homebrewItems.map((item) =>
+            item.id === id
+              ? {
+                  ...item,
+                  ...updates,
+                  updated_at: new Date().toISOString(),
+                }
+              : item
+          ),
+        }));
+
+        return () => {
+          set({ homebrewItems: previousItems });
+        };
+      },
+      async () => {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('homebrew_items')
+          .update(updates)
+          .eq('id', id)
+          .select();
+
+        return { data, error };
+      },
+      'Failed to update homebrew item'
+    );
+  },
+
+  deleteHomebrewItem: async (id) => {
+    await withOptimisticUpdate(
+      () => {
+        const previousItems = [...get().homebrewItems];
+        set((s) => ({
+          homebrewItems: s.homebrewItems.filter((item) => item.id !== id),
+        }));
+
+        return () => {
+          set({ homebrewItems: previousItems });
+        };
+      },
+      async () => {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('homebrew_items')
+          .delete()
+          .eq('id', id);
+
+        return { data, error };
+      },
+      'Failed to delete homebrew item'
     );
   },
 }));
