@@ -3,19 +3,25 @@
 /**
  * COMMON VITALS DISPLAY COMPONENT
  * ----------------------------------------------------------------------------
- * A centralized dashboard for displaying the character's core vitals: Evasion, Armor, 
+ * A centralized dashboard for displaying the character's core vitals: Evasion, Armor,
  * Hit Points, Stress, and Hope.
- * 
+ *
  * FUNCTIONALITY:
- * - Aggregates Data: Calculates final stat values by combining Base Stats (from Class/Level), 
+ * - Aggregates Data: Calculates final stat values by combining Base Stats (from Class/Level),
  *   System Modifiers (from Equipment), and User Modifiers (Manual adjustments).
  * - Visual Feedback: Displays vitals in uniform cards with color coding (Health = Red, Armor = Blue, etc.).
  * - Interactivity: Provides direct controls to increment/decrement current values (e.g., taking damage).
  * - Threshold Tracking: Shows specialized data like Damage Thresholds for Armor.
  * - Modifier Management: Integrates with `VitalCard` to allow users to view and edit active modifiers for each stat.
+ *
+ * PERFORMANCE:
+ * - Memoized with React.memo to prevent cascade re-renders
+ * - All stat calculations wrapped in useMemo to avoid recalculation
+ * - Callbacks wrapped in useCallback for child component stability
+ * - Only re-renders when character vitals or modifiers actually change
  */
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useCharacterStore, Character, CharacterInventoryItem } from '@/store/character-store';
 import { Shield, Zap, Heart, Eye } from 'lucide-react';
 import { getClassBaseStat, getSystemModifiers } from '@/lib/utils';
@@ -26,55 +32,125 @@ interface CommonVitalsDisplayProps {
   character: Character;
 }
 
-export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayProps) {
+const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character }: CommonVitalsDisplayProps) {
   const { updateVitals, updateHope, updateEvasion, updateModifiers } = useCharacterStore();
 
-  // Helper to calculate totals and combine modifiers
-  const getStatDetails = (stat: string, base: number) => {
+  // Helper to calculate totals and combine modifiers (memoized)
+  const getStatDetails = useCallback((stat: string, base: number) => {
     const systemMods = getSystemModifiers(character, stat);
     const userMods = character.modifiers?.[stat] || [];
     const allMods = [...systemMods, ...userMods];
     const uniqueMods = Array.from(new Map(allMods.map(mod => [mod.id, mod])).values()); // Deduplicate by ID
     const total = base + uniqueMods.reduce((acc, mod) => acc + mod.value, 0);
     return { total, allMods: uniqueMods };
-  };
+  }, [character]);
 
-  // --- EVASION ---
-  const classBaseEvasion = getClassBaseStat(character, 'evasion');
-  const { total: totalEvasion, allMods: evasionMods } = getStatDetails('evasion', classBaseEvasion);
-  const isEvasionModified = totalEvasion !== classBaseEvasion;
+  // --- EVASION --- (memoized)
+  const evasionDetails = useMemo(() => {
+    const classBaseEvasion = getClassBaseStat(character, 'evasion');
+    const { total, allMods } = getStatDetails('evasion', classBaseEvasion);
+    return {
+      total,
+      allMods,
+      isModified: total !== classBaseEvasion,
+      baseValue: classBaseEvasion,
+    };
+  }, [character.level, character.class_id, character.subclass_id, character.modifiers?.evasion, character.character_inventory, getStatDetails]);
 
-  // --- ARMOR ---
-  const armorItem = character.character_inventory?.find((item: CharacterInventoryItem) => item.location === 'equipped_armor');
-  let armorBaseScore = 0;
-  const minorThreshold = 1;
-  let majorThreshold = character.level;
-  let severeThreshold = character.level * 2;
+  // --- ARMOR --- (memoized)
+  const armorDetails = useMemo(() => {
+    const armorItem = character.character_inventory?.find((item: CharacterInventoryItem) => item.location === 'equipped_armor');
+    let armorBaseScore = 0;
+    const minorThreshold = 1;
+    let majorThreshold = character.level;
+    let severeThreshold = character.level * 2;
 
-  if (armorItem?.library_item?.data) {
-    armorBaseScore = (parseInt(armorItem.library_item.data.base_score) || 0);
+    if (armorItem?.library_item?.data) {
+      armorBaseScore = (parseInt(armorItem.library_item.data.base_score) || 0);
 
-    if (armorItem.library_item.data.base_thresholds) {
-      const [baseMajor, baseSevere] = armorItem.library_item.data.base_thresholds.split('/').map((s: string) => parseInt(s.trim()));
-      majorThreshold = baseMajor + character.level;
-      severeThreshold = baseSevere + character.level;
+      if (armorItem.library_item.data.base_thresholds) {
+        const [baseMajor, baseSevere] = armorItem.library_item.data.base_thresholds.split('/').map((s: string) => parseInt(s.trim()));
+        majorThreshold = baseMajor + character.level;
+        severeThreshold = baseSevere + character.level;
+      }
     }
-  }
-  const { total: totalArmorMax, allMods: armorMods } = getStatDetails('armor', armorBaseScore);
+    const { total, allMods } = getStatDetails('armor', armorBaseScore);
+    return { total, allMods };
+  }, [character.level, character.character_inventory, getStatDetails]);
 
-  // --- HIT POINTS ---
-  const classBaseHP = getClassBaseStat(character, 'hit_points');
-  const { total: totalHPMax, allMods: hpMods } = getStatDetails('hit_points', classBaseHP);
+  // --- HIT POINTS --- (memoized)
+  const hpDetails = useMemo(() => {
+    const classBaseHP = getClassBaseStat(character, 'hit_points');
+    const { total, allMods } = getStatDetails('hit_points', classBaseHP);
+    return { total, allMods };
+  }, [character.level, character.class_id, character.subclass_id, getStatDetails]);
 
-  // --- STRESS ---
-  const classBaseStress = getClassBaseStat(character, 'stress');
-  const { total: totalStressMax, allMods: stressMods } = getStatDetails('stress', classBaseStress);
+  // --- STRESS --- (memoized)
+  const stressDetails = useMemo(() => {
+    const classBaseStress = getClassBaseStat(character, 'stress');
+    const { total, allMods } = getStatDetails('stress', classBaseStress);
+    return { total, allMods };
+  }, [character.level, character.class_id, character.subclass_id, getStatDetails]);
 
-  // --- HOPE ---
-  // Max Hope is generally a fixed value (6) and not directly modified by items in the SRD,
-  // but it can have user modifiers, so we calculate totalHopeMax for consistency with the Ledger.
-  const baseHope = 6;
-  const { total: totalHopeMax, allMods: hopeMods } = getStatDetails('hope', baseHope);
+  // --- HOPE --- (memoized)
+  const hopeDetails = useMemo(() => {
+    const baseHope = 6;
+    const { total, allMods } = getStatDetails('hope', baseHope);
+    return { total, allMods };
+  }, [getStatDetails]);
+
+  // Memoize callbacks to prevent VitalCard re-renders
+  const handleArmorIncrement = useCallback(() => {
+    updateVitals('armor_slots', character.vitals.armor_slots + 1);
+  }, [updateVitals, character.vitals.armor_slots]);
+
+  const handleArmorDecrement = useCallback(() => {
+    updateVitals('armor_slots', character.vitals.armor_slots - 1);
+  }, [updateVitals, character.vitals.armor_slots]);
+
+  const handleHPIncrement = useCallback(() => {
+    updateVitals('hit_points_current', character.vitals.hit_points_current + 1);
+  }, [updateVitals, character.vitals.hit_points_current]);
+
+  const handleHPDecrement = useCallback(() => {
+    updateVitals('hit_points_current', character.vitals.hit_points_current - 1);
+  }, [updateVitals, character.vitals.hit_points_current]);
+
+  const handleStressIncrement = useCallback(() => {
+    updateVitals('stress_current', character.vitals.stress_current + 1);
+  }, [updateVitals, character.vitals.stress_current]);
+
+  const handleStressDecrement = useCallback(() => {
+    updateVitals('stress_current', character.vitals.stress_current - 1);
+  }, [updateVitals, character.vitals.stress_current]);
+
+  const handleHopeIncrement = useCallback(() => {
+    updateHope(character.hope + 1);
+  }, [updateHope, character.hope]);
+
+  const handleHopeDecrement = useCallback(() => {
+    updateHope(character.hope - 1);
+  }, [updateHope, character.hope]);
+
+  const handleUpdateEvasionMods = useCallback((mods: any) => {
+    updateModifiers('evasion', mods);
+  }, [updateModifiers]);
+
+  const handleUpdateArmorMods = useCallback((mods: any) => {
+    updateModifiers('armor', mods);
+  }, [updateModifiers]);
+
+  const handleUpdateHPMods = useCallback((mods: any) => {
+    updateModifiers('hit_points', mods);
+  }, [updateModifiers]);
+
+  const handleUpdateStressMods = useCallback((mods: any) => {
+    updateModifiers('stress', mods);
+  }, [updateModifiers]);
+
+  const handleUpdateHopeMods = useCallback((mods: any) => {
+    updateModifiers('hope', mods);
+  }, [updateModifiers]);
 
 
   return (
@@ -83,28 +159,28 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
       <div className="grid grid-cols-2 gap-3">
         <VitalCard
           label="Evasion"
-          current={totalEvasion}
+          current={evasionDetails.total}
           color="text-cyan-400"
           icon={Eye}
-          isModified={isEvasionModified}
-          expectedValue={classBaseEvasion}
-          modifiers={evasionMods}
-          onUpdateModifiers={(mods) => updateModifiers('evasion', mods)}
+          isModified={evasionDetails.isModified}
+          expectedValue={evasionDetails.baseValue}
+          modifiers={evasionDetails.allMods}
+          onUpdateModifiers={handleUpdateEvasionMods}
         />
         <VitalCard
           label="Armor"
           current={character.vitals.armor_slots}
-          max={totalArmorMax}
+          max={armorDetails.total}
           color="text-blue-400"
           icon={Shield}
-          onIncrement={() => updateVitals('armor_slots', character.vitals.armor_slots + 1)}
-          onDecrement={() => updateVitals('armor_slots', character.vitals.armor_slots - 1)}
-          isCriticalCondition={character.vitals.armor_slots === 0 && totalArmorMax > 0}
+          onIncrement={handleArmorIncrement}
+          onDecrement={handleArmorDecrement}
+          isCriticalCondition={character.vitals.armor_slots === 0 && armorDetails.total > 0}
           thresholds={character.damage_thresholds}
           trackType="mark-bad"
           disableCritColor={true}
-          modifiers={armorMods}
-          onUpdateModifiers={(mods) => updateModifiers('armor', mods)}
+          modifiers={armorDetails.allMods}
+          onUpdateModifiers={handleUpdateArmorMods}
         />
       </div>
 
@@ -112,47 +188,81 @@ export default function CommonVitalsDisplay({ character }: CommonVitalsDisplayPr
       <VitalCard
         label="Hit Points"
         current={character.vitals.hit_points_current}
-        max={totalHPMax}
+        max={hpDetails.total}
         color="text-red-400"
         icon={Heart}
         variant="rectangle"
-        onIncrement={() => updateVitals('hit_points_current', character.vitals.hit_points_current + 1)}
-        onDecrement={() => updateVitals('hit_points_current', character.vitals.hit_points_current - 1)}
+        onIncrement={handleHPIncrement}
+        onDecrement={handleHPDecrement}
         isCriticalCondition={character.vitals.hit_points_current === 0}
         trackType="mark-bad"
-        modifiers={hpMods}
-        onUpdateModifiers={(mods) => updateModifiers('hit_points', mods)}
+        modifiers={hpDetails.allMods}
+        onUpdateModifiers={handleUpdateHPMods}
       />
 
       {/* Row 3: Stress (Rectangle) */}
       <VitalCard
         label="Stress"
         current={character.vitals.stress_current}
-        max={totalStressMax}
+        max={stressDetails.total}
         color="text-purple-400"
         icon={Zap}
         variant="rectangle"
-        onIncrement={() => updateVitals('stress_current', character.vitals.stress_current + 1)}
-        onDecrement={() => updateVitals('stress_current', character.vitals.stress_current - 1)}
-        isCriticalCondition={character.vitals.stress_current >= totalStressMax && totalStressMax > 0}
-        trackType="fill-up-bad" modifiers={stressMods}
-        onUpdateModifiers={(mods) => updateModifiers('stress', mods)}
+        onIncrement={handleStressIncrement}
+        onDecrement={handleStressDecrement}
+        isCriticalCondition={character.vitals.stress_current >= stressDetails.total && stressDetails.total > 0}
+        trackType="fill-up-bad"
+        modifiers={stressDetails.allMods}
+        onUpdateModifiers={handleUpdateStressMods}
       />
 
       {/* Row 4: Hope (Rectangle) */}
       <VitalCard
         label="Hope"
         current={character.hope}
-        max={totalHopeMax}
+        max={hopeDetails.total}
         color="text-dagger-gold"
         icon={Zap}
         variant="rectangle"
-        onIncrement={() => updateHope(character.hope + 1)}
-        onDecrement={() => updateHope(character.hope - 1)}
+        onIncrement={handleHopeIncrement}
+        onDecrement={handleHopeDecrement}
         trackType="fill-up-good"
-        modifiers={hopeMods}
-        onUpdateModifiers={(mods) => updateModifiers('hope', mods)}
+        modifiers={hopeDetails.allMods}
+        onUpdateModifiers={handleUpdateHopeMods}
       />
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Return true if props are equal (skip re-render)
+  // Return false if props are different (re-render needed)
+
+  // Check if character ID changed (different character loaded)
+  if (prevProps.character.id !== nextProps.character.id) return false;
+
+  // Check vitals
+  if (JSON.stringify(prevProps.character.vitals) !== JSON.stringify(nextProps.character.vitals)) return false;
+
+  // Check hope
+  if (prevProps.character.hope !== nextProps.character.hope) return false;
+
+  // Check level (affects base stats)
+  if (prevProps.character.level !== nextProps.character.level) return false;
+
+  // Check class and subclass (affects base stats)
+  if (prevProps.character.class_id !== nextProps.character.class_id) return false;
+  if (prevProps.character.subclass_id !== nextProps.character.subclass_id) return false;
+
+  // Check modifiers
+  if (JSON.stringify(prevProps.character.modifiers) !== JSON.stringify(nextProps.character.modifiers)) return false;
+
+  // Check inventory (affects armor and system modifiers)
+  if (JSON.stringify(prevProps.character.character_inventory) !== JSON.stringify(nextProps.character.character_inventory)) return false;
+
+  // Check damage thresholds
+  if (JSON.stringify(prevProps.character.damage_thresholds) !== JSON.stringify(nextProps.character.damage_thresholds)) return false;
+
+  // All relevant props are equal, skip re-render
+  return true;
+});
+
+export default CommonVitalsDisplay;

@@ -4,16 +4,21 @@
  * INVENTORY VIEW
  * ----------------------------------------------------------------------------
  * Manages the character's physical possessions and wealth.
- * 
+ *
  * FUNCTIONALITY:
  * - Lists all items in the character's inventory (Weapons, Armor, Consumables, Misc).
  * - Provides filtering and sorting options to help manage large inventories.
  * - Tracks Wealth (Gold in Handfuls, Bags, Chests) with increment/decrement controls.
  * - Allows equipping/unequipping items, which updates their status in other views (like Combat).
  * - Includes an "Add Item" flow to browse the game library and add new items.
+ *
+ * PERFORMANCE:
+ * - Callbacks memoized with useCallback to prevent ItemRow re-renders
+ * - GoldCounter callbacks memoized for stability
+ * - ItemRow component memoized to prevent unnecessary list re-renders
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useCharacterStore, CharacterInventoryItem, LibraryItem } from '@/store/character-store';
 import { Coins, Package, Sword, Shield, ArrowRightLeft, Plus, Heart, Gem, Eye, EyeOff } from 'lucide-react';
 import clsx from 'clsx';
@@ -61,6 +66,45 @@ export default function InventoryView() {
     fetchAllLibraryItems();
   }, []); // Run only once on mount
 
+  // Memoize callbacks BEFORE early return (hooks must be unconditional)
+  const handleEquip = useCallback((itemId: string, slot: 'equipped_primary' | 'equipped_secondary' | 'equipped_armor' | 'backpack') => {
+    equipItem(itemId, slot);
+  }, [equipItem]);
+
+  const handleAddItem = useCallback((item: LibraryItem) => {
+    addItemToInventory(item);
+  }, [addItemToInventory]);
+
+  // Memoize gold callbacks
+  const handleHandfulsIncrement = useCallback(() => {
+    if (!character) return;
+    updateGold('handfuls', character.gold.handfuls + 1);
+  }, [updateGold, character?.gold.handfuls, character]);
+
+  const handleHandfulsDecrement = useCallback(() => {
+    if (!character) return;
+    updateGold('handfuls', character.gold.handfuls - 1);
+  }, [updateGold, character?.gold.handfuls, character]);
+
+  const handleBagsIncrement = useCallback(() => {
+    if (!character) return;
+    updateGold('bags', character.gold.bags + 1);
+  }, [updateGold, character?.gold.bags, character]);
+
+  const handleBagsDecrement = useCallback(() => {
+    if (!character) return;
+    updateGold('bags', character.gold.bags - 1);
+  }, [updateGold, character?.gold.bags, character]);
+
+  const handleChestsIncrement = useCallback(() => {
+    if (!character) return;
+    updateGold('chests', character.gold.chests + 1);
+  }, [updateGold, character?.gold.chests, character]);
+
+  const handleChestsDecrement = useCallback(() => {
+    if (!character) return;
+    updateGold('chests', character.gold.chests - 1);
+  }, [updateGold, character?.gold.chests, character]);
 
   if (!character) return null;
 
@@ -87,14 +131,6 @@ export default function InventoryView() {
       return a.name.localeCompare(b.name);
     });
 
-  const handleEquip = (itemId: string, slot: 'equipped_primary' | 'equipped_secondary' | 'equipped_armor' | 'backpack') => {
-    equipItem(itemId, slot);
-  };
-
-  const handleAddItem = (item: LibraryItem) => {
-    addItemToInventory(item);
-  };
-
   return (
     <ErrorBoundary>
       <div className="space-y-6">
@@ -119,20 +155,20 @@ export default function InventoryView() {
               <GoldCounter
                 label="Handfuls"
                 value={character.gold.handfuls}
-                onIncrement={() => updateGold('handfuls', character.gold.handfuls + 1)}
-                onDecrement={() => updateGold('handfuls', character.gold.handfuls - 1)}
+                onIncrement={handleHandfulsIncrement}
+                onDecrement={handleHandfulsDecrement}
               />
               <GoldCounter
                 label="Bags"
                 value={character.gold.bags}
-                onIncrement={() => updateGold('bags', character.gold.bags + 1)}
-                onDecrement={() => updateGold('bags', character.gold.bags - 1)}
+                onIncrement={handleBagsIncrement}
+                onDecrement={handleBagsDecrement}
               />
               <GoldCounter
                 label="Chests"
                 value={character.gold.chests}
-                onIncrement={() => updateGold('chests', character.gold.chests + 1)}
-                onDecrement={() => updateGold('chests', character.gold.chests - 1)}
+                onIncrement={handleChestsIncrement}
+                onDecrement={handleChestsDecrement}
               />
             </div>
           </div>
@@ -248,7 +284,7 @@ export default function InventoryView() {
   );
 }
 
-function GoldCounter({ label, value, onIncrement, onDecrement }: { label: string, value: number, onIncrement: () => void, onDecrement: () => void }) {
+const GoldCounter = React.memo(function GoldCounter({ label, value, onIncrement, onDecrement }: { label: string, value: number, onIncrement: () => void, onDecrement: () => void }) {
   return (
     <div className="flex flex-col items-center gap-1">
       <div className="text-2xl font-bold text-white">{value}</div>
@@ -259,9 +295,14 @@ function GoldCounter({ label, value, onIncrement, onDecrement }: { label: string
       </div>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  return prevProps.value === nextProps.value &&
+         prevProps.label === nextProps.label &&
+         prevProps.onIncrement === nextProps.onIncrement &&
+         prevProps.onDecrement === nextProps.onDecrement;
+});
 
-function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id: string, slot: any) => void }) {
+const ItemRow = React.memo(function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id: string, slot: any) => void }) {
   const type = item.library_item?.type;
   const isEquipped = item.location.startsWith('equipped');
   const data = item.library_item?.data;
@@ -381,4 +422,10 @@ function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id
       </div>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Only re-render if the item itself changed or location changed
+  return prevProps.item.id === nextProps.item.id &&
+         prevProps.item.location === nextProps.item.location &&
+         prevProps.item.quantity === nextProps.item.quantity &&
+         prevProps.onEquip === nextProps.onEquip;
+});
