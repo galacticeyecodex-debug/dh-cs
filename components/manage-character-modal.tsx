@@ -19,6 +19,7 @@ import React, { useState } from 'react';
 import { X, AlertCircle, Settings, Plus, Minus, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import createClient from '@/lib/supabase/client';
+import { ErrorBoundary } from '@/components/error-boundary';
 
 interface ManageCharacterModalProps {
   isOpen: boolean;
@@ -234,7 +235,8 @@ export default function ManageCharacterModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
+        <ErrorBoundary>
+          <>
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -390,7 +392,8 @@ export default function ManageCharacterModal({
               </button>
             </div>
           </motion.div>
-        </>
+          </>
+        </ErrorBoundary>
       )}
     </AnimatePresence>
   );

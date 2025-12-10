@@ -21,6 +21,7 @@ import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers } from '@/li
 import CommonVitalsDisplay from '@/components/common-vitals-display'; // Import the new common component
 import ModifierSheet from '@/components/modifier-sheet';
 import SubclassFeatureCard from '@/components/subclass-feature-card';
+import { ErrorBoundary } from '@/components/error-boundary';
 
 export default function CombatView() {
   const { character, prepareRoll, updateModifiers } = useCharacterStore();
@@ -50,8 +51,9 @@ export default function CombatView() {
   const isProficiencyModified = totalProficiency !== baseProficiency;
 
   return (
-    <div className="space-y-6 pb-24">
-      {/* Vitals Toggle & Display */}
+    <ErrorBoundary>
+      <div className="space-y-6 pb-24">
+        {/* Vitals Toggle & Display */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Vitals</h3>
@@ -358,7 +360,8 @@ export default function CombatView() {
         currentModifiers={userProfMods}
         onUpdateModifiers={(mods) => updateModifiers('proficiency', mods)}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
 

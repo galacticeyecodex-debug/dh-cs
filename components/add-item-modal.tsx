@@ -19,6 +19,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { LibraryItem } from '@/store/character-store';
 import { Search, X, Sword, Shield, Heart, Gem, Package, ScrollText, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
+import { ErrorBoundary } from '@/components/error-boundary';
 
 interface AddItemModalProps {
   isOpen: boolean;
@@ -74,9 +75,10 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full max-w-lg h-[80vh] flex flex-col">
-        {/* Header */}
+    <ErrorBoundary>
+      <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+        <div className="bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full max-w-lg h-[80vh] flex flex-col">
+          {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-white/10">
           <h2 className="text-xl font-bold text-dagger-gold">Add {filterType === 'cards' ? 'Card' : 'Item'}</h2>
           <button onClick={onClose} className="text-white/70 hover:text-white">
@@ -206,7 +208,8 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
 

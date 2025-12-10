@@ -28,6 +28,7 @@ import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/supabase/storage';
 import { toast } from 'sonner';
 import createClient from '@/lib/supabase/client';
+import { ErrorBoundary } from '@/components/error-boundary';
 
 export default function CharacterView() {
   const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits } = useCharacterStore();
@@ -204,8 +205,9 @@ export default function CharacterView() {
   };
 
   return (
-    <div className="pb-24">
-      {/* Social Profile Header */}
+    <ErrorBoundary>
+      <div className="pb-24">
+        {/* Social Profile Header */}
       <div className="relative w-full h-48 md:h-64 bg-gray-900 overflow-hidden group/header">
         {/* Banner Background */}
         <div className="absolute inset-0 opacity-60 transition-opacity duration-700 group-hover/header:opacity-70">
@@ -787,6 +789,7 @@ export default function CharacterView() {
           }
         }}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
