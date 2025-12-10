@@ -4,16 +4,21 @@
  * STAT BUTTON COMPONENT
  * ----------------------------------------------------------------------------
  * A specialized interactive component for displaying and managing character attributes.
- * 
+ *
  * CORE FUNCTIONALITY:
  * 1. Roll Trigger (Left Side): Clicking the label triggers a dice roll check for this stat
  *    via the global character store.
  * 2. Modifier Management (Right Side): Clicking the numerical value opens the ModifierSheet,
  *    allowing the user to inspect the base value and apply temporary adjustments/modifiers.
- * 
+ *
  * VISUAL FEEDBACK:
  * - Automatically highlights modified values in gold with an indicator dot to alert the user
  *   that the current value differs from the base stat.
+ *
+ * PERFORMANCE:
+ * - Memoized with React.memo to prevent unnecessary re-renders
+ * - Custom comparison function checks only relevant props
+ * - Re-renders only when stat values or modifiers actually change
  */
 
 import React, { useState } from 'react';
@@ -29,7 +34,7 @@ interface StatButtonProps {
   onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' }[]) => void;
 }
 
-export default function StatButton({ label, value, baseValue, modifiers, onUpdateModifiers }: StatButtonProps) {
+const StatButton = React.memo(function StatButton({ label, value, baseValue, modifiers, onUpdateModifiers }: StatButtonProps) {
   const { prepareRoll } = useCharacterStore();
   const [showModifierSheet, setShowModifierSheet] = useState(false);
 
@@ -84,4 +89,23 @@ export default function StatButton({ label, value, baseValue, modifiers, onUpdat
       )}
     </>
   );
-}
+}, (prevProps, nextProps) => {
+  // Return true if props are equal (skip re-render)
+  // Return false if props are different (re-render needed)
+
+  // Check core display values
+  if (prevProps.label !== nextProps.label) return false;
+  if (prevProps.value !== nextProps.value) return false;
+  if (prevProps.baseValue !== nextProps.baseValue) return false;
+
+  // Check modifiers array (deep comparison)
+  if (JSON.stringify(prevProps.modifiers) !== JSON.stringify(nextProps.modifiers)) return false;
+
+  // Check callback reference
+  if (prevProps.onUpdateModifiers !== nextProps.onUpdateModifiers) return false;
+
+  // All props are equal, skip re-render
+  return true;
+});
+
+export default StatButton;

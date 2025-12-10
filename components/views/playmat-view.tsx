@@ -4,16 +4,21 @@
  * PLAYMAT VIEW
  * ----------------------------------------------------------------------------
  * Represents the character's "Playmat" - the active area for Domain Cards.
- * 
+ *
  * FUNCTIONALITY:
  * - Displays the character's active "Loadout" (limited slots for cards in play).
  * - Manages the "Vault" (all other known cards not currently active).
  * - Allows moving cards between Loadout and Vault.
  * - Shows detailed card information (Abilities, Spells, Grimoires) in a visual card format.
  * - Provides access to the Library to add new cards to the collection.
+ *
+ * PERFORMANCE:
+ * - Callbacks memoized with useCallback to prevent CardThumbnail re-renders
+ * - CardThumbnail component memoized to prevent unnecessary re-renders
+ * - Only re-renders cards when their location or data actually changes
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character-store';
 import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -53,6 +58,22 @@ export default function PlaymatView() {
     fetchAllLibraryItems();
   }, []);
 
+  // Memoize callbacks BEFORE early return (hooks must be unconditional)
+  const handleAddCard = useCallback((item: LibraryItem) => {
+    addCardToCollection(item);
+  }, [addCardToCollection]);
+
+  const loadoutCards = character?.character_cards?.filter(card => card.location === 'loadout') || [];
+
+  const handleMoveCard = useCallback((cardId: string, destination: 'loadout' | 'vault') => {
+    // Basic check for loadout limit
+    if (destination === 'loadout' && loadoutCards.length >= 5) {
+      alert("Loadout is full! Move a card to the Vault first.");
+      return;
+    }
+    moveCard(cardId, destination);
+  }, [moveCard, loadoutCards.length]);
+
   if (!character) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-gray-500">
@@ -61,21 +82,7 @@ export default function PlaymatView() {
     );
   }
 
-  const loadoutCards = character.character_cards?.filter(card => card.location === 'loadout') || [];
   const vaultCards = character.character_cards?.filter(card => card.location === 'vault') || [];
-
-  const handleAddCard = (item: LibraryItem) => {
-    addCardToCollection(item);
-  };
-
-  const handleMoveCard = (cardId: string, destination: 'loadout' | 'vault') => {
-    // Basic check for loadout limit
-    if (destination === 'loadout' && loadoutCards.length >= 5) {
-      alert("Loadout is full! Move a card to the Vault first.");
-      return;
-    }
-    moveCard(cardId, destination);
-  };
 
   return (
     <ErrorBoundary>
@@ -185,7 +192,7 @@ export default function PlaymatView() {
   );
 }
 
-function CardThumbnail({ charCard, onClick, actionLabel, onAction }: { charCard: CharacterCard, onClick: () => void, actionLabel?: string, onAction?: () => void }) {
+const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, actionLabel, onAction }: { charCard: CharacterCard, onClick: () => void, actionLabel?: string, onAction?: () => void }) {
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown Card', domain: '', tier: 0, type: '', data: {} };
   // Ensure we check for recall in data, defaulting to '0' if not found or empty
   const recallCost = data?.recall || '0';
@@ -247,7 +254,14 @@ function CardThumbnail({ charCard, onClick, actionLabel, onAction }: { charCard:
       )}
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Only re-render if card data changed
+  return prevProps.charCard.id === nextProps.charCard.id &&
+         prevProps.charCard.location === nextProps.charCard.location &&
+         prevProps.actionLabel === nextProps.actionLabel &&
+         prevProps.onClick === nextProps.onClick &&
+         prevProps.onAction === nextProps.onAction;
+});
 
 function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClose: () => void }) {
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown', domain: '', tier: 0, type: '', data: {} };

@@ -4,15 +4,20 @@
  * VITAL CARD COMPONENT
  * ----------------------------------------------------------------------------
  * A versatile UI component for displaying and managing a single character resource or stat.
- * 
+ *
  * CORE FUNCTIONALITY:
- * - Dynamic Visualization: Supports numeric displays (e.g., Evasion) or visual tracks 
+ * - Dynamic Visualization: Supports numeric displays (e.g., Evasion) or visual tracks
  *   (e.g., Health, Stress, Armor slots) based on the 'trackType' prop.
- * - Interactive Controls: Provides contextual buttons for manipulating the stat 
+ * - Interactive Controls: Provides contextual buttons for manipulating the stat
  *   (increment/decrement, markup/clear, spend/gain) tailored to the specific resource type.
- * - Modifier Integration: Can connect to the ModifierSheet system to allow for temporary 
+ * - Modifier Integration: Can connect to the ModifierSheet system to allow for temporary
  *   bonuses or penalties to be applied to the base stat.
  * - Status Feedback: Visually indicates critical conditions (e.g., low health) or modified states.
+ *
+ * PERFORMANCE:
+ * - Memoized with React.memo to prevent unnecessary re-renders
+ * - Custom comparison function checks only relevant props
+ * - Re-renders only when display values or state actually changes
  */
 
 import React, { useState } from 'react';
@@ -41,7 +46,7 @@ interface VitalCardProps {
   onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' }[]) => void;
 }
 
-export default function VitalCard({
+const VitalCard = React.memo(function VitalCard({
   label,
   current,
   max,
@@ -226,4 +231,47 @@ export default function VitalCard({
       )}
     </>
   );
-}
+}, (prevProps, nextProps) => {
+  // Return true if props are equal (skip re-render)
+  // Return false if props are different (re-render needed)
+
+  // Check core display values
+  if (prevProps.current !== nextProps.current) return false;
+  if (prevProps.max !== nextProps.max) return false;
+  if (prevProps.label !== nextProps.label) return false;
+  if (prevProps.color !== nextProps.color) return false;
+
+  // Check state flags
+  if (prevProps.isCriticalCondition !== nextProps.isCriticalCondition) return false;
+  if (prevProps.isModified !== nextProps.isModified) return false;
+  if (prevProps.expectedValue !== nextProps.expectedValue) return false;
+  if (prevProps.disableCritColor !== nextProps.disableCritColor) return false;
+
+  // Check styling
+  if (prevProps.variant !== nextProps.variant) return false;
+  if (prevProps.className !== nextProps.className) return false;
+  if (prevProps.trackType !== nextProps.trackType) return false;
+
+  // Check thresholds (shallow comparison)
+  if (prevProps.thresholds !== nextProps.thresholds) {
+    if (!prevProps.thresholds || !nextProps.thresholds) return false;
+    if (prevProps.thresholds.minor !== nextProps.thresholds.minor) return false;
+    if (prevProps.thresholds.major !== nextProps.thresholds.major) return false;
+    if (prevProps.thresholds.severe !== nextProps.thresholds.severe) return false;
+  }
+
+  // Check modifiers array (deep comparison)
+  if (JSON.stringify(prevProps.modifiers) !== JSON.stringify(nextProps.modifiers)) return false;
+
+  // Callbacks: Allow re-render only if both old and new exist but are different
+  // If callbacks are the same reference, don't re-render
+  // Note: Parent should wrap these in useCallback for best performance
+  if (prevProps.onIncrement !== nextProps.onIncrement) return false;
+  if (prevProps.onDecrement !== nextProps.onDecrement) return false;
+  if (prevProps.onUpdateModifiers !== nextProps.onUpdateModifiers) return false;
+
+  // All props are equal, skip re-render
+  return true;
+});
+
+export default VitalCard;
