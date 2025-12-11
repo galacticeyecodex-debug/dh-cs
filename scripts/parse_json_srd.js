@@ -224,7 +224,7 @@ function processWeapons() {
       hand: item.primary_or_secondary,
       trait: item.trait,
       range: item.range,
-      damage: item.damage,
+      damage: item.damage ? item.damage.replace(/\s*(?:phy|mag|physical|magic)\s*/gi, '').trim() : '',
       burden: item.burden,
       feature: {
         name: item.feat_name,
@@ -232,6 +232,11 @@ function processWeapons() {
       },
       modifiers: parseModifiers(item.feat_text) // Add parsed modifiers
     };
+    
+    // Debug log to verify replacement
+    if (item.damage && item.damage !== data.damage) {
+        // console.log(`Cleaned damage for ${item.name}: "${item.damage}" -> "${data.damage}"`);
+    }
 
     sqlOutput.push(createInsert(id, 'weapon', item.name, null, tier, data));
   });

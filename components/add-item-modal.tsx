@@ -221,7 +221,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
                 <div className="text-xs text-gray-400 uppercase">{item.type} {item.tier ? `(Tier ${item.tier})` : ''} {item.domain ? `- ${item.domain}` : ''}</div>
                 {item.type === 'weapon' && item.data && (
                   <div className="text-xs text-gray-500">
-                    {item.data.trait} {item.data.range} {item.data.damage}
+                    {item.data.trait} {item.data.range} {item.data.damage} {item.data.type === 'Physical' ? 'Phy' : item.data.type === 'Magic' ? 'Mag' : item.data.type}
                   </div>
                 )}
                 {item.type === 'armor' && item.data && (

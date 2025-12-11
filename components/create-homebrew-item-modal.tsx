@@ -13,8 +13,8 @@
  * - Preview: Shows how the item will look when equipped
  */
 
-import React, { useState } from 'react';
-import { X, Save, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Save, AlertCircle, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModifierBuilder from './modifier-builder';
@@ -46,6 +46,9 @@ interface CreateHomebrewItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (item: HomebrewItemData) => void;
+  onDelete?: () => void;
+  initialData?: HomebrewItemData;
+  isEditing?: boolean;
 }
 
 const ITEM_TYPES = [
@@ -89,6 +92,9 @@ export default function CreateHomebrewItemModal({
   isOpen,
   onClose,
   onSave,
+  onDelete,
+  initialData,
+  isEditing = false,
 }: CreateHomebrewItemModalProps) {
   // Basic fields
   const [name, setName] = useState('');
@@ -114,6 +120,34 @@ export default function CreateHomebrewItemModal({
 
   // Validation errors
   const [errors, setErrors] = useState<string[]>([]);
+
+  // Populate form with initial data when editing
+  useEffect(() => {
+    if (isOpen) {
+      if (isEditing && initialData) {
+        setName(initialData.name);
+        setType(initialData.type);
+        setDescription(initialData.description);
+        setModifiers(initialData.data.modifiers || []);
+
+        if (initialData.type === 'weapon') {
+          setDamage(initialData.data.damage || '');
+          setDamageType(initialData.data.type || 'Physical');
+          setBurden(initialData.data.burden || 'One-Handed');
+          setWeaponHand(initialData.data.hand || 'Primary');
+          setTrait(initialData.data.trait || 'Agility');
+          setRange(initialData.data.range || 'Melee');
+        } else if (initialData.type === 'armor') {
+          setArmorScore(initialData.data.base_score?.toString() || '');
+          setThresholds(initialData.data.base_thresholds || '');
+        } else if (initialData.type === 'consumable') {
+          setUses(initialData.data.uses?.toString() || '1');
+        }
+      } else {
+        resetForm();
+      }
+    }
+  }, [isOpen, isEditing, initialData]);
 
   const resetForm = () => {
     setName('');
@@ -156,8 +190,8 @@ export default function CreateHomebrewItemModal({
           newErrors.push('Armor score must be a positive number');
         }
       }
-      if (thresholds && !thresholds.match(/^\d+\/\d+(\/\d+)?$/)) {
-        newErrors.push('Thresholds must match format like "2/4" or "1/3/5"');
+      if (thresholds && !thresholds.match(/^\s*\d+\s*\/\s*\d+(\s*\/\s*\d+)?\s*$/)) {
+        newErrors.push('Thresholds must match format like "2/4" or "1 / 3 / 5"');
       }
     }
 
@@ -204,7 +238,7 @@ export default function CreateHomebrewItemModal({
     }
 
     onSave(itemData);
-    resetForm();
+    if (!isEditing) resetForm(); // Only reset if creating new, otherwise keep form state
     onClose();
   };
 
@@ -226,7 +260,9 @@ export default function CreateHomebrewItemModal({
         >
           {/* Header */}
           <div className="flex justify-between items-center p-6 border-b border-white/10">
-            <h2 className="text-2xl font-bold text-dagger-gold">Create Homebrew Item</h2>
+            <h2 className="text-2xl font-bold text-dagger-gold">
+              {isEditing ? 'Edit Homebrew Item' : 'Create Homebrew Item'}
+            </h2>
             <button
               onClick={handleClose}
               className="text-white/70 hover:text-white transition-colors"
@@ -282,17 +318,20 @@ export default function CreateHomebrewItemModal({
                     <button
                       key={value}
                       onClick={() => setType(value)}
+                      disabled={isEditing && value !== type} // Disable changing type when editing
                       className={clsx(
                         'p-3 rounded-lg font-bold border-2 transition-all',
                         type === value
                           ? 'bg-dagger-gold text-black border-dagger-gold'
-                          : 'bg-white/5 text-white border-white/10 hover:border-white/30'
+                          : 'bg-white/5 text-white border-white/10 hover:border-white/30',
+                        isEditing && value !== type && 'opacity-50 cursor-not-allowed'
                       )}
                     >
                       {label}
                     </button>
                   ))}
                 </div>
+                {isEditing && <p className="text-xs text-gray-500 mt-1">Item type cannot be changed while editing.</p>}
               </div>
 
               {/* Description */}
@@ -469,6 +508,20 @@ export default function CreateHomebrewItemModal({
 
           {/* Footer */}
           <div className="flex gap-3 p-6 border-t border-white/10">
+            {isEditing && onDelete && (
+              <button
+                onClick={() => {
+                  if (confirm('Are you sure you want to delete this homebrew item? This action cannot be undone.')) {
+                    onDelete();
+                    onClose();
+                  }
+                }}
+                className="px-4 py-3 bg-red-900/40 text-red-400 border border-red-500/50 rounded-full hover:bg-red-900/60 transition-all flex items-center gap-2"
+              >
+                <Trash2 size={18} />
+                Delete
+              </button>
+            )}
             <button
               onClick={handleClose}
               className="flex-1 py-3 px-6 bg-white/10 text-white font-bold rounded-full hover:bg-white/20 transition-all"
@@ -480,7 +533,7 @@ export default function CreateHomebrewItemModal({
               className="flex-1 py-3 px-6 bg-dagger-gold text-black font-bold rounded-full hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               <Save size={20} />
-              Create Item
+              {isEditing ? 'Save Changes' : 'Create Item'}
             </button>
           </div>
         </motion.div>
