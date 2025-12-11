@@ -178,8 +178,9 @@ export default function CreateHomebrewItemModal({
 
     // Type-specific validation
     if (type === 'weapon') {
-      if (damage && !damage.match(/^\d*d\d+([+-]\d+)?$/i)) {
-        newErrors.push('Damage must match format like "1d8", "2d6+3", or "d10-1"');
+      // Allow for loose spacing: "1 d 8 + 3"
+      if (damage && !damage.replace(/\s/g, '').match(/^\d*d\d+([+-]\d+)?$/i)) {
+        newErrors.push('Damage must match dice format like "1d8" or "2d6+3"');
       }
     }
 
@@ -296,10 +297,11 @@ export default function CreateHomebrewItemModal({
 
               {/* Name */}
               <div>
-                <label className="block text-sm text-gray-400 mb-2">
+                <label htmlFor="itemName" className="block text-sm text-gray-400 mb-2">
                   Item Name <span className="text-red-400">*</span>
                 </label>
                 <input
+                  id="itemName"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -336,10 +338,11 @@ export default function CreateHomebrewItemModal({
 
               {/* Description */}
               <div>
-                <label className="block text-sm text-gray-400 mb-2">
+                <label htmlFor="description" className="block text-sm text-gray-400 mb-2">
                   Description <span className="text-gray-600">(optional)</span>
                 </label>
                 <textarea
+                  id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none min-h-[80px] resize-y"
@@ -356,8 +359,9 @@ export default function CreateHomebrewItemModal({
                 <div className="grid grid-cols-2 gap-4">
                   {/* Damage Type */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Damage Type</label>
+                    <label htmlFor="damageType" className="block text-sm text-gray-400 mb-2">Damage Type</label>
                     <select
+                      id="damageType"
                       value={damageType}
                       onChange={(e) => setDamageType(e.target.value)}
                       className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
@@ -370,8 +374,9 @@ export default function CreateHomebrewItemModal({
 
                   {/* Hand */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Hand</label>
+                    <label htmlFor="weaponHand" className="block text-sm text-gray-400 mb-2">Hand</label>
                     <select
+                      id="weaponHand"
                       value={weaponHand}
                       onChange={(e) => setWeaponHand(e.target.value)}
                       className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
@@ -384,8 +389,9 @@ export default function CreateHomebrewItemModal({
 
                   {/* Trait */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Attack Trait</label>
+                    <label htmlFor="attackTrait" className="block text-sm text-gray-400 mb-2">Attack Trait</label>
                     <select
+                      id="attackTrait"
                       value={trait}
                       onChange={(e) => setTrait(e.target.value)}
                       className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
@@ -398,8 +404,9 @@ export default function CreateHomebrewItemModal({
 
                   {/* Range */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Range</label>
+                    <label htmlFor="weaponRange" className="block text-sm text-gray-400 mb-2">Range</label>
                     <select
+                      id="weaponRange"
                       value={range}
                       onChange={(e) => setRange(e.target.value)}
                       className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
@@ -412,21 +419,23 @@ export default function CreateHomebrewItemModal({
 
                   {/* Damage */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Damage</label>
+                    <label htmlFor="weaponDamage" className="block text-sm text-gray-400 mb-2">Damage</label>
                     <input
+                      id="weaponDamage"
                       type="text"
                       value={damage}
                       onChange={(e) => setDamage(e.target.value)}
                       className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
-                      placeholder="e.g., d8 phy, 2d6+3 mag"
+                      placeholder="e.g., 1d8, 2d6+3"
                     />
-                    <div className="text-xs text-gray-500 mt-1">Format: XdY phy/mag</div>
+                    <div className="text-xs text-gray-500 mt-1">Format: XdY (e.g., 1d8, 2d6+3). Select type below.</div>
                   </div>
 
                   {/* Burden */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Burden</label>
+                    <label htmlFor="weaponBurden" className="block text-sm text-gray-400 mb-2">Burden</label>
                     <select
+                      id="weaponBurden"
                       value={burden}
                       onChange={(e) => setBurden(e.target.value)}
                       className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
@@ -449,8 +458,9 @@ export default function CreateHomebrewItemModal({
                 <div className="grid grid-cols-2 gap-4">
                   {/* Armor Score */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Armor Score</label>
+                    <label htmlFor="armorScore" className="block text-sm text-gray-400 mb-2">Armor Score</label>
                     <input
+                      id="armorScore"
                       type="number"
                       value={armorScore}
                       onChange={(e) => setArmorScore(e.target.value)}
@@ -462,8 +472,9 @@ export default function CreateHomebrewItemModal({
 
                   {/* Thresholds */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Damage Thresholds</label>
+                    <label htmlFor="damageThresholds" className="block text-sm text-gray-400 mb-2">Damage Thresholds</label>
                     <input
+                      id="damageThresholds"
                       type="text"
                       value={thresholds}
                       onChange={(e) => setThresholds(e.target.value)}
@@ -481,8 +492,9 @@ export default function CreateHomebrewItemModal({
                 <h3 className="text-lg font-bold text-white">Consumable Properties</h3>
 
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Number of Uses</label>
+                  <label htmlFor="consumableUses" className="block text-sm text-gray-400 mb-2">Number of Uses</label>
                   <input
+                    id="consumableUses"
                     type="number"
                     value={uses}
                     onChange={(e) => setUses(e.target.value)}

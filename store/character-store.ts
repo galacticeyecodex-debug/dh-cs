@@ -1748,13 +1748,32 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   deleteHomebrewItem: async (id) => {
     await withOptimisticUpdate(
       () => {
-        const previousItems = [...get().homebrewItems];
+        const state = get();
+        const previousItems = [...state.homebrewItems];
+        const previousInventory = state.character?.character_inventory 
+          ? [...state.character.character_inventory] 
+          : [];
+        
+        // Remove definition
         set((s) => ({
           homebrewItems: s.homebrewItems.filter((item) => item.id !== id),
+          // Also remove any inventory items that use this homebrew definition
+          character: s.character ? {
+            ...s.character,
+            character_inventory: s.character.character_inventory?.filter(
+              i => i.homebrew_item_id !== id
+            )
+          } : null
         }));
 
         return () => {
-          set({ homebrewItems: previousItems });
+          set((s) => ({ 
+            homebrewItems: previousItems,
+            character: s.character ? {
+              ...s.character,
+              character_inventory: previousInventory
+            } : null
+          }));
         };
       },
       async () => {

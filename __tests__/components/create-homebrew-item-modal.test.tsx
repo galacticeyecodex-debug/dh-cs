@@ -15,7 +15,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import CreateHomebrewItemModal from '@/components/create-homebrew-item-modal';
 
-describe.skip('CreateHomebrewItemModal', () => {
+describe('CreateHomebrewItemModal', () => {
   const mockOnClose = vi.fn();
   const mockOnSave = vi.fn();
 
@@ -44,7 +44,7 @@ describe.skip('CreateHomebrewItemModal', () => {
     it('should show basic info fields', () => {
       render(<CreateHomebrewItemModal {...defaultProps} />);
       expect(screen.getByLabelText(/item name/i)).toBeTruthy();
-      expect(screen.getByLabelText(/item type/i)).toBeTruthy();
+      expect(screen.getByText(/item type/i)).toBeTruthy();
       expect(screen.getByLabelText(/description/i)).toBeTruthy();
     });
 
@@ -68,7 +68,7 @@ describe.skip('CreateHomebrewItemModal', () => {
       render(<CreateHomebrewItemModal {...defaultProps} />);
       fireEvent.click(screen.getByText('Weapon'));
       expect(screen.getByText('Weapon Properties')).toBeTruthy();
-      expect(screen.getByLabelText(/damage/i)).toBeTruthy();
+      expect(screen.getByLabelText(/^Damage$/)).toBeTruthy();
       expect(screen.getByLabelText(/burden/i)).toBeTruthy();
     });
 
@@ -123,10 +123,10 @@ describe.skip('CreateHomebrewItemModal', () => {
       render(<CreateHomebrewItemModal {...defaultProps} />);
 
       fireEvent.change(screen.getByLabelText(/item name/i), { target: { value: 'Test Sword' } });
-      fireEvent.change(screen.getByLabelText(/damage/i), { target: { value: 'invalid' } });
+      fireEvent.change(screen.getByLabelText(/^Damage$/), { target: { value: 'invalid' } });
       fireEvent.click(screen.getByText('Create Item'));
 
-      expect(screen.getByText(/damage must match format/i)).toBeTruthy();
+      expect(screen.getByText(/damage must match/i)).toBeTruthy();
       expect(mockOnSave).not.toHaveBeenCalled();
     });
 
@@ -137,7 +137,7 @@ describe.skip('CreateHomebrewItemModal', () => {
         const { rerender } = render(<CreateHomebrewItemModal {...defaultProps} />);
 
         fireEvent.change(screen.getByLabelText(/item name/i), { target: { value: 'Test Sword' } });
-        fireEvent.change(screen.getByLabelText(/damage/i), { target: { value: format } });
+        fireEvent.change(screen.getByLabelText(/^Damage$/), { target: { value: format } });
         fireEvent.click(screen.getByText('Create Item'));
 
         expect(screen.queryByText(/damage must match format/i)).toBeNull();
@@ -179,7 +179,7 @@ describe.skip('CreateHomebrewItemModal', () => {
 
       fireEvent.change(screen.getByLabelText(/item name/i), { target: { value: 'Flaming Sword' } });
       fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'A sword wreathed in flames' } });
-      fireEvent.change(screen.getByLabelText(/damage/i), { target: { value: '1d8+2' } });
+      fireEvent.change(screen.getByLabelText(/^Damage$/), { target: { value: '1d8+2' } });
       fireEvent.click(screen.getByText('Create Item'));
 
       expect(mockOnSave).toHaveBeenCalledWith(
@@ -189,7 +189,7 @@ describe.skip('CreateHomebrewItemModal', () => {
           description: 'A sword wreathed in flames',
           data: expect.objectContaining({
             damage: '1d8+2',
-            burden: '1h',
+            burden: 'One-Handed',
           }),
         })
       );
@@ -209,8 +209,8 @@ describe.skip('CreateHomebrewItemModal', () => {
           name: 'Dragon Scale Armor',
           type: 'armor',
           data: expect.objectContaining({
-            armor_score: 3,
-            thresholds: '2/4',
+            base_score: 3,
+            base_thresholds: '2/4',
           }),
         })
       );
@@ -293,7 +293,7 @@ describe.skip('CreateHomebrewItemModal', () => {
   describe('Modifier Integration', () => {
     it('should include modifiers section', () => {
       render(<CreateHomebrewItemModal {...defaultProps} />);
-      expect(screen.getByText(/modifiers/i)).toBeTruthy();
+      expect(screen.getByRole('heading', { name: /modifiers/i })).toBeTruthy();
     });
 
     it('should show tip about modifiers', () => {
