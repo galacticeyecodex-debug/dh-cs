@@ -11,6 +11,8 @@
  * - Tracks Wealth (Gold in Handfuls, Bags, Chests) with increment/decrement controls.
  * - Allows equipping/unequipping items, which updates their status in other views (like Combat).
  * - Includes an "Add Item" flow to browse the game library and add new items.
+ * - Allows Editing items (converts standard items to homebrew, or edits existing homebrew).
+ * - Allows Removing items from inventory.
  *
  * PERFORMANCE:
  * - Callbacks memoized with useCallback to prevent ItemRow re-renders
@@ -20,20 +22,31 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useCharacterStore, CharacterInventoryItem, LibraryItem } from '@/store/character-store';
-import { Coins, Package, Sword, Shield, ArrowRightLeft, Plus, Heart, Gem, Eye, EyeOff } from 'lucide-react';
+import { Coins, Package, Sword, Shield, ArrowRightLeft, Plus, Heart, Gem, Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import AddItemModal from '@/components/add-item-modal';
+import CreateHomebrewItemModal, { HomebrewItemData } from '@/components/create-homebrew-item-modal';
 import createClient from '@/lib/supabase/client'; // Import Supabase client
 import { ErrorBoundary } from '@/components/error-boundary';
 
 export default function InventoryView() {
-  const { character, equipItem, addItemToInventory, updateGold } = useCharacterStore();
+  const { 
+    character, 
+    equipItem, 
+    addItemToInventory, 
+    updateGold,
+    updateHomebrewItem,
+    deleteHomebrewItem,
+    convertItemToHomebrew,
+    deleteItemFromInventory
+  } = useCharacterStore();
+  
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<CharacterInventoryItem | null>(null);
   const [showWealth, setShowWealth] = useState(true);
   const [showFilter, setShowFilter] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [allLibraryItems, setAllLibraryItems] = useState<LibraryItem[]>([]
-  );
+  const [allLibraryItems, setAllLibraryItems] = useState<LibraryItem[]>([]);
   const [libraryLoading, setLibraryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,6 +87,47 @@ export default function InventoryView() {
   const handleAddItem = useCallback((item: LibraryItem) => {
     addItemToInventory(item);
   }, [addItemToInventory]);
+
+  const handleEditClick = useCallback((item: CharacterInventoryItem) => {
+    setEditingItem(item);
+  }, []);
+
+  const handleDeleteClick = useCallback((itemId: string) => {
+    if (confirm('Are you sure you want to remove this item from your inventory?')) {
+      deleteItemFromInventory(itemId);
+    }
+  }, [deleteItemFromInventory]);
+
+  const handleSaveEditedItem = async (data: HomebrewItemData) => {
+    if (!editingItem) return;
+
+    if (editingItem.homebrew_item_id) {
+      // Already homebrew, update definition
+      await updateHomebrewItem(editingItem.homebrew_item_id, {
+        name: data.name,
+        type: data.type,
+        description: data.description,
+        data: data.data
+      });
+    } else {
+      // Convert standard to homebrew
+      await convertItemToHomebrew(editingItem.id, {
+        name: data.name,
+        type: data.type,
+        description: data.description,
+        data: data.data
+      });
+    }
+    setEditingItem(null);
+  };
+
+  const handleDeleteHomebrewDefinition = async () => {
+    if (!editingItem || !editingItem.homebrew_item_id) return;
+    // Delete from DB and remove from inventory
+    await deleteHomebrewItem(editingItem.homebrew_item_id);
+    await deleteItemFromInventory(editingItem.id); 
+    setEditingItem(null);
+  };
 
   // Memoize gold callbacks
   const handleHandfulsIncrement = useCallback(() => {
@@ -263,6 +317,8 @@ export default function InventoryView() {
               key={item.id}
               item={item}
               onEquip={handleEquip}
+              onEdit={handleEditClick}
+              onDelete={handleDeleteClick}
             />
           ))
         ) : (
@@ -279,6 +335,22 @@ export default function InventoryView() {
         libraryItems={allLibraryItems}
         isLoading={libraryLoading}
       />
+
+      {editingItem && (
+        <CreateHomebrewItemModal
+          isOpen={!!editingItem}
+          onClose={() => setEditingItem(null)}
+          onSave={handleSaveEditedItem}
+          onDelete={editingItem.homebrew_item_id ? handleDeleteHomebrewDefinition : undefined}
+          initialData={editingItem.library_item ? {
+              name: editingItem.library_item.name,
+              type: editingItem.library_item.type as any,
+              description: editingItem.library_item.data?.markdown || editingItem.library_item.data?.description || '',
+              data: editingItem.library_item.data
+          } : undefined}
+          isEditing={true}
+        />
+      )}
       </div>
     </ErrorBoundary>
   );
@@ -302,10 +374,21 @@ const GoldCounter = React.memo(function GoldCounter({ label, value, onIncrement,
          prevProps.onDecrement === nextProps.onDecrement;
 });
 
-const ItemRow = React.memo(function ItemRow({ item, onEquip }: { item: CharacterInventoryItem, onEquip: (id: string, slot: any) => void }) {
+const ItemRow = React.memo(function ItemRow({ 
+  item, 
+  onEquip,
+  onEdit,
+  onDelete
+}: { 
+  item: CharacterInventoryItem, 
+  onEquip: (id: string, slot: any) => void,
+  onEdit: (item: CharacterInventoryItem) => void,
+  onDelete: (id: string) => void
+}) {
   const type = item.library_item?.type;
   const isEquipped = item.location.startsWith('equipped');
   const data = item.library_item?.data;
+  const isHomebrew = !!item.homebrew_item_id;
 
   let locationLabel = '';
   if (item.location === 'equipped_primary') locationLabel = 'Primary';
@@ -326,6 +409,11 @@ const ItemRow = React.memo(function ItemRow({ item, onEquip }: { item: Character
                 {locationLabel}
               </span>
             )}
+            {isHomebrew && (
+              <span className="text-[10px] font-bold uppercase bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30">
+                Custom
+              </span>
+            )}
           </div>
           <div className="text-xs text-gray-400 mt-1">
             {type === 'armor' && data ? (
@@ -337,7 +425,7 @@ const ItemRow = React.memo(function ItemRow({ item, onEquip }: { item: Character
             ) : type === 'weapon' && data ? (
               <>
                 <span className="block mb-0.5">
-                  {data.trait} • {data.range} • {data.damage}
+                  {data.trait} • {data.range} • {data.damage} {data.type === 'Physical' ? 'Phy' : data.type === 'Magic' ? 'Mag' : data.type}
                 </span>
                 {data.feature?.name && <span className="font-bold text-gray-300">{data.feature.name}: </span>}
                 {data.feature?.text && <span className="italic">{data.feature.text}</span>}
@@ -372,11 +460,31 @@ const ItemRow = React.memo(function ItemRow({ item, onEquip }: { item: Character
             </div>
           )}
         </div>
-        {item.quantity > 1 && (
-          <div className="px-2 py-1 bg-black/30 rounded text-xs font-bold text-gray-300">
-            x{item.quantity}
+        
+        {/* Actions */}
+        <div className="flex flex-col items-end gap-1">
+          {item.quantity > 1 && (
+            <div className="px-2 py-1 bg-black/30 rounded text-xs font-bold text-gray-300 mb-1">
+              x{item.quantity}
+            </div>
+          )}
+          <div className="flex gap-1">
+             <button
+               onClick={() => onEdit(item)}
+               className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
+               title="Edit Item"
+             >
+               <Pencil size={14} />
+             </button>
+             <button
+               onClick={() => onDelete(item.id)}
+               className="p-1.5 bg-white/5 hover:bg-red-900/40 rounded text-gray-400 hover:text-red-400 transition-colors"
+               title="Remove Item"
+             >
+               <Trash2 size={14} />
+             </button>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Equip Controls */}
@@ -422,10 +530,4 @@ const ItemRow = React.memo(function ItemRow({ item, onEquip }: { item: Character
       </div>
     </div>
   );
-}, (prevProps, nextProps) => {
-  // Only re-render if the item itself changed or location changed
-  return prevProps.item.id === nextProps.item.id &&
-         prevProps.item.location === nextProps.item.location &&
-         prevProps.item.quantity === nextProps.item.quantity &&
-         prevProps.onEquip === nextProps.onEquip;
 });

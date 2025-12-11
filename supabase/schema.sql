@@ -126,6 +126,7 @@ CREATE TABLE IF NOT EXISTS public.character_inventory (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   character_id UUID REFERENCES public.characters(id) ON DELETE CASCADE NOT NULL,
   item_id TEXT REFERENCES public.library(id) ON DELETE SET NULL,
+  homebrew_item_id UUID REFERENCES public.homebrew_items(id) ON DELETE SET NULL,
   name TEXT NOT NULL,
   description TEXT,
   location TEXT NOT NULL DEFAULT 'backpack',

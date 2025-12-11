@@ -48,11 +48,13 @@ export interface CharacterInventoryItem {
   id: string;
   character_id: string;
   item_id?: string; // Foreign key to library, nullable for custom items
+  homebrew_item_id?: string; // Foreign key to homebrew_items
   name: string;
   description?: string;
   location: 'equipped_primary' | 'equipped_secondary' | 'armor' | 'equipped_armor' | 'backpack';
   quantity: number;
   library_item?: LibraryItem; // Joined data for the item itself
+  homebrew_item?: HomebrewItem; // Joined data for homebrew items
 }
 
 export interface HomebrewItem {
@@ -228,6 +230,10 @@ interface CharacterState {
   addHomebrewItem: (item: Omit<HomebrewItem, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>;
   updateHomebrewItem: (id: string, updates: Partial<Omit<HomebrewItem, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => Promise<void>;
   deleteHomebrewItem: (id: string) => Promise<void>;
+  
+  // Inventory Management
+  deleteItemFromInventory: (inventoryItemId: string) => Promise<void>;
+  convertItemToHomebrew: (inventoryItemId: string, homebrewItemData: Omit<HomebrewItem, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>;
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({
@@ -362,10 +368,12 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     // Check if this is a homebrew item (ID starts with 'homebrew-')
     const isHomebrew = item.id.startsWith('homebrew-');
     const actualItemId = isHomebrew ? undefined : item.id; // Set to undefined for homebrew items
+    const homebrewItemId = isHomebrew ? item.id.replace('homebrew-', '') : undefined;
 
     const newInventoryItem: Omit<CharacterInventoryItem, 'id'> = {
       character_id: state.character.id,
       item_id: actualItemId,
+      homebrew_item_id: homebrewItemId,
       name: item.name,
       description: item.data?.markdown || item.data?.description || '',
       location: 'backpack',
@@ -388,6 +396,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     const addedItem: CharacterInventoryItem = {
       ...data,
       library_item: item,
+      homebrew_item: isHomebrew ? state.homebrewItems.find(h => h.id === homebrewItemId) : undefined,
     };
 
     // Optimistically update the UI
@@ -823,8 +832,13 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
 
     // B. Collect IDs for Library Fetch
     const libraryIds = new Set<string>();
+    const homebrewIds = new Set<string>();
+
     cardsData?.forEach((c: any) => libraryIds.add(c.card_id));
-    inventoryData?.forEach((i: any) => { if (i.item_id) libraryIds.add(i.item_id); });
+    inventoryData?.forEach((i: any) => {
+      if (i.item_id) libraryIds.add(i.item_id);
+      if (i.homebrew_item_id) homebrewIds.add(i.homebrew_item_id);
+    });
 
     // Add class_id if it exists
     let classIdToFetch = null;
@@ -859,16 +873,47 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       }
     }
 
+    // Fetch Homebrew Items
+    let homebrewMap = new Map<string, HomebrewItem>();
+    if (homebrewIds.size > 0) {
+      const { data: hbData, error: hbError } = await supabase
+        .from('homebrew_items')
+        .select('*')
+        .in('id', Array.from(homebrewIds));
+
+      if (hbError) console.error('Error fetching homebrew items:', hbError.message);
+
+      if (hbData) {
+        hbData.forEach((item: HomebrewItem) => homebrewMap.set(item.id, item));
+      }
+    }
+
     // D. Stitch Data
     const enrichedCards = cardsData?.map((card: any) => ({
       ...card,
       library_item: libraryMap.get(card.card_id)
     })) || [];
 
-    const enrichedInventory = inventoryData?.map((item: any) => ({
-      ...item,
-      library_item: item.item_id ? libraryMap.get(item.item_id) : undefined
-    })) || [];
+    const enrichedInventory = inventoryData?.map((item: any) => {
+      let libraryItem = item.item_id ? libraryMap.get(item.item_id) : undefined;
+      const homebrewItem = item.homebrew_item_id ? homebrewMap.get(item.homebrew_item_id) : undefined;
+
+      // If it's a homebrew item, create a LibraryItem-compatible object for the UI
+      if (homebrewItem && !libraryItem) {
+        libraryItem = {
+          id: `homebrew-${homebrewItem.id}`,
+          type: homebrewItem.type,
+          name: homebrewItem.name,
+          data: homebrewItem.data
+        };
+      }
+
+      return {
+        ...item,
+        library_item: libraryItem,
+        homebrew_item: homebrewItem
+      };
+    }) || [];
 
     const classData = classIdToFetch ? libraryMap.get(classIdToFetch) : undefined;
     const subclassData = subclassIdToFetch ? libraryMap.get(subclassIdToFetch) : undefined;
@@ -1723,5 +1768,142 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       },
       'Failed to delete homebrew item'
     );
+  },
+
+  deleteItemFromInventory: async (inventoryItemId) => {
+    const state = get();
+    if (!state.character) return;
+
+    await withOptimisticUpdate(
+      () => {
+        const previousInventory = [...(get().character?.character_inventory || [])];
+        set((s) => ({
+          character: s.character ? {
+            ...s.character,
+            character_inventory: s.character.character_inventory?.filter(i => i.id !== inventoryItemId)
+          } : null,
+        }));
+        return () => {
+          set((s) => ({
+            character: s.character ? { ...s.character, character_inventory: previousInventory } : null,
+          }));
+        };
+      },
+      async () => createClient().from('character_inventory').delete().eq('id', inventoryItemId),
+      'Failed to delete item from inventory'
+    );
+    
+    // Recalculate stats in case an equipped item was deleted
+    await get().recalculateDerivedStats();
+  },
+
+  convertItemToHomebrew: async (inventoryItemId, homebrewItemData) => {
+    const state = get();
+    if (!state.character || !state.user) return;
+    const supabase = createClient();
+
+    const tempHbId = `temp-hb-${Date.now()}`;
+    const tempHbItem: HomebrewItem = {
+        id: tempHbId,
+        user_id: state.user.id,
+        ...homebrewItemData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    };
+    
+    // Optimistic Update
+    const previousInventory = [...(state.character.character_inventory || [])];
+    const previousHomebrewItems = [...state.homebrewItems];
+    
+    // Find the item to update
+    const itemIndex = previousInventory.findIndex(i => i.id === inventoryItemId);
+    if (itemIndex === -1) return;
+    
+    const updatedInventoryItem = { 
+        ...previousInventory[itemIndex],
+        item_id: undefined, // Clear standard link
+        homebrew_item_id: tempHbId,
+        homebrew_item: tempHbItem,
+        library_item: { // Update library_item wrapper for UI
+             id: `homebrew-${tempHbId}`,
+             type: tempHbItem.type,
+             name: tempHbItem.name,
+             data: tempHbItem.data,
+        } as LibraryItem
+    };
+    
+    const newInventory = [...previousInventory];
+    newInventory[itemIndex] = updatedInventoryItem;
+    
+    set({
+        character: { ...state.character, character_inventory: newInventory },
+        homebrewItems: [tempHbItem, ...state.homebrewItems]
+    });
+    
+    try {
+        // 1. Insert Homebrew Item
+        const { data: hbData, error: hbError } = await supabase
+          .from('homebrew_items')
+          .insert({
+            user_id: state.user.id,
+            type: homebrewItemData.type,
+            name: homebrewItemData.name,
+            description: homebrewItemData.description,
+            data: homebrewItemData.data,
+          })
+          .select()
+          .single();
+          
+        if (hbError) throw hbError;
+        if (!hbData) throw new Error("Failed to create homebrew item: No data returned. Check RLS policies.");
+        
+        // 2. Update Inventory Item Link
+        const { error: invError } = await supabase
+            .from('character_inventory')
+            .update({
+                item_id: null,
+                homebrew_item_id: hbData.id
+            })
+            .eq('id', inventoryItemId);
+            
+        if (invError) {
+            console.error("Error updating inventory item link:", invError);
+            throw invError;
+        }
+        
+        // 3. Fix up state with real IDs
+        const finalHbItem = hbData;
+        const currentInventory = [...(get().character?.character_inventory || [])];
+        const idx = currentInventory.findIndex(i => i.id === inventoryItemId);
+        if (idx !== -1) {
+            currentInventory[idx] = {
+                ...currentInventory[idx],
+                homebrew_item_id: finalHbItem.id,
+                homebrew_item: finalHbItem,
+                library_item: {
+                     id: `homebrew-${finalHbItem.id}`,
+                     type: finalHbItem.type,
+                     name: finalHbItem.name,
+                     data: finalHbItem.data,
+                } as LibraryItem
+            };
+        }
+        
+        set((s) => ({
+             character: s.character ? { ...s.character, character_inventory: currentInventory } : null,
+             homebrewItems: [finalHbItem, ...s.homebrewItems.filter(i => i.id !== tempHbId)]
+        }));
+        
+        // Recalculate stats as item data might have changed
+        await get().recalculateDerivedStats();
+        
+    } catch (error) {
+        console.error("Failed to convert item to homebrew:", error);
+        // Rollback
+        set({
+             character: { ...state.character, character_inventory: previousInventory },
+             homebrewItems: previousHomebrewItems
+        });
+    }
   },
 }));
