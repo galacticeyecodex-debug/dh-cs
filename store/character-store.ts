@@ -358,9 +358,14 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     if (!state.character) return;
 
     const supabase = createClient();
+
+    // Check if this is a homebrew item (ID starts with 'homebrew-')
+    const isHomebrew = item.id.startsWith('homebrew-');
+    const actualItemId = isHomebrew ? undefined : item.id; // Set to undefined for homebrew items
+
     const newInventoryItem: Omit<CharacterInventoryItem, 'id'> = {
       character_id: state.character.id,
-      item_id: item.id,
+      item_id: actualItemId,
       name: item.name,
       description: item.data?.markdown || item.data?.description || '',
       location: 'backpack',
