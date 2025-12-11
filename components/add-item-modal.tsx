@@ -17,7 +17,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { LibraryItem, HomebrewItem, useCharacterStore } from '@/store/character-store';
-import { Search, X, Sword, Shield, Heart, Gem, Package, ScrollText, Loader2, Plus } from 'lucide-react';
+import { Search, X, Sword, Shield, Heart, Gem, Package, ScrollText, Loader2, Plus, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
 import { ErrorBoundary } from '@/components/error-boundary';
 import CreateHomebrewItemModal, { HomebrewItemData } from './create-homebrew-item-modal';
@@ -34,6 +34,7 @@ interface AddItemModalProps {
 export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems, filterType = 'inventory', isLoading = false }: AddItemModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // 'weapon', 'armor', 'consumable', 'item', 'card'
+  const [showHomebrewOnly, setShowHomebrewOnly] = useState(false); // Filter to show only homebrew items
   const [isCreateHomebrewOpen, setIsCreateHomebrewOpen] = useState(false);
 
   const { homebrewItems, fetchHomebrewItems, addHomebrewItem } = useCharacterStore();
@@ -70,6 +71,9 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
       else if (selectedCategory === 'item') matchesCategory = item.type === 'item';
       else if (selectedCategory === 'card') matchesCategory = ['ability', 'spell', 'grimoire'].includes(item.type);
 
+      // Homebrew filtering
+      const matchesHomebrew = showHomebrewOnly ? (item as any)._isHomebrew === true : true;
+
       // Relevant Type check based on context (Inventory vs Playmat/Cards)
       const isCardType = ['ability', 'spell', 'grimoire'].includes(item.type);
       const isInventoryType = ['weapon', 'armor', 'consumable', 'item'].includes(item.type);
@@ -83,9 +87,9 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
         else isRelevantType = isInventoryType;
       }
 
-      return matchesSearch && matchesCategory && isRelevantType;
+      return matchesSearch && matchesCategory && matchesHomebrew && isRelevantType;
     });
-  }, [libraryItems, homebrewItems, searchTerm, selectedCategory, filterType]);
+  }, [libraryItems, homebrewItems, searchTerm, selectedCategory, showHomebrewOnly, filterType]);
 
   if (!isOpen) return null;
 
@@ -172,6 +176,12 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
                   icon={<Gem size={16} />}
                   isSelected={selectedCategory === 'item'}
                   onClick={() => setSelectedCategory('item')}
+                />
+                <FilterButton
+                  label="Homebrew"
+                  icon={<Sparkles size={16} />}
+                  isSelected={showHomebrewOnly}
+                  onClick={() => setShowHomebrewOnly(!showHomebrewOnly)}
                 />
               </>
             )}

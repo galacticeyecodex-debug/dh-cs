@@ -26,10 +26,18 @@ export interface HomebrewItemData {
   description: string;
   data: {
     modifiers?: Modifier[];
-    damage?: string; // For weapons (e.g., "1d8+2")
-    burden?: string; // For weapons ("1h", "2h", "0h")
-    armor_score?: number; // For armor
-    thresholds?: string; // For armor (e.g., "2/4")
+    // Weapon fields
+    type?: string; // Physical or Magic
+    hand?: string; // Primary or Secondary
+    trait?: string; // Agility, Strength, etc.
+    range?: string; // Melee, Close, Far, Very Far
+    damage?: string; // For weapons (e.g., "d8 phy", "2d6+3 mag")
+    burden?: string; // For weapons ("One-Handed", "Two-Handed", "Worn")
+    feature?: object; // Feature object for SRD compatibility
+    // Armor fields
+    base_score?: number; // For armor
+    base_thresholds?: string; // For armor (e.g., "5 / 11")
+    // Consumable fields
     uses?: number; // For consumables
   };
 }
@@ -48,9 +56,33 @@ const ITEM_TYPES = [
 ] as const;
 
 const BURDEN_OPTIONS = [
-  { value: '0h', label: '0 Hands (Worn)' },
-  { value: '1h', label: '1 Hand' },
-  { value: '2h', label: '2 Hands' },
+  { value: 'One-Handed', label: 'One-Handed' },
+  { value: 'Two-Handed', label: 'Two-Handed' },
+  { value: 'Worn', label: 'Worn (0 hands)' },
+] as const;
+
+const DAMAGE_TYPE_OPTIONS = [
+  { value: 'Physical', label: 'Physical' },
+  { value: 'Magic', label: 'Magic' },
+] as const;
+
+const WEAPON_HAND_OPTIONS = [
+  { value: 'Primary', label: 'Primary' },
+  { value: 'Secondary', label: 'Secondary' },
+] as const;
+
+const TRAIT_OPTIONS = [
+  { value: 'Agility', label: 'Agility' },
+  { value: 'Strength', label: 'Strength' },
+  { value: 'Finesse', label: 'Finesse' },
+  { value: 'Instinct', label: 'Instinct' },
+] as const;
+
+const RANGE_OPTIONS = [
+  { value: 'Melee', label: 'Melee' },
+  { value: 'Close', label: 'Close' },
+  { value: 'Far', label: 'Far' },
+  { value: 'Very Far', label: 'Very Far' },
 ] as const;
 
 export default function CreateHomebrewItemModal({
@@ -64,10 +96,17 @@ export default function CreateHomebrewItemModal({
   const [description, setDescription] = useState('');
 
   // Type-specific fields
+  // Weapon fields
   const [damage, setDamage] = useState('');
-  const [burden, setBurden] = useState('1h');
+  const [damageType, setDamageType] = useState('Physical');
+  const [burden, setBurden] = useState('One-Handed');
+  const [weaponHand, setWeaponHand] = useState('Primary');
+  const [trait, setTrait] = useState('Agility');
+  const [range, setRange] = useState('Melee');
+  // Armor fields
   const [armorScore, setArmorScore] = useState('');
   const [thresholds, setThresholds] = useState('');
+  // Consumable fields
   const [uses, setUses] = useState('1');
 
   // Modifiers
@@ -81,7 +120,11 @@ export default function CreateHomebrewItemModal({
     setType('weapon');
     setDescription('');
     setDamage('');
-    setBurden('1h');
+    setDamageType('Physical');
+    setBurden('One-Handed');
+    setWeaponHand('Primary');
+    setTrait('Agility');
+    setRange('Melee');
     setArmorScore('');
     setThresholds('');
     setUses('1');
@@ -143,13 +186,19 @@ export default function CreateHomebrewItemModal({
       },
     };
 
-    // Add type-specific data
+    // Add type-specific data matching SRD format
     if (type === 'weapon') {
+      itemData.data.type = damageType;
+      itemData.data.hand = weaponHand;
+      itemData.data.trait = trait;
+      itemData.data.range = range;
       if (damage) itemData.data.damage = damage;
       itemData.data.burden = burden;
+      itemData.data.feature = {}; // Empty feature object for consistency with SRD
     } else if (type === 'armor') {
-      if (armorScore) itemData.data.armor_score = parseInt(armorScore);
-      if (thresholds) itemData.data.thresholds = thresholds;
+      if (armorScore) itemData.data.base_score = parseInt(armorScore);
+      if (thresholds) itemData.data.base_thresholds = thresholds;
+      itemData.data.feature = {}; // Empty feature object for consistency with SRD
     } else if (type === 'consumable') {
       if (uses) itemData.data.uses = parseInt(uses);
     }
@@ -266,6 +315,62 @@ export default function CreateHomebrewItemModal({
                 <h3 className="text-lg font-bold text-white">Weapon Properties</h3>
 
                 <div className="grid grid-cols-2 gap-4">
+                  {/* Damage Type */}
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Damage Type</label>
+                    <select
+                      value={damageType}
+                      onChange={(e) => setDamageType(e.target.value)}
+                      className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
+                    >
+                      {DAMAGE_TYPE_OPTIONS.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Hand */}
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Hand</label>
+                    <select
+                      value={weaponHand}
+                      onChange={(e) => setWeaponHand(e.target.value)}
+                      className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
+                    >
+                      {WEAPON_HAND_OPTIONS.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Trait */}
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Attack Trait</label>
+                    <select
+                      value={trait}
+                      onChange={(e) => setTrait(e.target.value)}
+                      className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
+                    >
+                      {TRAIT_OPTIONS.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Range */}
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Range</label>
+                    <select
+                      value={range}
+                      onChange={(e) => setRange(e.target.value)}
+                      className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
+                    >
+                      {RANGE_OPTIONS.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+
                   {/* Damage */}
                   <div>
                     <label className="block text-sm text-gray-400 mb-2">Damage</label>
@@ -274,9 +379,9 @@ export default function CreateHomebrewItemModal({
                       value={damage}
                       onChange={(e) => setDamage(e.target.value)}
                       className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
-                      placeholder="e.g., 1d8, 2d6+3"
+                      placeholder="e.g., d8 phy, 2d6+3 mag"
                     />
-                    <div className="text-xs text-gray-500 mt-1">Format: XdY or XdY+Z</div>
+                    <div className="text-xs text-gray-500 mt-1">Format: XdY phy/mag</div>
                   </div>
 
                   {/* Burden */}
@@ -287,7 +392,7 @@ export default function CreateHomebrewItemModal({
                       onChange={(e) => setBurden(e.target.value)}
                       className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
                     >
-                      {BURDEN_OPTIONS.map(({ value, label }) => (
+                      {BURDEN_OPTIONS.map(({ value, label}) => (
                         <option key={value} value={value}>
                           {label}
                         </option>
