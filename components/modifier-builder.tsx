@@ -165,7 +165,7 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
       {modifiers.map(mod => (
         <div
           key={mod.id}
-          className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg p-3 group"
+          className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg p-3"
         >
           <div className="flex-1">
             <div className="font-bold text-white text-sm">{mod.description}</div>
@@ -173,17 +173,17 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
               {mod.target} • {mod.operator} • {mod.value}
             </div>
           </div>
-          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => handleEdit(mod)}
-              className="p-1.5 text-blue-400 hover:bg-white/10 rounded"
+              className="p-1.5 text-blue-400 hover:bg-white/10 rounded transition-colors"
               title="Edit modifier"
             >
               <Edit2 size={16} />
             </button>
             <button
               onClick={() => handleDelete(mod.id)}
-              className="p-1.5 text-red-400 hover:bg-white/10 rounded"
+              className="p-1.5 text-red-400 hover:bg-white/10 rounded transition-colors"
               title="Delete modifier"
             >
               <Trash2 size={16} />

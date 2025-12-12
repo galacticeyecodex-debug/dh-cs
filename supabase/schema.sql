@@ -121,20 +121,8 @@ CREATE TABLE IF NOT EXISTS public.character_cards (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 5. CHARACTER INVENTORY (Equipment)
-CREATE TABLE IF NOT EXISTS public.character_inventory (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  character_id UUID REFERENCES public.characters(id) ON DELETE CASCADE NOT NULL,
-  item_id TEXT REFERENCES public.library(id) ON DELETE SET NULL,
-  homebrew_item_id UUID REFERENCES public.homebrew_items(id) ON DELETE SET NULL,
-  name TEXT NOT NULL,
-  description TEXT,
-  location TEXT NOT NULL DEFAULT 'backpack',
-  quantity INT DEFAULT 1,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 6. HOMEBREW ITEMS (User-Created Custom Items)
+-- 5. HOMEBREW ITEMS (User-Created Custom Items)
+-- Created BEFORE character_inventory so foreign key can reference it
 CREATE TABLE IF NOT EXISTS public.homebrew_items (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -144,6 +132,19 @@ CREATE TABLE IF NOT EXISTS public.homebrew_items (
   data JSONB DEFAULT '{}'::jsonb, -- Contains modifiers, damage, armor_score, burden, etc.
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 6. CHARACTER INVENTORY (Equipment)
+CREATE TABLE IF NOT EXISTS public.character_inventory (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  character_id UUID REFERENCES public.characters(id) ON DELETE CASCADE NOT NULL,
+  item_id TEXT REFERENCES public.library(id) ON DELETE SET NULL,
+  homebrew_item_id UUID REFERENCES public.homebrew_items(id) ON DELETE RESTRICT,
+  name TEXT NOT NULL,
+  description TEXT,
+  location TEXT NOT NULL DEFAULT 'backpack',
+  quantity INT DEFAULT 1,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- ROW LEVEL SECURITY (RLS) --
@@ -403,6 +404,10 @@ CREATE INDEX IF NOT EXISTS idx_homebrew_items_user_id
 
 CREATE INDEX IF NOT EXISTS idx_homebrew_items_type
   ON public.homebrew_items(type);
+
+-- Index for character_inventory homebrew_item_id foreign key
+CREATE INDEX IF NOT EXISTS idx_character_inventory_homebrew_item_id
+  ON public.character_inventory(homebrew_item_id);
 
 -- Trigger to update updated_at timestamp for homebrew items
 CREATE OR REPLACE FUNCTION update_homebrew_items_updated_at()
