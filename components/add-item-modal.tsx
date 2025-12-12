@@ -105,7 +105,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
       description: itemData.description,
       data: itemData.data,
     });
-    await fetchHomebrewItems(); // Refresh the list
+    // Note: No need to fetchHomebrewItems - addHomebrewItem already updates state optimistically
   };
 
   return (

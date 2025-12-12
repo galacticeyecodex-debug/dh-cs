@@ -20,18 +20,46 @@
 import { create } from 'zustand';
 import createClient from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
+import { toast } from 'sonner';
 import { getSystemModifiers, getClassBaseStat, calculateBaseEvasion } from '@/lib/utils';
 import { Experience } from '@/types/modifiers';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
 
 // Define interfaces for related data
+export interface HomebrewItemData {
+  modifiers?: Array<{
+    id?: string;
+    target: string;
+    value: number;
+    type?: string;
+  }>;
+  // Weapon-specific fields
+  type?: string; // "Physical" or "Magic" (damage type)
+  hand?: string; // "Primary" or "Secondary"
+  trait?: string; // Attack trait (Agility, Strength, etc.)
+  range?: string; // Melee, Close, Far, Very Far
+  damage?: string; // Dice notation (e.g., "1d8", "2d6+3")
+  burden?: string; // "One-Handed", "Two-Handed", "Worn"
+  feature?: Record<string, any>; // SRD feature object
+  // Armor-specific fields
+  base_score?: number;
+  base_thresholds?: string; // e.g., "2/4" or "1/3/5"
+  // Consumable-specific fields
+  uses?: number;
+  // Other fields
+  markdown?: string;
+  [key: string]: any; // Allow additional custom fields
+}
+
 export interface LibraryItem {
   id: string;
   type: string;
   name: string;
   domain?: string;
   tier?: number;
-  data: any; // JSONB column content
+  data: HomebrewItemData | any; // JSONB column content - typed for homebrew, flexible for library
+  _isHomebrew?: boolean; // UI marker for homebrew items
+  _homebrewId?: string; // Original homebrew ID for UI
 }
 
 export interface CharacterCard {
@@ -63,7 +91,7 @@ export interface HomebrewItem {
   type: 'weapon' | 'armor' | 'item' | 'consumable';
   name: string;
   description?: string;
-  data: any; // JSONB column content (modifiers, damage, armor_score, etc.)
+  data: HomebrewItemData;
   created_at?: string;
   updated_at?: string;
 }
@@ -1712,32 +1740,104 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   },
 
   updateHomebrewItem: async (id, updates) => {
+    const state = get();
+    const previousItems = [...state.homebrewItems];
+    const previousInventory = state.character?.character_inventory
+      ? [...state.character.character_inventory]
+      : [];
+
     await withOptimisticUpdate(
       () => {
-        const previousItems = [...get().homebrewItems];
+        // Update homebrew definition
+        const updatedHomebrewItems = get().homebrewItems.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                ...updates,
+                updated_at: new Date().toISOString(),
+              }
+            : item
+        );
+
+        // Also update any inventory items that use this homebrew definition
+        const updatedInventory = get().character?.character_inventory?.map((invItem) => {
+          if (invItem.homebrew_item_id === id) {
+            const updatedItem = { ...invItem };
+
+            // Update denormalized fields
+            if (updates.name) updatedItem.name = updates.name;
+            if (updates.description !== undefined) updatedItem.description = updates.description;
+
+            // Update the library_item wrapper (used by UI)
+            if (updatedItem.library_item) {
+              updatedItem.library_item = {
+                ...updatedItem.library_item,
+                name: updates.name || updatedItem.library_item.name,
+                data: updates.data || updatedItem.library_item.data,
+              };
+            }
+
+            // Update the homebrew_item reference
+            if (updatedItem.homebrew_item) {
+              updatedItem.homebrew_item = {
+                ...updatedItem.homebrew_item,
+                ...updates,
+                updated_at: new Date().toISOString(),
+              };
+            }
+
+            return updatedItem;
+          }
+          return invItem;
+        });
+
         set((s) => ({
-          homebrewItems: s.homebrewItems.map((item) =>
-            item.id === id
-              ? {
-                  ...item,
-                  ...updates,
-                  updated_at: new Date().toISOString(),
-                }
-              : item
-          ),
+          homebrewItems: updatedHomebrewItems,
+          character: s.character && updatedInventory ? {
+            ...s.character,
+            character_inventory: updatedInventory
+          } : s.character,
         }));
 
         return () => {
-          set({ homebrewItems: previousItems });
+          set({
+            homebrewItems: previousItems,
+            character: state.character ? {
+              ...state.character,
+              character_inventory: previousInventory
+            } : null,
+          });
         };
       },
       async () => {
         const supabase = createClient();
+
+        // 1. Update homebrew definition
         const { data, error } = await supabase
           .from('homebrew_items')
           .update(updates)
           .eq('id', id)
           .select();
+
+        if (error) return { data, error };
+
+        // 2. Update inventory items' denormalized fields
+        // Only update if name or description changed
+        if (updates.name !== undefined || updates.description !== undefined) {
+          const inventoryUpdates: any = {};
+          if (updates.name !== undefined) inventoryUpdates.name = updates.name;
+          if (updates.description !== undefined) inventoryUpdates.description = updates.description;
+
+          const { error: invError } = await supabase
+            .from('character_inventory')
+            .update(inventoryUpdates)
+            .eq('homebrew_item_id', id);
+
+          if (invError) {
+            console.error('Failed to update inventory item names:', invError);
+            return { data: null, error: invError };
+          }
+        }
 
         return { data, error };
       },
@@ -1746,34 +1846,33 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   },
 
   deleteHomebrewItem: async (id) => {
+    const state = get();
+
+    // Check how many inventory items use this homebrew definition
+    const affectedItems = state.character?.character_inventory?.filter(
+      i => i.homebrew_item_id === id
+    ) || [];
+
+    if (affectedItems.length > 1) {
+      // Multiple items use this definition - prevent deletion
+      toast.error('Cannot delete homebrew item', {
+        description: `This item is used by ${affectedItems.length} items in your inventory. Delete individual copies first.`,
+        duration: 6000,
+      });
+      return;
+    }
+
     await withOptimisticUpdate(
       () => {
-        const state = get();
-        const previousItems = [...state.homebrewItems];
-        const previousInventory = state.character?.character_inventory 
-          ? [...state.character.character_inventory] 
-          : [];
-        
-        // Remove definition
+        const previousItems = [...get().homebrewItems];
+
+        // Remove definition only (inventory items are handled separately)
         set((s) => ({
           homebrewItems: s.homebrewItems.filter((item) => item.id !== id),
-          // Also remove any inventory items that use this homebrew definition
-          character: s.character ? {
-            ...s.character,
-            character_inventory: s.character.character_inventory?.filter(
-              i => i.homebrew_item_id !== id
-            )
-          } : null
         }));
 
         return () => {
-          set((s) => ({ 
-            homebrewItems: previousItems,
-            character: s.character ? {
-              ...s.character,
-              character_inventory: previousInventory
-            } : null
-          }));
+          set({ homebrewItems: previousItems });
         };
       },
       async () => {
@@ -1821,6 +1920,20 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     if (!state.character || !state.user) return;
     const supabase = createClient();
 
+    // Capture state for rollback
+    const previousInventory = [...(state.character.character_inventory || [])];
+    const previousHomebrewItems = [...state.homebrewItems];
+
+    // Find the item to convert
+    const itemIndex = previousInventory.findIndex(i => i.id === inventoryItemId);
+    if (itemIndex === -1) {
+      toast.error('Item not found', {
+        description: 'Could not find the item to convert',
+        duration: 5000,
+      });
+      return;
+    }
+
     const tempHbId = `temp-hb-${Date.now()}`;
     const tempHbItem: HomebrewItem = {
         id: tempHbId,
@@ -1829,38 +1942,33 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
     };
-    
-    // Optimistic Update
-    const previousInventory = [...(state.character.character_inventory || [])];
-    const previousHomebrewItems = [...state.homebrewItems];
-    
-    // Find the item to update
-    const itemIndex = previousInventory.findIndex(i => i.id === inventoryItemId);
-    if (itemIndex === -1) return;
-    
-    const updatedInventoryItem = { 
+
+    const updatedInventoryItem = {
         ...previousInventory[itemIndex],
-        item_id: undefined, // Clear standard link
+        item_id: undefined,
         homebrew_item_id: tempHbId,
+        name: tempHbItem.name,  // Update denormalized name field
+        description: tempHbItem.description,  // Update denormalized description field
         homebrew_item: tempHbItem,
-        library_item: { // Update library_item wrapper for UI
+        library_item: {
              id: `homebrew-${tempHbId}`,
              type: tempHbItem.type,
              name: tempHbItem.name,
              data: tempHbItem.data,
         } as LibraryItem
     };
-    
+
     const newInventory = [...previousInventory];
     newInventory[itemIndex] = updatedInventoryItem;
-    
+
+    // Optimistic update
     set({
         character: { ...state.character, character_inventory: newInventory },
         homebrewItems: [tempHbItem, ...state.homebrewItems]
     });
-    
+
     try {
-        // 1. Insert Homebrew Item
+        // 1. Create homebrew item
         const { data: hbData, error: hbError } = await supabase
           .from('homebrew_items')
           .insert({
@@ -1872,25 +1980,24 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
           })
           .select()
           .single();
-          
+
         if (hbError) throw hbError;
         if (!hbData) throw new Error("Failed to create homebrew item: No data returned. Check RLS policies.");
-        
-        // 2. Update Inventory Item Link
+
+        // 2. Link inventory item to homebrew item and update denormalized fields
         const { error: invError } = await supabase
             .from('character_inventory')
             .update({
                 item_id: null,
-                homebrew_item_id: hbData.id
+                homebrew_item_id: hbData.id,
+                name: hbData.name,  // Update denormalized name
+                description: hbData.description  // Update denormalized description
             })
             .eq('id', inventoryItemId);
-            
-        if (invError) {
-            console.error("Error updating inventory item link:", invError);
-            throw invError;
-        }
-        
-        // 3. Fix up state with real IDs
+
+        if (invError) throw invError;
+
+        // 3. Replace temp IDs with real ones
         const finalHbItem = hbData;
         const currentInventory = [...(get().character?.character_inventory || [])];
         const idx = currentInventory.findIndex(i => i.id === inventoryItemId);
@@ -1898,6 +2005,8 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
             currentInventory[idx] = {
                 ...currentInventory[idx],
                 homebrew_item_id: finalHbItem.id,
+                name: finalHbItem.name,  // Update denormalized name
+                description: finalHbItem.description,  // Update denormalized description
                 homebrew_item: finalHbItem,
                 library_item: {
                      id: `homebrew-${finalHbItem.id}`,
@@ -1907,21 +2016,28 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
                 } as LibraryItem
             };
         }
-        
+
         set((s) => ({
              character: s.character ? { ...s.character, character_inventory: currentInventory } : null,
              homebrewItems: [finalHbItem, ...s.homebrewItems.filter(i => i.id !== tempHbId)]
         }));
-        
+
         // Recalculate stats as item data might have changed
         await get().recalculateDerivedStats();
-        
-    } catch (error) {
+
+    } catch (error: any) {
         console.error("Failed to convert item to homebrew:", error);
-        // Rollback
+
+        // Rollback optimistic update
         set({
              character: { ...state.character, character_inventory: previousInventory },
              homebrewItems: previousHomebrewItems
+        });
+
+        // Show error toast
+        toast.error('Failed to convert item', {
+          description: error.message || 'Please try again',
+          duration: 5000,
         });
     }
   },
