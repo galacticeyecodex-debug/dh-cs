@@ -1,3 +1,13 @@
+/**
+ * Homebrew Slice
+ * ----------------------------------------------------------------------------
+ * This slice manages the user's collection of custom "homebrew" items. It provides
+ * CRUD (Create, Read, Update, Delete) operations for these custom definitions,
+ * handling the interaction with the `homebrew_items` table in Supabase. It also
+ * manages the complex relationship where updating a homebrew definition must
+ * propagate changes to any inventory items derived from that definition.
+ */
+
 import { StateCreator } from 'zustand';
 import createClient from '@/lib/supabase/client';
 import { withOptimisticUpdate } from '@/lib/state-helpers';

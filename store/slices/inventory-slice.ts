@@ -1,3 +1,13 @@
+/**
+ * Inventory Slice
+ * ----------------------------------------------------------------------------
+ * This slice handles all operations related to the character's inventory and equipment
+ * management. It provides functionality for adding, deleting, and equipping items,
+ * as well as moving cards between the loadout and vault. It ensures that changes to
+ * the inventory are correctly reflected in the database and triggers necessary stat
+ * recalculations when equipment changes occur.
+ */
+
 import { StateCreator } from 'zustand';
 import createClient from '@/lib/supabase/client';
 import { withOptimisticUpdate } from '@/lib/state-helpers';

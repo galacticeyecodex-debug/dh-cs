@@ -1,3 +1,13 @@
+/**
+ * Character Type Definitions
+ * ----------------------------------------------------------------------------
+ * This file defines the core TypeScript interfaces and types used throughout the
+ * application to model the Daggerheart character system. It includes definitions
+ * for the Character entity, Inventory items, Cards, Homebrew content, and
+ * auxiliary structures like RollResults and AdvancementRecords, serving as the
+ * shared contract for data shape across the store and components.
+ */
+
 import { Experience } from './modifiers';
 
 export type { Experience };
