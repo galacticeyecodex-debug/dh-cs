@@ -1,3 +1,13 @@
+/**
+ * UI Slice
+ * ----------------------------------------------------------------------------
+ * This slice manages the transient user interface state for the application.
+ * It controls global UI elements such as the dice roller overlay, the active
+ * navigation tab (Character, Playmat, Inventory, Combat), and displays results
+ * from dice rolls. This isolates purely presentational state from the persistent
+ * game data, keeping the store organization clean.
+ */
+
 import { StateCreator } from 'zustand';
 import { RollResult } from '@/types/character';
 import { CharacterStore } from '@/types/store';

@@ -1,3 +1,13 @@
+/**
+ * Vitals Slice
+ * ----------------------------------------------------------------------------
+ * This slice is responsible for managing the fluctuating state of a character,
+ * specifically their Vitals (HP, Stress, Armor Slots) and resources like Gold, Hope,
+ * and Evasion. It implements optimistic updates to ensure instant UI feedback during
+ * gameplay or combat, handling the synchronization with the database in the background
+ * to maintain a smooth and responsive user experience.
+ */
+
 import { StateCreator } from 'zustand';
 import createClient from '@/lib/supabase/client';
 import { withOptimisticUpdate } from '@/lib/state-helpers';

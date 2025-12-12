@@ -1,3 +1,13 @@
+/**
+ * Leveling Slice
+ * ----------------------------------------------------------------------------
+ * This slice encapsulates the complex logic required for character progression and
+ * leveling up. It handles the application of new levels, including stat increases,
+ * trait selection, proficiency bumps, and damage threshold recalculations according
+ * to the game's rules. It also manages the "de-leveling" process, ensuring that
+ * all changes can be accurately rolled back if a user lowers their level.
+ */
+
 import { StateCreator } from 'zustand';
 import createClient from '@/lib/supabase/client';
 import { withOptimisticUpdate } from '@/lib/state-helpers';

@@ -1,3 +1,13 @@
+/**
+ * Authentication Slice
+ * ----------------------------------------------------------------------------
+ * This slice manages the user authentication state within the global character store.
+ * It handles fetching the current user session from Supabase, creating user profiles
+ * if they don't exist, and linking the authenticated user to their character data.
+ * This separation allows the authentication logic to remain distinct from character
+ * mechanics while still being accessible to the unified store.
+ */
+
 import { StateCreator } from 'zustand';
 import { User } from '@supabase/supabase-js';
 import createClient from '@/lib/supabase/client';

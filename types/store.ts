@@ -1,3 +1,13 @@
+/**
+ * Store Type Definition
+ * ----------------------------------------------------------------------------
+ * This file aggregates the various Zustand store slices into a single, unified
+ * `CharacterStore` type. By intersecting the interfaces of all individual slices
+ * (Auth, Character, Vitals, Inventory, UI, Homebrew, Leveling), it provides a
+ * complete type signature for the global application state, resolving circular
+ * dependencies that would arise from direct imports in the slice files.
+ */
+
 import { AuthSlice } from '@/store/slices/auth-slice';
 import { CharacterSlice } from '@/store/slices/character-slice';
 import { VitalsSlice } from '@/store/slices/vitals-slice';

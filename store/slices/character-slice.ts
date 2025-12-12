@@ -1,3 +1,14 @@
+/**
+ * Character Slice
+ * ----------------------------------------------------------------------------
+ * This slice serves as the core of the character management system, handling the
+ * primary character data structure, fetching logic, and derived stat calculations.
+ * It integrates with the database to load character details, inventory, and cards,
+ * and includes logic for synchronizing derived stats (like Armor Score and Evasion)
+ * based on equipment and modifiers, acting as the central source of truth for the
+ * active character.
+ */
+
 import { StateCreator } from 'zustand';
 import createClient from '@/lib/supabase/client';
 import { Character, CharacterCard, CharacterInventoryItem, LibraryItem, HomebrewItem, Experience } from '@/types/character';
