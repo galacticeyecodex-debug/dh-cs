@@ -39,7 +39,6 @@ export default function CharacterView() {
   const [isManageLoading, setIsManageLoading] = useState(false);
   const [showVitals, setShowVitals] = useState(false);
   const [showTraits, setShowTraits] = useState(true);
-  const [showActiveModifiers, setShowActiveModifiers] = useState(false);
   const [showExperiences, setShowExperiences] = useState(true);
   const [activeTab, setActiveTab] = useState<'stats' | 'gallery' | 'lore'>('stats');
   const [isUploading, setIsUploading] = useState(false);
@@ -204,30 +203,6 @@ export default function CharacterView() {
     const total = base + uniqueMods.reduce((acc, mod) => acc + mod.value, 0);
     return { total, allMods: uniqueMods };
   };
-
-  // Helper to get ALL active modifiers for the summary panel
-  const getAllActiveModifiers = () => {
-    const statsToCheck = [
-      'agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge',
-      'evasion', 'armor', 'hit_points', 'stress', 'proficiency'
-    ];
-    
-    const allMods: { stat: string; mods: any[] }[] = [];
-    
-    statsToCheck.forEach(stat => {
-      const systemMods = getSystemModifiers(character, stat);
-      const userMods = character.modifiers?.[stat] || [];
-      const combined = [...systemMods, ...userMods];
-      
-      if (combined.length > 0) {
-        allMods.push({ stat, mods: combined });
-      }
-    });
-    
-    return allMods;
-  };
-  
-  const activeModifiersList = getAllActiveModifiers();
 
   return (
     <ErrorBoundary>
@@ -439,53 +414,6 @@ export default function CharacterView() {
                       </div>
                     );
                   })}
-                </div>
-              )}
-            </div>
-
-            {/* Active Modifiers Panel */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                  <Activity size={14} /> Active Modifiers
-                </h3>
-                <button
-                  onClick={() => setShowActiveModifiers(!showActiveModifiers)}
-                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                >
-                  {showActiveModifiers ? <EyeOff size={14} /> : <Eye size={14} />}
-                  {showActiveModifiers ? 'Hide' : 'Show'}
-                </button>
-              </div>
-
-              {showActiveModifiers && (
-                <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-3">
-                  {activeModifiersList.length > 0 ? (
-                    activeModifiersList.map(({ stat, mods }) => (
-                      <div key={stat} className="bg-white/5 rounded-lg p-3 border border-white/5">
-                        <div className="text-xs font-bold text-dagger-gold uppercase mb-2 pb-1 border-b border-white/10">
-                          {stat.replace('_', ' ')}
-                        </div>
-                        <div className="space-y-1">
-                          {mods.map((mod: any, idx: number) => (
-                            <div key={idx} className="flex justify-between items-center text-sm">
-                              <span className="text-gray-300">{mod.name || 'Unknown Source'}</span>
-                              <span className={clsx(
-                                "font-bold",
-                                mod.value > 0 ? "text-green-400" : "text-red-400"
-                              )}>
-                                {mod.value > 0 ? `+${mod.value}` : mod.value}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center text-gray-500 italic text-sm py-2">
-                      No active modifiers.
-                    </div>
-                  )}
                 </div>
               )}
             </div>
