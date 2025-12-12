@@ -13,7 +13,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { calculateWeaponDamage } from '@/lib/utils';
+import { calculateWeaponDamage, calculateAttackModifier, calculateDamageModifier } from '@/lib/utils';
 
 describe('calculateWeaponDamage', () => {
   it('scales single die correctly', () => {
@@ -43,5 +43,265 @@ describe('calculateWeaponDamage', () => {
     expect(calculateWeaponDamage('', 2)).toBe('');
     // If no dice found, returns original string
     expect(calculateWeaponDamage('5', 2)).toBe('5');
+  });
+});
+
+// ============================================================================
+// ATTACK MODIFIER CALCULATION TESTS
+// ============================================================================
+
+describe('calculateAttackModifier', () => {
+  it('should return 0 for null character', () => {
+    expect(calculateAttackModifier(null)).toBe(0);
+  });
+
+  it('should return 0 for character with no modifiers', () => {
+    const character = {
+      character_inventory: [],
+      modifiers: {},
+    };
+    expect(calculateAttackModifier(character)).toBe(0);
+  });
+
+  it('should calculate system modifiers from equipped weapon', () => {
+    const character = {
+      character_inventory: [
+        {
+          id: 'weapon1',
+          name: 'Broadsword',
+          location: 'equipped_primary',
+          library_item: {
+            data: {
+              modifiers: [
+                { id: 'mod1', type: 'combat', target: 'attack', value: 1, operator: 'add' }
+              ],
+            },
+          },
+        },
+      ],
+      modifiers: {},
+    };
+    expect(calculateAttackModifier(character)).toBe(1);
+  });
+
+  it('should sum multiple attack modifiers', () => {
+    const character = {
+      character_inventory: [
+        {
+          id: 'weapon1',
+          name: 'Broadsword',
+          location: 'equipped_primary',
+          library_item: {
+            data: {
+              modifiers: [
+                { id: 'mod1', type: 'combat', target: 'attack', value: 1, operator: 'add' }
+              ],
+            },
+          },
+        },
+        {
+          id: 'armor1',
+          name: 'Magic Armor',
+          location: 'equipped_armor',
+          library_item: {
+            data: {
+              modifiers: [
+                { id: 'mod2', type: 'combat', target: 'attack', value: 2, operator: 'add' }
+              ],
+            },
+          },
+        },
+      ],
+      modifiers: {},
+    };
+    expect(calculateAttackModifier(character)).toBe(3);
+  });
+
+  it('should include user-added modifiers', () => {
+    const character = {
+      character_inventory: [],
+      modifiers: {
+        attack: [
+          { id: 'user1', name: 'Buff', value: 2, source: 'user' }
+        ],
+      },
+    };
+    expect(calculateAttackModifier(character)).toBe(2);
+  });
+
+  it('should combine system and user modifiers', () => {
+    const character = {
+      character_inventory: [
+        {
+          id: 'weapon1',
+          name: 'Broadsword',
+          location: 'equipped_primary',
+          library_item: {
+            data: {
+              modifiers: [
+                { id: 'mod1', type: 'combat', target: 'attack', value: 1, operator: 'add' }
+              ],
+            },
+          },
+        },
+      ],
+      modifiers: {
+        attack: [
+          { id: 'user1', name: 'Buff', value: 2, source: 'user' }
+        ],
+      },
+    };
+    expect(calculateAttackModifier(character)).toBe(3);
+  });
+
+  it('should handle negative modifiers', () => {
+    const character = {
+      character_inventory: [
+        {
+          id: 'weapon1',
+          name: 'Cursed Sword',
+          location: 'equipped_primary',
+          library_item: {
+            data: {
+              modifiers: [
+                { id: 'mod1', type: 'combat', target: 'attack', value: -1, operator: 'subtract' }
+              ],
+            },
+          },
+        },
+      ],
+      modifiers: {},
+    };
+    expect(calculateAttackModifier(character)).toBe(-1);
+  });
+});
+
+// ============================================================================
+// DAMAGE MODIFIER CALCULATION TESTS
+// ============================================================================
+
+describe('calculateDamageModifier', () => {
+  it('should return 0 for null character', () => {
+    expect(calculateDamageModifier(null)).toBe(0);
+  });
+
+  it('should return 0 for character with no modifiers', () => {
+    const character = {
+      character_inventory: [],
+      modifiers: {},
+    };
+    expect(calculateDamageModifier(character)).toBe(0);
+  });
+
+  it('should calculate system modifiers from equipped weapon', () => {
+    const character = {
+      character_inventory: [
+        {
+          id: 'weapon1',
+          name: 'Magic Sword',
+          location: 'equipped_primary',
+          library_item: {
+            data: {
+              modifiers: [
+                { id: 'mod1', type: 'combat', target: 'damage', value: 2, operator: 'add' }
+              ],
+            },
+          },
+        },
+      ],
+      modifiers: {},
+    };
+    expect(calculateDamageModifier(character)).toBe(2);
+  });
+
+  it('should sum multiple damage modifiers', () => {
+    const character = {
+      character_inventory: [
+        {
+          id: 'weapon1',
+          name: 'Magic Sword',
+          location: 'equipped_primary',
+          library_item: {
+            data: {
+              modifiers: [
+                { id: 'mod1', type: 'combat', target: 'damage', value: 2, operator: 'add' }
+              ],
+            },
+          },
+        },
+        {
+          id: 'armor1',
+          name: 'Spiked Armor',
+          location: 'equipped_armor',
+          library_item: {
+            data: {
+              modifiers: [
+                { id: 'mod2', type: 'combat', target: 'damage', value: 1, operator: 'add' }
+              ],
+            },
+          },
+        },
+      ],
+      modifiers: {},
+    };
+    expect(calculateDamageModifier(character)).toBe(3);
+  });
+
+  it('should include user-added modifiers', () => {
+    const character = {
+      character_inventory: [],
+      modifiers: {
+        damage: [
+          { id: 'user1', name: 'Rage', value: 3, source: 'user' }
+        ],
+      },
+    };
+    expect(calculateDamageModifier(character)).toBe(3);
+  });
+
+  it('should combine system and user modifiers', () => {
+    const character = {
+      character_inventory: [
+        {
+          id: 'weapon1',
+          name: 'Magic Sword',
+          location: 'equipped_primary',
+          library_item: {
+            data: {
+              modifiers: [
+                { id: 'mod1', type: 'combat', target: 'damage', value: 2, operator: 'add' }
+              ],
+            },
+          },
+        },
+      ],
+      modifiers: {
+        damage: [
+          { id: 'user1', name: 'Rage', value: 3, source: 'user' }
+        ],
+      },
+    };
+    expect(calculateDamageModifier(character)).toBe(5);
+  });
+
+  it('should handle negative modifiers', () => {
+    const character = {
+      character_inventory: [
+        {
+          id: 'weapon1',
+          name: 'Weak Sword',
+          location: 'equipped_primary',
+          library_item: {
+            data: {
+              modifiers: [
+                { id: 'mod1', type: 'combat', target: 'damage', value: -1, operator: 'subtract' }
+              ],
+            },
+          },
+        },
+      ],
+      modifiers: {},
+    };
+    expect(calculateDamageModifier(character)).toBe(-1);
   });
 });

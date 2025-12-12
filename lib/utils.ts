@@ -2,15 +2,17 @@
  * SHARED UTILITIES
  * ----------------------------------------------------------------------------
  * This file contains general-purpose helper functions used across the application.
- * 
+ *
  * FUNCTIONALITY:
  * - Styling Helper (`cn`): Merges Tailwind classes conditionally using `clsx` and `tailwind-merge`.
  * - Damage Parsing: `parseDamageRoll` and `calculateWeaponDamage` handle the complex string manipulation
  *   needed to interpret Daggerheart damage dice and scale them by proficiency.
- * - Modifier Parsing (Legacy/Fallback): `getSystemModifiers` extracts bonuses from equipped items, 
+ * - Modifier Parsing (Legacy/Fallback): `getSystemModifiers` extracts bonuses from equipped items,
  *   supporting both structured JSON data and text-based regex parsing (similar to the SRD parser).
- * - Stat Calculation: Helpers like `getClassBaseStat` and `calculateBaseEvasion` encapsulate 
+ * - Stat Calculation: Helpers like `getClassBaseStat` and `calculateBaseEvasion` encapsulate
  *   core rules for determining derived stats.
+ * - Combat Modifiers: `calculateAttackModifier` and `calculateDamageModifier` aggregate bonuses
+ *   from equipped items and user-added modifiers for combat calculations.
  */
 
 import { clsx, type ClassValue } from "clsx"
@@ -135,6 +137,28 @@ export function calculateBaseEvasion(character: any): number {
   const itemBonus = systemMods.reduce((acc, mod) => acc + mod.value, 0);
 
   return base + itemBonus;
+}
+
+// Helper to calculate total attack modifier from equipped items
+export function calculateAttackModifier(character: any): number {
+  if (!character) return 0;
+
+  const systemMods = getSystemModifiers(character, 'attack');
+  const userMods = character.modifiers?.['attack'] || [];
+  const allMods = [...systemMods, ...userMods];
+
+  return allMods.reduce((acc, mod) => acc + mod.value, 0);
+}
+
+// Helper to calculate total damage modifier from equipped items
+export function calculateDamageModifier(character: any): number {
+  if (!character) return 0;
+
+  const systemMods = getSystemModifiers(character, 'damage');
+  const userMods = character.modifiers?.['damage'] || [];
+  const allMods = [...systemMods, ...userMods];
+
+  return allMods.reduce((acc, mod) => acc + mod.value, 0);
 }
 
 export function calculateWeaponDamage(baseDamage: string, proficiency: number): string {
