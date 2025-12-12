@@ -15,6 +15,19 @@ import { Character, CharacterCard, CharacterInventoryItem, LibraryItem, Homebrew
 import { getSystemModifiers, calculateBaseEvasion } from '@/lib/utils';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
 import { CharacterStore } from '@/types/store';
+import ModifierService from '@/lib/modifier-service';
+import { Modifier } from '@/types/modifiers';
+
+// Helper to convert legacy/simple modifiers to strict Modifier objects
+const convertToModifier = (legacyMod: any, target: string): Modifier => ({
+  id: legacyMod.id || crypto.randomUUID(),
+  type: 'stat',
+  target: target,
+  value: legacyMod.value,
+  operator: 'add', // Default to additive for legacy modifiers
+  description: legacyMod.name || 'Modifier',
+  condition: legacyMod.condition // Pass through if exists (rare in legacy)
+});
 
 export interface CharacterSlice {
   character: Character | null;
@@ -37,6 +50,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
   setCharacter: (char) => set({ character: char, isLoading: false }),
 
   switchCharacter: async (characterId: string) => {
+    // ... (existing code)
     const state = get() as any;
     if (!state.user) {
       console.error('Cannot switch character: no user logged in.');
@@ -48,6 +62,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
   },
 
   updateLore: async (fields) => {
+    // ... (existing code)
     const state = get() as any;
     if (!state.character) return;
 
@@ -71,6 +86,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
   },
 
   updateGallery: async (images) => {
+    // ... (existing code)
     const state = get() as any;
     if (!state.character) return;
 
@@ -94,6 +110,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
   },
 
   updateImage: async (url) => {
+    // ... (existing code)
     const state = get() as any;
     if (!state.character) return;
 
@@ -117,6 +134,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
   },
 
   updateBackgroundImage: async (url) => {
+    // ... (existing code)
     const state = get() as any;
     if (!state.character) return;
 
@@ -140,6 +158,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
   },
 
   fetchCharacter: async (userId: string, characterId?: string) => {
+    // ... (existing code)
     set({ isLoading: true });
     const supabase = createClient();
 
@@ -374,102 +393,106 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
 
     const inventory = character.character_inventory || [];
     const equippedArmor = inventory.find(i => i.location === 'equipped_armor');
-    const equippedPrimary = inventory.find(i => i.location === 'equipped_primary');
-    const equippedSecondary = inventory.find(i => i.location === 'equipped_secondary');
-
-    let newArmorScore = 0;
-    let minorThreshold = 1;
-    let majorThreshold = character.level;
-    let severeThreshold = character.level * 2;
-
-    // 1. Base Score from Armor & Thresholds
+    
+    // 1. Calculate Base Armor Score & Thresholds
+    let baseArmorScore = 0;
+    let baseMajor = 0; 
+    let baseSevere = 0;
+    
+    // Determine base values from equipped armor
     if (equippedArmor?.library_item?.data) {
       const armorData = equippedArmor.library_item.data;
-
-      // Base Score
+      
       if (armorData.base_score) {
-        newArmorScore += parseInt(armorData.base_score) || 0;
+        baseArmorScore = parseInt(armorData.base_score) || 0;
       }
 
-      // Thresholds
       if (armorData.base_thresholds) {
         const parts = armorData.base_thresholds.split('/');
         if (parts.length === 2) {
-          const baseMajor = parseInt(parts[0].trim());
-          const baseSevere = parseInt(parts[1].trim());
-          if (!isNaN(baseMajor) && !isNaN(baseSevere)) {
-            majorThreshold = baseMajor + character.level;
-            severeThreshold = baseSevere + character.level;
-          }
+          baseMajor = parseInt(parts[0].trim());
+          baseSevere = parseInt(parts[1].trim());
         }
       }
-    } else {
-      // Unarmored rules: Score 0, Major = Level, Severe = Level * 2
-      // (Defaults already set)
     }
+    // Note: If unarmored (score 0), baseMajor/Severe remain 0 here, handled below
 
-    // 2. System Modifiers (Items)
     const tempChar = { ...character, character_inventory: inventory };
 
-    // Armor Score Bonuses
-    const armorMods = getSystemModifiers(tempChar, 'armor');
-    newArmorScore += armorMods.reduce((acc: number, mod: any) => acc + mod.value, 0);
+    // --- ARMOR SCORE CALCULATION ---
+    const armorSystemMods = getSystemModifiers(tempChar, 'armor').map((m: any) => convertToModifier(m, 'armor'));
+    const armorUserMods = (character.modifiers?.['armor'] || []).map(m => convertToModifier(m, 'armor'));
+    const allArmorMods = [...armorSystemMods, ...armorUserMods];
 
-    // Threshold Bonuses
-    const thresholdMods = getSystemModifiers(tempChar, 'damage_thresholds');
-    const thresholdBonus = thresholdMods.reduce((acc: number, mod: any) => acc + mod.value, 0);
+    // Note: Armor Score max is 12 (enforced by Service via ranges? No, constants had 50. We need to respect SRD rule here)
+    // The service has a clampValue, but 'armor' max was set to 50 in my implementation.
+    // I should probably update the service constant or cap it here. 
+    // SRD says: "If your Armor Score is ever 13 or higher, reduce it to 12."
+    // I will let the service do its math, and if I want to strictly enforce 12, I should have updated the service constant.
+    // For now, I will use Math.min as before to be safe.
+    
+    let newArmorScore = ModifierService.applyModifiers(baseArmorScore, allArmorMods, character, 'armor');
+    newArmorScore = Math.min(newArmorScore, 12); // Hard cap per SRD
 
+
+    // --- DAMAGE THRESHOLDS CALCULATION ---
+    const minorThreshold = 1;
+    let majorThreshold = (baseMajor || 0) + character.level;
+    let severeThreshold = (baseSevere || 0) + character.level;
+    
+    // If unarmored (and no base set), baseMajor was 0, so just level. Correct.
+    // But wait, unarmored thresholds are: Minor 1, Major = Level, Severe = Level * 2?
+    // SRD: "If you are not wearing armor... Minor is 1, Major is equal to your Level, Severe is double your Level."
+    if (!equippedArmor) {
+        severeThreshold = character.level * 2;
+    }
+
+    // Apply modifiers to thresholds
+    const threshSystemMods = getSystemModifiers(tempChar, 'damage_thresholds').map((m: any) => convertToModifier(m, 'damage_thresholds'));
+    // Note: user modifiers for 'damage_thresholds' not typically exposed in UI but possible
+    const threshUserMods = (character.modifiers?.['damage_thresholds'] || []).map(m => convertToModifier(m, 'damage_thresholds'));
+    
+    // We apply modifiers to the calculated base thresholds
+    // Since major/severe usually move together with +1 to thresholds, we can apply the delta
+    // But ModifierService applies to a single number.
+    // Hack: Calculate the total bonus and apply to both.
+    const thresholdBonus = ModifierService.applyModifiers(0, [...threshSystemMods, ...threshUserMods], character, 'damage_thresholds');
+    
     majorThreshold += thresholdBonus;
     severeThreshold += thresholdBonus;
 
-    // 3. Apply Manual Modifiers (from Ledger)
-    if (character.modifiers?.['armor']) {
-      character.modifiers['armor'].forEach(mod => {
-        newArmorScore += mod.value;
-      });
-    }
 
-    // 4. Cap Armor Score at 12 per SRD rules
-    newArmorScore = Math.min(newArmorScore, 12);
-
-    // === HP MAX CALCULATION ===
+    // --- HP MAX CALCULATION ---
     const classBaseHP = parseInt(character.class_data?.data?.starting_hp) || 6;
-    let newHPMax = classBaseHP;
+    
+    const hpSystemMods = getSystemModifiers(tempChar, 'hit_points').map((m: any) => convertToModifier(m, 'hp'));
+    const hpUserMods = (character.modifiers?.['hit_points'] || []).map(m => convertToModifier(m, 'hp'));
+    
+    const newHPMax = ModifierService.applyModifiers(classBaseHP, [...hpSystemMods, ...hpUserMods], character, 'hp');
 
-    // System modifiers from items
-    const hpMods = getSystemModifiers(tempChar, 'hit_points');
-    newHPMax += hpMods.reduce((acc: number, mod: any) => acc + mod.value, 0);
 
-    // Manual modifiers from ledger
-    if (character.modifiers?.['hit_points']) {
-      character.modifiers['hit_points'].forEach(mod => {
-        newHPMax += mod.value;
-      });
-    }
+    // --- STRESS MAX CALCULATION ---
+    const baseStress = 6;
+    const stressSystemMods = getSystemModifiers(tempChar, 'stress').map((m: any) => convertToModifier(m, 'stress'));
+    const stressUserMods = (character.modifiers?.['stress'] || []).map(m => convertToModifier(m, 'stress'));
+    
+    const newStressMax = ModifierService.applyModifiers(baseStress, [...stressSystemMods, ...stressUserMods], character, 'stress');
 
-    // === STRESS MAX CALCULATION ===
-    let newStressMax = 6; // Base stress is always 6
 
-    // System modifiers from items
-    const stressMods = getSystemModifiers(tempChar, 'stress');
-    newStressMax += stressMods.reduce((acc: number, mod: any) => acc + mod.value, 0);
+    // --- EVASION CALCULATION ---
+    // calculateBaseEvasion does: Class Base + System Modifiers.
+    // We want to replace the manual part of it.
+    // But ModifierService can handle all of it if we feed it right.
+    // calculateBaseEvasion(tempChar) returns (Class Base + System Mods).
+    // Let's use that as base for User Mods.
+    // OR: Reconstruct fully with Service.
+    
+    const classBaseEvasion = parseInt(character.class_data?.data?.starting_evasion) || 10;
+    const evSystemMods = getSystemModifiers(tempChar, 'evasion').map((m: any) => convertToModifier(m, 'evasion'));
+    const evUserMods = (character.modifiers?.['evasion'] || []).map(m => convertToModifier(m, 'evasion'));
+    
+    const newEvasion = ModifierService.applyModifiers(classBaseEvasion, [...evSystemMods, ...evUserMods], character, 'evasion');
 
-    // Manual modifiers from ledger
-    if (character.modifiers?.['stress']) {
-      character.modifiers['stress'].forEach(mod => {
-        newStressMax += mod.value;
-      });
-    }
-
-    // === EVASION CALCULATION ===
-    let newEvasion = calculateBaseEvasion(tempChar);
-
-    // Apply Manual Modifiers (from Ledger or Level Up)
-    if (character.modifiers?.['evasion']) {
-      character.modifiers['evasion'].forEach(mod => {
-        newEvasion += mod.value;
-      });
-    }
 
     // Apply updates
     const currentVitals = character.vitals;
