@@ -105,7 +105,19 @@ export default function CombatView() {
                 const trait = libData?.trait || 'Strength';
                 const baseDamage = libData?.damage || '1d8';
                 const range = libData?.range || 'Melee';
-                const traitValue = character.stats[trait.toLowerCase() as keyof typeof character.stats] || 0;
+                
+                // Calculate Modified Trait Value
+                const traitKey = trait.toLowerCase();
+                const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+                
+                // Get modifiers for this trait
+                const systemTraitMods = getSystemModifiers(character, traitKey);
+                const userTraitMods = character.modifiers?.[traitKey] || [];
+                const allTraitMods = [...systemTraitMods, ...userTraitMods];
+                
+                // Sum it up
+                const traitModifierSum = allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
+                const totalTraitValue = baseTraitValue + traitModifierSum;
 
                 const calculatedDamage = calculateWeaponDamage(baseDamage, totalProficiency);
 
@@ -130,10 +142,10 @@ export default function CombatView() {
                     {/* Action Bar */}
                     <div className="bg-black/40 p-2 flex gap-2">
                       <button
-                        onClick={() => prepareRoll(`${weapon.name} Attack`, traitValue)}
+                        onClick={() => prepareRoll(`${weapon.name} Attack`, totalTraitValue)}
                         className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
                       >
-                        <Zap size={16} className="text-yellow-400" /> Attack ({traitValue >= 0 ? `+${traitValue}` : traitValue})
+                        <Zap size={16} className="text-yellow-400" /> Attack ({totalTraitValue >= 0 ? `+${totalTraitValue}` : totalTraitValue})
                       </button>
                       <button
                         onClick={() => {
