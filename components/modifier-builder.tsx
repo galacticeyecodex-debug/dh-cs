@@ -76,6 +76,10 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
     setParseError('');
   };
 
+  const getModifierType = (target: string): 'stat' | 'combat' => {
+    return (target === 'attack' || target === 'damage') ? 'combat' : 'stat';
+  };
+
   const generateDescription = (mod: { target: string; value: number; operator: ModifierOperator; condition?: string }) => {
     const statLabel = STAT_OPTIONS.find(s => s.value === mod.target)?.label || mod.target;
     let desc = '';
@@ -100,8 +104,8 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
 
     const newModifier: Modifier = {
       id: crypto.randomUUID(),
-      type: 'stat',
-      target: target as CharacterStat,
+      type: getModifierType(target),
+      target: target,
       value: numValue,
       operator,
       condition: condition || undefined,
@@ -134,7 +138,8 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
       m.id === editingId
         ? {
             ...m,
-            target: target as CharacterStat,
+            type: getModifierType(target),
+            target: target,
             value: numValue,
             operator,
             condition: condition || undefined,
