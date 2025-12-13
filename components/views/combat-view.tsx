@@ -148,8 +148,14 @@ export default function CombatView() {
                     <div className="bg-black/40 p-2 flex gap-2">
                       <button
                         onClick={() => prepareRoll(`${weapon.name} Attack`, totalAttackBonus)}
-                        className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                        className={clsx(
+                          "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors relative",
+                          attackModifier !== 0 && "text-dagger-gold"
+                        )}
                       >
+                        {attackModifier !== 0 && (
+                          <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-dagger-gold rounded-full" />
+                        )}
                         <Zap size={16} className="text-yellow-400" /> Attack ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
                       </button>
                       <button
@@ -158,9 +164,15 @@ export default function CombatView() {
                           const totalDamageBonus = modifier + damageModifier;
                           prepareRoll(`${weapon.name} Damage`, totalDamageBonus, dice);
                         }}
-                        className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                        className={clsx(
+                          "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors relative",
+                          damageModifier !== 0 && "text-dagger-gold"
+                        )}
                       >
-                        <Skull size={16} className="text-red-400" /> Damage
+                        {damageModifier !== 0 && (
+                          <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-dagger-gold rounded-full" />
+                        )}
+                        <Skull size={16} className="text-red-400" /> Damage {damageModifier !== 0 && `(${damageModifier >= 0 ? `+${damageModifier}` : damageModifier})`}
                       </button>
                     </div>
                   </div>
