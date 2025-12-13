@@ -17,7 +17,7 @@ import React, { useState } from 'react';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { Shield, Swords, Zap, Skull, Info, Crosshair, Eye, EyeOff, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
-import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers } from '@/lib/utils';
+import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers, calculateAttackModifier, calculateDamageModifier } from '@/lib/utils';
 import CommonVitalsDisplay from '@/components/common-vitals-display'; // Import the new common component
 import ModifierSheet from '@/components/modifier-sheet';
 import SubclassFeatureCard from '@/components/subclass-feature-card';
@@ -119,6 +119,11 @@ export default function CombatView() {
                 const traitModifierSum = allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
                 const totalTraitValue = baseTraitValue + traitModifierSum;
 
+                // Calculate attack and damage modifiers from equipment
+                const attackModifier = calculateAttackModifier(character);
+                const damageModifier = calculateDamageModifier(character);
+                const totalAttackBonus = totalTraitValue + attackModifier;
+
                 const calculatedDamage = calculateWeaponDamage(baseDamage, totalProficiency);
 
                 return (
@@ -142,15 +147,16 @@ export default function CombatView() {
                     {/* Action Bar */}
                     <div className="bg-black/40 p-2 flex gap-2">
                       <button
-                        onClick={() => prepareRoll(`${weapon.name} Attack`, totalTraitValue)}
+                        onClick={() => prepareRoll(`${weapon.name} Attack`, totalAttackBonus)}
                         className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
                       >
-                        <Zap size={16} className="text-yellow-400" /> Attack ({totalTraitValue >= 0 ? `+${totalTraitValue}` : totalTraitValue})
+                        <Zap size={16} className="text-yellow-400" /> Attack ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
                       </button>
                       <button
                         onClick={() => {
                           const { dice, modifier } = parseDamageRoll(calculatedDamage);
-                          prepareRoll(`${weapon.name} Damage`, modifier, dice);
+                          const totalDamageBonus = modifier + damageModifier;
+                          prepareRoll(`${weapon.name} Damage`, totalDamageBonus, dice);
                         }}
                         className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
                       >
