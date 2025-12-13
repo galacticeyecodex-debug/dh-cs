@@ -6,16 +6,18 @@
  * A reusable UI component for visually composing modifiers for homebrew items.
  *
  * FUNCTIONALITY:
- * - Add Modifier: Opens a form to create new modifiers with target, value, operator
+ * - Text Parsing: Paste feature text (e.g., "+1 to attack rolls; -1 to Evasion") and auto-generate modifiers
+ * - Manual Building: Opens a form to create new modifiers with target, value, operator
  * - Edit/Delete: Modify or remove existing modifiers
  * - Preview: Shows auto-generated description for each modifier
  * - Validation: Ensures required fields are filled and values are numeric
  */
 
 import React, { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, Wand2 } from 'lucide-react';
 import clsx from 'clsx';
 import { Modifier, ModifierOperator, CharacterStat } from '@/types/modifiers';
+import { parseModifiers } from '@/lib/modifier-parser';
 
 interface ModifierBuilderProps {
   modifiers: Modifier[];
@@ -35,6 +37,8 @@ const STAT_OPTIONS: { value: CharacterStat | string; label: string }[] = [
   { value: 'stress', label: 'Stress' },
   { value: 'hope', label: 'Hope' },
   { value: 'proficiency', label: 'Proficiency' },
+  { value: 'attack', label: 'Attack Rolls' },
+  { value: 'damage', label: 'Damage' },
 ];
 
 const OPERATOR_OPTIONS: { value: ModifierOperator; label: string }[] = [
@@ -48,12 +52,17 @@ const OPERATOR_OPTIONS: { value: ModifierOperator; label: string }[] = [
 export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilderProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showTextParser, setShowTextParser] = useState(false);
 
   // Form state
   const [target, setTarget] = useState<CharacterStat | string>('agility');
   const [value, setValue] = useState<string>('1');
   const [operator, setOperator] = useState<ModifierOperator>('add');
   const [condition, setCondition] = useState<string>('');
+
+  // Text parser state
+  const [parseText, setParseText] = useState<string>('');
+  const [parseError, setParseError] = useState<string>('');
 
   const resetForm = () => {
     setTarget('agility');
@@ -62,6 +71,9 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
     setCondition('');
     setIsAdding(false);
     setEditingId(null);
+    setShowTextParser(false);
+    setParseText('');
+    setParseError('');
   };
 
   const generateDescription = (mod: { target: string; value: number; operator: ModifierOperator; condition?: string }) => {
@@ -139,19 +151,56 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
     onChange(modifiers.filter(m => m.id !== id));
   };
 
+  const handleParseText = () => {
+    setParseError('');
+
+    if (!parseText.trim()) {
+      setParseError('Please enter some text to parse');
+      return;
+    }
+
+    try {
+      const parsed = parseModifiers(parseText);
+
+      if (parsed.length === 0) {
+        setParseError('No modifiers found. Try text like "+1 to Agility" or "-2 to attack rolls"');
+        return;
+      }
+
+      // Add parsed modifiers to existing ones
+      onChange([...modifiers, ...parsed]);
+
+      // Reset text parser
+      setParseText('');
+      setShowTextParser(false);
+    } catch (error) {
+      setParseError('Failed to parse text. Please check the format.');
+    }
+  };
+
   return (
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Modifiers</h3>
-        {!isAdding && (
-          <button
-            onClick={() => setIsAdding(true)}
-            className="flex items-center gap-1 px-3 py-1.5 bg-dagger-gold text-black text-sm font-bold rounded-full hover:scale-105 active:scale-95 transition-all"
-          >
-            <Plus size={16} />
-            Add Modifier
-          </button>
+        {!isAdding && !showTextParser && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowTextParser(true)}
+              className="flex items-center gap-1 px-3 py-1.5 bg-white/10 text-white text-sm font-bold rounded-full hover:bg-white/20 transition-all"
+              title="Parse text automatically"
+            >
+              <Wand2 size={16} />
+              Parse Text
+            </button>
+            <button
+              onClick={() => setIsAdding(true)}
+              className="flex items-center gap-1 px-3 py-1.5 bg-dagger-gold text-black text-sm font-bold rounded-full hover:scale-105 active:scale-95 transition-all"
+            >
+              <Plus size={16} />
+              Add Manually
+            </button>
+          </div>
         )}
       </div>
 
@@ -191,6 +240,65 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
           </div>
         </div>
       ))}
+
+      {/* Text Parser */}
+      {showTextParser && (
+        <div className="bg-black/40 border border-blue-500/50 rounded-lg p-4 space-y-3">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-bold text-blue-400 flex items-center gap-2">
+              <Wand2 size={16} />
+              Parse Feature Text
+            </h4>
+            <button
+              onClick={resetForm}
+              className="text-gray-500 hover:text-white"
+              title="Cancel"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">
+              Feature Text
+            </label>
+            <textarea
+              value={parseText}
+              onChange={(e) => {
+                setParseText(e.target.value);
+                setParseError('');
+              }}
+              className="w-full p-3 rounded bg-black/40 border border-white/20 text-white text-sm focus:border-blue-500 outline-none min-h-[100px] font-mono"
+              placeholder="Examples:&#10;+1 to attack rolls&#10;-1 to Evasion; +1 to Strength&#10;+2 to damage"
+            />
+            <div className="text-xs text-gray-500 mt-1">
+              Supports: stat modifiers, attack rolls, damage, multi-modifiers (separated by ; or newline)
+            </div>
+          </div>
+
+          {parseError && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded p-2 text-red-400 text-xs">
+              {parseError}
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={handleParseText}
+              className="flex-1 py-2 bg-blue-500 text-white font-bold rounded-full hover:bg-blue-600 transition-all text-sm"
+            >
+              <Wand2 size={16} className="inline mr-1" />
+              Parse & Add
+            </button>
+            <button
+              onClick={resetForm}
+              className="px-4 py-2 bg-white/10 text-white font-bold rounded-full hover:bg-white/20 transition-all text-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Form */}
       {isAdding && (
