@@ -20,6 +20,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCharacterStore, Character, LibraryItem } from '@/store/character-store';
 import createClient from '@/lib/supabase/client';
+import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
 import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins, Sword, X, Heart, Upload } from 'lucide-react';
 import AddItemModal from '@/components/add-item-modal';
@@ -138,38 +139,50 @@ export default function CreateCharacterPage() {
     const fetchAllLibraryData = async () => {
       setLibraryLoading(true);
       setError(null);
-      const supabase = createClient();
 
-      const { data: ancestriesData, error: e1 } = await supabase.from('library').select('*').eq('type', 'ancestry');
-      const { data: communitiesData, error: e2 } = await supabase.from('library').select('*').eq('type', 'community');
-      const { data: classesData, error: e3 } = await supabase.from('library').select('*').eq('type', 'class');
-      const { data: subclassesData, error: e4 } = await supabase.from('library').select('*').eq('type', 'subclass');
-      const { data: domainsData, error: eDomain } = await supabase.from('library').select('*').eq('type', 'domain');
-      const { data: weaponsData, error: e5 } = await supabase.from('library').select('*').eq('type', 'weapon');
-      const { data: armorData, error: e6 } = await supabase.from('library').select('*').eq('type', 'armor');
-      const { data: consumablesData, error: e7 } = await supabase.from('library').select('*').eq('type', 'consumable');
-      const { data: abilitiesData, error: e8 } = await supabase.from('library').select('*').eq('type', 'ability');
-      const { data: spellsData, error: e9 } = await supabase.from('library').select('*').eq('type', 'spell');
-      const { data: grimoiresData, error: e10 } = await supabase.from('library').select('*').eq('type', 'grimoire');
+      try {
+        const [
+          ancestriesData,
+          communitiesData,
+          classesData,
+          subclassesData,
+          domainsData,
+          weaponsData,
+          armorData,
+          consumablesData,
+          abilitiesData,
+          spellsData,
+          grimoiresData
+        ] = await Promise.all([
+          dataService.library.getByType('ancestry'),
+          dataService.library.getByType('community'),
+          dataService.library.getByType('class'),
+          dataService.library.getByType('subclass'),
+          dataService.library.getByType('domain'),
+          dataService.library.getByType('weapon'),
+          dataService.library.getByType('armor'),
+          dataService.library.getByType('consumable'),
+          dataService.library.getByType('ability'),
+          dataService.library.getByType('spell'),
+          dataService.library.getByType('grimoire'),
+        ]);
 
-
-      if (e1 || e2 || e3 || e4 || e5 || e6 || e7 || e8 || e9 || e10) {
-        setError("Failed to load SRD data: " + (e1?.message || e2?.message || e3?.message || e4?.message || e5?.message || e6?.message || e7?.message || e8?.message || e9?.message || e10?.message));
-        console.error(e1, e2, e3, e4, e5, e6, e7, e8, e9, e10);
-      } else {
         setLibraryData({
-          ancestries: ancestriesData || [],
-          communities: communitiesData || [],
-          classes: classesData || [],
-          subclasses: subclassesData || [],
-          domains: domainsData || [],
-          weapons: weaponsData || [],
-          armor: armorData || [],
-          consumables: consumablesData || [],
-          abilities: abilitiesData || [],
-          spells: spellsData || [],
-          grimoires: grimoiresData || [],
+          ancestries: ancestriesData,
+          communities: communitiesData,
+          classes: classesData,
+          subclasses: subclassesData,
+          domains: domainsData,
+          weapons: weaponsData,
+          armor: armorData,
+          consumables: consumablesData,
+          abilities: abilitiesData,
+          spells: spellsData,
+          grimoires: grimoiresData,
         });
+      } catch (error) {
+        setError("Failed to load SRD data: " + (error instanceof Error ? error.message : String(error)));
+        console.error(error);
       }
       setLibraryLoading(false);
     };
@@ -555,23 +568,18 @@ export default function CreateCharacterPage() {
       uploadedImageUrl = uploadResult.url;
     }
 
-    const supabase = createClient();
-
     // Check character limit
-    const { count, error: countError } = await supabase
-      .from('characters')
-      .select('id', { count: 'exact' })
-      .eq('user_id', user.id);
+    try {
+      const count = await dataService.character.count(user.id);
 
-    if (countError) {
-      setError("Error checking character limit: " + countError.message);
+      if (count >= 25) {
+        setError("You have reached the maximum of 25 characters. Please delete an existing character to create a new one.");
+        setIsSubmitting(false);
+        return;
+      }
+    } catch (countError) {
+      setError("Error checking character limit: " + (countError instanceof Error ? countError.message : String(countError)));
       console.error(countError);
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (count && count >= 25) {
-      setError("You have reached the maximum of 25 characters. Please delete an existing character to create a new one.");
       setIsSubmitting(false);
       return;
     }
@@ -751,43 +759,36 @@ export default function CreateCharacterPage() {
       });
     }
 
-    // Prepare RPC Payloads
-    const rpcCharacterData = {
-      ...newCharacterData,
-      // Experiences needs to be a JSON array for the RPC
-      experiences: newCharacterData.experiences,
-      // Stats, Vitals, Gold, Modifiers need to be JSON objects
-      stats: newCharacterData.stats,
-      vitals: newCharacterData.vitals,
-      gold: newCharacterData.gold,
-      modifiers: {}
+    // Prepare character creation payload
+    const characterPayload = {
+      character: {
+        ...newCharacterData,
+        experiences: newCharacterData.experiences,
+        stats: newCharacterData.stats,
+        vitals: newCharacterData.vitals,
+        gold: newCharacterData.gold,
+        modifiers: {}
+      },
+      cards: cardsToInsert.map(({ card_id, location, sort_order }) => ({
+        card_id,
+        location,
+        sort_order
+      })),
+      inventory: inventoryToInsert.map(({ item_id, name, description, location, quantity }) => ({
+        item_id,
+        name,
+        description,
+        location,
+        quantity
+      }))
     };
 
-    // Prepare Cards Payload (remove character_id as RPC handles it)
-    const rpcCardsData = cardsToInsert.map(({ card_id, location, sort_order }) => ({
-      card_id,
-      location,
-      sort_order
-    }));
-
-    // Prepare Inventory Payload (remove character_id as RPC handles it)
-    const rpcInventoryData = inventoryToInsert.map(({ item_id, name, description, location, quantity }) => ({
-      item_id,
-      name,
-      description,
-      location,
-      quantity
-    }));
-
-    const { data: characterId, error: rpcError } = await supabase.rpc('create_complete_character', {
-      p_character: rpcCharacterData,
-      p_cards: rpcCardsData,
-      p_inventory: rpcInventoryData
-    });
-
-    if (rpcError) {
-      setError("Error creating character: " + rpcError.message);
-      console.error(rpcError);
+    try {
+      const characterId = await dataService.character.create(characterPayload);
+      console.log("Character created successfully:", characterId);
+    } catch (createError) {
+      setError("Error creating character: " + (createError instanceof Error ? createError.message : String(createError)));
+      console.error(createError);
       setIsSubmitting(false);
       return;
     }

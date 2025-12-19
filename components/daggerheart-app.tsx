@@ -31,41 +31,39 @@ import DevErrorTriggers from '@/components/dev-error-triggers';
 
 export default function DaggerheartApp({ clientUser }: { clientUser: User | null }) {
   const router = useRouter();
-  const { activeTab, setCharacter, setUser, fetchUser, fetchCharacter, isLoading, character } = useCharacterStore();
+  const { activeTab, setCharacter, setUser, fetchUser, fetchCharacter, isLoading, character, user } = useCharacterStore();
   const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
+    // Only run this effect once on mount
+    if (!initialLoad) return;
+
     // If we have a clientUser from the server, set it immediately
     if (clientUser) {
       setUser(clientUser);
-      // Only fetch user/character if we don't already have a character loaded
-      // This prevents overwriting a character that was just selected
-      if (!character) {
-        // Then trigger the full fetchUser flow which checks/creates the profile and fetches the character
-        fetchUser().then(() => {
-          setInitialLoad(false);
-        });
-      } else {
+      // Then trigger the full fetchUser flow which checks/creates the profile and fetches the character
+      fetchUser().then(() => {
         setInitialLoad(false);
-      }
+      });
     } else {
       // If no user, just clear state
       setUser(null);
       setCharacter(null);
       setInitialLoad(false);
     }
-  }, [clientUser, setUser, setCharacter, fetchUser, character]); // Added character to dependency array
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
 
   if (isLoading || initialLoad) {
     return (
       <div className="flex flex-col items-center justify-center h-[100dvh] bg-dagger-dark text-white">
         <p>Loading application...</p>
-        {!clientUser && <AuthButton />}
+        {!user && <AuthButton />}
       </div>
     );
   }
 
-  if (!clientUser) {
+  if (!user) {
     return (
       <div className="flex flex-col items-center justify-center h-[100dvh] bg-dagger-dark text-white p-4 text-center">
         <h1 className="text-3xl font-serif font-bold mb-4">Welcome to Daggerheart Companion</h1>
@@ -76,7 +74,7 @@ export default function DaggerheartApp({ clientUser }: { clientUser: User | null
   }
 
   // User logged in, but no character found
-  if (clientUser && !character) {
+  if (user && !character) {
     return (
       <div className="flex flex-col items-center justify-center h-[100dvh] bg-dagger-dark text-white p-4 text-center">
         <h1 className="text-3xl font-serif font-bold mb-4">No Character Found</h1>

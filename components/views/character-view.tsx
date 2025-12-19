@@ -27,7 +27,7 @@ import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/supabase/storage';
 import { toast } from 'sonner';
-import createClient from '@/lib/supabase/client';
+import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 export default function CharacterView() {
@@ -91,56 +91,57 @@ export default function CharacterView() {
   // Fetch domain cards, ancestry, and community from library
   useEffect(() => {
     const fetchLibraryData = async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('library')
-        .select('*');
+      try {
+        const data = await dataService.library.getAll();
 
-      if (!error && data) {
-        // Parse cards
-        const cards = data.map((lib: any) => ({
-          id: lib.id,
-          name: lib.name,
-          domain: lib.domain,
-          type: lib.type || lib.data?.type || '', // Fallback to data.type if row type is empty, but prefer row type
-          data: lib.data || {},
-        }));
+        if (data) {
+          // Parse cards
+          const cards = data.map((lib: any) => ({
+            id: lib.id,
+            name: lib.name,
+            domain: lib.domain,
+            type: lib.type || lib.data?.type || '',
+            data: lib.data || {},
+          }));
 
-        // Filter domain cards
-        const domainCardsList = cards.filter((c: any) => c.domain && c.type);
-        setDomainCards(domainCardsList);
+          // Filter domain cards
+          const domainCardsList = cards.filter((c: any) => c.domain && c.type);
+          setDomainCards(domainCardsList);
 
-        // Filter subclasses
-        const subclassesList = cards.filter((c: any) => c.type === 'subclass');
-        setSubclasses(subclassesList);
+          // Filter subclasses
+          const subclassesList = cards.filter((c: any) => c.type === 'subclass');
+          setSubclasses(subclassesList);
 
-        // Filter classes (for linking subclasses)
-        const classesList = cards.filter((c: any) => c.type === 'class');
-        setClasses(classesList);
+          // Filter classes (for linking subclasses)
+          const classesList = cards.filter((c: any) => c.type === 'class');
+          setClasses(classesList);
 
-        // Find ancestry card
-        if (character?.ancestry) {
-          const ancestry = data.find((lib: any) => lib.name === character.ancestry);
-          if (ancestry) {
-            setAncestryCard({
-              name: ancestry.name,
-              description: ancestry.data?.description || ancestry.data?.markdown || '',
-              features: ancestry.data?.features || [],
-            });
+          // Find ancestry card
+          if (character?.ancestry) {
+            const ancestry = data.find((lib: any) => lib.name === character.ancestry);
+            if (ancestry) {
+              setAncestryCard({
+                name: ancestry.name,
+                description: ancestry.data?.description || ancestry.data?.markdown || '',
+                features: ancestry.data?.features || [],
+              });
+            }
+          }
+
+          // Find community card
+          if (character?.community) {
+            const community = data.find((lib: any) => lib.name === character.community);
+            if (community) {
+              setCommunityCard({
+                name: community.name,
+                description: community.data?.description || community.data?.markdown || '',
+                features: community.data?.features || [],
+              });
+            }
           }
         }
-
-        // Find community card
-        if (character?.community) {
-          const community = data.find((lib: any) => lib.name === character.community);
-          if (community) {
-            setCommunityCard({
-              name: community.name,
-              description: community.data?.description || community.data?.markdown || '',
-              features: community.data?.features || [],
-            });
-          }
-        }
+      } catch (error) {
+        console.error('Failed to load library data:', error);
       }
     };
 

@@ -1,19 +1,18 @@
 "use client";
 
 import { useState } from "react";
-
 import { useSearchParams } from "next/navigation";
-
 import createClient from "@/lib/supabase/client";
-import { CircleAlert, LoaderCircle } from "lucide-react";
+import { CircleAlert, LoaderCircle, Coffee, Heart, Shield, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const supabase = createClient();
-
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/client/characters";
 
@@ -35,46 +34,112 @@ export default function LoginPage() {
       }
     } catch (error) {
       setError("There was an error logging in with Google. Please try again.");
-      console.error("Error loging in with Google:", error);
+      console.error("Error logging in with Google:", error);
       setIsGoogleLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto py-12">
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-semibold">Welcome back</h1>
-        <p className="mt-2 text-muted-foreground">
-          Login to your account to continue
-        </p>
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-dagger-dark relative overflow-hidden">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-dagger-gold/5 rounded-full blur-[100px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-dagger-gold/5 rounded-full blur-[100px]" />
       </div>
 
-      {error && (
-        <div className="rounded-md border px-4 py-3">
-          <p className="text-sm">
-            <CircleAlert
-              className="me-3 -mt-0.5 inline-flex text-red-500"
-              size={16}
-              aria-hidden="true"
-            />
-            {error}
-          </p>
-        </div>
-      )}
-
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={loginWithGoogle}
-        disabled={isGoogleLoading}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative w-full max-w-md"
       >
-        {isGoogleLoading ? (
-          <LoaderCircle className="animate-spin size-5" />
-        ) : (
-          <GoogleIcon />
-        )}
-        <span className="ml-2">Login with Google</span>
-      </Button>
+        <Card className="border-white/10 bg-dagger-panel/80 backdrop-blur-xl shadow-2xl">
+          <CardHeader className="text-center space-y-2 pb-8">
+            <div className="mx-auto bg-dagger-dark/50 p-3 rounded-full w-fit mb-2 border border-dagger-gold/20">
+              <Shield className="w-8 h-8 text-dagger-gold" />
+            </div>
+            <CardTitle className="text-3xl font-bold tracking-tight text-dagger-gold">
+              Daggerheart Companion
+            </CardTitle>
+            <CardDescription className="text-gray-400 text-base">
+              Your digital character sheet for the Daggerheart TTRPG
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="rounded-md bg-red-900/20 border border-red-500/20 px-4 py-3"
+              >
+                <p className="text-sm text-red-400 flex items-center gap-2">
+                  <CircleAlert className="size-4" />
+                  {error}
+                </p>
+              </motion.div>
+            )}
+
+            <div className="space-y-4">
+              <Button
+                variant="outline"
+                className="w-full h-12 text-base font-medium relative group overflow-hidden border-white/10 hover:border-dagger-gold/50 hover:bg-dagger-dark text-white hover:text-dagger-gold transition-colors"
+                onClick={loginWithGoogle}
+                disabled={isGoogleLoading}
+              >
+                {isGoogleLoading ? (
+                  <LoaderCircle className="animate-spin size-5 mr-2" />
+                ) : (
+                  <GoogleIcon />
+                )}
+                <span className="ml-2">Continue with Google</span>
+              </Button>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-white/10" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-dagger-panel px-2 text-gray-500">
+                  Support the Project
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-dagger-dark/30 rounded-lg p-4 text-center space-y-3 border border-white/5">
+              <p className="text-sm text-gray-400">
+                This app is a free, fan-made project. If you enjoy using it, consider buying me a coffee!
+              </p>
+              <Button
+                asChild
+                className="w-full bg-dagger-gold hover:bg-dagger-gold/90 text-black font-semibold shadow-lg hover:shadow-xl transition-all border-none"
+              >
+                <a
+                  href="https://buymeacoffee.com/galactic.eye.codex"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2"
+                >
+                  <Coffee className="size-5" />
+                  Buy Me A Coffee
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+
+          <CardFooter className="flex flex-col items-center gap-2 pt-2 pb-6">
+            <p className="text-xs text-center text-gray-500 max-w-[280px]">
+              Daggerheart is a trademark of Darrington Press. This is an unofficial companion app.
+            </p>
+            <div className="flex items-center gap-1 text-xs text-gray-600 mt-2">
+              <span>Made with</span>
+              <Heart className="size-3 text-red-500/50 fill-red-500/20" />
+              <span>by the community</span>
+            </div>
+          </CardFooter>
+        </Card>
+      </motion.div>
     </div>
   );
 }

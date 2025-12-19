@@ -9,7 +9,7 @@
  */
 
 import { StateCreator } from 'zustand';
-import createClient from '@/lib/supabase/client';
+import { dataService } from '@/lib/data-service';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
 import { Experience } from '@/types/character';
 import { CharacterStore } from '@/types/store';
@@ -50,7 +50,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
           }));
         };
       },
-      async () => createClient().from('characters').update({ vitals: updatedVitals }).eq('id', characterId),
+      async () => dataService.character.update(characterId, { vitals: updatedVitals }),
       `Failed to update ${type.replace('_', ' ')}`
     );
   },
@@ -75,7 +75,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
           }));
         };
       },
-      async () => createClient().from('characters').update({ gold: newGold }).eq('id', characterId),
+      async () => dataService.character.update(characterId, { gold: newGold }),
       'Failed to update gold'
     );
   },
@@ -99,7 +99,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
           }));
         };
       },
-      async () => createClient().from('characters').update({ hope: newHope }).eq('id', characterId),
+      async () => dataService.character.update(characterId, { hope: newHope }),
       'Failed to update hope'
     );
   },
@@ -125,7 +125,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
           }));
         };
       },
-      async () => createClient().from('characters').update({ evasion: newEvasion }).eq('id', characterId),
+      async () => dataService.character.update(characterId, { evasion: newEvasion }),
       'Failed to update evasion'
     );
   },
@@ -151,7 +151,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
           }));
         };
       },
-      async () => createClient().from('characters').update({ modifiers: currentModifiers }).eq('id', characterId),
+      async () => dataService.character.update(characterId, { modifiers: currentModifiers }),
       'Failed to update modifiers'
     );
 
@@ -179,7 +179,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
           }));
         };
       },
-      async () => createClient().from('characters').update({ experiences }).eq('id', characterId),
+      async () => dataService.character.update(characterId, { experiences }),
       'Failed to update experiences'
     );
   },

@@ -9,7 +9,7 @@
  */
 
 import { StateCreator } from 'zustand';
-import createClient from '@/lib/supabase/client';
+import { dataService } from '@/lib/data-service';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
 import { CharacterCard, LibraryItem, AdvancementRecord } from '@/types/character';
 import { CharacterStore } from '@/types/store';
@@ -44,7 +44,6 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
     if (!state.character) return;
 
     const characterId = state.character.id;
-    const supabase = createClient();
 
     // Import helper functions for leveling
     const {
@@ -257,32 +256,24 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
           }));
         };
       },
-      async () => supabase.from('characters').update(updatePayload).eq('id', characterId),
+      async () => dataService.character.update(characterId, updatePayload),
       'Failed to apply level up'
     );
 
     // Handle domain card exchange if selected
     if (options.exchangeExistingCardId) {
       try {
-        // Delete the old card
-        const { error: deleteError } = await supabase
-          .from('character_cards')
-          .delete()
-          .eq('id', options.exchangeExistingCardId);
+        await dataService.card.remove(options.exchangeExistingCardId);
 
-        if (deleteError) {
-          console.error('Failed to delete exchanged card:', deleteError);
-        } else {
-          // Remove from local state
-          set((s: any) => ({
-            character: s.character ? {
-              ...s.character,
-              character_cards: (s.character.character_cards || []).filter(
-                (c: any) => c.id !== options.exchangeExistingCardId
-              )
-            } : null
-          }));
-        }
+        // Remove from local state
+        set((s: any) => ({
+          character: s.character ? {
+            ...s.character,
+            character_cards: (s.character.character_cards || []).filter(
+              (c: any) => c.id !== options.exchangeExistingCardId
+            )
+          } : null
+        }));
       } catch (err) {
         console.error('Failed to exchange domain card:', err);
       }
@@ -293,27 +284,13 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
       try {
         for (const cardId of options.selectedDomainCardIds) {
           // First check if the card exists in the library and get its data
-          const { data: libraryCard } = await supabase
-            .from('library')
-            .select('*')
-            .eq('id', cardId)
-            .single();
+          const libraryCard = await dataService.library.get(cardId);
 
           // Only insert if card exists in library
           if (libraryCard) {
-            const { data: newCard, error: cardError } = await supabase
-              .from('character_cards')
-              .insert([{
-                character_id: characterId,
-                card_id: cardId,
-                location: 'vault',
-                state: { tokens: 0, exhausted: false },
-                sort_order: 0,
-              }])
-              .select()
-              .single();
+            const newCard = await dataService.card.add(characterId, cardId, 'vault');
 
-            if (!cardError && newCard) {
+            if (newCard) {
               // Update local state to include the new card WITH library data
               const cardWithLibrary: CharacterCard = {
                 ...newCard,
@@ -340,27 +317,13 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
     if (options.multiclassFoundationCardId) {
       try {
         // First check if the card exists in the library and get its data
-        const { data: libraryCard } = await supabase
-          .from('library')
-          .select('*')
-          .eq('id', options.multiclassFoundationCardId)
-          .single();
+        const libraryCard = await dataService.library.get(options.multiclassFoundationCardId);
 
         // Only insert if card exists in library
         if (libraryCard) {
-          const { data: newCard, error: cardError } = await supabase
-            .from('character_cards')
-            .insert([{
-              character_id: characterId,
-              card_id: options.multiclassFoundationCardId,
-              location: 'feature', // Subclass cards stored as 'feature'
-              state: { tokens: 0, exhausted: false },
-              sort_order: 0,
-            }])
-            .select()
-            .single();
+            const newCard = await dataService.card.add(characterId, options.multiclassFoundationCardId, 'feature');
 
-          if (!cardError && newCard) {
+          if (newCard) {
             // Update local state to include the new foundation card WITH library data
             const cardWithLibrary: CharacterCard = {
               ...newCard,
@@ -393,7 +356,6 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
     if (!state.character) return;
 
     const characterId = state.character.id;
-    const supabase = createClient();
 
     // Handle de-leveling: rollback all advancement changes
     let updatePayload: Record<string, any> = { ...updates };
@@ -459,10 +421,7 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
                 (card: any) => card.card_id === cardId
               );
               if (cardToRemove) {
-                await supabase
-                  .from('character_cards')
-                  .delete()
-                  .eq('id', cardToRemove.id);
+                await dataService.card.remove(cardToRemove.id);
                 character.character_cards = character.character_cards?.filter(
                   (c: any) => c.id !== cardToRemove.id
                 ) || [];
@@ -474,10 +433,7 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
               (card: any) => card.card_id === (levelRecord as any).domainCardSelected
             );
             if (cardToRemove) {
-              await supabase
-                .from('character_cards')
-                .delete()
-                .eq('id', cardToRemove.id);
+              await dataService.card.remove(cardToRemove.id);
               character.character_cards = character.character_cards?.filter(
                 (c: any) => c.id !== cardToRemove.id
               ) || [];
@@ -523,7 +479,7 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
           }));
         };
       },
-      async () => supabase.from('characters').update(updatePayload).eq('id', characterId),
+      async () => dataService.character.update(characterId, updatePayload),
       'Failed to update character details'
     );
 
@@ -551,7 +507,7 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
           }));
         };
       },
-      async () => createClient().from('characters').update({ marked_traits_jsonb: markedTraits }).eq('id', characterId),
+      async () => dataService.character.update(characterId, { marked_traits_jsonb: markedTraits }),
       'Failed to update marked traits'
     );
   },

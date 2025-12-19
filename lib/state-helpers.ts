@@ -40,17 +40,28 @@ type RollbackFn = () => void;
  */
 export async function withOptimisticUpdate<T>(
   updateFn: () => RollbackFn,
-  dbOperation: () => Promise<{ error: any; data?: T }>,
+  dbOperation: () => Promise<any>,
   errorMessage: string = 'Operation failed'
 ): Promise<{ success: boolean; data?: T }> {
   // 1. Perform optimistic update and get rollback function
   const rollback = updateFn();
 
-  // 2. Attempt database operation
-  const { error, data } = await dbOperation();
+  try {
+    // 2. Attempt database operation
+    const result = await dbOperation();
 
-  // 3. Handle error: rollback and notify user
-  if (error) {
+    // Check for Supabase-style error object if result is an object
+    if (result && typeof result === 'object' && 'error' in result && result.error) {
+      throw result.error;
+    }
+
+    // 4. Success
+    // If result has data property (Supabase style), return that, otherwise return result itself
+    const data = result && typeof result === 'object' && 'data' in result ? result.data : result;
+    return { success: true, data };
+
+  } catch (error: any) {
+    // 3. Handle error: rollback and notify user
     console.error('Database operation failed:', error);
     rollback();
     toast.error(errorMessage, {
@@ -59,7 +70,4 @@ export async function withOptimisticUpdate<T>(
     });
     return { success: false };
   }
-
-  // 4. Success
-  return { success: true, data };
 }

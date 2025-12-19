@@ -72,8 +72,8 @@ export interface HomebrewItem {
 export interface CharacterInventoryItem {
   id: string;
   character_id: string;
-  item_id?: string; // Foreign key to library, nullable for custom items
-  homebrew_item_id?: string; // Foreign key to homebrew_items
+  item_id?: string | null; // Foreign key to library, nullable for custom items
+  homebrew_item_id?: string | null; // Foreign key to homebrew_items
   name: string;
   description?: string;
   location: 'equipped_primary' | 'equipped_secondary' | 'armor' | 'equipped_armor' | 'backpack';
