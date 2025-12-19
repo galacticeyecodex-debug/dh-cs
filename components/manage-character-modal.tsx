@@ -18,7 +18,7 @@
 import React, { useState } from 'react';
 import { X, AlertCircle, Settings, Plus, Minus, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import createClient from '@/lib/supabase/client';
+import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 interface ManageCharacterModalProps {
@@ -66,12 +66,17 @@ export default function ManageCharacterModal({
   // Fetch dynamic options on mount
   React.useEffect(() => {
     const fetchOptions = async () => {
-      const supabase = createClient();
-      const { data: ancestries } = await supabase.from('library').select('name').eq('type', 'ancestry');
-      const { data: communities } = await supabase.from('library').select('name').eq('type', 'community');
+      try {
+        const [ancestries, communities] = await Promise.all([
+            dataService.library.getByType('ancestry'),
+            dataService.library.getByType('community')
+        ]);
 
-      if (ancestries) setAvailableAncestries(ancestries);
-      if (communities) setAvailableCommunities(communities);
+        if (ancestries) setAvailableAncestries(ancestries);
+        if (communities) setAvailableCommunities(communities);
+      } catch (e) {
+          console.error("Failed to load options", e);
+      }
     };
 
     if (isOpen) fetchOptions();

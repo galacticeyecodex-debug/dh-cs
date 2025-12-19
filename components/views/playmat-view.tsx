@@ -23,7 +23,7 @@ import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character
 import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AddItemModal from '@/components/add-item-modal';
-import createClient from '@/lib/supabase/client';
+import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -40,18 +40,23 @@ export default function PlaymatView() {
   useEffect(() => {
     const fetchAllLibraryItems = async () => {
       setLibraryLoading(true);
-      const supabase = createClient();
 
-      // Fetch card-related types
-      const { data: abilitiesData } = await supabase.from('library').select('*').eq('type', 'ability');
-      const { data: spellsData } = await supabase.from('library').select('*').eq('type', 'spell');
-      const { data: grimoiresData } = await supabase.from('library').select('*').eq('type', 'grimoire');
+      try {
+        // Fetch card-related types
+        const [abilitiesData, spellsData, grimoiresData] = await Promise.all([
+          dataService.library.getByType('ability'),
+          dataService.library.getByType('spell'),
+          dataService.library.getByType('grimoire'),
+        ]);
 
-      setAllLibraryItems([
-        ...(abilitiesData || []),
-        ...(spellsData || []),
-        ...(grimoiresData || []),
-      ]);
+        setAllLibraryItems([
+          ...abilitiesData,
+          ...spellsData,
+          ...grimoiresData,
+        ]);
+      } catch (error) {
+        console.error("Failed to load library data:", error);
+      }
       setLibraryLoading(false);
     };
 

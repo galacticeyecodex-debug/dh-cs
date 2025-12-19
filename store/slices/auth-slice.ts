@@ -11,6 +11,7 @@
 import { StateCreator } from 'zustand';
 import { User } from '@supabase/supabase-js';
 import createClient from '@/lib/supabase/client';
+import { dataService } from '@/lib/data-service';
 import { CharacterStore } from '@/types/store';
 
 export interface AuthSlice {
@@ -30,21 +31,19 @@ export const createAuthSlice: StateCreator<CharacterStore, [], [], AuthSlice> = 
       set({ user });
 
       // Ensure profile exists
-      const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).maybeSingle();
+      try {
+        const profile = await dataService.profile.get(user.id);
 
-      if (!profile) {
-        console.log("Profile missing, creating for user:", user.id);
-        const { error: insertError } = await supabase.from('profiles').insert({
-          id: user.id,
-          username: user.user_metadata.full_name || user.email?.split('@')[0] || 'Traveler',
-          avatar_url: user.user_metadata.avatar_url
-        });
-
-        if (insertError) {
-          console.error("Error creating profile:", insertError);
-        } else {
+        if (!profile) {
+          console.log("Profile missing, creating for user:", user.id);
+          await dataService.profile.create(user.id, {
+            username: user.user_metadata.full_name || user.email?.split('@')[0] || 'Traveler',
+            avatar_url: user.user_metadata.avatar_url
+          });
           console.log("Profile created successfully.");
         }
+      } catch (error) {
+        console.error("Error managing profile:", error);
       }
 
       // Then fetch character

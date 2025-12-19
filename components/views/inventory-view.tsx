@@ -26,7 +26,7 @@ import { Coins, Package, Sword, Shield, ArrowRightLeft, Plus, Heart, Gem, Eye, E
 import clsx from 'clsx';
 import AddItemModal from '@/components/add-item-modal';
 import CreateHomebrewItemModal, { HomebrewItemData } from '@/components/create-homebrew-item-modal';
-import createClient from '@/lib/supabase/client'; // Import Supabase client
+import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 export default function InventoryView() {
@@ -54,24 +54,24 @@ export default function InventoryView() {
     const fetchAllLibraryItems = async () => {
       setLibraryLoading(true);
       setError(null);
-      const supabase = createClient();
 
-      const { data: weaponsData, error: e1 } = await supabase.from('library').select('*').eq('type', 'weapon');
-      const { data: armorData, error: e2 } = await supabase.from('library').select('*').eq('type', 'armor');
-      const { data: consumablesData, error: e3 } = await supabase.from('library').select('*').eq('type', 'consumable');
-      const { data: itemsData, error: e4 } = await supabase.from('library').select('*').eq('type', 'item');
-
-
-      if (e1 || e2 || e3 || e4) {
-        setError("Failed to load library data: " + (e1?.message || e2?.message || e3?.message || e4?.message));
-        console.error(e1, e2, e3, e4);
-      } else {
-        setAllLibraryItems([
-          ...(weaponsData || []),
-          ...(armorData || []),
-          ...(consumablesData || []),
-          ...(itemsData || []),
+      try {
+        const [weaponsData, armorData, consumablesData, itemsData] = await Promise.all([
+          dataService.library.getByType('weapon'),
+          dataService.library.getByType('armor'),
+          dataService.library.getByType('consumable'),
+          dataService.library.getByType('item'),
         ]);
+
+        setAllLibraryItems([
+          ...weaponsData,
+          ...armorData,
+          ...consumablesData,
+          ...itemsData,
+        ]);
+      } catch (error) {
+        setError("Failed to load library data: " + (error instanceof Error ? error.message : String(error)));
+        console.error(error);
       }
       setLibraryLoading(false);
     };

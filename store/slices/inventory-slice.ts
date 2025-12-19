@@ -9,7 +9,7 @@
  */
 
 import { StateCreator } from 'zustand';
-import createClient from '@/lib/supabase/client';
+import { dataService } from '@/lib/data-service';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
 import { LibraryItem, CharacterCard, CharacterInventoryItem, HomebrewItem } from '@/types/character';
 import { toast } from 'sonner';
@@ -54,7 +54,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
           }));
         };
       },
-      async () => createClient().from('character_cards').update({ location: destination }).eq('id', cardId),
+      async () => dataService.card.update(cardId, { location: destination }),
       'Failed to move card'
     );
   },
@@ -63,45 +63,29 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
     const state = get() as any;
     if (!state.character) return;
 
-    const supabase = createClient();
-    const newCard: Omit<CharacterCard, 'id' | 'library_item'> = {
-      character_id: state.character.id,
-      card_id: item.id,
-      location: 'vault', // Default to vault
-      state: {},
-      sort_order: 0
-    };
+    try {
+      const data = await dataService.card.add(state.character.id, item.id, 'vault');
 
-    const { data, error } = await supabase
-      .from('character_cards')
-      .insert([newCard])
-      .select()
-      .single();
+      // Manually add the library_item data
+      const addedCard: CharacterCard = {
+        ...data,
+        library_item: item,
+      };
 
-    if (error) {
+      set((s: any) => ({
+        character: s.character ? {
+          ...s.character,
+          character_cards: [...(s.character.character_cards || []), addedCard],
+        } : null,
+      }));
+    } catch (error) {
       console.error('Error adding card:', error);
-      return;
     }
-
-    // Manually add the library_item data
-    const addedCard: CharacterCard = {
-      ...data,
-      library_item: item,
-    };
-
-    set((s: any) => ({
-      character: s.character ? {
-        ...s.character,
-        character_cards: [...(s.character.character_cards || []), addedCard],
-      } : null,
-    }));
   },
 
   addItemToInventory: async (item: LibraryItem) => {
     const state = get() as any;
     if (!state.character) return;
-
-    const supabase = createClient();
 
     // Check if this is a homebrew item (ID starts with 'homebrew-')
     const isHomebrew = item.id.startsWith('homebrew-');
@@ -119,31 +103,26 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
       // library_item will be joined on fetch, so not directly set here
     };
 
-    const { data, error } = await supabase
-      .from('character_inventory')
-      .insert([newInventoryItem])
-      .select()
-      .single();
+    try {
+      const data = await dataService.inventory.add(state.character.id, newInventoryItem);
 
-    if (error) {
+      // Manually add the library_item data since it's not joined on insert
+      const addedItem: CharacterInventoryItem = {
+        ...data,
+        library_item: item,
+        homebrew_item: isHomebrew ? state.homebrewItems.find((h: any) => h.id === homebrewItemId) : undefined,
+      };
+
+      // Optimistically update the UI
+      set((s: any) => ({
+        character: s.character ? {
+          ...s.character,
+          character_inventory: [...(s.character.character_inventory || []), addedItem],
+        } : null,
+      }));
+    } catch (error) {
       console.error('Error adding item to inventory:', error);
-      return;
     }
-
-    // Manually add the library_item data since it's not joined on insert
-    const addedItem: CharacterInventoryItem = {
-      ...data,
-      library_item: item,
-      homebrew_item: isHomebrew ? state.homebrewItems.find((h: any) => h.id === homebrewItemId) : undefined,
-    };
-
-    // Optimistically update the UI
-    set((s: any) => ({
-      character: s.character ? {
-        ...s.character,
-        character_inventory: [...(s.character.character_inventory || []), addedItem],
-      } : null,
-    }));
   },
 
   equipItem: async (itemId, slot) => {
@@ -198,10 +177,8 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
         };
       },
           async () => {
-            // Single atomic RPC call - all updates succeed or all fail
-            return createClient().rpc('swap_equipment_items', {
-              updates_json: updates
-            });
+            // Send simple updates list to service, let it handle RPC details
+            return dataService.inventory.equip(updates.map(u => ({ id: u.id, location: u.location })));
           },      'Failed to equip item'
     );
 
@@ -230,7 +207,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
           }));
         };
       },
-      async () => createClient().from('character_inventory').delete().eq('id', inventoryItemId),
+      async () => dataService.inventory.remove(inventoryItemId),
       'Failed to delete item from inventory'
     );
     
@@ -243,7 +220,6 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
   convertItemToHomebrew: async (inventoryItemId, homebrewItemData) => {
     const state = get() as any;
     if (!state.character || !state.user) return;
-    const supabase = createClient();
 
     // Capture state for rollback
     const previousInventory = [...(state.character.character_inventory || [])];
@@ -294,43 +270,23 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
 
     try {
         // 1. Create homebrew item
-        const { data: hbData, error: hbError } = await supabase
-          .from('homebrew_items')
-          .insert({
+        const hbData = await dataService.homebrew.create({
             user_id: state.user.id,
             type: homebrewItemData.type,
             name: homebrewItemData.name,
             description: homebrewItemData.description,
             data: homebrewItemData.data,
-          })
-          .select()
-          .single();
-
-        if (hbError) throw hbError;
-        if (!hbData) throw new Error("Failed to create homebrew item: No data returned. Check RLS policies.");
+        });
 
         // 2. Link inventory item to homebrew item and update denormalized fields
-        const { error: invError } = await supabase
-            .from('character_inventory')
-            .update({
+        await dataService.inventory.update(inventoryItemId, {
                 item_id: null,
                 homebrew_item_id: hbData.id,
                 name: hbData.name,  // Update denormalized name
                 description: hbData.description  // Update denormalized description
-            })
-            .eq('id', inventoryItemId);
-
-        if (invError) throw invError;
+        });
 
         // 3. Replace temp IDs with real ones
-        // In a real app we'd update the state with the real ID, but for now we'll let the next fetch handle it 
-        // or we could update it here.
-        // For simplicity of this refactor, we rely on the optimistic update being "close enough" 
-        // until a refresh, or implement a proper fixup. 
-        // The original code didn't implement the fixup either in the truncated part I saw? 
-        // Actually, looking at the truncated part, it ends with "3. Replace temp IDs with real ones".
-        // I should finish that logic.
-        
         const realHbId = hbData.id;
         const realHbItem = hbData;
 
