@@ -15,9 +15,10 @@
 
 import React, { useState } from 'react';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
-import { Shield, Swords, Zap, Skull, Info, Crosshair, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Shield, Swords, Zap, Skull, Info, Crosshair, Eye, EyeOff, Sparkles, Wand2 } from 'lucide-react';
 import clsx from 'clsx';
 import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers, calculateAttackModifier, calculateDamageModifier } from '@/lib/utils';
+import { getLoadoutCombatAbilities } from '@/lib/combat-spell-parser';
 import CommonVitalsDisplay from '@/components/common-vitals-display'; // Import the new common component
 import ModifierSheet from '@/components/modifier-sheet';
 import SubclassFeatureCard from '@/components/subclass-feature-card';
@@ -28,6 +29,7 @@ export default function CombatView() {
   const [showProficiencyModifiers, setShowProficiencyModifiers] = useState(false);
   const [showVitals, setShowVitals] = useState(true);
   const [showWeapons, setShowWeapons] = useState(true);
+  const [showSpells, setShowSpells] = useState(true);
   const [showArmor, setShowArmor] = useState(true);
   const [showClassFeatures, setShowClassFeatures] = useState(true);
   const [showSubclassFeatures, setShowSubclassFeatures] = useState(true);
@@ -40,6 +42,9 @@ export default function CombatView() {
   ) || [];
 
   const armor = character.character_inventory?.find(item => item.location === 'equipped_armor');
+
+  // Get combat abilities from loadout
+  const combatAbilities = getLoadoutCombatAbilities(character.character_cards || []);
 
   // Calculate Proficiency with Modifiers
   const baseProficiency = character.proficiency || 1;
@@ -184,6 +189,135 @@ export default function CombatView() {
           </>
         )}
       </div>
+
+      {/* Spells & Abilities */}
+      {combatAbilities.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
+              <Wand2 size={14} /> Spells & Abilities
+            </h3>
+            <button
+              onClick={() => setShowSpells(!showSpells)}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+            >
+              {showSpells ? <EyeOff size={14} /> : <Eye size={14} />}
+              {showSpells ? 'Hide' : 'Show'}
+            </button>
+          </div>
+
+          {showSpells && combatAbilities.map((ability) => {
+            // Calculate Spellcast modifier if needed
+            const spellcastBase = character.spellcast || 0;
+            const spellcastMods = getSystemModifiers(character, 'spellcast');
+            const userSpellcastMods = character.modifiers?.['spellcast'] || [];
+            const allSpellcastMods = [...spellcastMods, ...userSpellcastMods];
+            const totalSpellcast = spellcastBase + allSpellcastMods.reduce((acc, mod) => acc + mod.value, 0);
+
+            // Get appropriate trait value for the roll
+            let rollBonus = 0;
+            let rollLabel = '';
+
+            if (ability.rollType === 'spellcast') {
+              rollBonus = totalSpellcast;
+              rollLabel = 'Spellcast';
+            } else if (ability.trait) {
+              const traitKey = ability.trait.toLowerCase();
+              const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+              const systemTraitMods = getSystemModifiers(character, traitKey);
+              const userTraitMods = character.modifiers?.[traitKey] || [];
+              const allTraitMods = [...systemTraitMods, ...userTraitMods];
+              rollBonus = baseTraitValue + allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
+              rollLabel = ability.trait;
+            }
+
+            // Calculate damage if it uses proficiency
+            const finalDamage = ability.usesProficiency && ability.damage
+              ? calculateWeaponDamage(ability.damage, totalProficiency)
+              : ability.damage;
+
+            return (
+              <div key={ability.cardId} className="bg-dagger-panel border border-purple-500/30 rounded-xl overflow-hidden group">
+                <div className="p-4 flex justify-between items-start">
+                  <div className="flex-1">
+                    <h4 className="font-serif font-bold text-white text-lg flex items-center gap-2">
+                      {ability.name}
+                      {ability.costs && (
+                        <div className="flex gap-1">
+                          {ability.costs.hope && (
+                            <span className="text-[10px] bg-dagger-gold/20 text-dagger-gold border border-dagger-gold/30 px-1.5 py-0.5 rounded font-bold uppercase">
+                              {ability.costs.hope} Hope
+                            </span>
+                          )}
+                          {ability.costs.stress && (
+                            <span className="text-[10px] bg-red-900/30 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-bold uppercase">
+                              {ability.costs.stress} Stress
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </h4>
+                    <div className="flex gap-2 text-xs text-gray-400 mt-1 flex-wrap">
+                      {ability.rollType !== 'none' && rollLabel && (
+                        <span className="uppercase bg-purple-900/30 border border-purple-500/30 px-1.5 py-0.5 rounded">{rollLabel}</span>
+                      )}
+                      {ability.range && (
+                        <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{ability.range}</span>
+                      )}
+                      {ability.damageType && (
+                        <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{ability.damageType}</span>
+                      )}
+                      {ability.effects && ability.effects.map(effect => (
+                        <span key={effect} className="uppercase bg-orange-900/30 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded text-[10px]">
+                          {effect}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {finalDamage && (
+                    <div className="text-right ml-4">
+                      <div className="text-xl font-bold text-purple-400">{finalDamage}</div>
+                      {ability.usesProficiency && (
+                        <div className="text-[10px] text-gray-500 uppercase">
+                          {ability.damage} × {totalProficiency}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Bar */}
+                <div className="bg-black/40 p-2 flex gap-2">
+                  {ability.rollType !== 'none' && rollLabel && (
+                    <button
+                      onClick={() => prepareRoll(`${ability.name} ${rollLabel} Roll`, rollBonus)}
+                      className="flex-1 py-2 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/30 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors text-purple-300"
+                    >
+                      <Sparkles size={16} /> {rollLabel} ({rollBonus >= 0 ? `+${rollBonus}` : rollBonus})
+                    </button>
+                  )}
+                  {finalDamage && (
+                    <button
+                      onClick={() => {
+                        const { dice, modifier } = parseDamageRoll(finalDamage);
+                        prepareRoll(`${ability.name} Damage`, modifier, dice);
+                      }}
+                      className="flex-1 py-2 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/30 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors text-purple-300"
+                    >
+                      <Skull size={16} className="text-red-400" /> Damage
+                    </button>
+                  )}
+                  {ability.rollType === 'none' && !finalDamage && (
+                    <div className="flex-1 py-2 text-center text-sm italic text-gray-500">
+                      {ability.description.substring(0, 100)}...
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Active Armor */}
       {armor && (
