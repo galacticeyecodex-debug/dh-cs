@@ -37,7 +37,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
     const updatedCard = { ...cards[cardIndex], location: destination };
     cards[cardIndex] = updatedCard;
 
-    await withOptimisticUpdate(
+    const success = await withOptimisticUpdate(
       () => {
         set((s: any) => ({
           character: s.character ? { ...s.character, character_cards: cards } : null,
@@ -57,6 +57,12 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
       async () => dataService.card.update(cardId, { location: destination }),
       'Failed to move card'
     );
+
+    // Recalculate derived stats after successful card movement
+    // (Domain cards in loadout may provide passive modifiers)
+    if (success) {
+      (get() as any).recalculateDerivedStats?.();
+    }
   },
 
   addCardToCollection: async (item) => {

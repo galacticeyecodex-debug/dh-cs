@@ -17,6 +17,7 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { parseCardPassiveModifiers, getBareBonesBonuses } from './card-parser';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -54,56 +55,105 @@ export function parseDamageRoll(input: string): { dice: string; modifier: number
   };
 }
 
-// Helper to extract System Modifiers from Equipment
+// Helper to extract System Modifiers from Equipment AND Domain Cards
 export function getSystemModifiers(character: any, stat: string): any[] {
-  if (!character || !character.character_inventory) return [];
+  if (!character) return [];
 
   const systemModifiers: any[] = [];
-  const equippedItems = character.character_inventory.filter((item: any) =>
-    ['equipped_primary', 'equipped_secondary', 'equipped_armor'].includes(item.location)
-  );
 
-  equippedItems.forEach((item: any) => {
-    if (!item.library_item?.data) return;
+  // A. EQUIPPED ITEMS
+  if (character.character_inventory) {
+    const equippedItems = character.character_inventory.filter((item: any) =>
+      ['equipped_primary', 'equipped_secondary', 'equipped_armor'].includes(item.location)
+    );
 
-    // A. Structured Modifiers (Preferred)
-    if (Array.isArray(item.library_item.data.modifiers)) {
-      const mods = item.library_item.data.modifiers;
-      mods.forEach((mod: any) => {
-        if (mod.target === stat) {
+    equippedItems.forEach((item: any) => {
+      if (!item.library_item?.data) return;
+
+      // A1. Structured Modifiers (Preferred)
+      if (Array.isArray(item.library_item.data.modifiers)) {
+        const mods = item.library_item.data.modifiers;
+        mods.forEach((mod: any) => {
+          if (mod.target === stat) {
+            systemModifiers.push({
+              id: `sys-${item.id}-${mod.id || Math.random()}`,
+              name: item.name, // Use Item Name as source description
+              value: mod.value, // Directly use the value from the structured modifier
+              source: 'system',
+              type: 'equipment'
+            });
+          }
+        });
+        return; // Skip regex if structured found
+      }
+
+      // A2. Fallback Regex (Legacy)
+      const featureText = item.library_item.data.feature?.text || '';
+      const featText = item.library_item.data.feat_text || '';
+      const combinedText = `${featureText} ${featText}`;
+
+      // Regex needs to match the specific stat
+      // e.g. "Evasion" -> /... Evasion/
+      const regex = new RegExp(`([+-]?\\d+)\\s+(?:to|bonus\\s+to)\\s+${stat.replace('_', '\\s+')}`, 'gi');
+      const matches = Array.from(combinedText.matchAll(regex));
+
+      for (const match of matches) {
+        const val = parseInt(match[1]);
+        if (!isNaN(val)) {
           systemModifiers.push({
-            id: `sys-${item.id}-${mod.id || Math.random()}`,
-            name: item.name, // Use Item Name as source description
-            value: mod.value, // Directly use the value from the structured modifier
-            source: 'system'
+            id: `sys-${item.id}-regex`,
+            name: item.name,
+            value: val,
+            source: 'system',
+            type: 'equipment'
           });
         }
-      });
-      return; // Skip regex if structured found
-    }
-
-    // B. Fallback Regex (Legacy)
-    const featureText = item.library_item.data.feature?.text || '';
-    const featText = item.library_item.data.feat_text || '';
-    const combinedText = `${featureText} ${featText}`;
-
-    // Regex needs to match the specific stat
-    // e.g. "Evasion" -> /... Evasion/
-    const regex = new RegExp(`([+-]?\\d+)\\s+(?:to|bonus\\s+to)\\s+${stat.replace('_', '\\s+')}`, 'gi');
-    const matches = Array.from(combinedText.matchAll(regex));
-
-    for (const match of matches) {
-      const val = parseInt(match[1]);
-      if (!isNaN(val)) {
-        systemModifiers.push({
-          id: `sys-${item.id}-regex`,
-          name: item.name,
-          value: val,
-          source: 'system'
-        });
       }
-    }
-  });
+    });
+  }
+
+  // B. DOMAIN CARDS IN LOADOUT
+  if (character.character_cards) {
+    const loadoutCards = character.character_cards.filter((card: any) =>
+      card.location === 'loadout'
+    );
+
+    loadoutCards.forEach((card: any) => {
+      if (!card.library_item?.data) return;
+
+      // Special case: Bare Bones (complex tier-based thresholds)
+      if (card.library_item.name === 'Bare Bones') {
+        const bareBonesModifiers = getBareBonesBonuses(character);
+        bareBonesModifiers
+          .filter((mod: any) => mod.stat === stat && mod.isActive)
+          .forEach((mod: any) => {
+            systemModifiers.push({
+              id: `card-${card.id}-barebones-${mod.stat}`,
+              name: mod.source,
+              value: mod.value,
+              source: 'domain_card',
+              type: 'domain_card'
+            });
+          });
+        return;
+      }
+
+      // General card parsing
+      const cardModifiers = parseCardPassiveModifiers(card, character);
+
+      cardModifiers
+        .filter((mod: any) => mod.stat === stat && mod.isActive)
+        .forEach((mod: any) => {
+          systemModifiers.push({
+            id: `card-${card.id}-${mod.stat}`,
+            name: mod.source,
+            value: mod.value,
+            source: 'domain_card',
+            type: 'domain_card'
+          });
+        });
+    });
+  }
 
   return systemModifiers;
 }

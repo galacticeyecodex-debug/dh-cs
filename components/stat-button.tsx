@@ -30,8 +30,8 @@ interface StatButtonProps {
   label: string;
   value: number;
   baseValue?: number;
-  modifiers?: { id: string; name: string; value: number; source: 'user' | 'system' }[];
-  onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' }[]) => void;
+  modifiers?: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[];
+  onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[]) => void;
 }
 
 const StatButton = React.memo(function StatButton({ label, value, baseValue, modifiers, onUpdateModifiers }: StatButtonProps) {
