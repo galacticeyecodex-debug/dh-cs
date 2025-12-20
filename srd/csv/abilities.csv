@@ -375,7 +375,7 @@ TEMPEST,10,Sage,Spell,2,"Choose one of the following tempests and make a Spellca
 - **Blizzard**: Deal 2d20+8 magic damage and targets are temporarily Vulnerable.
 - **Hurricane**: Deal 3d10+10 magic damage and choose a direction the wind is blowing. Targets can’t move against the wind.
 - **Sandstorm**: Deal 5d6+9 magic damage. Attacks made from beyond Melee range have disadvantage."
-BOLT BEACON,1,Splendor,Spell,1,"Make a Spellcast Roll against a target within Far range. On a success, spend a Hope to send a bolt of shimmering light toward them, dealing 6d8+2 magic damage using your Proficiency. The target becomes temporarily Vulnerable and glows brightly until this condition is cleared."
+BOLT BEACON,1,Splendor,Spell,1,"Make a Spellcast Roll against a target within Far range. On a success, spend a Hope to send a bolt of shimmering light toward them, dealing d8+2 magic damage using your Proficiency. The target becomes temporarily Vulnerable and glows brightly until this condition is cleared."
 MENDING TOUCH,1,Splendor,Spell,1,"You lay your hands upon a creature and channel healing magic to close their wounds. When you can take a few minutes to focus on the target you’re helping, you can spend 2 Hope to clear a Hit Point or a Stress on them.
 
 Once per long rest, when you spend this healing time learning something new about them or revealing something about yourself, you can clear 2 Hit Points or 2 Stress on them instead."
