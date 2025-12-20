@@ -68,8 +68,8 @@ export function parseCardPassiveModifiers(
   // Parse condition context first
   const condition = extractCondition(description);
 
-  // Pattern 1: Static bonus - "+1 bonus to your Agility"
-  const staticMatches = Array.from(description.matchAll(/\+(\d+)\s+(?:bonus\s+)?to\s+(?:your\s+)?([a-z\s]+?)(?:\s+rolls?)?(?:\.|,|$)/gi));
+  // Pattern 1: Static bonus - "+1 bonus to your Agility" or "+1 bonus to your Spellcast Rolls"
+  const staticMatches = Array.from(description.matchAll(/\+(\d+)\s+(?:bonus\s+)?to\s+(?:your\s+)?([a-z\s]+?)(?:\s+rolls?)?(?:\.|,|\n|$)/gi));
 
   for (const matchResult of staticMatches) {
     const match = matchResult as RegExpMatchArray;
