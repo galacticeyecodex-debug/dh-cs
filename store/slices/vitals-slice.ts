@@ -19,7 +19,7 @@ export interface VitalsSlice {
   updateGold: (denomination: 'handfuls' | 'bags' | 'chests', value: number) => Promise<void>;
   updateHope: (value: number) => Promise<void>;
   updateEvasion: (value: number) => Promise<void>;
-  updateModifiers: (stat: string, modifiers: { id: string; name: string; value: number; source: 'user' | 'system' }[]) => Promise<void>;
+  updateModifiers: (stat: string, modifiers: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[]) => Promise<void>;
   updateExperiences: (experiences: Experience[]) => Promise<void>;
 }
 

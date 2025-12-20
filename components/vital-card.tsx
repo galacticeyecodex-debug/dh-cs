@@ -42,8 +42,8 @@ interface VitalCardProps {
   variant?: 'square' | 'rectangle';
   className?: string;
   trackType?: 'fill-up-good' | 'fill-up-bad' | 'mark-bad';
-  modifiers?: { id: string; name: string; value: number; source: 'user' | 'system' }[];
-  onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' }[]) => void;
+  modifiers?: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[];
+  onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[]) => void;
 }
 
 const VitalCard = React.memo(function VitalCard({

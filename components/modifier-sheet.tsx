@@ -23,7 +23,8 @@ interface Modifier {
   id: string;
   name: string;
   value: number;
-  source: 'user' | 'system';
+  source: 'user' | 'system' | 'domain_card';
+  type?: 'equipment' | 'domain_card'; // NEW: For visual distinction
 }
 
 interface ModifierSheetProps {
@@ -185,7 +186,9 @@ export default function ModifierSheet({
                       </div>
                     )}
                     <div className="text-xs text-gray-500 uppercase flex items-center gap-1">
-                      {mod.source === 'system' && <span className="bg-blue-900/50 text-blue-300 px-1.5 rounded text-[10px]">SYSTEM</span>}
+                      {mod.type === 'equipment' && <span className="bg-dagger-gold/20 text-dagger-gold px-1.5 rounded text-[10px] border border-dagger-gold/30">EQUIPMENT</span>}
+                      {mod.type === 'domain_card' && <span className="bg-purple-900/50 text-purple-300 px-1.5 rounded text-[10px] border border-purple-500/30">DOMAIN CARD</span>}
+                      {mod.source === 'system' && !mod.type && <span className="bg-blue-900/50 text-blue-300 px-1.5 rounded text-[10px]">SYSTEM</span>}
                       {mod.source === 'user' && <span className="bg-white/10 text-gray-400 px-1.5 rounded text-[10px]">USER</span>}
                     </div>
                   </div>
