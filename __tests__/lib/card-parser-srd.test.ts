@@ -212,7 +212,7 @@ describe('Domain Card Parser - SRD Validation', () => {
         value: 1,
         condition: {
           type: 'loadout_domain_count',
-          domain: 'Arcana',
+          domain: 'arcana', // Lowercase - normalized by parser
           minCount: 4
         },
         isActive: true,
@@ -236,7 +236,7 @@ describe('Domain Card Parser - SRD Validation', () => {
       expect(mods[0].isActive).toBe(false);
       expect(mods[0].condition).toMatchObject({
         type: 'loadout_domain_count',
-        domain: 'Arcana',
+        domain: 'arcana', // Lowercase - normalized by parser
         minCount: 4
       });
     });
