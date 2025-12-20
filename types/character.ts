@@ -118,6 +118,7 @@ export interface Character {
   fear: number;
   evasion: number;
   proficiency: number;
+  spellcast?: number; // Spellcast modifier for magical abilities
   experiences: Experience[];
   modifiers?: Record<string, { id: string; name: string; value: number; source: 'user' | 'system' }[]>;
   gold: {
