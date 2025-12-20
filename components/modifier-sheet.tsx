@@ -14,7 +14,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Check, Pencil } from 'lucide-react';
+import { X, Plus, Trash2, Check, Pencil, Shield, ShieldOff, Users, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCharacterStore } from '@/store/character-store';
@@ -25,6 +25,13 @@ interface Modifier {
   value: number;
   source: 'user' | 'system' | 'domain_card';
   type?: 'equipment' | 'domain_card'; // NEW: For visual distinction
+  isActive?: boolean; // Whether condition is currently met
+  condition?: {
+    type: 'always' | 'when_armored' | 'when_unarmored' | 'loadout_domain_count' | 'environment';
+    domain?: string;
+    minCount?: number;
+    requirement?: string;
+  };
 }
 
 interface ModifierSheetProps {
@@ -83,6 +90,42 @@ export default function ModifierSheet({
     );
     onUpdateModifiers(updated);
     setEditingId(null);
+  };
+
+  // Helper to get condition description
+  const getConditionText = (condition?: Modifier['condition']): string | null => {
+    if (!condition || condition.type === 'always') return null;
+
+    switch (condition.type) {
+      case 'when_armored':
+        return 'While wearing armor';
+      case 'when_unarmored':
+        return 'While not wearing armor';
+      case 'loadout_domain_count':
+        return `When ${condition.minCount}+ ${condition.domain} cards in loadout`;
+      case 'environment':
+        return condition.requirement || 'Environment requirement';
+      default:
+        return null;
+    }
+  };
+
+  // Helper to get condition icon
+  const getConditionIcon = (condition?: Modifier['condition']) => {
+    if (!condition || condition.type === 'always') return null;
+
+    switch (condition.type) {
+      case 'when_armored':
+        return <Shield size={12} className="text-gray-500" />;
+      case 'when_unarmored':
+        return <ShieldOff size={12} className="text-gray-500" />;
+      case 'loadout_domain_count':
+        return <Users size={12} className="text-purple-400" />;
+      case 'environment':
+        return <AlertCircle size={12} className="text-orange-400" />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -165,46 +208,64 @@ export default function ModifierSheet({
                 <div className="text-center text-gray-600 italic py-4">No modifiers active.</div>
               )}
 
-              {currentModifiers.map(mod => (
-                <div key={mod.id} className="flex items-center justify-between bg-white/5 border border-white/5 rounded-lg p-3">
-                  <div className="flex-1">
-                    {editingId === mod.id ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          autoFocus
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          className="bg-black/40 border border-white/20 rounded px-2 py-1 text-sm w-full focus:border-dagger-gold outline-none"
-                          onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
-                        />
-                        <button onClick={saveEdit} className="p-1 text-green-400 hover:bg-white/10 rounded"><Check size={16} /></button>
-                      </div>
-                    ) : (
-                      <div onClick={() => mod.source === 'user' && startEdit(mod)} className={clsx("font-bold", mod.source === 'user' ? "text-white cursor-pointer flex items-center gap-2" : "text-gray-400")}>
-                        {mod.name}
-                        {mod.source === 'user' && <Pencil size={12} className="text-gray-600 opacity-50" />}
-                      </div>
-                    )}
-                    <div className="text-xs text-gray-500 uppercase flex items-center gap-1">
-                      {mod.type === 'equipment' && <span className="bg-dagger-gold/20 text-dagger-gold px-1.5 rounded text-[10px] border border-dagger-gold/30">EQUIPMENT</span>}
-                      {mod.type === 'domain_card' && <span className="bg-purple-900/50 text-purple-300 px-1.5 rounded text-[10px] border border-purple-500/30">DOMAIN CARD</span>}
-                      {mod.source === 'system' && !mod.type && <span className="bg-blue-900/50 text-blue-300 px-1.5 rounded text-[10px]">SYSTEM</span>}
-                      {mod.source === 'user' && <span className="bg-white/10 text-gray-400 px-1.5 rounded text-[10px]">USER</span>}
-                    </div>
-                  </div>
+              {currentModifiers.map(mod => {
+                const conditionText = getConditionText(mod.condition);
+                const conditionIcon = getConditionIcon(mod.condition);
+                const isInactive = mod.isActive === false;
 
-                  <div className="flex items-center gap-3">
-                    <div className={clsx("text-xl font-bold", mod.value >= 0 ? "text-green-400" : "text-red-400")}>
-                      {mod.value >= 0 ? `+${mod.value}` : mod.value}
+                return (
+                  <div key={mod.id} className={clsx(
+                    "flex items-center justify-between rounded-lg p-3 border transition-all",
+                    isInactive ? "bg-white/5 border-red-500/30 opacity-60" : "bg-white/5 border-white/5"
+                  )}>
+                    <div className="flex-1">
+                      {editingId === mod.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            autoFocus
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="bg-black/40 border border-white/20 rounded px-2 py-1 text-sm w-full focus:border-dagger-gold outline-none"
+                            onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
+                          />
+                          <button onClick={saveEdit} className="p-1 text-green-400 hover:bg-white/10 rounded"><Check size={16} /></button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div onClick={() => mod.source === 'user' && startEdit(mod)} className={clsx("font-bold flex items-center gap-2", mod.source === 'user' ? "text-white cursor-pointer" : "text-gray-400")}>
+                            {mod.name}
+                            {mod.source === 'user' && <Pencil size={12} className="text-gray-600 opacity-50" />}
+                            {isInactive && <span className="text-[10px] bg-red-900/50 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded">INACTIVE</span>}
+                          </div>
+                          {conditionText && (
+                            <div className="text-[10px] text-gray-500 italic flex items-center gap-1 mt-0.5">
+                              {conditionIcon}
+                              {conditionText}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <div className="text-xs text-gray-500 uppercase flex items-center gap-1 mt-1">
+                        {mod.type === 'equipment' && <span className="bg-dagger-gold/20 text-dagger-gold px-1.5 rounded text-[10px] border border-dagger-gold/30">EQUIPMENT</span>}
+                        {mod.type === 'domain_card' && <span className="bg-purple-900/50 text-purple-300 px-1.5 rounded text-[10px] border border-purple-500/30">DOMAIN CARD</span>}
+                        {mod.source === 'system' && !mod.type && <span className="bg-blue-900/50 text-blue-300 px-1.5 rounded text-[10px]">SYSTEM</span>}
+                        {mod.source === 'user' && <span className="bg-white/10 text-gray-400 px-1.5 rounded text-[10px]">USER</span>}
+                      </div>
                     </div>
-                    {mod.source === 'user' && (
-                      <button onClick={() => handleDelete(mod.id)} className="text-gray-500 hover:text-red-400 p-1">
-                        <X size={18} />
-                      </button>
-                    )}
+
+                    <div className="flex items-center gap-3">
+                      <div className={clsx("text-xl font-bold", isInactive ? "text-gray-600" : mod.value >= 0 ? "text-green-400" : "text-red-400")}>
+                        {mod.value >= 0 ? `+${mod.value}` : mod.value}
+                      </div>
+                      {mod.source === 'user' && (
+                        <button onClick={() => handleDelete(mod.id)} className="text-gray-500 hover:text-red-400 p-1">
+                          <X size={18} />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </motion.div>
         </>

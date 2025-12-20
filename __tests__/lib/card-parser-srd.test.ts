@@ -189,4 +189,73 @@ describe('Domain Card Parser - SRD Validation', () => {
       expect(bonuses).toHaveLength(0);
     });
   });
+
+  describe('Arcana-Touched (Level 7 Arcana Ability)', () => {
+    const cardDescription = "When 4 or more of the domain cards in your loadout are from the Arcana domain, gain the following benefits:\n\n- +1 bonus to your Spellcast Rolls\n- Once per rest, you can switch the results of your Hope and Fear Dice.";
+
+    it('should parse conditional +1 to Spellcast when 4+ Arcana cards in loadout', () => {
+      const card = createMockCard('Arcana-Touched', cardDescription);
+      const character = createMockCharacter({
+        character_cards: [
+          { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
+          { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
+          { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
+          { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
+        ]
+      });
+
+      const mods = parseCardPassiveModifiers(card, character);
+
+      expect(mods).toHaveLength(1);
+      expect(mods[0]).toMatchObject({
+        stat: 'spellcast',
+        value: 1,
+        condition: {
+          type: 'loadout_domain_count',
+          domain: 'Arcana',
+          minCount: 4
+        },
+        isActive: true,
+        source: 'Arcana-Touched'
+      });
+    });
+
+    it('should mark modifier inactive when insufficient Arcana cards', () => {
+      const card = createMockCard('Arcana-Touched', cardDescription);
+      const character = createMockCharacter({
+        character_cards: [
+          { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
+          { location: 'loadout', library_item: { data: { domain: 'Blade' } } } as any,
+          { location: 'loadout', library_item: { data: { domain: 'Bone' } } } as any,
+        ]
+      });
+
+      const mods = parseCardPassiveModifiers(card, character);
+
+      expect(mods).toHaveLength(1);
+      expect(mods[0].isActive).toBe(false);
+      expect(mods[0].condition).toMatchObject({
+        type: 'loadout_domain_count',
+        domain: 'Arcana',
+        minCount: 4
+      });
+    });
+
+    it('should not count cards in vault', () => {
+      const card = createMockCard('Arcana-Touched', cardDescription);
+      const character = createMockCharacter({
+        character_cards: [
+          { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
+          { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
+          { location: 'vault', library_item: { data: { domain: 'Arcana' } } } as any, // Not counted
+          { location: 'vault', library_item: { data: { domain: 'Arcana' } } } as any, // Not counted
+        ]
+      });
+
+      const mods = parseCardPassiveModifiers(card, character);
+
+      expect(mods).toHaveLength(1);
+      expect(mods[0].isActive).toBe(false); // Only 2 in loadout, need 4
+    });
+  });
 });
