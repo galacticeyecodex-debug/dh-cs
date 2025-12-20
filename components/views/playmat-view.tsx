@@ -20,13 +20,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character-store';
-import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap } from 'lucide-react';
+import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap, Shield, ShieldOff, Users, AlertCircle, Swords, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AddItemModal from '@/components/add-item-modal';
 import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
-import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
+import ReactMarkdown from 'react-markdown';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { parseCardPassiveModifiers, type PassiveModifier, type ModifierCondition } from '@/lib/card-parser';
+import { parseCombatAbility, type CombatAbility } from '@/lib/combat-spell-parser';
 
 export default function PlaymatView() {
   const { character, moveCard, addCardToCollection } = useCharacterStore();
@@ -125,31 +127,87 @@ export default function PlaymatView() {
 
       {/* Loadout View */}
       {viewMode === 'loadout' && (
-        <div className="grid grid-cols-2 gap-4">
-          {loadoutCards.length > 0 ? (
-            loadoutCards.map((charCard) => (
-              <CardThumbnail
-                key={charCard.id}
-                charCard={charCard}
-                onClick={() => setSelectedCard(charCard)}
-                actionLabel="To Vault"
-                onAction={() => handleMoveCard(charCard.id, 'vault')}
-              />
-            ))
-          ) : (
-            <div className="aspect-[2/3] border-2 border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center text-gray-600 col-span-2 p-4 text-center">
-              <LibraryBig size={24} className="mb-2" />
-              <span className="text-sm">No cards in Loadout.</span>
-              <span className="text-xs">Add from Vault or create new!</span>
-            </div>
-          )}
+        <div className="space-y-6">
+          {/* Active Modifiers Summary */}
+          {loadoutCards.length > 0 && character && (() => {
+            // Collect all active modifiers from loadout cards
+            const allModifiers: PassiveModifier[] = [];
+            loadoutCards.forEach(card => {
+              const mods = parseCardPassiveModifiers(card, character);
+              allModifiers.push(...mods.filter(m => m.isActive));
+            });
 
-          {/* Fill remaining slots up to 5 */}
-          {Array.from({ length: Math.max(0, 5 - loadoutCards.length) }).map((_, i) => (
-            <div key={`empty-${i}`} className="aspect-[2/3] border-2 border-dashed border-white/5 rounded-lg flex items-center justify-center text-gray-600">
-              <span className="text-xs uppercase">Slot {loadoutCards.length + i + 1}</span>
-            </div>
-          ))}
+            // Group modifiers by stat
+            const modifiersByStat = allModifiers.reduce((acc, mod) => {
+              if (!acc[mod.stat]) {
+                acc[mod.stat] = [];
+              }
+              acc[mod.stat].push(mod);
+              return acc;
+            }, {} as Record<string, PassiveModifier[]>);
+
+            const statKeys = Object.keys(modifiersByStat);
+
+            if (statKeys.length === 0) return null;
+
+            return (
+              <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                <h3 className="text-xs font-bold uppercase text-purple-400 tracking-wider mb-3 flex items-center gap-2">
+                  <Sparkles size={14} /> Active Modifiers
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {statKeys.map(stat => {
+                    const mods = modifiersByStat[stat];
+                    const total = mods.reduce((sum, m) => sum + m.value, 0);
+                    return (
+                      <div key={stat} className="bg-white/5 border border-purple-500/30 rounded-lg p-3">
+                        <div className="text-[10px] text-gray-400 uppercase mb-1 capitalize">
+                          {stat.replace(/_/g, ' ')}
+                        </div>
+                        <div className={clsx(
+                          "text-2xl font-bold",
+                          total >= 0 ? "text-green-400" : "text-red-400"
+                        )}>
+                          {total >= 0 ? `+${total}` : total}
+                        </div>
+                        <div className="text-[9px] text-gray-500 mt-1">
+                          {mods.length} modifier{mods.length > 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Loadout Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {loadoutCards.length > 0 ? (
+              loadoutCards.map((charCard) => (
+                <CardThumbnail
+                  key={charCard.id}
+                  charCard={charCard}
+                  onClick={() => setSelectedCard(charCard)}
+                  actionLabel="To Vault"
+                  onAction={() => handleMoveCard(charCard.id, 'vault')}
+                />
+              ))
+            ) : (
+              <div className="aspect-[2/3] border-2 border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center text-gray-600 col-span-2 p-4 text-center">
+                <LibraryBig size={24} className="mb-2" />
+                <span className="text-sm">No cards in Loadout.</span>
+                <span className="text-xs">Add from Vault or create new!</span>
+              </div>
+            )}
+
+            {/* Fill remaining slots up to 5 */}
+            {Array.from({ length: Math.max(0, 5 - loadoutCards.length) }).map((_, i) => (
+              <div key={`empty-${i}`} className="aspect-[2/3] border-2 border-dashed border-white/5 rounded-lg flex items-center justify-center text-gray-600">
+                <span className="text-xs uppercase">Slot {loadoutCards.length + i + 1}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -198,9 +256,14 @@ export default function PlaymatView() {
 }
 
 const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, actionLabel, onAction }: { charCard: CharacterCard, onClick: () => void, actionLabel?: string, onAction?: () => void }) {
+  const { character } = useCharacterStore();
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown Card', domain: '', tier: 0, type: '', data: {} };
   // Ensure we check for recall in data, defaulting to '0' if not found or empty
   const recallCost = data?.recall || '0';
+
+  // Check for mechanics
+  const hasPassiveModifiers = character && parseCardPassiveModifiers(charCard, character).length > 0;
+  const hasCombatAbility = parseCombatAbility(charCard) !== null;
 
   return (
     <div className="group relative">
@@ -247,6 +310,22 @@ const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, act
           )}
         </div>
 
+        {/* Mechanic Badges (Bottom of card) */}
+        {(hasPassiveModifiers || hasCombatAbility) && (
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1 z-20">
+            {hasPassiveModifiers && (
+              <div className="bg-purple-900/80 border border-purple-500/50 rounded-full px-1.5 py-0.5 flex items-center gap-0.5" title="Has passive modifiers">
+                <Sparkles size={8} className="text-purple-300" />
+              </div>
+            )}
+            {hasCombatAbility && (
+              <div className="bg-purple-900/80 border border-purple-500/50 rounded-full px-1.5 py-0.5 flex items-center gap-0.5" title="Has combat ability">
+                <Swords size={8} className="text-purple-300" />
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
 
       {actionLabel && onAction && (
@@ -269,8 +348,47 @@ const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, act
 });
 
 function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClose: () => void }) {
+  const { character } = useCharacterStore();
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown', domain: '', tier: 0, type: '', data: {} };
   const recallCost = data?.recall || '0';
+
+  // Parse card mechanics
+  const passiveModifiers = character ? parseCardPassiveModifiers(charCard, character) : [];
+  const combatAbility = parseCombatAbility(charCard);
+
+  // Helper to get condition icon
+  const getConditionIcon = (condition?: ModifierCondition) => {
+    if (!condition || condition.type === 'always') return null;
+    switch (condition.type) {
+      case 'when_armored':
+        return <Shield size={12} className="text-gray-400" />;
+      case 'when_unarmored':
+        return <ShieldOff size={12} className="text-gray-400" />;
+      case 'loadout_domain_count':
+        return <Users size={12} className="text-purple-400" />;
+      case 'environment':
+        return <AlertCircle size={12} className="text-orange-400" />;
+      default:
+        return null;
+    }
+  };
+
+  // Helper to get condition text
+  const getConditionText = (condition?: ModifierCondition): string | null => {
+    if (!condition || condition.type === 'always') return null;
+    switch (condition.type) {
+      case 'when_armored':
+        return 'While wearing armor';
+      case 'when_unarmored':
+        return 'While not wearing armor';
+      case 'loadout_domain_count':
+        return `When ${condition.minCount}+ ${condition.domain} cards in loadout`;
+      case 'environment':
+        return condition.requirement || 'Environment requirement';
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
@@ -310,18 +428,123 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
         </div>
 
         {/* Card Description */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 text-sm leading-relaxed text-center">
+        <div className="flex-1 overflow-y-auto px-6 py-4 text-sm leading-relaxed">
           {data?.description || data?.text ? (
-            <div className="prose prose-invert text-gray-300">
+            <div className="prose prose-invert text-gray-300 text-center">
               <ReactMarkdown>
                 {data.description || data.text}
               </ReactMarkdown>
             </div>
           ) : (
-            <p className="italic text-gray-500">No description available.</p>
+            <p className="italic text-gray-500 text-center">No description available.</p>
           )}
 
-          {/* Render specific fields based on card type if needed, e.g. Grimoire abilities */}
+          {/* Passive Modifiers Section */}
+          {passiveModifiers.length > 0 && (
+            <div className="mt-6 pt-4 border-t border-white/10">
+              <h3 className="text-xs font-bold uppercase text-purple-400 tracking-wider mb-3 flex items-center gap-2">
+                <Sparkles size={14} /> Passive Modifiers
+              </h3>
+              <div className="space-y-2">
+                {passiveModifiers.map((mod, idx) => {
+                  const conditionText = getConditionText(mod.condition);
+                  const conditionIcon = getConditionIcon(mod.condition);
+                  const isInactive = mod.isActive === false;
+
+                  return (
+                    <div
+                      key={idx}
+                      className={clsx(
+                        "bg-white/5 border rounded-lg p-3 transition-all",
+                        isInactive ? "border-red-500/30 opacity-60" : "border-purple-500/30"
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="text-sm font-bold text-white capitalize flex items-center gap-2">
+                            {mod.stat.replace(/_/g, ' ')}
+                            {isInactive && (
+                              <span className="text-[10px] bg-red-900/50 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded">
+                                INACTIVE
+                              </span>
+                            )}
+                          </div>
+                          {conditionText && (
+                            <div className="text-[10px] text-gray-500 italic flex items-center gap-1 mt-0.5">
+                              {conditionIcon}
+                              {conditionText}
+                            </div>
+                          )}
+                        </div>
+                        <div className={clsx(
+                          "text-lg font-bold",
+                          isInactive ? "text-gray-600" : mod.value >= 0 ? "text-green-400" : "text-red-400"
+                        )}>
+                          {mod.value >= 0 ? `+${mod.value}` : mod.value}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Combat Ability Section */}
+          {combatAbility && (
+            <div className="mt-6 pt-4 border-t border-white/10">
+              <h3 className="text-xs font-bold uppercase text-purple-400 tracking-wider mb-3 flex items-center gap-2">
+                <Swords size={14} /> Combat Ability
+              </h3>
+              <div className="bg-white/5 border border-purple-500/30 rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-400 uppercase">Roll Type</span>
+                  <span className="text-sm font-bold text-purple-300 capitalize">{combatAbility.rollType.replace(/_/g, ' ')}</span>
+                </div>
+                {combatAbility.range && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400 uppercase">Range</span>
+                    <span className="text-sm font-bold text-white">{combatAbility.range}</span>
+                  </div>
+                )}
+                {combatAbility.damage && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400 uppercase">Damage</span>
+                    <span className="text-sm font-bold text-white">{combatAbility.damage}</span>
+                  </div>
+                )}
+                {combatAbility.costs && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400 uppercase">Cost</span>
+                    <div className="flex items-center gap-2">
+                      {combatAbility.costs.hope !== undefined && (
+                        <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30">
+                          {combatAbility.costs.hope} Hope
+                        </span>
+                      )}
+                      {combatAbility.costs.stress !== undefined && (
+                        <span className="text-xs bg-red-900/50 text-red-300 px-2 py-0.5 rounded border border-red-500/30">
+                          {combatAbility.costs.stress} Stress
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {combatAbility.effects && combatAbility.effects.length > 0 && (
+                  <div className="pt-2 border-t border-white/10">
+                    <span className="text-xs text-gray-400 uppercase block mb-1">Effects</span>
+                    <div className="flex flex-wrap gap-1">
+                      {combatAbility.effects.map((effect, idx) => (
+                        <span key={idx} className="text-[10px] bg-orange-900/50 text-orange-300 px-2 py-0.5 rounded border border-orange-500/30">
+                          {effect}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
