@@ -50,8 +50,8 @@ const STAT_PATTERNS: Record<string, RegExp> = {
   armor_score: /armor\s+score/i,
   proficiency: /proficiency/i,
   spellcast: /spellcast/i,
-  attack: /attack\s+roll/i,
-  damage: /damage\s+roll/i,
+  attack: /attack(?:\s+roll)?/i, // Matches "attack" or "attack roll"
+  damage: /damage(?:\s+roll)?/i, // Matches "damage" or "damage roll"
 };
 
 /**
@@ -68,14 +68,17 @@ export function parseCardPassiveModifiers(
   // Parse condition context first
   const condition = extractCondition(description);
 
-  // Pattern 1: Static bonus - "+1 bonus to your Agility" or "+1 bonus to your Spellcast Rolls"
-  const staticMatches = Array.from(description.matchAll(/\+(\d+)\s+(?:bonus\s+)?to\s+(?:your\s+)?([a-z\s]+?)(?:\s+rolls?)?(?:\.|,|\n|$)/gi));
+  // Pattern 1: Static bonus/penalty - "+1 bonus to your Agility" or "-2 penalty to your Spellcast Rolls"
+  const staticMatches = Array.from(description.matchAll(/([+\-]\d+)\s+(?:(?:bonus|penalty)\s+)?to\s+(?:your\s+)?([a-z\s]+?)(?:\s+rolls?)?(?:\.|,|\n|$|\s+(?:but|and|or|while|when))/gi));
 
   for (const matchResult of staticMatches) {
     const match = matchResult as RegExpMatchArray;
-    const value = parseInt(match[1]!);
-    const statText = match[2]!.trim();
-    const stat = matchStatName(statText);
+    const valueStr = match[1];
+    const statText = match[2];
+    if (!valueStr || !statText) continue;
+
+    const value = parseInt(valueStr); // Handles both +1 and -1
+    const stat = matchStatName(statText.trim());
 
     if (stat) {
       const isActive = evaluateModifierCondition(condition, character);
@@ -171,7 +174,7 @@ function extractCondition(description: string): ModifierCondition {
   if (loadoutMatch) {
     return {
       type: 'loadout_domain_count',
-      domain: loadoutMatch[2],
+      domain: loadoutMatch[2].toLowerCase(), // Normalize to lowercase
       minCount: parseInt(loadoutMatch[1])
     };
   }
@@ -206,7 +209,7 @@ export function evaluateModifierCondition(
         c.location === 'loadout'
       ) || [];
       const domainCount = loadoutCards.filter(c =>
-        c.library_item?.data?.domain === condition.domain
+        c.library_item?.data?.domain?.toLowerCase() === condition.domain
       ).length;
       return domainCount >= condition.minCount;
     }

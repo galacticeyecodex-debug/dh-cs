@@ -63,7 +63,7 @@ describe('Combat Spell Parser', () => {
       it('should parse Bolt Beacon (spellcast with proficiency and Hope cost)', () => {
         const card = createMockCard(
           'Bolt Beacon',
-          'Make a Spellcast Roll against a target within Far range. On a success, spend a Hope to send a bolt of shimmering light toward them, dealing 6d8+2 magic damage using your Proficiency. The target becomes temporarily Vulnerable and glows brightly until this condition is cleared.'
+          'Make a Spellcast Roll against a target within Far range. On a success, spend a Hope to send a bolt of shimmering light toward them, dealing d8+2 magic damage using your Proficiency. The target becomes temporarily Vulnerable and glows brightly until this condition is cleared.'
         );
 
         const ability = parseCombatAbility(card);
@@ -74,7 +74,7 @@ describe('Combat Spell Parser', () => {
           rollType: 'spellcast',
           trait: 'Spellcast',
           range: 'Far',
-          damage: '6d8+2',
+          damage: 'd8+2',
           damageType: 'magic',
           usesProficiency: true
         });
@@ -186,7 +186,7 @@ describe('Combat Spell Parser', () => {
         );
 
         const ability = parseCombatAbility(card);
-        expect(ability?.range).toBe('Very far');
+        expect(ability?.range).toBe('Very Far');
       });
     });
 
@@ -313,7 +313,7 @@ describe('Combat Spell Parser', () => {
       const cards: CharacterCard[] = [
         createMockCard('Cinder Grasp', 'Make a Spellcast Roll against a target within Melee range. On a success, deal 12d20+3 magic damage.', 'loadout'),
         createMockCard('Graceful Movement', 'You gain a +1 bonus to your Agility.', 'loadout'), // Non-combat
-        createMockCard('Bolt Beacon', 'Make a Spellcast Roll. On a success, deal 6d8+2 magic damage.', 'vault'), // In vault
+        createMockCard('Bolt Beacon', 'Make a Spellcast Roll. On a success, deal d8+2 magic damage.', 'vault'), // In vault
         createMockCard('Chain Lightning', 'Make a Spellcast Roll. On a success, deal 2d8+4 magic damage.', 'loadout'),
       ];
 
@@ -337,5 +337,160 @@ describe('Combat Spell Parser', () => {
       const abilities = getLoadoutCombatAbilities([]);
       expect(abilities).toHaveLength(0);
     });
+  });
+});
+
+describe('Combat Filter - False Positive Prevention', () => {
+  it('should NOT identify defensive abilities as combat', () => {
+    const card = createMockCard(
+      'Rune Ward',
+      'Spend a Hope to reduce incoming damage by 1d8.'
+    );
+
+    const ability = parseCombatAbility(card);
+    expect(ability).toBeNull();
+  });
+
+  it('should NOT identify damage reduction as combat', () => {
+    const card = createMockCard(
+      'Get Back Up',
+      'When you take damage, you may reduce the severity by one threshold.'
+    );
+
+    const ability = parseCombatAbility(card);
+    expect(ability).toBeNull();
+  });
+
+  it('should NOT identify utility rolls as combat', () => {
+    const card = createMockCard(
+      'Know Thy Enemy',
+      'Make an Instinct Roll to detect hidden adversaries.'
+    );
+
+    const ability = parseCombatAbility(card);
+    expect(ability).toBeNull();
+  });
+
+  it('should NOT identify ally-targeting buffs as combat', () => {
+    const card = createMockCard(
+      'Inspire Courage',
+      'Target an ally within Close range. They gain +1 to their next roll.'
+    );
+
+    const ability = parseCombatAbility(card);
+    expect(ability).toBeNull();
+  });
+
+  it('should NOT identify general roll bonuses as combat', () => {
+    const card = createMockCard(
+      'Lucky',
+      'You may reroll any roll once per session.'
+    );
+
+    const ability = parseCombatAbility(card);
+    expect(ability).toBeNull();
+  });
+
+  it('should NOT identify damage text in context as combat', () => {
+    const card = createMockCard(
+      'Shrug It Off',
+      'When an ally takes damage, you may mark Stress to reduce their damage.'
+    );
+
+    const ability = parseCombatAbility(card);
+    expect(ability).toBeNull();
+  });
+
+  it('SHOULD identify actual combat spells', () => {
+    const card = createMockCard(
+      'Fireball',
+      'Make a Spellcast Roll against all adversaries within Close range. Deal 3d8 magic damage.'
+    );
+
+    const ability = parseCombatAbility(card);
+    expect(ability).not.toBeNull();
+    expect(ability?.rollType).toBe('spellcast');
+  });
+
+  it('SHOULD identify actual weapon attacks', () => {
+    const card = createMockCard(
+      'Power Strike',
+      'Make a weapon attack against a target. Deal 2d10 physical damage.'
+    );
+
+    const ability = parseCombatAbility(card);
+    expect(ability).not.toBeNull();
+    expect(ability?.rollType).toBe('attack');
+  });
+});
+
+describe('Missing Pattern Fixes (Issue #40)', () => {
+  it('should parse "Very Close" range', () => {
+    const card = createMockCard(
+      'Whirlwind',
+      'Make an attack against all targets within Very Close range. Deal 2d8 damage.'
+    );
+
+    const ability = parseCombatAbility(card);
+    expect(ability).not.toBeNull();
+    expect(ability?.range).toBe('Very Close');
+  });
+
+  it('should parse "Very Far" range', () => {
+    const card = createMockCard(
+      'Long Shot',
+      'Make a Spellcast Roll against a target within Very Far range. Deal 1d12 damage.'
+    );
+
+    const ability = parseCombatAbility(card);
+    expect(ability).not.toBeNull();
+    expect(ability?.range).toBe('Very Far');
+  });
+
+  it('should parse damage without multiplier (d8 instead of 1d8)', () => {
+    const card = createMockCard(
+      'Towering Stalk',
+      'Make a Spellcast Roll dealing d8 physical damage using your Proficiency.'
+    );
+
+    const ability = parseCombatAbility(card);
+    expect(ability).not.toBeNull();
+    expect(ability?.damage).toBe('d8');
+    expect(ability?.damageType).toBe('physical');
+    expect(ability?.usesProficiency).toBe(true);
+  });
+
+  it('should parse damage with single die (d6, d10, d12)', () => {
+    const card1 = createMockCard('Spell1', 'Deal d6 magic damage.');
+    expect(parseCombatAbility(card1)?.damage).toBe('d6');
+
+    const card2 = createMockCard('Spell2', 'Deal d10 physical damage.');
+    expect(parseCombatAbility(card2)?.damage).toBe('d10');
+
+    const card3 = createMockCard('Spell3', 'Deal d12 magic damage.');
+    expect(parseCombatAbility(card3)?.damage).toBe('d12');
+  });
+
+  it('should detect "using your Proficiency Die"', () => {
+    const card = createMockCard(
+      'Telekinesis',
+      'Deal 12d4 physical damage to the target using your Proficiency Die.'
+    );
+
+    const ability = parseCombatAbility(card);
+    expect(ability).not.toBeNull();
+    expect(ability?.usesProficiency).toBe(true);
+    expect(ability?.damage).toBe('12d4');
+  });
+
+  it('should detect both "Proficiency" and "Proficiency Die"', () => {
+    const card1 = createMockCard('Spell1', 'Deal 3d8 damage using your Proficiency.');
+    expect(parseCombatAbility(card1)?.usesProficiency).toBe(true);
+
+    const card2 = createMockCard('Spell2', 'Deal 3d8 damage using your Proficiency Die.');
+    expect(parseCombatAbility(card2)?.usesProficiency).toBe(true);
+
+    const card3 = createMockCard('Spell3', 'Deal 3d8 damage using Proficiency Die.');
+    expect(parseCombatAbility(card3)?.usesProficiency).toBe(true);
   });
 });

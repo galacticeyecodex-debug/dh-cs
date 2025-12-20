@@ -23,7 +23,7 @@ export interface CombatAbility {
   rollType: 'spellcast' | 'attack' | 'none' | 'trait_check';
   trait?: string;          // For attack rolls or trait checks
   range?: string;          // Melee, Close, Far, Very Far
-  damage?: string;         // Dice notation (e.g., "6d8+2", "12d20+3")
+  damage?: string;         // Dice notation (e.g., "d8+2", "12d20+3")
   damageType?: 'magic' | 'physical' | 'special';
   usesProficiency?: boolean; // Whether damage scales with proficiency
   costs?: {
@@ -85,14 +85,24 @@ export function parseCombatAbility(card: CharacterCard): CombatAbility | null {
 
 /**
  * Check if a card description contains combat mechanics
+ * Uses specific patterns to avoid false positives from defensive/utility cards
  */
 function hasCombatMechanics(description: string): boolean {
   const combatIndicators = [
-    /make (?:a|an) (?:spellcast|attack|melee|ranged)/i,
-    /deal(?:s|ing)?\s+\d+d\d+/i,
-    /damage/i,
-    /target/i,
-    /roll/i,
+    // Specific offensive roll patterns
+    /make\s+(?:a|an)\s+(?:spellcast|attack|melee|ranged)\s+(?:roll|attack)/i,
+
+    // Specific damage dealing patterns (with dice notation)
+    /deal(?:s|ing)?\s+\d*d\d+(?:[+\-]\d+)?\s+(?:magic|physical|true)?\s*damage/i,
+
+    // Targeted offensive actions
+    /make.*(?:attack|spellcast).*against/i,
+
+    // Attack success patterns (adjective or adverb form)
+    /success(?:ful|fully)\s+(?:attack|spellcast)/i,
+
+    // Weapon attack modifiers (damage roll context)
+    /(?:attack|weapon).*damage\s+roll/i,
   ];
 
   return combatIndicators.some(pattern => pattern.test(description));
@@ -141,7 +151,7 @@ function extractTrait(description: string, rollType: CombatAbility['rollType']):
  * Extract range from description
  */
 function extractRange(description: string): string | undefined {
-  const rangePattern = /within (very far|far|close|melee|short|long) range/i;
+  const rangePattern = /within (very close|very far|far|close|melee|short|long) range/i;
   const match = description.match(rangePattern);
 
   if (match) {
@@ -149,6 +159,8 @@ function extractRange(description: string): string | undefined {
     // Normalize range names
     if (range === 'short') return 'Close';
     if (range === 'long') return 'Far';
+    if (range === 'very close') return 'Very Close';
+    if (range === 'very far') return 'Very Far';
     return range.charAt(0).toUpperCase() + range.slice(1);
   }
 
@@ -163,8 +175,8 @@ function extractDamage(description: string): {
   damageType?: 'magic' | 'physical' | 'special';
   usesProficiency?: boolean;
 } {
-  // Pattern: "6d8+2 magic damage" or "12d20+3 damage"
-  const damagePattern = /(?:deal(?:s|ing)?|take(?:s)?)\s+(\d+d\d+(?:[+\-]\d+)?)\s+(magic|physical|true)?\s*damage/i;
+  // Pattern: "d8+2 magic damage", "12d20+3 damage", or "d8 damage" (no multiplier)
+  const damagePattern = /(?:deal(?:s|ing)?|take(?:s)?)\s+(\d*d\d+(?:[+\-]\d+)?)\s+(magic|physical|true)?\s*damage/i;
   const match = description.match(damagePattern);
 
   if (!match) {
@@ -182,8 +194,8 @@ function extractDamage(description: string): {
     else damageType = 'special';
   }
 
-  // Check if damage uses proficiency
-  const usesProficiency = /using (?:your )?proficiency/i.test(description);
+  // Check if damage uses proficiency (handles both "Proficiency" and "Proficiency Die")
+  const usesProficiency = /using (?:your )?proficiency(?: die)?/i.test(description);
 
   return {
     damage,

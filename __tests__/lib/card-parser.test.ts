@@ -107,6 +107,71 @@ describe('parseCardPassiveModifiers', () => {
     });
   });
 
+  describe('negative modifiers / penalties', () => {
+    it('should parse -2 penalty to attack rolls', () => {
+      const card = createMockCard('Words of Discord', 'You gain a -2 penalty to attack rolls.');
+      const character = createMockCharacter();
+
+      const mods = parseCardPassiveModifiers(card, character);
+
+      expect(mods).toHaveLength(1);
+      expect(mods[0]).toMatchObject({
+        stat: 'attack',
+        value: -2,
+        isActive: true,
+        source: 'Words of Discord'
+      });
+    });
+
+    it('should parse -1 penalty to Spellcast', () => {
+      const card = createMockCard('Cursed', 'You take a -1 penalty to Spellcast.');
+      const character = createMockCharacter();
+
+      const mods = parseCardPassiveModifiers(card, character);
+
+      expect(mods).toHaveLength(1);
+      expect(mods[0]).toMatchObject({
+        stat: 'spellcast',
+        value: -1,
+        isActive: true
+      });
+    });
+
+    it('should parse -3 penalty to Evasion', () => {
+      const card = createMockCard('Heavy Burden', '-3 to your Evasion while carrying.');
+      const character = createMockCharacter();
+
+      const mods = parseCardPassiveModifiers(card, character);
+
+      expect(mods).toHaveLength(1);
+      expect(mods[0]).toMatchObject({
+        stat: 'evasion',
+        value: -3,
+        isActive: true
+      });
+    });
+
+    it('should handle mixed positive and negative modifiers', () => {
+      const card = createMockCard(
+        'Trade-off',
+        'You gain +2 to Strength but take a -1 penalty to Agility.'
+      );
+      const character = createMockCharacter();
+
+      const mods = parseCardPassiveModifiers(card, character);
+
+      expect(mods).toHaveLength(2);
+      expect(mods[0]).toMatchObject({
+        stat: 'strength',
+        value: 2
+      });
+      expect(mods[1]).toMatchObject({
+        stat: 'agility',
+        value: -1
+      });
+    });
+  });
+
   describe('dynamic bonuses', () => {
     it('should parse "equal to half your Agility" bonus to Evasion', () => {
       const card = createMockCard(
@@ -224,7 +289,7 @@ describe('evaluateModifierCondition', () => {
   it('should count domain cards in loadout', () => {
     const condition: ModifierCondition = {
       type: 'loadout_domain_count',
-      domain: 'Arcana',
+      domain: 'arcana', // Lowercase - normalized by parser
       minCount: 4
     };
 
@@ -244,7 +309,7 @@ describe('evaluateModifierCondition', () => {
   it('should fail when insufficient domain cards', () => {
     const condition: ModifierCondition = {
       type: 'loadout_domain_count',
-      domain: 'Arcana',
+      domain: 'arcana', // Lowercase - normalized by parser
       minCount: 4
     };
 
@@ -256,6 +321,26 @@ describe('evaluateModifierCondition', () => {
     });
 
     expect(evaluateModifierCondition(condition, character)).toBe(false);
+  });
+
+  it('should handle case-insensitive domain matching', () => {
+    const condition: ModifierCondition = {
+      type: 'loadout_domain_count',
+      domain: 'arcana', // Lowercase from parser
+      minCount: 4
+    };
+
+    const character = createMockCharacter({
+      character_cards: [
+        { location: 'loadout', library_item: { data: { domain: 'arcana' } } } as any,
+        { location: 'loadout', library_item: { data: { domain: 'ARCANA' } } } as any,
+        { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
+        { location: 'loadout', library_item: { data: { domain: 'ArCaNa' } } } as any,
+      ]
+    });
+
+    // Should match all 4 cards despite different casing
+    expect(evaluateModifierCondition(condition, character)).toBe(true);
   });
 });
 

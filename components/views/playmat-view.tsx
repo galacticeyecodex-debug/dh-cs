@@ -29,6 +29,7 @@ import ReactMarkdown from 'react-markdown';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { parseCardPassiveModifiers, type PassiveModifier, type ModifierCondition } from '@/lib/card-parser';
 import { parseCombatAbility, type CombatAbility } from '@/lib/combat-spell-parser';
+import { toast } from 'react-hot-toast';
 
 export default function PlaymatView() {
   const { character, moveCard, addCardToCollection } = useCharacterStore();
@@ -75,7 +76,7 @@ export default function PlaymatView() {
   const handleMoveCard = useCallback((cardId: string, destination: 'loadout' | 'vault') => {
     // Basic check for loadout limit
     if (destination === 'loadout' && loadoutCards.length >= 5) {
-      alert("Loadout is full! Move a card to the Vault first.");
+      toast.error("Loadout is full! Move a card to the Vault first.");
       return;
     }
     moveCard(cardId, destination);
