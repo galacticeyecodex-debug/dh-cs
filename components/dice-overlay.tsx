@@ -24,7 +24,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { X, RotateCcw, Plus, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 
-type DiceRole = 'hope' | 'fear' | 'plus' | 'minus';
+type DiceRole = 'hope' | 'fear' | 'plus' | 'minus' | 'damage';
 
 interface DieConfig {
   id: string;
@@ -192,7 +192,7 @@ export default function DiceOverlay() {
       try {
         const cleanDice = activeRoll.dice.replace(/(phy|mag|physical|magic)/gi, '').replace(/\s/g, '');
         const diceParts = cleanDice.split('+');
-        const diceConfig = [];
+        const diceConfig: { sides: number, themeColor: string }[] = [];
         let stringModifier = 0;
         for (const part of diceParts) {
           const diceMatch = part.match(/^(\d+)?d(\d+)$/i);
@@ -216,9 +216,25 @@ export default function DiceOverlay() {
         }
         const result = await boxInstanceRef.current.roll(diceConfig);
         let diceTotal = 0;
-        if (Array.isArray(result)) diceTotal = result.reduce((acc: number, die: any) => acc + die.value, 0);
+        const individualDieResults: { role: DiceRole, value: number, sides: number }[] = [];
+
+        if (Array.isArray(result)) {
+           result.forEach((die: any, index: number) => {
+             diceTotal += die.value;
+             const sides = diceConfig[index]?.sides || 0; 
+             individualDieResults.push({ role: 'damage', value: die.value, sides });
+           });
+        }
+
         const finalTotalModifier = totalModifier + stringModifier;
-        setLastRollResult({ hope: 0, fear: 0, total: diceTotal + finalTotalModifier, modifier: finalTotalModifier, type: 'Damage' });
+        setLastRollResult({ 
+          hope: 0, 
+          fear: 0, 
+          total: diceTotal + finalTotalModifier, 
+          modifier: finalTotalModifier, 
+          type: 'Damage',
+          dice: individualDieResults 
+        });
       } catch (e) { console.error("Custom roll failed", e); }
       return;
     }
@@ -461,7 +477,6 @@ export default function DiceOverlay() {
 
                     <div className="text-sm text-gray-400 uppercase tracking-wider mb-1">Result</div>
                     <div className="text-6xl font-serif font-black text-white mb-4">{lastRollResult.total}</div>
-                    {lastRollResult.type !== 'Damage' && (
                       <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4">
                         {lastRollResult.dice?.map((die, index) => (
                           <div key={index} className="flex flex-col items-center">
@@ -471,7 +486,8 @@ export default function DiceOverlay() {
                                 die.role === 'fear' ? "text-purple-400" :
                                   die.role === 'plus' ? "text-white" :
                                     die.role === 'minus' ? "text-gray-300" :
-                                      "text-green-400" // For 'extra'
+                                      die.role === 'damage' ? "text-red-400" :
+                                        "text-green-400" // For 'extra'
                             )}>
                               {die.role}
                             </span>
@@ -485,7 +501,6 @@ export default function DiceOverlay() {
                           </div>
                         )}
                       </div>
-                    )}
                     <div className={clsx(
                       "inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wide",
                       lastRollResult.type === 'Critical' ? "bg-green-500/20 text-green-400 border border-green-500/50" :
