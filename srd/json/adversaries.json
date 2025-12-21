@@ -3187,7 +3187,7 @@
       },
       {
         "name": "Mana Bolt - Action",
-        "text": "Spend a Fear to lob explosive magic at a point within Far range. All targets within Very Close range of that point must make an Agility Reaction Roll. Targets who fail take 8d20 magic damage and are knocked back to Close range. Targets who succeed take half damage and aren’t knocked back."
+        "text": "Spend a Fear to lob explosive magic at a point within Far range. All targets within Very Close range of that point must make an Agility Reaction Roll. Targets who fail take 3d20 magic damage and are knocked back to Close range. Targets who succeed take half damage and aren’t knocked back."
       },
       {
         "name": "Momentum - Reaction",

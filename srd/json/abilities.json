@@ -29,7 +29,7 @@
     "domain": "Arcana",
     "type": "Spell",
     "recall": "1",
-    "text": "Make a Spellcast Roll against a target within Melee range. On a success, the target instantly bursts into flames, takes 12d20+3 magic damage, and is temporarily lit On Fire.\n\nWhen a creature acts while On Fire, they must take an extra 2d6 magic damage if they are still On Fire at the end of their action."
+    "text": "Make a Spellcast Roll against a target within Melee range. On a success, the target instantly bursts into flames, takes 1d20+3 magic damage, and is temporarily lit On Fire.\n\nWhen a creature acts while On Fire, they must take an extra 2d6 magic damage if they are still On Fire at the end of their action."
   },
   {
     "name": "Floating Eye",
@@ -69,7 +69,7 @@
     "domain": "Arcana",
     "type": "Spell",
     "recall": "2",
-    "text": "Make a Spellcast Roll against all targets within Melee range. Targets you succeed against are forced back to Far range and take 8d8+3 magic damage using your Spellcast trait."
+    "text": "Make a Spellcast Roll against all targets within Melee range. Targets you succeed against are forced back to Far range and take d8+3 magic damage using your Spellcast trait."
   },
   {
     "name": "Chain Lightning",
@@ -101,7 +101,7 @@
     "domain": "Arcana",
     "type": "Spell",
     "recall": "0",
-    "text": "Make a Spellcast Roll against a target within Far range. On a success, you can use your mind to move them anywhere within Far range of their original position. You can throw the lifted target as an attack by making an additional Spellcast Roll against the second target you’re trying to attack. On a success, deal 12d4 physical damage to the second target using your Proficiency Die."
+    "text": "Make a Spellcast Roll against a target within Far range. On a success, you can use your mind to move them anywhere within Far range of their original position. You can throw the lifted target as an attack by making an additional Spellcast Roll against the second target you’re trying to attack. On a success, deal d12+4 physical damage to the second target using your Proficiency."
   },
   {
     "name": "Arcana-Touched",
@@ -165,7 +165,7 @@
     "domain": "Arcana",
     "type": "Spell",
     "recall": "1",
-    "text": "Make a Spellcast Roll against all adversaries within Far range. Mark any number of Stress to make shards of arcana rain down from above. Targets you succeed against take 12d20+2 magic damage for each Stress marked."
+    "text": "Make a Spellcast Roll against all adversaries within Far range. Mark any number of Stress to make shards of arcana rain down from above. Targets you succeed against take 1d20+2 magic damage for each Stress marked."
   },
   {
     "name": "Get Back Up",

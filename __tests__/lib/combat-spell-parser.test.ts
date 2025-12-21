@@ -41,7 +41,7 @@ describe('Combat Spell Parser', () => {
       it('should parse Cinder Grasp (basic spellcast attack)', () => {
         const card = createMockCard(
           'Cinder Grasp',
-          'Make a Spellcast Roll against a target within Melee range. On a success, the target instantly bursts into flames, takes 12d20+3 magic damage, and is temporarily lit On Fire.'
+          'Make a Spellcast Roll against a target within Melee range. On a success, the target instantly bursts into flames, takes 1d20+3 magic damage, and is temporarily lit On Fire.'
         );
 
         const ability = parseCombatAbility(card);
@@ -52,7 +52,7 @@ describe('Combat Spell Parser', () => {
           rollType: 'spellcast',
           trait: 'Spellcast',
           range: 'Melee',
-          damage: '12d20+3',
+          damage: '1d20+3',
           damageType: 'magic',
           usesProficiency: false,
           recallCost: 1
@@ -311,7 +311,7 @@ describe('Combat Spell Parser', () => {
   describe('getLoadoutCombatAbilities', () => {
     it('should return only combat abilities from loadout', () => {
       const cards: CharacterCard[] = [
-        createMockCard('Cinder Grasp', 'Make a Spellcast Roll against a target within Melee range. On a success, deal 12d20+3 magic damage.', 'loadout'),
+        createMockCard('Cinder Grasp', 'Make a Spellcast Roll against a target within Melee range. On a success, deal 1d20+3 magic damage.', 'loadout'),
         createMockCard('Graceful Movement', 'You gain a +1 bonus to your Agility.', 'loadout'), // Non-combat
         createMockCard('Bolt Beacon', 'Make a Spellcast Roll. On a success, deal d8+2 magic damage.', 'vault'), // In vault
         createMockCard('Chain Lightning', 'Make a Spellcast Roll. On a success, deal 2d8+4 magic damage.', 'loadout'),
