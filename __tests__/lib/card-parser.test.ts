@@ -28,9 +28,9 @@ function createMockCard(name: string, description: string): CharacterCard {
       name,
       type: 'ability',
       category: 'ability',
+      domain: 'Test',
       data: {
         description,
-        domain: 'Test',
         tier: 1,
         recall: '1'
       }
@@ -295,11 +295,11 @@ describe('evaluateModifierCondition', () => {
 
     const character = createMockCharacter({
       character_cards: [
-        { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
-        { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
-        { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
-        { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
-        { location: 'vault', library_item: { data: { domain: 'Arcana' } } } as any, // Not counted
+        { location: 'loadout', library_item: { domain: 'Arcana', data: {} } } as any,
+        { location: 'loadout', library_item: { domain: 'Arcana', data: {} } } as any,
+        { location: 'loadout', library_item: { domain: 'Arcana', data: {} } } as any,
+        { location: 'loadout', library_item: { domain: 'Arcana', data: {} } } as any,
+        { location: 'vault', library_item: { domain: 'Arcana', data: {} } } as any, // Not counted
       ]
     });
 
@@ -315,8 +315,8 @@ describe('evaluateModifierCondition', () => {
 
     const character = createMockCharacter({
       character_cards: [
-        { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
-        { location: 'loadout', library_item: { data: { domain: 'Blade' } } } as any,
+        { location: 'loadout', library_item: { domain: 'Arcana', data: {} } } as any,
+        { location: 'loadout', library_item: { domain: 'Blade', data: {} } } as any,
       ]
     });
 
@@ -332,10 +332,10 @@ describe('evaluateModifierCondition', () => {
 
     const character = createMockCharacter({
       character_cards: [
-        { location: 'loadout', library_item: { data: { domain: 'arcana' } } } as any,
-        { location: 'loadout', library_item: { data: { domain: 'ARCANA' } } } as any,
-        { location: 'loadout', library_item: { data: { domain: 'Arcana' } } } as any,
-        { location: 'loadout', library_item: { data: { domain: 'ArCaNa' } } } as any,
+        { location: 'loadout', library_item: { domain: 'arcana', data: {} } } as any,
+        { location: 'loadout', library_item: { domain: 'ARCANA', data: {} } } as any,
+        { location: 'loadout', library_item: { domain: 'Arcana', data: {} } } as any,
+        { location: 'loadout', library_item: { domain: 'ArCaNa', data: {} } } as any,
       ]
     });
 

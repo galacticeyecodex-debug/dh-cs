@@ -208,9 +208,10 @@ export function evaluateModifierCondition(
       const loadoutCards = character.character_cards?.filter(c =>
         c.location === 'loadout'
       ) || [];
-      const domainCount = loadoutCards.filter(c =>
-        c.library_item?.data?.domain?.toLowerCase() === condition.domain
-      ).length;
+      const domainCount = loadoutCards.filter(c => {
+        const domain = c.library_item?.domain || c.library_item?.data?.domain;
+        return domain?.toLowerCase() === condition.domain;
+      }).length;
       return domainCount >= condition.minCount;
     }
 
