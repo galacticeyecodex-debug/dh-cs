@@ -18,9 +18,9 @@
  * - Only re-renders cards when their location or data actually changes
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character-store';
-import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap, Shield, ShieldOff, Users, AlertCircle, Swords, Sparkles } from 'lucide-react';
+import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap, Shield, ShieldOff, Users, AlertCircle, Swords, Sparkles, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AddItemModal from '@/components/add-item-modal';
 import { dataService } from '@/lib/data-service';
@@ -39,6 +39,7 @@ export default function PlaymatView() {
   const [selectedCard, setSelectedCard] = useState<CharacterCard | null>(null);
   const [allLibraryItems, setAllLibraryItems] = useState<LibraryItem[]>([]);
   const [libraryLoading, setLibraryLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchAllLibraryItems = async () => {
@@ -71,7 +72,23 @@ export default function PlaymatView() {
     addCardToCollection(item);
   }, [addCardToCollection]);
 
-  const loadoutCards = character?.character_cards?.filter(card => card.location === 'loadout') || [];
+  const allCharacterCards = character?.character_cards || [];
+
+  const filteredCards = useMemo(() => {
+    if (!searchTerm) return allCharacterCards;
+    const term = searchTerm.toLowerCase();
+    return allCharacterCards.filter(card => {
+      const { name, domain, type } = card.library_item || {};
+      return (
+        name?.toLowerCase().includes(term) ||
+        domain?.toLowerCase().includes(term) ||
+        type?.toLowerCase().includes(term)
+      );
+    });
+  }, [allCharacterCards, searchTerm]);
+
+  const loadoutCards = filteredCards.filter(card => card.location === 'loadout');
+  const vaultCards = filteredCards.filter(card => card.location === 'vault');
 
   const handleMoveCard = useCallback((cardId: string, destination: 'loadout' | 'vault') => {
     // Basic check for loadout limit
@@ -90,18 +107,16 @@ export default function PlaymatView() {
     );
   }
 
-  const vaultCards = character.character_cards?.filter(card => card.location === 'vault') || [];
-
   return (
     <ErrorBoundary>
       <div className="space-y-6">
         {/* Header & Toggle */}
-      <div className="flex justify-between items-center">
-        <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex bg-white/5 rounded-lg p-1 border border-white/10 w-full sm:w-auto">
           <button
             onClick={() => setViewMode('loadout')}
             className={clsx(
-              "px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-2 transition-colors",
+              "flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
               viewMode === 'loadout' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
             )}
           >
@@ -110,7 +125,7 @@ export default function PlaymatView() {
           <button
             onClick={() => setViewMode('vault')}
             className={clsx(
-              "px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-2 transition-colors",
+              "flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
               viewMode === 'vault' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
             )}
           >
@@ -118,12 +133,34 @@ export default function PlaymatView() {
           </button>
         </div>
 
-        <button
-          onClick={() => setIsAddCardModalOpen(true)}
-          className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-full text-sm font-bold flex items-center gap-1 transition-colors border border-white/10"
-        >
-          <Plus size={16} /> <span className="hidden sm:inline">Add Card</span>
-        </button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* Search Bar */}
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+            <input
+              type="text"
+              placeholder="Search cards..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-dagger-gold transition-colors"
+            />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+
+          <button
+            onClick={() => setIsAddCardModalOpen(true)}
+            className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-full text-sm font-bold flex items-center gap-1 transition-colors border border-white/10 flex-shrink-0"
+          >
+            <Plus size={16} /> <span className="hidden xs:inline">Add Card</span>
+          </button>
+        </div>
       </div>
 
       {/* Loadout View */}
@@ -197,13 +234,17 @@ export default function PlaymatView() {
             ) : (
               <div className="aspect-[2/3] border-2 border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center text-gray-600 col-span-2 p-4 text-center">
                 <LibraryBig size={24} className="mb-2" />
-                <span className="text-sm">No cards in Loadout.</span>
-                <span className="text-xs">Add from Vault or create new!</span>
+                <span className="text-sm">
+                  {searchTerm ? "No cards match your search." : "No cards in Loadout."}
+                </span>
+                <span className="text-xs">
+                  {searchTerm ? "Try a different search term." : "Add from Vault or create new!"}
+                </span>
               </div>
             )}
 
-            {/* Fill remaining slots up to 5 */}
-            {Array.from({ length: Math.max(0, 5 - loadoutCards.length) }).map((_, i) => (
+            {/* Fill remaining slots up to 5 only if not searching */}
+            {!searchTerm && Array.from({ length: Math.max(0, 5 - loadoutCards.length) }).map((_, i) => (
               <div key={`empty-${i}`} className="aspect-[2/3] border-2 border-dashed border-white/5 rounded-lg flex items-center justify-center text-gray-600">
                 <span className="text-xs uppercase">Slot {loadoutCards.length + i + 1}</span>
               </div>
@@ -229,7 +270,7 @@ export default function PlaymatView() {
             </div>
           ) : (
             <div className="text-center text-gray-500 py-12">
-              Your Vault is empty.
+              {searchTerm ? "No cards in vault match your search." : "Your Vault is empty."}
             </div>
           )}
         </div>
