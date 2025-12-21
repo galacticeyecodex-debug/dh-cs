@@ -46,7 +46,7 @@
  */
 
 import React, { useState } from 'react';
-import { X, Zap, Check } from 'lucide-react';
+import { X, Zap, Check, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { calculateTierAchievements, calculateNewDamageThresholds, getTier, getMaxCardLevelForDomain, getClassDomains } from '@/lib/level-up-helpers';
 import { validateNewLevel, validateAdvancementSelections } from '@/lib/level-up-validation';
@@ -131,6 +131,7 @@ export default function LevelUpModal({
   const [selectedMulticlassDomain, setSelectedMulticlassDomain] = useState<string>('');
   const [selectedMulticlassSubclass, setSelectedMulticlassSubclass] = useState<string>('');
   const [exchangeExistingCardId, setExchangeExistingCardId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Configuration State (Sub-steps)
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
@@ -151,6 +152,7 @@ export default function LevelUpModal({
       setSelectedMulticlassDomain('');
       setSelectedMulticlassSubclass('');
       setExchangeExistingCardId(null);
+      setSearchTerm('');
       setSelectedTraits([]);
       setSelectedExperienceIndices([]);
       setHpSlotsAdded(1);
@@ -815,6 +817,19 @@ export default function LevelUpModal({
                         </span>
                     )}
                   </p>
+
+                  {/* Search Input */}
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input 
+                      type="text"
+                      placeholder="Search by card name or domain..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full bg-black/30 border border-gray-700 rounded-lg py-2 pl-10 pr-4 text-white focus:outline-none focus:border-dagger-gold transition-colors"
+                    />
+                  </div>
+
                   {character.domains?.length === 0 ? (
                     <p className="text-gray-500 text-sm p-4 bg-black/20 rounded-lg">No domains available. Ensure your character has at least one domain.</p>
                   ) : availableDomainCards.length === 0 ? (
@@ -826,7 +841,12 @@ export default function LevelUpModal({
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 gap-2">
-                      {availableDomainCards.map((card) => {
+                      {availableDomainCards
+                        .filter(card => 
+                          card.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          card.domain?.toLowerCase().includes(searchTerm.toLowerCase())
+                        )
+                        .map((card) => {
                         const isSelected = selectedAutomaticCard === card.id;
                         const cardLevel = getCardLevel(card);
                         const cardDescription = getCardDescription(card);
@@ -860,6 +880,12 @@ export default function LevelUpModal({
                           </button>
                         );
                       })}
+                      {availableDomainCards.filter(card => 
+                          card.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          card.domain?.toLowerCase().includes(searchTerm.toLowerCase())
+                        ).length === 0 && (
+                        <p className="text-gray-500 text-center py-4">No cards match your search.</p>
+                      )}
                     </div>
                   )}
 
@@ -880,9 +906,25 @@ export default function LevelUpModal({
                   <p className="text-gray-400 mb-4">
                     Choose your additional domain card (Advancement Bonus).
                   </p>
+
+                  {/* Search Input */}
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input 
+                      type="text"
+                      placeholder="Search by card name or domain..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full bg-black/30 border border-gray-700 rounded-lg py-2 pl-10 pr-4 text-white focus:outline-none focus:border-dagger-gold transition-colors"
+                    />
+                  </div>
+
                   <div className="grid grid-cols-1 gap-2">
                     {availableDomainCards.filter(
                       card => card.id !== selectedAutomaticCard
+                    ).filter(card => 
+                      card.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                      card.domain?.toLowerCase().includes(searchTerm.toLowerCase())
                     ).map((card) => {
                       const isSelected = selectedAdditionalCard === card.id;
                       const cardLevel = getCardLevel(card);
@@ -917,6 +959,14 @@ export default function LevelUpModal({
                         </button>
                       );
                     })}
+                    {availableDomainCards.filter(
+                      card => card.id !== selectedAutomaticCard
+                    ).filter(card => 
+                      card.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                      card.domain?.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).length === 0 && (
+                      <p className="text-gray-500 text-center py-4">No cards match your search.</p>
+                    )}
                   </div>
                 </div>
               )}

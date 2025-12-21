@@ -34,15 +34,22 @@ interface AddItemModalProps {
 export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems, filterType = 'inventory', isLoading = false }: AddItemModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // 'weapon', 'armor', 'consumable', 'item', 'card'
+  const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
   const [showHomebrewOnly, setShowHomebrewOnly] = useState(false); // Filter to show only homebrew items
   const [isCreateHomebrewOpen, setIsCreateHomebrewOpen] = useState(false);
 
   const { homebrewItems, fetchHomebrewItems, addHomebrewItem } = useCharacterStore();
 
+  const DOMAINS = ['Arcana', 'Blade', 'Bone', 'Codex', 'Grace', 'Midnight', 'Sage', 'Splendor', 'Valor'];
+
   // Fetch homebrew items when modal opens
   useEffect(() => {
-    if (isOpen && filterType === 'inventory') {
-      fetchHomebrewItems();
+    if (isOpen) {
+      if (filterType === 'inventory') {
+        fetchHomebrewItems();
+      }
+      setSearchTerm('');
+      setSelectedDomain(null);
     }
   }, [isOpen, filterType, fetchHomebrewItems]);
 
@@ -61,7 +68,10 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
     const allItems = [...libraryItems, ...homebrewAsLibraryItems];
 
     return allItems.filter(item => {
-      const matchesSearch = searchTerm ? item.name.toLowerCase().includes(searchTerm.toLowerCase()) : true;
+      const matchesSearch = searchTerm ? (
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        (item.domain && item.domain.toLowerCase().includes(searchTerm.toLowerCase()))
+      ) : true;
 
       // Category filtering
       let matchesCategory = true;
@@ -70,6 +80,9 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
       else if (selectedCategory === 'consumable') matchesCategory = item.type === 'consumable';
       else if (selectedCategory === 'item') matchesCategory = item.type === 'item';
       else if (selectedCategory === 'card') matchesCategory = ['ability', 'spell', 'grimoire'].includes(item.type);
+
+      // Domain filtering
+      const matchesDomain = selectedDomain ? item.domain === selectedDomain : true;
 
       // Homebrew filtering
       const matchesHomebrew = showHomebrewOnly ? (item as any)._isHomebrew === true : true;
@@ -87,9 +100,9 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
         else isRelevantType = isInventoryType;
       }
 
-      return matchesSearch && matchesCategory && matchesHomebrew && isRelevantType;
+      return matchesSearch && matchesCategory && matchesDomain && matchesHomebrew && isRelevantType;
     });
-  }, [libraryItems, homebrewItems, searchTerm, selectedCategory, showHomebrewOnly, filterType]);
+  }, [libraryItems, homebrewItems, searchTerm, selectedCategory, selectedDomain, showHomebrewOnly, filterType]);
 
   if (!isOpen) return null;
 
@@ -194,6 +207,26 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
               />
             )}
           </div>
+
+          {/* Domain Filters (Only for cards) */}
+          {(filterType === 'cards' || selectedCategory === 'card') && (
+            <div className="flex gap-2 overflow-x-auto pb-2 -mb-2 border-t border-white/5 pt-2">
+              <span className="text-[10px] text-gray-500 uppercase font-bold self-center mr-1">Domains:</span>
+              <FilterButton
+                label="Any"
+                isSelected={selectedDomain === null}
+                onClick={() => setSelectedDomain(null)}
+              />
+              {DOMAINS.map(domain => (
+                <FilterButton
+                  key={domain}
+                  label={domain}
+                  isSelected={selectedDomain === domain}
+                  onClick={() => setSelectedDomain(domain === selectedDomain ? null : domain)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Results List */}
@@ -280,7 +313,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
 
 interface FilterButtonProps {
   label: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   isSelected: boolean;
   onClick: () => void;
 }
