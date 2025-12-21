@@ -40,7 +40,13 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
 
   const { homebrewItems, fetchHomebrewItems, addHomebrewItem } = useCharacterStore();
 
-  const DOMAINS = ['Arcana', 'Blade', 'Bone', 'Codex', 'Grace', 'Midnight', 'Sage', 'Splendor', 'Valor'];
+  // Extract domain names from library items
+  const domains = useMemo(() => {
+    return libraryItems
+      .filter(item => item.type === 'domain')
+      .map(item => item.name)
+      .sort();
+  }, [libraryItems]);
 
   // Fetch homebrew items when modal opens
   useEffect(() => {
@@ -217,7 +223,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
                 isSelected={selectedDomain === null}
                 onClick={() => setSelectedDomain(null)}
               />
-              {DOMAINS.map(domain => (
+              {domains.map(domain => (
                 <FilterButton
                   key={domain}
                   label={domain}
