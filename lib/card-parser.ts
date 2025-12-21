@@ -50,8 +50,21 @@ const STAT_PATTERNS: Record<string, RegExp> = {
   armor_score: /armor\s+score/i,
   proficiency: /proficiency/i,
   spellcast: /spellcast/i,
-  attack: /attack(?:\s+roll)?/i, // Matches "attack" or "attack roll"
-  damage: /damage(?:\s+roll)?/i, // Matches "damage" or "damage roll"
+  
+  // Specific threshold patterns first to prevent partial matching with "damage"
+  damage_threshold_severe: /severe\s+damage\s+thresholds?/i,
+  damage_threshold_major: /major\s+damage\s+thresholds?/i,
+  damage_threshold_minor: /minor\s+damage\s+thresholds?/i,
+  damage_threshold: /damage\s+thresholds?/i,
+
+  // Resource patterns
+  hit_points: /hit\s+points?|hp/i,
+  stress: /stress/i,
+  hope: /hope(?!\s+die)/i, // Matches "hope" but NOT "hope die"
+
+  attack: /attack(?:\s+rolls?)?/i, // Matches "attack" or "attack roll"
+  // Use negative lookahead to ensure we don't match "damage threshold" as "damage"
+  damage: /damage(?:\s+rolls?)?(?!\s+threshold)/i, 
 };
 
 /**

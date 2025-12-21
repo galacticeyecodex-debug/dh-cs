@@ -23,7 +23,7 @@ export interface CombatAbility {
   rollType: 'spellcast' | 'attack' | 'none' | 'trait_check';
   trait?: string;          // For attack rolls or trait checks
   range?: string;          // Melee, Close, Far, Very Far
-  damage?: string;         // Dice notation (e.g., "d8+2", "12d20+3")
+  damage?: string;         // Dice notation (e.g., "d8+2", "1d20+3")
   damageType?: 'magic' | 'physical' | 'special';
   usesProficiency?: boolean; // Whether damage scales with proficiency
   costs?: {
@@ -175,7 +175,7 @@ function extractDamage(description: string): {
   damageType?: 'magic' | 'physical' | 'special';
   usesProficiency?: boolean;
 } {
-  // Pattern: "d8+2 magic damage", "12d20+3 damage", or "d8 damage" (no multiplier)
+  // Pattern: "d8+2 magic damage", "1d20+3 damage", or "d8 damage" (no multiplier)
   const damagePattern = /(?:deal(?:s|ing)?|take(?:s)?)\s+(\d*d\d+(?:[+\-]\d+)?)\s+(magic|physical|true)?\s*damage/i;
   const match = description.match(damagePattern);
 
