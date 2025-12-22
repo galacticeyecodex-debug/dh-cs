@@ -46,17 +46,19 @@ export default function PlaymatView() {
       setLibraryLoading(true);
 
       try {
-        // Fetch card-related types
-        const [abilitiesData, spellsData, grimoiresData] = await Promise.all([
+        // Fetch card-related types (including domains for filter dropdown)
+        const [abilitiesData, spellsData, grimoiresData, domainsData] = await Promise.all([
           dataService.library.getByType('ability'),
           dataService.library.getByType('spell'),
           dataService.library.getByType('grimoire'),
+          dataService.library.getByType('domain'),
         ]);
 
         setAllLibraryItems([
           ...abilitiesData,
           ...spellsData,
           ...grimoiresData,
+          ...domainsData,
         ]);
       } catch (error) {
         console.error("Failed to load library data:", error);
