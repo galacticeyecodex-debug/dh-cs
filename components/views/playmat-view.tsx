@@ -352,9 +352,9 @@ const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, act
           )}
         </div>
 
-        {/* Mechanic Badges (Bottom of card) */}
+        {/* Mechanic Badges (Top right, below recall cost) */}
         {(hasPassiveModifiers || hasCombatAbility) && (
-          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1 z-20">
+          <div className="absolute top-10 right-2 flex flex-col items-center gap-1 z-20">
             {hasPassiveModifiers && (
               <div className="bg-purple-900/80 border border-purple-500/50 rounded-full px-1.5 py-0.5 flex items-center gap-0.5" title="Has passive modifiers">
                 <Sparkles size={8} className="text-purple-300" />
