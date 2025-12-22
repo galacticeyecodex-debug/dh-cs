@@ -760,6 +760,7 @@ export default function CharacterView() {
         currentLevel={character?.level || 1}
         currentAncestry={character?.ancestry}
         currentCommunity={character?.community}
+        currentSpellcastTrait={character?.spellcast_trait || character?.subclass_data?.data?.spellcast_trait || ''}
         advancementHistory={character?.advancement_history_jsonb}
         isLoading={isManageLoading}
         onLevelUp={() => {
@@ -781,6 +782,7 @@ export default function CharacterView() {
             }
             if (updates.ancestry) changes.push(`ancestry: ${updates.ancestry}`);
             if (updates.community) changes.push(`community: ${updates.community}`);
+            if (updates.spellcast_trait) changes.push(`spellcast trait: ${updates.spellcast_trait}`);
             toast.success(`Character updated: ${changes.join(', ')}`);
             setIsManageOpen(false);
           } catch (err) {

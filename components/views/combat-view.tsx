@@ -33,6 +33,8 @@ export default function CombatView() {
   const [showArmor, setShowArmor] = useState(true);
   const [showClassFeatures, setShowClassFeatures] = useState(true);
   const [showSubclassFeatures, setShowSubclassFeatures] = useState(true);
+  const [activeWeaponId, setActiveWeaponId] = useState<string | null>(null);
+  const [activeAbilityId, setActiveAbilityId] = useState<string | null>(null);
 
   if (!character) return null;
 
@@ -132,7 +134,11 @@ export default function CombatView() {
                 const calculatedDamage = calculateWeaponDamage(baseDamage, totalProficiency);
 
                 return (
-                  <div key={weapon.id} className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden group">
+                  <div 
+                    key={weapon.id} 
+                    onClick={() => setActiveWeaponId(weapon.id)}
+                    className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden group cursor-pointer hover:border-white/30 transition-colors"
+                  >
                     <div className="p-4 flex justify-between items-start">
                       <div>
                         <h4 className="font-serif font-bold text-white text-lg">{weapon.name}</h4>
@@ -152,7 +158,10 @@ export default function CombatView() {
                     {/* Action Bar */}
                     <div className="bg-black/40 p-2 flex gap-2">
                       <button
-                        onClick={() => prepareRoll(`${weapon.name} Attack`, totalAttackBonus)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          prepareRoll(`${weapon.name} Attack`, totalAttackBonus);
+                        }}
                         className={clsx(
                           "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors relative",
                           attackModifier !== 0 && "text-dagger-gold"
@@ -164,7 +173,8 @@ export default function CombatView() {
                         <Zap size={16} className="text-yellow-400" /> Attack ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
                       </button>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           const { dice, modifier } = parseDamageRoll(calculatedDamage);
                           const totalDamageBonus = modifier + damageModifier;
                           prepareRoll(`${weapon.name} Damage`, totalDamageBonus, dice);
@@ -208,7 +218,19 @@ export default function CombatView() {
 
           {showSpells && combatAbilities.map((ability) => {
             // Calculate Spellcast modifier if needed
-            const spellcastBase = character.spellcast || 0;
+            const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
+            const rawTraitValue = spellcastTraitName ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0) : (character.spellcast || 0);
+            
+            // Add trait modifiers if a trait is used
+            let traitModSum = 0;
+            if (spellcastTraitName) {
+                const tKey = spellcastTraitName.toLowerCase();
+                const tSystem = getSystemModifiers(character, tKey);
+                const tUser = character.modifiers?.[tKey] || [];
+                traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
+            }
+            
+            const spellcastBase = rawTraitValue + traitModSum;
             const spellcastMods = getSystemModifiers(character, 'spellcast');
             const userSpellcastMods = character.modifiers?.['spellcast'] || [];
             const allSpellcastMods = [...spellcastMods, ...userSpellcastMods];
@@ -237,7 +259,11 @@ export default function CombatView() {
               : ability.damage;
 
             return (
-              <div key={ability.cardId} className="bg-dagger-panel border border-purple-500/30 rounded-xl overflow-hidden group">
+              <div 
+                key={ability.cardId} 
+                onClick={() => setActiveAbilityId(ability.cardId)}
+                className="bg-dagger-panel border border-purple-500/30 rounded-xl overflow-hidden group cursor-pointer hover:border-purple-500/50 transition-colors"
+              >
                 <div className="p-4 flex justify-between items-start">
                   <div className="flex-1">
                     <h4 className="font-serif font-bold text-white text-lg flex items-center gap-2">
@@ -290,7 +316,10 @@ export default function CombatView() {
                 <div className="bg-black/40 p-2 flex gap-2">
                   {ability.rollType !== 'none' && rollLabel && (
                     <button
-                      onClick={() => prepareRoll(`${ability.name} ${rollLabel} Roll`, rollBonus)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        prepareRoll(`${ability.name} ${rollLabel} Roll`, rollBonus);
+                      }}
                       className="flex-1 py-2 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/30 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors text-purple-300"
                     >
                       <Sparkles size={16} /> {rollLabel} ({rollBonus >= 0 ? `+${rollBonus}` : rollBonus})
@@ -298,7 +327,8 @@ export default function CombatView() {
                   )}
                   {finalDamage && (
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         const { dice, modifier } = parseDamageRoll(finalDamage);
                         prepareRoll(`${ability.name} Damage`, modifier, dice);
                       }}
@@ -524,6 +554,137 @@ export default function CombatView() {
         currentModifiers={userProfMods}
         onUpdateModifiers={(mods) => updateModifiers('proficiency', mods)}
       />
+
+      {/* Weapon Modifier Sheet */}
+      {activeWeaponId && (() => {
+        const weapon = weapons.find(w => w.id === activeWeaponId);
+        if (!weapon) return null;
+
+        const libData = weapon.library_item?.data;
+        const trait = libData?.trait || 'Strength';
+        const traitKey = trait.toLowerCase();
+        
+        // Calculate Base Trait Value
+        const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+        const systemTraitMods = getSystemModifiers(character, traitKey);
+        const userTraitMods = character.modifiers?.[traitKey] || [];
+        const allTraitMods = [...systemTraitMods, ...userTraitMods];
+        const traitModifierSum = allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
+        const totalTraitValue = baseTraitValue + traitModifierSum;
+
+        // Attack Modifiers
+        const systemAttackMods = getSystemModifiers(character, 'attack');
+        const userAttackMods = character.modifiers?.['attack'] || [];
+        
+        // Damage Modifiers
+        const systemDamageMods = getSystemModifiers(character, 'damage');
+        const userDamageMods = character.modifiers?.['damage'] || [];
+
+        const weaponTabs = [
+          {
+            id: 'attack',
+            label: 'Attack',
+            baseValue: totalTraitValue,
+            currentModifiers: [...systemAttackMods, ...userAttackMods],
+            onUpdateModifiers: (mods: any[]) => updateModifiers('attack', mods)
+          },
+          {
+            id: 'damage',
+            label: 'Damage',
+            baseValue: 0,
+            currentModifiers: [...systemDamageMods, ...userDamageMods],
+            onUpdateModifiers: (mods: any[]) => updateModifiers('damage', mods)
+          }
+        ];
+
+        return (
+          <ModifierSheet
+            isOpen={!!activeWeaponId}
+            onClose={() => setActiveWeaponId(null)}
+            statLabel={`${weapon.name} Modifiers`}
+            baseValue={0}
+            currentModifiers={[]}
+            onUpdateModifiers={() => {}}
+            tabs={weaponTabs}
+          />
+        );
+      })()}
+
+      {/* Ability Modifier Sheet */}
+      {activeAbilityId && (() => {
+        const ability = combatAbilities.find(a => a.cardId === activeAbilityId);
+        if (!ability) return null;
+
+        const tabs = [];
+
+        // 1. Roll Tab (Spellcast or Trait)
+        if (ability.rollType === 'spellcast') {
+           const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
+           const rawTraitValue = spellcastTraitName ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0) : (character.spellcast || 0);
+           
+           // Add trait modifiers if a trait is used
+           let traitModSum = 0;
+           if (spellcastTraitName) {
+               const tKey = spellcastTraitName.toLowerCase();
+               const tSystem = getSystemModifiers(character, tKey);
+               const tUser = character.modifiers?.[tKey] || [];
+               traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
+           }
+           
+           const spellcastBase = rawTraitValue + traitModSum;
+           const spellcastMods = getSystemModifiers(character, 'spellcast');
+           const userSpellcastMods = character.modifiers?.['spellcast'] || [];
+           
+           tabs.push({
+             id: 'spellcast',
+             label: 'Spellcast',
+             baseValue: spellcastBase,
+             currentModifiers: [...spellcastMods, ...userSpellcastMods],
+             onUpdateModifiers: (mods: any[]) => updateModifiers('spellcast', mods)
+           });
+        } else if (ability.trait) {
+           const traitKey = ability.trait.toLowerCase();
+           const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+           const systemTraitMods = getSystemModifiers(character, traitKey);
+           const userTraitMods = character.modifiers?.[traitKey] || [];
+           
+           tabs.push({
+             id: traitKey,
+             label: ability.trait,
+             baseValue: baseTraitValue,
+             currentModifiers: [...systemTraitMods, ...userTraitMods],
+             onUpdateModifiers: (mods: any[]) => updateModifiers(traitKey, mods)
+           });
+        }
+
+        // 2. Damage Tab
+        if (ability.damage) {
+           const systemDamageMods = getSystemModifiers(character, 'damage');
+           const userDamageMods = character.modifiers?.['damage'] || [];
+
+           tabs.push({
+             id: 'damage',
+             label: 'Damage',
+             baseValue: 0,
+             currentModifiers: [...systemDamageMods, ...userDamageMods],
+             onUpdateModifiers: (mods: any[]) => updateModifiers('damage', mods)
+           });
+        }
+
+        if (tabs.length === 0) return null;
+
+        return (
+          <ModifierSheet
+            isOpen={!!activeAbilityId}
+            onClose={() => setActiveAbilityId(null)}
+            statLabel={`${ability.name} Modifiers`}
+            baseValue={0}
+            currentModifiers={[]}
+            onUpdateModifiers={() => {}}
+            tabs={tabs}
+          />
+        );
+      })()}
       </div>
     </ErrorBoundary>
   );

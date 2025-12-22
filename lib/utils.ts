@@ -126,9 +126,9 @@ export function getSystemModifiers(character: any, stat: string): any[] {
         const bareBonesModifiers = getBareBonesBonuses(character);
         bareBonesModifiers
           .filter((mod: any) => mod.stat === stat && mod.isActive)
-          .forEach((mod: any) => {
+          .forEach((mod: any, index: number) => {
             systemModifiers.push({
-              id: `card-${card.id}-barebones-${mod.stat}`,
+              id: `card-${card.id}-barebones-${mod.stat}-${index}`,
               name: mod.source,
               value: mod.value,
               source: 'domain_card',
@@ -143,9 +143,9 @@ export function getSystemModifiers(character: any, stat: string): any[] {
 
       cardModifiers
         .filter((mod: any) => mod.stat === stat && mod.isActive)
-        .forEach((mod: any) => {
+        .forEach((mod: any, index: number) => {
           systemModifiers.push({
-            id: `card-${card.id}-${mod.stat}`,
+            id: `card-${card.id}-${mod.stat}-${index}`,
             name: mod.source,
             value: mod.value,
             source: 'domain_card',

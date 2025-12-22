@@ -75,28 +75,80 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
       }
     }
     const { total, allMods } = getStatDetails('armor', armorBaseScore);
-    return { total, allMods };
-  }, [character.level, character.character_inventory, getStatDetails]);
+
+    // Calculate details for thresholds to enable editing
+    const genericStats = getStatDetails('damage_thresholds', 0);
+    const minorStats = getStatDetails('damage_threshold_minor', 1);
+    const majorStats = getStatDetails('damage_threshold_major', majorThreshold);
+    const severeStats = getStatDetails('damage_threshold_severe', severeThreshold);
+
+    // Sub-stats for ModifierSheet tabs
+    // Note: We include "Generic" mods in Major/Severe base values for display context,
+    // but the Generic tab allows editing the shared modifiers separately.
+    const genericBonus = genericStats.total; 
+
+    const subStats = [
+      {
+        id: 'armor',
+        label: 'Armor',
+        baseValue: armorBaseScore,
+        currentModifiers: allMods,
+        onUpdateModifiers: (mods: any[]) => updateModifiers('armor', mods)
+      },
+      {
+        id: 'generic',
+        label: 'Thresholds (All)',
+        baseValue: 0,
+        currentModifiers: genericStats.allMods,
+        onUpdateModifiers: (mods: any[]) => updateModifiers('damage_thresholds', mods)
+      },
+      {
+        id: 'minor',
+        label: 'Minor',
+        baseValue: 1,
+        currentModifiers: minorStats.allMods,
+        onUpdateModifiers: (mods: any[]) => updateModifiers('damage_threshold_minor', mods)
+      },
+      {
+        id: 'major',
+        label: 'Major',
+        // Base value includes generic bonus so "Total" looks correct relative to sheet
+        baseValue: majorThreshold + genericBonus, 
+        currentModifiers: majorStats.allMods,
+        onUpdateModifiers: (mods: any[]) => updateModifiers('damage_threshold_major', mods)
+      },
+      {
+        id: 'severe',
+        label: 'Severe',
+        // Base value includes generic bonus so "Total" looks correct relative to sheet
+        baseValue: severeThreshold + genericBonus,
+        currentModifiers: severeStats.allMods,
+        onUpdateModifiers: (mods: any[]) => updateModifiers('damage_threshold_severe', mods)
+      }
+    ];
+
+    return { total, allMods, subStats };
+  }, [character.level, character.character_inventory, getStatDetails, updateModifiers]);
 
   // --- HIT POINTS --- (memoized)
   const hpDetails = useMemo(() => {
     const classBaseHP = getClassBaseStat(character, 'hit_points');
     const { total, allMods } = getStatDetails('hit_points', classBaseHP);
-    return { total, allMods };
+    return { total, allMods, baseValue: classBaseHP };
   }, [character.level, character.class_id, character.subclass_id, getStatDetails]);
 
   // --- STRESS --- (memoized)
   const stressDetails = useMemo(() => {
     const classBaseStress = getClassBaseStat(character, 'stress');
     const { total, allMods } = getStatDetails('stress', classBaseStress);
-    return { total, allMods };
+    return { total, allMods, baseValue: classBaseStress };
   }, [character.level, character.class_id, character.subclass_id, getStatDetails]);
 
   // --- HOPE --- (memoized)
   const hopeDetails = useMemo(() => {
     const baseHope = 6;
     const { total, allMods } = getStatDetails('hope', baseHope);
-    return { total, allMods };
+    return { total, allMods, baseValue: baseHope };
   }, [getStatDetails]);
 
   // Memoize callbacks to prevent VitalCard re-renders
@@ -181,6 +233,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
           disableCritColor={true}
           modifiers={armorDetails.allMods}
           onUpdateModifiers={handleUpdateArmorMods}
+          subStats={armorDetails.subStats}
         />
       </div>
 
@@ -198,6 +251,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
         trackType="mark-bad"
         modifiers={hpDetails.allMods}
         onUpdateModifiers={handleUpdateHPMods}
+        expectedValue={hpDetails.baseValue}
       />
 
       {/* Row 3: Stress (Rectangle) */}
@@ -214,6 +268,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
         trackType="fill-up-bad"
         modifiers={stressDetails.allMods}
         onUpdateModifiers={handleUpdateStressMods}
+        expectedValue={stressDetails.baseValue}
       />
 
       {/* Row 4: Hope (Rectangle) */}
@@ -229,6 +284,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
         trackType="fill-up-good"
         modifiers={hopeDetails.allMods}
         onUpdateModifiers={handleUpdateHopeMods}
+        expectedValue={hopeDetails.baseValue}
       />
     </div>
   );
