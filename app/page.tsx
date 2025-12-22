@@ -59,7 +59,7 @@ export default async function Page() {
         </div>
 
         <p className="text-xs text-gray-500 max-w-lg mx-auto italic">
-          This application is provided "as-is" and may contain inaccuracies or bugs. Contributions and bug reports are welcome!
+          This application is provided &quot;as-is&quot; and may contain inaccuracies or bugs. Contributions and bug reports are welcome!
         </p>
 
         <p className="text-xs text-gray-500 max-w-lg mx-auto">

@@ -130,7 +130,7 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col items-center gap-2 pt-2 pb-6">
             <div className="flex flex-col items-center gap-1 mb-2">
               <p className="text-[10px] text-center text-gray-500 max-w-[280px] leading-tight italic">
-                Provided "as-is". May contain inaccuracies.
+                Provided &quot;as-is&quot;. May contain inaccuracies.
               </p>
               <a
                 href="https://github.com/galacticeyecodex-debug/dh-cs"

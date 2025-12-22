@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AuthError, Session, User } from "@supabase/supabase-js";
+import { AuthError, Session, User, AuthChangeEvent } from "@supabase/supabase-js";
 import createClient from "@/lib/supabase/client";
 import { useCharacterStore } from "@/store/character-store";
 
@@ -42,7 +42,7 @@ export default function useUser() {
     fetchUser();
 
     // Listen for changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
