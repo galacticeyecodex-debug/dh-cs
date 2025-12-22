@@ -246,7 +246,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
 
 
     // --- DAMAGE THRESHOLDS CALCULATION ---
-    const minorThreshold = 1;
+    let minorThreshold = 1;
     let majorThreshold = (baseMajor || 0) + character.level;
     let severeThreshold = (baseSevere || 0) + character.level;
     
@@ -258,18 +258,29 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     }
 
     // Apply modifiers to thresholds
+    
+    // 1. Generic 'damage_thresholds' (applies to Major and Severe)
     const threshSystemMods = getSystemModifiers(tempChar, 'damage_thresholds').map((m: any) => convertToModifier(m, 'damage_thresholds'));
-    // Note: user modifiers for 'damage_thresholds' not typically exposed in UI but possible
     const threshUserMods = (character.modifiers?.['damage_thresholds'] || []).map(m => convertToModifier(m, 'damage_thresholds'));
+    const genericBonus = ModifierService.applyModifiers(0, [...threshSystemMods, ...threshUserMods], character, 'damage_thresholds');
     
-    // We apply modifiers to the calculated base thresholds
-    // Since major/severe usually move together with +1 to thresholds, we can apply the delta
-    // But ModifierService applies to a single number.
-    // Hack: Calculate the total bonus and apply to both.
-    const thresholdBonus = ModifierService.applyModifiers(0, [...threshSystemMods, ...threshUserMods], character, 'damage_thresholds');
-    
-    majorThreshold += thresholdBonus;
-    severeThreshold += thresholdBonus;
+    // 2. Specific Modifiers
+    const minorSystemMods = getSystemModifiers(tempChar, 'damage_threshold_minor').map((m: any) => convertToModifier(m, 'damage_threshold_minor'));
+    const minorUserMods = (character.modifiers?.['damage_threshold_minor'] || []).map(m => convertToModifier(m, 'damage_threshold_minor'));
+    const minorBonus = ModifierService.applyModifiers(0, [...minorSystemMods, ...minorUserMods], character, 'damage_threshold_minor');
+
+    const majorSystemMods = getSystemModifiers(tempChar, 'damage_threshold_major').map((m: any) => convertToModifier(m, 'damage_threshold_major'));
+    const majorUserMods = (character.modifiers?.['damage_threshold_major'] || []).map(m => convertToModifier(m, 'damage_threshold_major'));
+    const majorBonus = ModifierService.applyModifiers(0, [...majorSystemMods, ...majorUserMods], character, 'damage_threshold_major');
+
+    const severeSystemMods = getSystemModifiers(tempChar, 'damage_threshold_severe').map((m: any) => convertToModifier(m, 'damage_threshold_severe'));
+    const severeUserMods = (character.modifiers?.['damage_threshold_severe'] || []).map(m => convertToModifier(m, 'damage_threshold_severe'));
+    const severeBonus = ModifierService.applyModifiers(0, [...severeSystemMods, ...severeUserMods], character, 'damage_threshold_severe');
+
+    // Apply all
+    minorThreshold += minorBonus;
+    majorThreshold += genericBonus + majorBonus;
+    severeThreshold += genericBonus + severeBonus;
 
 
     // --- HP MAX CALCULATION ---

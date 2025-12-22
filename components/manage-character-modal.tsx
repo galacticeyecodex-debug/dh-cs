@@ -28,12 +28,14 @@ interface ManageCharacterModalProps {
   currentName: string;
   currentAncestry?: string;
   currentCommunity?: string;
+  currentSpellcastTrait?: string;
   advancementHistory?: Record<string, any>;
   onUpdate?: (updates: {
     name?: string;
     level?: number;
     ancestry?: string;
     community?: string;
+    spellcast_trait?: string;
   }) => Promise<void>;
   isLoading?: boolean;
   onLevelUp?: () => void;
@@ -47,6 +49,7 @@ export default function ManageCharacterModal({
   currentName,
   currentAncestry = '',
   currentCommunity = '',
+  currentSpellcastTrait = '',
   advancementHistory = {},
   onUpdate,
   isLoading = false,
@@ -56,6 +59,7 @@ export default function ManageCharacterModal({
   const [level, setLevel] = useState<number>(currentLevel);
   const [ancestry, setAncestry] = useState<string>(currentAncestry);
   const [community, setCommunity] = useState<string>(currentCommunity);
+  const [spellcastTrait, setSpellcastTrait] = useState<string>(currentSpellcastTrait);
   const [error, setError] = useState<string>('');
   const [confirmDeLevelOpen, setConfirmDeLevelOpen] = useState(false);
 
@@ -89,13 +93,14 @@ export default function ManageCharacterModal({
       setLevel(currentLevel);
       setAncestry(currentAncestry || '');
       setCommunity(currentCommunity || '');
+      setSpellcastTrait(currentSpellcastTrait || '');
     }
-  }, [isOpen, currentName, currentLevel, currentAncestry, currentCommunity]);
+  }, [isOpen, currentName, currentLevel, currentAncestry, currentCommunity, currentSpellcastTrait]);
 
   if (!isOpen) return null;
 
   const isDeLeveling = level < currentLevel;
-  const hasChanges = name !== currentName || level !== currentLevel || ancestry !== currentAncestry || community !== currentCommunity;
+  const hasChanges = name !== currentName || level !== currentLevel || ancestry !== currentAncestry || community !== currentCommunity || spellcastTrait !== currentSpellcastTrait;
 
   const getLeveledUpString = () => {
     const levels = Object.keys(advancementHistory)
@@ -140,6 +145,7 @@ export default function ManageCharacterModal({
           level: level !== currentLevel ? level : undefined,
           ancestry: ancestry !== currentAncestry ? ancestry : undefined,
           community: community !== currentCommunity ? community : undefined,
+          spellcast_trait: spellcastTrait !== currentSpellcastTrait ? spellcastTrait : undefined,
         });
         onClose();
       } catch (err) {
@@ -368,6 +374,25 @@ export default function ManageCharacterModal({
                   {availableCommunities.map((com) => (
                     <option key={com.name} value={com.name}>
                       {com.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Spellcast Trait */}
+              <div>
+                <label className="block text-sm font-bold text-gray-300 mb-2">
+                  Spellcast Trait
+                </label>
+                <select
+                  value={spellcastTrait}
+                  onChange={(e) => setSpellcastTrait(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
+                >
+                  <option value="">Select a trait...</option>
+                  {['Agility', 'Strength', 'Finesse', 'Instinct', 'Presence', 'Knowledge'].map((trait) => (
+                    <option key={trait} value={trait}>
+                      {trait}
                     </option>
                   ))}
                 </select>

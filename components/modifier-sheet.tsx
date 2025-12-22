@@ -34,6 +34,14 @@ interface Modifier {
   };
 }
 
+export interface ModifierTab {
+  id: string;
+  label: string;
+  baseValue: number;
+  currentModifiers: Modifier[];
+  onUpdateModifiers: (modifiers: Modifier[]) => void;
+}
+
 interface ModifierSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -41,6 +49,7 @@ interface ModifierSheetProps {
   baseValue: number;
   currentModifiers: Modifier[];
   onUpdateModifiers: (modifiers: Modifier[]) => void;
+  tabs?: ModifierTab[];
 }
 
 export default function ModifierSheet({
@@ -49,14 +58,35 @@ export default function ModifierSheet({
   statLabel,
   baseValue,
   currentModifiers,
-  onUpdateModifiers
+  onUpdateModifiers,
+  tabs
 }: ModifierSheetProps) {
+  // If tabs are provided, use them. Otherwise, create a single "virtual" tab from props.
+  const effectiveTabs: ModifierTab[] = tabs && tabs.length > 0 
+    ? tabs 
+    : [{ 
+        id: 'default', 
+        label: statLabel, 
+        baseValue, 
+        currentModifiers, 
+        onUpdateModifiers 
+      }];
+
+  const [activeTabId, setActiveTabId] = useState<string>(effectiveTabs[0].id);
+  const activeTab = effectiveTabs.find(t => t.id === activeTabId) || effectiveTabs[0];
+
   const [newModifierValue, setNewModifierValue] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
 
+  // Reset pending value when switching tabs
+  useEffect(() => {
+    setPendingValue(0);
+    setEditingId(null);
+  }, [activeTabId]);
+
   // Calculate Total
-  const total = baseValue + currentModifiers.reduce((acc, mod) => acc + mod.value, 0);
+  const total = activeTab.baseValue + activeTab.currentModifiers.reduce((acc, mod) => acc + mod.value, 0);
 
   // Pending Value for Stepper
   const [pendingValue, setPendingValue] = useState(0);
@@ -70,12 +100,12 @@ export default function ModifierSheet({
       value: pendingValue,
       source: 'user'
     };
-    onUpdateModifiers([...currentModifiers, newMod]);
+    activeTab.onUpdateModifiers([...activeTab.currentModifiers, newMod]);
     setPendingValue(0); // Reset after apply
   };
 
   const handleDelete = (id: string) => {
-    onUpdateModifiers(currentModifiers.filter(m => m.id !== id));
+    activeTab.onUpdateModifiers(activeTab.currentModifiers.filter(m => m.id !== id));
   };
 
   const startEdit = (mod: Modifier) => {
@@ -85,10 +115,10 @@ export default function ModifierSheet({
 
   const saveEdit = () => {
     if (!editingId) return;
-    const updated = currentModifiers.map(m =>
+    const updated = activeTab.currentModifiers.map(m =>
       m.id === editingId ? { ...m, name: editName } : m
     );
-    onUpdateModifiers(updated);
+    activeTab.onUpdateModifiers(updated);
     setEditingId(null);
   };
 
@@ -154,18 +184,38 @@ export default function ModifierSheet({
               <div className="w-12 h-1.5 bg-white/20 rounded-full" />
             </div>
 
+            {/* Tabs (if multiple) */}
+            {effectiveTabs.length > 1 && (
+              <div className="flex overflow-x-auto border-b border-white/10 px-4 gap-4 no-scrollbar">
+                {effectiveTabs.map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTabId(tab.id)}
+                    className={clsx(
+                      "py-3 px-1 text-sm font-bold uppercase tracking-wider transition-colors whitespace-nowrap border-b-2",
+                      activeTabId === tab.id 
+                        ? "text-dagger-gold border-dagger-gold" 
+                        : "text-gray-500 border-transparent hover:text-gray-300"
+                    )}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Header / Total */}
-            <div className="px-6 pb-4 border-b border-white/10 text-center">
-              <div className="text-sm text-gray-400 uppercase tracking-wider font-bold">{statLabel}</div>
+            <div className="px-6 pb-4 pt-4 border-b border-white/10 text-center">
+              <div className="text-sm text-gray-400 uppercase tracking-wider font-bold">{activeTab.label}</div>
               <div className="text-6xl font-serif font-black text-white flex items-center justify-center gap-2">
                 {total}
-                {total !== baseValue && (
+                {total !== activeTab.baseValue && (
                   <span className="text-sm bg-dagger-gold text-black px-2 py-0.5 rounded-full font-bold align-top -mt-4">
                     MOD
                   </span>
                 )}
               </div>
-              <div className="text-xs text-gray-500 mt-1">Base Value: {baseValue}</div>
+              <div className="text-xs text-gray-500 mt-1">Base Value: {activeTab.baseValue}</div>
             </div>
 
             {/* Stepper / Quick Actions */}
@@ -204,11 +254,11 @@ export default function ModifierSheet({
 
             {/* List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {currentModifiers.length === 0 && (
+              {activeTab.currentModifiers.length === 0 && (
                 <div className="text-center text-gray-600 italic py-4">No modifiers active.</div>
               )}
 
-              {currentModifiers.map(mod => {
+              {activeTab.currentModifiers.map(mod => {
                 const conditionText = getConditionText(mod.condition);
                 const conditionIcon = getConditionIcon(mod.condition);
                 const isInactive = mod.isActive === false;

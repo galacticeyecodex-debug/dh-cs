@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS public.characters (
   -- Calculated/Base Stats
   evasion INT DEFAULT 10,
   proficiency INT DEFAULT 1,
+  spellcast_trait TEXT, -- e.g. 'Instinct', 'Presence'
   
   -- Lists
   experiences JSONB DEFAULT '[]'::jsonb,

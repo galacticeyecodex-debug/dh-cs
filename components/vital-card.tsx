@@ -23,7 +23,7 @@
 import React, { useState } from 'react';
 import { Heart, Zap, Shield, Eye } from 'lucide-react';
 import clsx from 'clsx';
-import ModifierSheet from '@/components/modifier-sheet';
+import ModifierSheet, { ModifierTab } from '@/components/modifier-sheet';
 
 // Props interface for VitalCard
 interface VitalCardProps {
@@ -44,6 +44,7 @@ interface VitalCardProps {
   trackType?: 'fill-up-good' | 'fill-up-bad' | 'mark-bad';
   modifiers?: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[];
   onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[]) => void;
+  subStats?: ModifierTab[];
 }
 
 const VitalCard = React.memo(function VitalCard({
@@ -63,7 +64,8 @@ const VitalCard = React.memo(function VitalCard({
   className,
   trackType,
   modifiers,
-  onUpdateModifiers
+  onUpdateModifiers,
+  subStats
 }: VitalCardProps) {
   const [showModifierSheet, setShowModifierSheet] = useState(false);
   const isReadOnly = onIncrement === undefined || onDecrement === undefined;
@@ -146,6 +148,7 @@ const VitalCard = React.memo(function VitalCard({
             baseValue={expectedValue || 0} // Use expectedValue as base if available, else 0
             currentModifiers={modifiers || []}
             onUpdateModifiers={onUpdateModifiers}
+            tabs={subStats}
           />
         )}
       </>
@@ -227,6 +230,7 @@ const VitalCard = React.memo(function VitalCard({
           baseValue={expectedValue || 0}
           currentModifiers={modifiers || []}
           onUpdateModifiers={onUpdateModifiers}
+          tabs={subStats}
         />
       )}
     </>
@@ -262,6 +266,7 @@ const VitalCard = React.memo(function VitalCard({
 
   // Check modifiers array (deep comparison)
   if (JSON.stringify(prevProps.modifiers) !== JSON.stringify(nextProps.modifiers)) return false;
+  if (JSON.stringify(prevProps.subStats) !== JSON.stringify(nextProps.subStats)) return false;
 
   // Callbacks: Allow re-render only if both old and new exist but are different
   // If callbacks are the same reference, don't re-render
