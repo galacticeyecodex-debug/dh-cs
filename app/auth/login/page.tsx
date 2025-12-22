@@ -82,8 +82,7 @@ export default function LoginPage() {
 
             <div className="space-y-4">
               <Button
-                variant="outline"
-                className="w-full h-12 text-base font-medium relative group overflow-hidden border-white/10 hover:border-dagger-gold/50 hover:bg-dagger-dark text-white hover:text-dagger-gold transition-colors"
+                className="w-full h-12 text-base font-medium relative group overflow-hidden bg-white text-gray-900 hover:bg-gray-100 border border-gray-200 transition-all shadow-sm"
                 onClick={loginWithGoogle}
                 disabled={isGoogleLoading}
               >
@@ -129,13 +128,29 @@ export default function LoginPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col items-center gap-2 pt-2 pb-6">
-            <p className="text-xs text-center text-gray-500 max-w-[280px]">
-              Daggerheart is a trademark of Darrington Press. This is an unofficial companion app.
+            <div className="flex flex-col items-center gap-1 mb-2">
+              <p className="text-[10px] text-center text-gray-500 max-w-[280px] leading-tight italic">
+                Provided "as-is". May contain inaccuracies.
+              </p>
+              <a
+                href="https://github.com/galacticeyecodex-debug/dh-cs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-dagger-gold hover:underline flex items-center gap-1"
+              >
+                View on GitHub / Report Bugs
+              </a>
+            </div>
+            <p className="text-[10px] text-center text-gray-500 max-w-[280px] leading-tight">
+              This product includes materials from the Daggerheart System Reference Document 1.0, © Critical Role, LLC, under the terms of the Darrington Press Community Gaming License. More information at <a href="https://www.daggerheart.com" className="underline">www.daggerheart.com</a>.
+            </p>
+            <p className="text-[10px] text-center text-gray-500 max-w-[280px] leading-tight">
+              Darrington Press™ and the Darrington Press authorized work logo are trademarks of Critical Role, LLC and used with permission.
             </p>
             <div className="flex items-center gap-1 text-xs text-gray-600 mt-2">
               <span>Made with</span>
               <Heart className="size-3 text-red-500/50 fill-red-500/20" />
-              <span>by the community</span>
+              <span>for the community</span>
             </div>
           </CardFooter>
         </Card>
