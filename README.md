@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="images/logo_transparent.png" alt="Daggerheart Companion Logo" width="200"/>
+</p>
+
 # Daggerheart Dice & Character Creator
 
 A mobile-first, digital character sheet for the [Daggerheart](https://darringtonpress.com/daggerheart/) Tabletop RPG. Built with Next.js 15, TypeScript, and Supabase.
@@ -237,6 +241,16 @@ This application can be easily deployed to [Render](https://render.com), a unifi
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Legal Notice
+
+This product includes materials from the Daggerheart System Reference Document 1.0, © Critical Role, LLC, under the terms of the Darrington Press Community Gaming License. More information at [www.daggerheart.com](https://www.daggerheart.com).
+
+Darrington Press™ and the Darrington Press authorized work logo are trademarks of Critical Role, LLC and used with permission.
+
+## Disclaimer
+
+This application is provided "as-is" without warranty of any kind. While we strive for accuracy, the app may contain bugs or inconsistencies with the official rules. Users are encouraged to verify critical rules with the official Daggerheart publications. Feedback, bug reports, and contributions to improve the app are welcome on GitHub.
 
 ## Acknowledgments
 

@@ -58,9 +58,15 @@ export default async function Page() {
           </a>
         </div>
 
-        <p className="text-sm text-gray-500 max-w-lg mx-auto">
-          This is a fan-made hobby project and is not affiliated with Darrington Press.
-          Daggerheart is a trademark of Darrington Press.
+        <p className="text-xs text-gray-500 max-w-lg mx-auto italic">
+          This application is provided "as-is" and may contain inaccuracies or bugs. Contributions and bug reports are welcome!
+        </p>
+
+        <p className="text-xs text-gray-500 max-w-lg mx-auto">
+          This product includes materials from the Daggerheart System Reference Document 1.0, © Critical Role, LLC, under the terms of the Darrington Press Community Gaming License. More information at <a href="https://www.daggerheart.com" className="underline hover:text-white">www.daggerheart.com</a>.
+        </p>
+        <p className="text-xs text-gray-500 max-w-lg mx-auto">
+          Darrington Press™ and the Darrington Press authorized work logo are trademarks of Critical Role, LLC and used with permission.
         </p>
       </div>
     </div>
