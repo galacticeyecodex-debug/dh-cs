@@ -25,7 +25,7 @@ import ManageCharacterModal from '../manage-character-modal';
 import AdvancementHistory from '../advancement-history';
 import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap } from 'lucide-react';
 import clsx from 'clsx';
-import { uploadCharacterImage } from '@/lib/supabase/storage';
+import { uploadCharacterImage } from '@/lib/storage-service';
 import { toast } from 'sonner';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/error-boundary';
