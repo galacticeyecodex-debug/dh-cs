@@ -74,9 +74,8 @@ export default function PlaymatView() {
     addCardToCollection(item);
   }, [addCardToCollection]);
 
-  const allCharacterCards = character?.character_cards || [];
-
   const filteredCards = useMemo(() => {
+    const allCharacterCards = character?.character_cards || [];
     if (!searchTerm) return allCharacterCards;
     const term = searchTerm.toLowerCase();
     return allCharacterCards.filter(card => {
@@ -87,7 +86,7 @@ export default function PlaymatView() {
         type?.toLowerCase().includes(term)
       );
     });
-  }, [allCharacterCards, searchTerm]);
+  }, [character?.character_cards, searchTerm]);
 
   const loadoutCards = filteredCards.filter(card => card.location === 'loadout');
   const vaultCards = filteredCards.filter(card => card.location === 'vault');

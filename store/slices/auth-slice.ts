@@ -9,14 +9,14 @@
  */
 
 import { StateCreator } from 'zustand';
-import { User } from '@supabase/supabase-js';
+import { AppUser } from '@/types/auth';
 import createClient from '@/lib/supabase/client';
 import { dataService } from '@/lib/data-service';
 import { CharacterStore } from '@/types/store';
 
 export interface AuthSlice {
-  user: User | null;
-  setUser: (user: User | null) => void;
+  user: AppUser | null;
+  setUser: (user: AppUser | null) => void;
   fetchUser: () => Promise<void>;
 }
 
@@ -28,7 +28,9 @@ export const createAuthSlice: StateCreator<CharacterStore, [], [], AuthSlice> = 
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
-      set({ user });
+      // Cast Supabase user to AppUser since structures are compatible
+      const appUser = user as unknown as AppUser;
+      set({ user: appUser });
 
       // Ensure profile exists
       try {

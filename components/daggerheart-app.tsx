@@ -25,11 +25,11 @@ import { useCharacterStore } from '@/store/character-store';
 import AuthButton from '@/components/auth-buttons';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User } from '@supabase/supabase-js';
+import { AppUser } from '@/types/auth';
 import { ErrorBoundary } from '@/components/error-boundary';
 import DevErrorTriggers from '@/components/dev-error-triggers';
 
-export default function DaggerheartApp({ clientUser }: { clientUser: User | null }) {
+export default function DaggerheartApp({ clientUser }: { clientUser: AppUser | null }) {
   const router = useRouter();
   const { activeTab, setCharacter, setUser, fetchUser, fetchCharacter, isLoading, character, user } = useCharacterStore();
   const [initialLoad, setInitialLoad] = useState(true);

@@ -18,8 +18,8 @@ import { useCharacterStore } from '@/store/character-store';
 import { User, Layers, Backpack, Dices, Swords, LogOut, ChevronDown } from 'lucide-react';
 import DiceOverlay from './dice-overlay';
 import clsx from 'clsx';
-import createClient from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import useUser from '@/hooks/useUser';
 
 // Fix for no-explicit-any on NavButton props
 interface NavButtonProps {
@@ -32,10 +32,10 @@ interface NavButtonProps {
 export default function MobileLayout({ children }: { children: React.ReactNode }) {
   const { activeTab, setActiveTab, openDiceOverlay, character } = useCharacterStore();
   const router = useRouter();
-  const supabase = createClient();
+  const { signOut } = useUser();
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     router.push('/auth/login');
     router.refresh();
   };

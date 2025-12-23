@@ -55,7 +55,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
       isModified: total !== classBaseEvasion,
       baseValue: classBaseEvasion,
     };
-  }, [character.level, character.class_id, character.subclass_id, character.modifiers?.evasion, character.character_inventory, getStatDetails]);
+  }, [character, getStatDetails]);
 
   // --- ARMOR --- (memoized)
   const armorDetails = useMemo(() => {
@@ -135,14 +135,14 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
     const classBaseHP = getClassBaseStat(character, 'hit_points');
     const { total, allMods } = getStatDetails('hit_points', classBaseHP);
     return { total, allMods, baseValue: classBaseHP };
-  }, [character.level, character.class_id, character.subclass_id, getStatDetails]);
+  }, [character, getStatDetails]);
 
   // --- STRESS --- (memoized)
   const stressDetails = useMemo(() => {
     const classBaseStress = getClassBaseStat(character, 'stress');
     const { total, allMods } = getStatDetails('stress', classBaseStress);
     return { total, allMods, baseValue: classBaseStress };
-  }, [character.level, character.class_id, character.subclass_id, getStatDetails]);
+  }, [character, getStatDetails]);
 
   // --- HOPE --- (memoized)
   const hopeDetails = useMemo(() => {

@@ -19,12 +19,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCharacterStore, Character, LibraryItem } from '@/store/character-store';
-import createClient from '@/lib/supabase/client';
 import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
 import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins, Sword, X, Heart, Upload } from 'lucide-react';
 import AddItemModal from '@/components/add-item-modal';
-import { uploadCharacterAvatar } from '@/lib/supabase/storage';
+import { uploadCharacterAvatar } from '@/lib/storage-service';
 import { calculateDamageThresholds } from '@/lib/gameLogic';
 
 // Define the shape of our form data

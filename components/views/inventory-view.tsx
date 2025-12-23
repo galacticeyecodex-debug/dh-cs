@@ -133,32 +133,32 @@ export default function InventoryView() {
   const handleHandfulsIncrement = useCallback(() => {
     if (!character) return;
     updateGold('handfuls', character.gold.handfuls + 1);
-  }, [updateGold, character?.gold.handfuls, character]);
+  }, [updateGold, character]);
 
   const handleHandfulsDecrement = useCallback(() => {
     if (!character) return;
     updateGold('handfuls', character.gold.handfuls - 1);
-  }, [updateGold, character?.gold.handfuls, character]);
+  }, [updateGold, character]);
 
   const handleBagsIncrement = useCallback(() => {
     if (!character) return;
     updateGold('bags', character.gold.bags + 1);
-  }, [updateGold, character?.gold.bags, character]);
+  }, [updateGold, character]);
 
   const handleBagsDecrement = useCallback(() => {
     if (!character) return;
     updateGold('bags', character.gold.bags - 1);
-  }, [updateGold, character?.gold.bags, character]);
+  }, [updateGold, character]);
 
   const handleChestsIncrement = useCallback(() => {
     if (!character) return;
     updateGold('chests', character.gold.chests + 1);
-  }, [updateGold, character?.gold.chests, character]);
+  }, [updateGold, character]);
 
   const handleChestsDecrement = useCallback(() => {
     if (!character) return;
     updateGold('chests', character.gold.chests - 1);
-  }, [updateGold, character?.gold.chests, character]);
+  }, [updateGold, character]);
 
   if (!character) return null;
 
