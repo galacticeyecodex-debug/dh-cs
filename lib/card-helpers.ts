@@ -1,9 +1,14 @@
 /**
- * Card Data Access Helpers
- *
- * Standardizes access to card properties across different data shapes.
- * Cards can have properties directly (card.level) or nested (card.data?.level).
- * These helpers handle both formats consistently.
+ * CARD HELPERS
+ * ----------------------------------------------------------------------------
+ * Utilities for accessing and manipulating Domain Card data.
+ * 
+ * FUNCTIONALITY:
+ * - Standardizes access to card properties (handling flat vs. nested data structures).
+ * - Provides type guards and formatting helpers.
+ * 
+ * SHARED:
+ * - Shared utility for consistent data access across both platforms.
  */
 
 export interface CardLike {

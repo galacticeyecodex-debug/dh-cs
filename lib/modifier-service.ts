@@ -1,3 +1,17 @@
+/**
+ * MODIFIER SERVICE
+ * ----------------------------------------------------------------------------
+ * Service for calculating and resolving active modifiers for a character.
+ * 
+ * FUNCTIONALITY:
+ * - Aggregates modifiers from various sources (items, abilities, temporary effects).
+ * - resolves "formula" modifiers (e.g., "+1 per Level").
+ * - Validates modifier application rules (stacking, exclusivity).
+ * 
+ * SHARED:
+ * - Core business logic shared between Web (Supabase) and Native (SQLite) apps.
+ */
+
 import { Modifier, ModifierOperator, CharacterStat } from '@/types/modifiers';
 import { Character } from '@/types/character';
 

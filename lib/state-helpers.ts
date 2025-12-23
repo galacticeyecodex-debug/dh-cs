@@ -1,5 +1,15 @@
 /**
- * State management helpers for optimistic updates with error recovery
+ * STATE HELPERS
+ * ----------------------------------------------------------------------------
+ * Utilities for managing optimistic UI updates.
+ * 
+ * FUNCTIONALITY:
+ * - `withOptimisticUpdate`: Wraps async operations to apply local state changes immediately,
+ *   rolling them back if the remote operation fails.
+ * - Handles error toast notifications.
+ * 
+ * SHARED:
+ * - Shared utility for consistent UX across both platforms.
  */
 
 import { toast } from 'sonner';
