@@ -1,7 +1,16 @@
 /**
- * Pure game logic functions for calculating character stats
- * These are separated from the store to enable unit testing
- * All functions are pure (no side effects, deterministic)
+ * GAME LOGIC
+ * ----------------------------------------------------------------------------
+ * Pure functions for calculating derived character statistics.
+ * 
+ * FUNCTIONALITY:
+ * - Calculates max HP, Stress, and Armor Slots.
+ * - Determines Damage Thresholds based on level or custom rules.
+ * - Computes total Evasion including armor and modifiers.
+ * 
+ * SHARED:
+ * - Core business logic shared between Web (Supabase) and Native (SQLite) apps.
+ * - All functions MUST be pure and deterministic for easy testing.
  */
 
 import { Character, CharacterInventoryItem } from '@/store/character-store';

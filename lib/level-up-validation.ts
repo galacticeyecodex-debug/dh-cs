@@ -1,8 +1,15 @@
 /**
- * Level-Up Validation Functions
- *
- * Validates user selections during the level-up wizard to ensure they follow Daggerheart rules.
- * Reference: srd/markdown/contents/Leveling Up.md
+ * LEVEL-UP VALIDATION
+ * ----------------------------------------------------------------------------
+ * Validation logic for the character level-up wizard.
+ * 
+ * FUNCTIONALITY:
+ * - Ensures user choices (e.g., trait selection, card swaps) comply with SRD rules.
+ * - Prevents invalid states before finalizing level-up.
+ * 
+ * SHARED:
+ * - Core business logic shared between Web (Supabase) and Native (SQLite) apps.
+ * - Reference: srd/markdown/contents/Leveling Up.md
  */
 
 import {

@@ -1,8 +1,16 @@
 /**
- * Level-Up Helper Functions
- *
- * Calculates automatic changes that occur during leveling based on Daggerheart SRD.
- * Reference: srd/markdown/contents/Leveling Up.md
+ * LEVEL-UP HELPERS
+ * ----------------------------------------------------------------------------
+ * Utility functions for calculating automatic progression changes.
+ * 
+ * FUNCTIONALITY:
+ * - Calculates proficiency bonuses based on level.
+ * - Determines available trait points.
+ * - Handles tier-based unlocks.
+ * 
+ * SHARED:
+ * - Core business logic shared between Web (Supabase) and Native (SQLite) apps.
+ * - Reference: srd/markdown/contents/Leveling Up.md
  */
 
 import { Experience } from '@/types/modifiers';
