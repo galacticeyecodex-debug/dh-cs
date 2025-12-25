@@ -336,7 +336,7 @@ export default function DiceOverlay() {
                 <div className="flex justify-between items-start pointer-events-auto">
                   <button
                     onClick={closeDiceOverlay}
-                    className="p-2 bg-black/40 rounded-full text-white hover:bg-black/60 transition-colors"
+                    className="p-2 bg-black/40 rounded-full text-white hover:bg-black/60 transition-colors touch-manipulation"
                     aria-label="Close"
                   >
                     <X size={24} />
@@ -465,12 +465,9 @@ export default function DiceOverlay() {
                 >
                   <div className="bg-dagger-panel/75 border border-white/10 p-6 rounded-2xl shadow-2xl text-center relative">
                     <button
-                      onClick={() => {
-                        setHasRolled(false);
-                        setLastRollResult(null);
-                      }}
-                      className="absolute top-4 right-4 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors"
-                      aria-label="Clear result"
+                      onClick={closeDiceOverlay}
+                      className="absolute top-4 right-4 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors touch-manipulation"
+                      aria-label="Close"
                     >
                       <X size={16} />
                     </button>
