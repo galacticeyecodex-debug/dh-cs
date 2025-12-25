@@ -84,7 +84,7 @@ export default function CharacterSelectPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-md">
             {characters.map((character) => (
-              <Card key={character.id} className="cursor-pointer bg-dagger-panel text-white border-white/10 hover:bg-dagger-panel-hover" onClick={() => handleSelectCharacter(character.id)}>
+              <Card key={character.id} className="cursor-pointer touch-manipulation bg-dagger-panel text-white border-white/10 hover:bg-dagger-panel-hover active:bg-dagger-panel-hover" onClick={() => handleSelectCharacter(character.id)}>
                 <CardHeader>
                   <CardTitle className="text-dagger-gold">{character.name}</CardTitle>
                 </CardHeader>
