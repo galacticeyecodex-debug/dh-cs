@@ -107,6 +107,9 @@ CREATE TABLE IF NOT EXISTS public.characters (
   multiclass_subclass_id TEXT, -- Subclass chosen for multiclass
   multiclass_progression JSONB DEFAULT '{}'::jsonb, -- Tracks foundation/specialization/mastery for multiclass subclass
 
+  -- Beastbond Ranger Companion
+  ranger_companion JSONB, -- Stores companion data for Beastbound Rangers
+
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
