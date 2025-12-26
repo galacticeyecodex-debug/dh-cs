@@ -605,6 +605,16 @@ export default function CharacterView() {
                         <p className="text-sm text-gray-300 whitespace-pre-wrap">{feature.text}</p>
                       </div>
                     ))}
+
+                    {/* Prayer Dice Interactive Feature (Seraph Class Only) */}
+                    {character.class_id?.toLowerCase() === 'seraph' && (
+                      <PrayerDiceCard
+                        prayerDice={character.seraph_prayer_dice}
+                        spellcastValue={character.stats[character.spellcast_trait?.toLowerCase() as keyof typeof character.stats] || 0}
+                        hasDevout={character.subclass_data?.name?.toLowerCase() === 'divine wielder' && character.subclass_progression?.specialization_obtained === true}
+                        onUpdatePrayerDice={updatePrayerDice}
+                      />
+                    )}
                   </div>
                 )}
               </div>
@@ -731,18 +741,6 @@ export default function CharacterView() {
                     )}
                   </div>
                 )}
-              </div>
-            )}
-
-            {/* Seraph Prayer Dice Section */}
-            {character.class_id?.toLowerCase() === 'seraph' && (
-              <div className="space-y-2">
-                <PrayerDiceCard
-                  prayerDice={character.seraph_prayer_dice}
-                  spellcastValue={character.stats[character.spellcast_trait?.toLowerCase() as keyof typeof character.stats] || 0}
-                  hasDevout={character.subclass_data?.name?.toLowerCase() === 'divine wielder' && character.subclass_progression?.specialization_obtained === true}
-                  onUpdatePrayerDice={updatePrayerDice}
-                />
               </div>
             )}
 
