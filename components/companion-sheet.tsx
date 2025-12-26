@@ -138,7 +138,7 @@ export default function CompanionSheet({
     const current = localCompanion.level_up_options[key as keyof typeof localCompanion.level_up_options];
 
     let newOptions = { ...localCompanion.level_up_options };
-    let newCompanion = { ...localCompanion };
+    const newCompanion = { ...localCompanion };
 
     if (multi) {
       // Multi-select options increment
@@ -172,8 +172,8 @@ export default function CompanionSheet({
     const current = localCompanion.level_up_options[key as keyof typeof localCompanion.level_up_options] as number;
     if (current <= 0) return;
 
-    let newOptions = { ...localCompanion.level_up_options, [key]: current - 1 };
-    let newCompanion = { ...localCompanion };
+    const newOptions = { ...localCompanion.level_up_options, [key]: current - 1 };
+    const newCompanion = { ...localCompanion };
 
     // Reverse effects
     if (key === 'light_in_the_dark') {
@@ -460,7 +460,7 @@ export default function CompanionSheet({
                   <div className="space-y-2">
                     {localCompanion.experiences.length === 0 && (
                       <div className="text-center text-gray-600 italic py-4">
-                        No experiences recorded. Add 2 experiences based on your companion's training.
+                        No experiences recorded. Add 2 experiences based on your companion&apos;s training.
                       </div>
                     )}
 
