@@ -106,11 +106,14 @@ export default function PrayerDiceCard({
   const usedDice = prayerDice?.dice.filter(d => d.used) || [];
 
   return (
-    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+    <div className="bg-dagger-panel border border-dagger-gold/30 rounded-xl p-4 relative overflow-hidden">
+      {/* Gold left border accent (matches Hope Feature) */}
+      <div className="absolute top-0 left-0 w-1 h-full bg-dagger-gold"></div>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <h4 className="font-serif font-bold text-white flex items-center gap-2">
-          <Sparkles size={16} className="text-purple-400" />
+        <h4 className="font-serif font-bold text-dagger-gold flex items-center gap-2">
+          <Sparkles size={14} />
           Prayer Dice
         </h4>
         <button
@@ -148,7 +151,7 @@ export default function PrayerDiceCard({
           </p>
           <button
             onClick={handleRoll}
-            className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+            className="w-full py-2.5 bg-dagger-gold/10 hover:bg-dagger-gold/20 border border-dagger-gold/30 text-dagger-gold font-bold rounded-lg transition-all flex items-center justify-center gap-2"
           >
             <Dices size={16} />
             Roll {spellcastValue} Prayer Dice (d4)
