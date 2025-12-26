@@ -16,14 +16,18 @@ import { CharacterStore } from '@/types/store';
 
 export interface AuthSlice {
   user: AppUser | null;
+  selectedCharacterId: string | null;
   setUser: (user: AppUser | null) => void;
-  fetchUser: () => Promise<void>;
+  setSelectedCharacterId: (id: string | null) => void;
+  fetchUser: (options?: { skipCharacterFetch?: boolean }) => Promise<void>;
 }
 
 export const createAuthSlice: StateCreator<CharacterStore, [], [], AuthSlice> = (set, get) => ({
   user: null,
+  selectedCharacterId: null,
   setUser: (user) => set({ user }),
-  fetchUser: async () => {
+  setSelectedCharacterId: (id) => set({ selectedCharacterId: id }),
+  fetchUser: async (options?: { skipCharacterFetch?: boolean }) => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -48,18 +52,21 @@ export const createAuthSlice: StateCreator<CharacterStore, [], [], AuthSlice> = 
         console.error("Error managing profile:", error);
       }
 
-      // Then fetch character
-      // Dependent on CharacterSlice
-      const state = get() as any;
-      if (state.fetchCharacter) {
-        await state.fetchCharacter(user.id);
+      // Only fetch character if not explicitly skipped
+      // This prevents race conditions when user is selecting a specific character
+      if (!options?.skipCharacterFetch) {
+        const state = get() as any;
+        if (state.fetchCharacter) {
+          // If a character was explicitly selected, load that one
+          // Otherwise, load the default (first) character
+          const selectedId = state.selectedCharacterId;
+          await state.fetchCharacter(user.id, selectedId || undefined);
+        }
       }
     } else {
       const state = get() as any;
-      set({ user: null });
+      set({ user: null, selectedCharacterId: null });
       if (state.setCharacter) state.setCharacter(null);
-      // We might want to set isLoading to false here too if it's managed elsewhere
-      // set({ isLoading: false } as any); 
     }
   },
 });
