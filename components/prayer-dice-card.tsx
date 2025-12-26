@@ -106,34 +106,35 @@ export default function PrayerDiceCard({
   const usedDice = prayerDice?.dice.filter(d => d.used) || [];
 
   return (
-    <div className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden">
+    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
       {/* Header */}
-      <div className="p-4 border-b border-white/10 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Sparkles className="text-purple-400" size={18} />
-          <h3 className="font-serif font-bold text-white text-lg">Prayer Dice</h3>
-        </div>
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="font-serif font-bold text-white flex items-center gap-2">
+          <Sparkles size={16} className="text-purple-400" />
+          Prayer Dice
+        </h4>
         <button
           onClick={() => setShowInfo(!showInfo)}
           className="p-1 hover:bg-white/10 rounded transition-colors"
         >
-          <Info size={16} className="text-gray-400" />
+          <Info size={14} className="text-gray-400" />
         </button>
       </div>
 
       {/* Info Section (Collapsible) */}
       {showInfo && (
-        <div className="px-4 py-3 bg-purple-500/5 border-b border-white/5 text-sm text-gray-300 space-y-1">
-          <p className="font-bold text-purple-400">Uses:</p>
-          <ul className="space-y-0.5 text-xs ml-4">
+        <div className="mb-3 p-3 bg-white/5 rounded-lg border border-white/5">
+          <p className="text-xs text-gray-400 mb-2">
+            At the beginning of each session, roll a number of d4s equal to your Spellcast trait.
+            You can spend any number of Prayer Dice to aid yourself or an ally within Far range.
+          </p>
+          <p className="text-xs font-bold text-white mb-1">Uses:</p>
+          <ul className="space-y-0.5 text-xs text-gray-400 ml-4">
             <li>• Reduce incoming damage by die value</li>
             <li>• Add die value to a roll (after rolling)</li>
             <li>• Gain Hope equal to die value</li>
           </ul>
           <p className="text-xs text-gray-500 mt-2">
-            Range: Self or ally within Far range
-          </p>
-          <p className="text-xs text-gray-500">
             ⚠️ Clear all dice at the end of each session
           </p>
         </div>
@@ -141,15 +142,15 @@ export default function PrayerDiceCard({
 
       {/* Roll Button Section */}
       {!hasDice && (
-        <div className="p-4">
-          <p className="text-sm text-gray-400 mb-3">
-            Roll prayer dice at the start of each session. Spend them to help yourself or allies within Far range.
+        <div className="space-y-3">
+          <p className="text-sm text-gray-300">
+            Roll prayer dice at the start of each session.
           </p>
           <button
             onClick={handleRoll}
-            className="w-full py-3 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-300 font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+            className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2"
           >
-            <Dices size={18} />
+            <Dices size={16} />
             Roll {spellcastValue} Prayer Dice (d4)
             {hasDevout && <span className="text-xs opacity-75">+1 Devout</span>}
           </button>
@@ -158,7 +159,7 @@ export default function PrayerDiceCard({
 
       {/* Dice Display Section */}
       {hasDice && (
-        <div className="p-4 space-y-3">
+        <div className="space-y-3">
           {/* Available Dice */}
           {availableDice.length > 0 && (
             <div>
@@ -172,8 +173,8 @@ export default function PrayerDiceCard({
                     className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg p-3 transition-colors hover:bg-white/10"
                   >
                     <div className="flex items-center gap-3">
-                      <Circle size={16} className="text-white/30" />
-                      <span className="text-lg font-bold text-white">
+                      <Circle size={14} className="text-gray-500" />
+                      <span className="text-base font-bold text-white">
                         Value: {die.value}
                       </span>
                     </div>
@@ -202,8 +203,8 @@ export default function PrayerDiceCard({
                     className="flex items-center justify-between bg-white/5 border border-white/5 rounded-lg p-3 opacity-50"
                   >
                     <div className="flex items-center gap-3">
-                      <CheckCircle2 size={16} className="text-green-400" />
-                      <span className="text-lg font-bold text-gray-500">
+                      <CheckCircle2 size={14} className="text-green-400" />
+                      <span className="text-base font-bold text-gray-500">
                         Value: {die.value}
                       </span>
                     </div>
