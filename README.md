@@ -33,6 +33,76 @@ You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](ht
 - [X] **Multiclassing Support** - Full support for multiclassing
 - [X] **Homebrew Content** - Support for custom domains and cards
 
+## Development Roadmap
+
+### Class & Subclass Interactive Features
+
+| Class | Subclass | Feature | Status | Description |
+|-------|----------|---------|--------|-------------|
+| Ranger | Beastbond | Companion Card | ✅ Done | Interactive companion sheet with image upload, training options, and companion level-up |
+| Seraph | All | Prayer Dice | ❌ Todo | d4 roller with prayer dice result tracker for Seraph's core mechanic |
+| Wizard | All | Grimoire Manager | ❌ Todo | Enhanced grimoire card interface for managing spell books |
+| Bard | All | Grimoire Manager | ❌ Todo | Enhanced grimoire card interface (Bards also use grimoires) |
+| Sorcerer | All | Chaos Tokens | ❌ Todo | Visual token tracker for abilities like Unleash Chaos |
+
+### Interactive Domain Cards with Tokens
+
+Many domain cards require token tracking. These need dedicated interactive UI:
+
+| Domain | Card | Level | Token Type | Description |
+|--------|------|-------|------------|-------------|
+| Arcana | Unleash Chaos | 1 | Spellcast tokens | Tokens equal to Spellcast trait, spend for damage dice |
+| Arcana | Flight | 3 | Agility tokens | Tokens spent on action rolls while flying |
+| Arcana | Confusing Aura | 8 | Layer tokens | Illusion layers that protect against attacks |
+| Arcana | Rune Ward | 1 | Ward Die (d8) | Tracks ward status and damage reduction |
+| Bone | Strategic Approach | 2 | Knowledge tokens | Combat enhancement tokens |
+| Codex | Sigil of Retribution | 6 | d8 dice pool | Accumulates d8s when marked target deals damage |
+| Grace | Inspirational Words | 1 | Presence tokens | Healing/support tokens |
+| Grace | Invisibility | 3 | Spellcast tokens | Action tokens before invisibility ends |
+| Grace | Never Upstaged | 6 | Damage tokens | Bonus damage based on HP marked |
+| Midnight | Uncanny Disguise | 1 | Spellcast tokens | Action tokens before disguise drops |
+| Midnight | Spellcharge | 8 | Damage tokens | Store magic damage as bonus damage |
+| Midnight | Twilight Toll | 9 | Success tokens | Accumulate tokens for bonus damage dice |
+| Midnight | Mass Disguise | 6 | Countdown (8) | Ticking countdown until disguise drops |
+| Sage | Thorn Skin | 5 | Spellcast tokens | Damage reduction/reflection tokens |
+| Sage | Wild Fortress | 5 | HP tokens | Dome hit point tracking (thresholds 15/30) |
+| Sage | Wild Surge | 7 | Escalating d6 | Die value increases each roll |
+| Sage | Fane of the Wilds | 9 | Domain tokens | Tokens based on Sage cards in loadout/vault |
+| Splendor | Zone of Protection | 6 | Escalating d6 | Protection die that increments |
+| Splendor | Restoration | 6 | Spellcast tokens | Healing resource tokens |
+
+### Daggerheart-Specific Mechanics
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Hybrid Ancestries | ❌ Todo | Allow mixing two ancestries, selecting one feat from each |
+| GM Fear Pool | ❌ Todo | Track GM's Fear pool for gameplay (if adding GM tools) |
+| Countdown Tracker | ❌ Todo | Generic countdown component for abilities that use countdowns |
+| Condition Tracker | ❌ Todo | Track conditions like Vulnerable, Restrained, Stunned, etc. |
+| Token Card Overlay | ❌ Todo | Interactive overlay for cards that track tokens |
+| Dice Accumulator | ❌ Todo | For cards like Sigil of Retribution that accumulate dice |
+| Experience Tracker | ❌ Todo | Enhanced XP tracking with milestone suggestions |
+
+### Grimoire Cards (Special Spell Books)
+
+Grimoires contain multiple spells on a single card. Enhanced UI needed:
+
+| Domain | Grimoire | Level |
+|--------|----------|-------|
+| Codex | Book of Ava | 1 |
+| Codex | Book of Illiat | 1 |
+| Codex | Book of Tyfar | 1 |
+| Codex | Book of Sitil | 2 |
+| Codex | Book of Vagras | 2 |
+| Codex | Book of Korvax | 3 |
+| Codex | Book of Norai | 3 |
+| Codex | Book of Exota | 4 |
+| Codex | Book of Grynn | 4 |
+| Codex | Book of Homet | 7 |
+| Codex | Book of Vyola | 8 |
+| Codex | Book of Ronin | 9 |
+| Codex | Book of Yarrow | 10 |
+
 ## Tech Stack
 
 - **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
