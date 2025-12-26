@@ -2,7 +2,7 @@
 
 import MobileLayout from '@/components/mobile-layout';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCharacterStore, Character } from '@/store/character-store';
@@ -11,49 +11,110 @@ import { dataService } from '@/lib/data-service';
 export default function CharacterSelectPage() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectingId, setSelectingId] = useState<string | null>(null);
   const router = useRouter();
-  const { user, fetchCharacter, fetchUser } = useCharacterStore();
+
+  // Use refs to prevent stale closure issues and track intended selection
+  const intendedCharacterRef = useRef<string | null>(null);
+  const isMountedRef = useRef(true);
+
+  const {
+    user,
+    fetchCharacter,
+    fetchUser,
+    setSelectedCharacterId,
+    character
+  } = useCharacterStore();
+
+  // Memoize the init function to prevent unnecessary re-renders
+  const initPage = useCallback(async () => {
+    // Get current user from store
+    let activeUser = useCharacterStore.getState().user;
+
+    // If no user in store, fetch user but skip auto-loading character
+    if (!activeUser) {
+      await fetchUser({ skipCharacterFetch: true });
+      activeUser = useCharacterStore.getState().user;
+    }
+
+    if (!activeUser) {
+      if (isMountedRef.current) router.push('/auth/login');
+      return;
+    }
+
+    // Fetch the list of characters
+    try {
+      const data = await dataService.character.list(activeUser.id);
+      if (isMountedRef.current) {
+        setCharacters(data);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error fetching characters:', error);
+      if (isMountedRef.current) setLoading(false);
+    }
+  }, [fetchUser, router]);
 
   useEffect(() => {
-    let mounted = true;
+    isMountedRef.current = true;
+    initPage();
 
-    const init = async () => {
-      // 1. Ensure User is Authenticated
-      let activeUser = user;
-      if (!activeUser) {
-        await fetchUser();
-        // Access store directly to get the fresh user state after fetch
-        activeUser = useCharacterStore.getState().user;
-      }
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [initPage]);
 
-      if (!activeUser) {
-        if (mounted) router.push('/auth/login');
+  const handleSelectCharacter = async (characterId: string) => {
+    // Prevent double-clicks and concurrent selections
+    if (selectingId !== null) {
+      return;
+    }
+
+    const activeUser = useCharacterStore.getState().user;
+    if (!activeUser) {
+      return;
+    }
+
+    // Set the selecting state to show visual feedback and prevent double-clicks
+    setSelectingId(characterId);
+
+    // Track the intended character to handle race conditions
+    intendedCharacterRef.current = characterId;
+
+    // Store the selected character ID so other parts of the app can respect it
+    setSelectedCharacterId(characterId);
+
+    try {
+      // Fetch the selected character
+      await fetchCharacter(activeUser.id, characterId);
+
+      // Verify we're still trying to load this character (not cancelled by another selection)
+      if (intendedCharacterRef.current !== characterId) {
         return;
       }
 
-      // 2. Fetch Characters
-      try {
-        const data = await dataService.character.list(activeUser.id);
-        if (mounted) {
-          setCharacters(data);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error fetching characters:', error);
-        if (mounted) setLoading(false);
+      // Verify the character was actually loaded correctly
+      const loadedCharacter = useCharacterStore.getState().character;
+      if (loadedCharacter?.id === characterId) {
+        // Success - navigate to the client
+        router.push('/client');
+      } else {
+        // Something went wrong - try again or show error
+        console.error('Character ID mismatch after fetch:', {
+          expected: characterId,
+          got: loadedCharacter?.id
+        });
+        // Reset and allow retry
+        setSelectingId(null);
+        intendedCharacterRef.current = null;
       }
-    };
-
-    init();
-
-    return () => { mounted = false; };
-  }, [user, fetchUser, router]);
-
-  const handleSelectCharacter = async (characterId: string) => {
-    const activeUser = useCharacterStore.getState().user;
-    if (activeUser) {
-       await fetchCharacter(activeUser.id, characterId);
-       router.push('/client');
+    } catch (error) {
+      console.error('Error selecting character:', error);
+      // Reset on error to allow retry
+      if (isMountedRef.current) {
+        setSelectingId(null);
+        intendedCharacterRef.current = null;
+      }
     }
   };
 
@@ -74,7 +135,8 @@ export default function CharacterSelectPage() {
         <div className="mb-8 text-center">
           <Button
             onClick={() => router.push('/create-character')}
-            className="px-6 py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-105 transition-transform"
+            disabled={selectingId !== null}
+            className="px-6 py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Create New Character
           </Button>
@@ -83,18 +145,38 @@ export default function CharacterSelectPage() {
           <p className="text-center text-gray-300">No characters found. Create one to get started!</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-md">
-            {characters.map((character) => (
-              <Card key={character.id} className="cursor-pointer touch-manipulation bg-dagger-panel text-white border-white/10 hover:bg-dagger-panel-hover active:bg-dagger-panel-hover" onClick={() => handleSelectCharacter(character.id)}>
-                <CardHeader>
-                  <CardTitle className="text-dagger-gold">{character.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>Level {character.level}</p>
-                  <p>Class: {character.class_id || 'Unknown'}</p>
-                  <p>Ancestry: {character.ancestry || 'Unknown'}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {characters.map((char) => {
+              const isSelecting = selectingId === char.id;
+              const isDisabled = selectingId !== null;
+
+              return (
+                <Card
+                  key={char.id}
+                  className={`
+                    touch-manipulation bg-dagger-panel text-white border-white/10
+                    transition-all duration-200
+                    ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-dagger-panel-hover active:bg-dagger-panel-hover'}
+                    ${isSelecting ? 'ring-2 ring-dagger-gold scale-[0.98] opacity-80' : ''}
+                    ${isDisabled && !isSelecting ? 'opacity-50' : ''}
+                  `}
+                  onClick={() => !isDisabled && handleSelectCharacter(char.id)}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-dagger-gold flex items-center gap-2">
+                      {char.name}
+                      {isSelecting && (
+                        <span className="inline-block w-4 h-4 border-2 border-dagger-gold border-t-transparent rounded-full animate-spin" />
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>Level {char.level}</p>
+                    <p>Class: {char.class_id || 'Unknown'}</p>
+                    <p>Ancestry: {char.ancestry || 'Unknown'}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
