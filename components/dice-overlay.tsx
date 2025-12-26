@@ -316,7 +316,12 @@ export default function DiceOverlay() {
           "absolute inset-0 bg-dagger-dark transition-opacity duration-300",
           isDiceOverlayOpen ? "opacity-100" : "opacity-0"
         )} />
-        <div id="dice-tray-overlay" ref={containerRef} className="absolute inset-0 w-screen h-screen z-45" />
+        <div
+          id="dice-tray-overlay"
+          ref={containerRef}
+          className="absolute inset-0 w-screen h-screen z-45"
+          style={{ pointerEvents: hasRolled ? 'none' : 'auto' }}
+        />
       </div>
 
       <AnimatePresence>
@@ -329,11 +334,15 @@ export default function DiceOverlay() {
               className="w-full h-full flex flex-col"
             >
               <motion.div
-                className="absolute top-0 left-0 right-0 p-4 flex flex-col gap-4 z-20 pointer-events-none"
-                animate={{ opacity: hasRolled ? 0 : 1 }}
+                className="absolute top-0 left-0 right-0 p-4 flex flex-col gap-4 z-20"
+                animate={{
+                  opacity: hasRolled ? 0 : 1,
+                  pointerEvents: hasRolled ? 'none' : 'auto'
+                }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
+                style={{ pointerEvents: hasRolled ? 'none' : 'auto' }}
               >
-                <div className="flex justify-between items-start pointer-events-auto">
+                <div className="flex justify-between items-start">
                   <button
                     onClick={closeDiceOverlay}
                     className="p-2 bg-black/40 rounded-full text-white hover:bg-black/60 transition-colors touch-manipulation"
@@ -350,7 +359,7 @@ export default function DiceOverlay() {
                   )}
                 </div>
 
-                <div className="flex flex-col items-center gap-2 pointer-events-auto">
+                <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2 bg-black/75 p-1 rounded-full border border-white/10">
                     <span className="text-xs text-gray-300 pl-3 font-bold uppercase">Mod</span>
                     <button onClick={() => setTempModifier(m => m - 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20">-</button>
@@ -457,19 +466,40 @@ export default function DiceOverlay() {
                 </div>
               </motion.div>
 
+              {/* Tap-to-close backdrop when showing results */}
+              {hasRolled && (
+                <div
+                  className="absolute inset-0 z-10"
+                  onClick={closeDiceOverlay}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    closeDiceOverlay();
+                  }}
+                  style={{ pointerEvents: 'auto' }}
+                />
+              )}
+
               {lastRollResult && lastRollResult.total > 0 && (
                 <motion.div
                   initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-md pointer-events-auto"
+                  className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-md pointer-events-auto z-20"
                 >
-                  <div className="bg-dagger-panel/75 border border-white/10 p-6 rounded-2xl shadow-2xl text-center relative">
+                  <div
+                    className="bg-dagger-panel/75 border border-white/10 p-6 rounded-2xl shadow-2xl text-center relative"
+                    onClick={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
+                  >
                     <button
                       onClick={closeDiceOverlay}
-                      className="absolute top-4 right-4 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors touch-manipulation"
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        closeDiceOverlay();
+                      }}
+                      className="absolute top-3 right-3 p-3 bg-white/20 rounded-full text-white hover:bg-white/30 active:bg-white/40 transition-colors touch-manipulation"
                       aria-label="Close"
                     >
-                      <X size={16} />
+                      <X size={20} />
                     </button>
 
                     <div className="text-sm text-gray-400 uppercase tracking-wider mb-1">Result</div>
