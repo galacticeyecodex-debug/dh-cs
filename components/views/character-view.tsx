@@ -23,7 +23,9 @@ import ExperienceSheet from '../experience-sheet';
 import LevelUpModal from '../level-up-modal';
 import ManageCharacterModal from '../manage-character-modal';
 import AdvancementHistory from '../advancement-history';
-import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap } from 'lucide-react';
+import SubclassFeatureCard from '../subclass-feature-card';
+import CompanionSheet from '../companion-sheet';
+import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap, Info, Sparkles, PawPrint } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/storage-service';
 import { toast } from 'sonner';
@@ -31,7 +33,7 @@ import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 export default function CharacterView() {
-  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits } = useCharacterStore();
+  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion } = useCharacterStore();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
   const [isLevelUpLoading, setIsLevelUpLoading] = useState(false);
@@ -47,6 +49,10 @@ export default function CharacterView() {
   const [classes, setClasses] = useState<any[]>([]);
   const [showAncestry, setShowAncestry] = useState(true);
   const [showCommunity, setShowCommunity] = useState(true);
+  const [showClassFeatures, setShowClassFeatures] = useState(true);
+  const [showSubclassFeatures, setShowSubclassFeatures] = useState(true);
+  const [showCompanion, setShowCompanion] = useState(true);
+  const [isCompanionSheetOpen, setIsCompanionSheetOpen] = useState(false);
   const [ancestryCard, setAncestryCard] = useState<any>(null);
   const [communityCard, setCommunityCard] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -560,6 +566,369 @@ export default function CharacterView() {
                 />
               </div>
             )}
+
+            {/* Class Features Section */}
+            {character.class_data && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
+                    <Info size={14} /> Class Features
+                  </h3>
+                  <button
+                    onClick={() => setShowClassFeatures(!showClassFeatures)}
+                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                  >
+                    {showClassFeatures ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showClassFeatures ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+
+                {showClassFeatures && (
+                  <div className="space-y-3">
+                    {/* Hope Feature */}
+                    {character.class_data.data.hope_feature && (
+                      <div className="bg-dagger-panel border border-dagger-gold/30 rounded-xl p-4 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-dagger-gold"></div>
+                        <h4 className="font-serif font-bold text-dagger-gold mb-1 flex items-center gap-2">
+                          <Zap size={14} />
+                          {character.class_data.data.hope_feature.name}
+                        </h4>
+                        <p className="text-sm text-gray-300">{character.class_data.data.hope_feature.description}</p>
+                      </div>
+                    )}
+
+                    {/* Core Class Features */}
+                    {character.class_data.data.class_features?.map((feature: any, idx: number) => (
+                      <div key={idx} className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                        <h4 className="font-serif font-bold text-white mb-1">{feature.name}</h4>
+                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{feature.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Subclass Features Section */}
+            {(character.subclass_progression || character.multiclass_progression) && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
+                    <Sparkles size={14} /> Subclass Features
+                  </h3>
+                  <button
+                    onClick={() => setShowSubclassFeatures(!showSubclassFeatures)}
+                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                  >
+                    {showSubclassFeatures ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showSubclassFeatures ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+
+                {showSubclassFeatures && (
+                  <div className="space-y-3">
+                    {/* Primary Subclass Features */}
+                    {character.subclass_progression && (
+                      <>
+                        {character.subclass_progression.foundation_obtained && (
+                          <SubclassFeatureCard
+                            card={character.character_cards?.find(c =>
+                              c.location === 'feature' &&
+                              !c.library_item?.data?.multiclass &&
+                              (c.library_item?.data?.tier === 'foundation' || c.library_item?.type === 'subclass')
+                            ) || (character.subclass_data && character.subclass_id ? {
+                                id: 'primary-subclass-foundation-fallback',
+                                character_id: character.id,
+                                card_id: character.subclass_data.id,
+                                location: 'feature',
+                                state: {},
+                                library_item: character.subclass_data
+                            } : undefined)}
+                            tier="Foundation"
+                            isMulticlass={false}
+                          />
+                        )}
+
+                        {character.subclass_progression.specialization_obtained && (
+                          <SubclassFeatureCard
+                            card={character.character_cards?.find(c =>
+                              c.location === 'feature' &&
+                              !c.library_item?.data?.multiclass &&
+                              c.library_item?.data?.tier === 'specialization'
+                            ) || (character.subclass_data && character.subclass_id ? {
+                                id: 'primary-subclass-specialization-fallback',
+                                character_id: character.id,
+                                card_id: character.subclass_data.id,
+                                location: 'feature',
+                                state: {},
+                                library_item: character.subclass_data
+                            } : undefined)}
+                            tier="Specialization"
+                            isMulticlass={false}
+                          />
+                        )}
+
+                        {character.subclass_progression.mastery_obtained && (
+                          <SubclassFeatureCard
+                            card={character.character_cards?.find(c =>
+                              c.location === 'feature' &&
+                              !c.library_item?.data?.multiclass &&
+                              c.library_item?.data?.tier === 'mastery'
+                            ) || (character.subclass_data && character.subclass_id ? {
+                                id: 'primary-subclass-mastery-fallback',
+                                character_id: character.id,
+                                card_id: character.subclass_data.id,
+                                location: 'feature',
+                                state: {},
+                                library_item: character.subclass_data
+                            } : undefined)}
+                            tier="Mastery"
+                            isMulticlass={false}
+                          />
+                        )}
+                      </>
+                    )}
+
+                    {/* Multiclass Subclass Features */}
+                    {character.multiclass_progression && (
+                      <>
+                        {character.multiclass_progression.foundation_obtained && (
+                          <SubclassFeatureCard
+                            card={character.character_cards?.find(c =>
+                              c.location === 'feature' &&
+                              c.library_item?.data?.multiclass === true
+                            )}
+                            tier="Foundation"
+                            isMulticlass={true}
+                          />
+                        )}
+
+                        {character.multiclass_progression.specialization_obtained && (
+                          <SubclassFeatureCard
+                            card={character.character_cards?.find(c =>
+                              c.location === 'feature' &&
+                              c.library_item?.data?.multiclass === true &&
+                              c.library_item?.data?.tier === 'specialization'
+                            )}
+                            tier="Specialization"
+                            isMulticlass={true}
+                          />
+                        )}
+
+                        {character.multiclass_progression.mastery_obtained && (
+                          <SubclassFeatureCard
+                            card={character.character_cards?.find(c =>
+                              c.location === 'feature' &&
+                              c.library_item?.data?.multiclass === true &&
+                              c.library_item?.data?.tier === 'mastery'
+                            )}
+                            tier="Mastery"
+                            isMulticlass={true}
+                          />
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Beastbond Ranger Companion Section */}
+            {character.class_id?.toLowerCase() === 'ranger' &&
+             character.subclass_data?.name?.toLowerCase() === 'beastbound' &&
+             character.subclass_progression?.foundation_obtained && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
+                      <PawPrint size={14} /> Companion
+                    </h3>
+                    <button
+                      onClick={() => setIsCompanionSheetOpen(true)}
+                      className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                    >
+                      <Settings size={12} /> Manage
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setShowCompanion(!showCompanion)}
+                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                  >
+                    {showCompanion ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showCompanion ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+
+                {showCompanion && (
+                  <div className="bg-dagger-panel border border-emerald-500/30 rounded-xl p-4 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+
+                    {character.ranger_companion ? (
+                      <div className="space-y-4">
+                        {/* Companion Header */}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-serif font-bold text-white text-lg flex items-center gap-2">
+                              <PawPrint size={18} className="text-emerald-400" />
+                              {character.ranger_companion.name}
+                            </h4>
+                            <p className="text-sm text-gray-400 capitalize">{character.ranger_companion.animal_type}</p>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs text-gray-500 uppercase">Evasion</div>
+                            <div className="text-2xl font-bold text-white">{character.ranger_companion.evasion}</div>
+                          </div>
+                        </div>
+
+                        {/* Companion Vitals */}
+                        <div className="grid grid-cols-2 gap-3">
+                          {/* Stress */}
+                          <div className="bg-black/20 rounded-lg p-3">
+                            <div className="text-xs text-gray-500 uppercase mb-2">Stress</div>
+                            <div className="flex gap-1">
+                              {Array.from({ length: character.ranger_companion.stress_max }).map((_, i) => (
+                                <div
+                                  key={i}
+                                  className={clsx(
+                                    "w-6 h-6 rounded border-2",
+                                    i < character.ranger_companion!.stress_current
+                                      ? "bg-red-500 border-red-400"
+                                      : "bg-transparent border-gray-600"
+                                  )}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Hope */}
+                          <div className="bg-black/20 rounded-lg p-3">
+                            <div className="text-xs text-gray-500 uppercase mb-2">Hope</div>
+                            <div className="flex gap-1">
+                              {Array.from({ length: character.ranger_companion.hope_max }).map((_, i) => (
+                                <div
+                                  key={i}
+                                  className={clsx(
+                                    "w-6 h-6 rounded border-2",
+                                    i < character.ranger_companion!.hope_current
+                                      ? "bg-dagger-gold border-dagger-gold"
+                                      : "bg-transparent border-gray-600"
+                                  )}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Combat Stats */}
+                        <div className="flex items-center gap-4 bg-black/20 rounded-lg p-3">
+                          <div>
+                            <div className="text-xs text-gray-500 uppercase">Attack</div>
+                            <div className="text-sm font-bold text-white capitalize">{character.ranger_companion.attack_type}</div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500 uppercase">Damage</div>
+                            <div className="text-sm font-bold text-emerald-400">{character.ranger_companion.damage_die}</div>
+                          </div>
+                          {character.ranger_companion.attack_range && character.ranger_companion.attack_range !== 'melee' && (
+                            <div>
+                              <div className="text-xs text-gray-500 uppercase">Range</div>
+                              <div className="text-sm font-bold text-white capitalize">{character.ranger_companion.attack_range.replace('_', ' ')}</div>
+                            </div>
+                          )}
+                          {character.ranger_companion.armor_slot && (
+                            <div>
+                              <div className="text-xs text-gray-500 uppercase">Armor</div>
+                              <div className={clsx(
+                                "w-6 h-6 rounded border-2",
+                                character.ranger_companion.armor_slot_used
+                                  ? "bg-blue-500 border-blue-400"
+                                  : "bg-transparent border-gray-600"
+                              )} />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Companion Experiences */}
+                        {character.ranger_companion.experiences && character.ranger_companion.experiences.length > 0 && (
+                          <div>
+                            <div className="text-xs text-gray-500 uppercase mb-2">Experiences</div>
+                            <div className="space-y-1">
+                              {character.ranger_companion.experiences.map((exp, i) => (
+                                <div key={i} className="flex justify-between items-center bg-black/20 rounded px-3 py-2">
+                                  <span className="text-sm text-gray-300">{exp.name}</span>
+                                  <span className="font-bold text-white">+{exp.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Level-Up Options Obtained */}
+                        {Object.entries(character.ranger_companion.level_up_options).some(([key, val]) =>
+                          (typeof val === 'boolean' && val && !key.includes('used')) ||
+                          (typeof val === 'number' && val > 0)
+                        ) && (
+                          <div>
+                            <div className="text-xs text-gray-500 uppercase mb-2">Training</div>
+                            <div className="flex flex-wrap gap-1">
+                              {character.ranger_companion.level_up_options.intelligent > 0 && (
+                                <span className="text-xs bg-emerald-900/30 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded">
+                                  Intelligent {character.ranger_companion.level_up_options.intelligent > 1 ? `×${character.ranger_companion.level_up_options.intelligent}` : ''}
+                                </span>
+                              )}
+                              {character.ranger_companion.level_up_options.light_in_the_dark > 0 && (
+                                <span className="text-xs bg-dagger-gold/20 text-dagger-gold border border-dagger-gold/30 px-2 py-1 rounded">
+                                  Light in the Dark {character.ranger_companion.level_up_options.light_in_the_dark > 1 ? `×${character.ranger_companion.level_up_options.light_in_the_dark}` : ''}
+                                </span>
+                              )}
+                              {character.ranger_companion.level_up_options.creature_comfort && (
+                                <span className="text-xs bg-pink-900/30 text-pink-400 border border-pink-500/30 px-2 py-1 rounded">
+                                  Creature Comfort
+                                </span>
+                              )}
+                              {character.ranger_companion.level_up_options.armored && (
+                                <span className="text-xs bg-blue-900/30 text-blue-400 border border-blue-500/30 px-2 py-1 rounded">
+                                  Armored
+                                </span>
+                              )}
+                              {character.ranger_companion.level_up_options.vicious > 0 && (
+                                <span className="text-xs bg-red-900/30 text-red-400 border border-red-500/30 px-2 py-1 rounded">
+                                  Vicious {character.ranger_companion.level_up_options.vicious > 1 ? `×${character.ranger_companion.level_up_options.vicious}` : ''}
+                                </span>
+                              )}
+                              {character.ranger_companion.level_up_options.resilient > 0 && (
+                                <span className="text-xs bg-orange-900/30 text-orange-400 border border-orange-500/30 px-2 py-1 rounded">
+                                  Resilient {character.ranger_companion.level_up_options.resilient > 1 ? `×${character.ranger_companion.level_up_options.resilient}` : ''}
+                                </span>
+                              )}
+                              {character.ranger_companion.level_up_options.bonded && (
+                                <span className="text-xs bg-purple-900/30 text-purple-400 border border-purple-500/30 px-2 py-1 rounded">
+                                  Bonded
+                                </span>
+                              )}
+                              {character.ranger_companion.level_up_options.aware && (
+                                <span className="text-xs bg-cyan-900/30 text-cyan-400 border border-cyan-500/30 px-2 py-1 rounded">
+                                  Aware
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => setIsCompanionSheetOpen(true)}
+                        className="text-center py-6 cursor-pointer hover:bg-white/5 rounded-lg transition-colors"
+                      >
+                        <PawPrint size={32} className="mx-auto text-gray-600 mb-2" />
+                        <p className="text-gray-400 text-sm">No companion configured yet.</p>
+                        <p className="text-emerald-400 text-sm font-medium mt-1">Tap to set up your companion</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -792,6 +1161,13 @@ export default function CharacterView() {
             setIsManageLoading(false);
           }
         }}
+      />
+
+      <CompanionSheet
+        isOpen={isCompanionSheetOpen}
+        onClose={() => setIsCompanionSheetOpen(false)}
+        companion={character.ranger_companion}
+        onUpdateCompanion={updateCompanion}
       />
       </div>
     </ErrorBoundary>
