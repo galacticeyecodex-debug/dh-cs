@@ -162,6 +162,9 @@ export interface Character {
 
   // Beastbond Ranger Companion
   ranger_companion?: RangerCompanion;
+
+  // Seraph Prayer Dice
+  seraph_prayer_dice?: SeraphPrayerDice;
 }
 
 export interface AdvancementRecord {
@@ -206,6 +209,18 @@ export interface RangerCompanion {
     bonded: boolean;
     aware: boolean;
   };
+}
+
+// Seraph Prayer Dice Types
+export interface PrayerDie {
+  id: string;
+  value: number; // 1-4 (d4 result)
+  used: boolean;
+}
+
+export interface SeraphPrayerDice {
+  dice: PrayerDie[];
+  lastRolled?: string; // ISO timestamp
 }
 
 export interface RollResult {
