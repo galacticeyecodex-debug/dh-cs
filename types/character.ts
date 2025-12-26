@@ -182,6 +182,7 @@ export interface CompanionExperience {
 export interface RangerCompanion {
   name: string;
   animal_type: string;
+  image_url?: string; // Companion portrait
   evasion: number;
   stress_max: number;
   stress_current: number;
