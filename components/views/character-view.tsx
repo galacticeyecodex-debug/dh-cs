@@ -25,6 +25,7 @@ import ManageCharacterModal from '../manage-character-modal';
 import AdvancementHistory from '../advancement-history';
 import SubclassFeatureCard from '../subclass-feature-card';
 import CompanionSheet from '../companion-sheet';
+import PrayerDiceCard from '../prayer-dice-card';
 import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap, Info, Sparkles, PawPrint } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/storage-service';
@@ -33,7 +34,7 @@ import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 export default function CharacterView() {
-  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion } = useCharacterStore();
+  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice } = useCharacterStore();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
   const [isLevelUpLoading, setIsLevelUpLoading] = useState(false);
@@ -730,6 +731,18 @@ export default function CharacterView() {
                     )}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Seraph Prayer Dice Section */}
+            {character.class_id?.toLowerCase() === 'seraph' && (
+              <div className="space-y-2">
+                <PrayerDiceCard
+                  prayerDice={character.seraph_prayer_dice}
+                  spellcastValue={character.stats[character.spellcast_trait?.toLowerCase() as keyof typeof character.stats] || 0}
+                  hasDevout={character.subclass_data?.name?.toLowerCase() === 'divine wielder' && character.subclass_progression?.specialization_obtained === true}
+                  onUpdatePrayerDice={updatePrayerDice}
+                />
               </div>
             )}
 
