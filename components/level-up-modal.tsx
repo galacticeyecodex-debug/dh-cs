@@ -187,8 +187,9 @@ export default function LevelUpModal({
     if (alreadyOwned) return false;
 
     // 3. Max Level Rule - Use helper function to apply half-level rule for multiclass domains
-    // Get primary domains from the character's primary class
-    const primaryDomains = character.class_id ? getClassDomains(character.class_id) : character.domains || [];
+    // Get primary domains from the character's actual domains (not hardcoded class domains)
+    // This handles characters with non-standard domain choices correctly
+    const primaryDomains = character.domains || (character.class_id ? getClassDomains(character.class_id) : []);
 
     // Determine multiclass domain to apply half-level rule (SRD: multiclass cards limited to half character level)
     // This handles two scenarios:
@@ -199,10 +200,11 @@ export default function LevelUpModal({
       // Scenario A: Currently selecting multiclass advancement
       multiclassDomain = selectedMulticlassDomain;
     } else if (character.multiclass_id) {
-      // Scenario B: Character already has a multiclass - find which domain doesn't match primary class domains
-      // (character.domains contains BOTH primary and multiclass domains, we need to identify the multiclass one)
+      // Scenario B: Character already has a multiclass - find the domain from the multiclass class
+      // Use the multiclass class's domains to identify which domain came from multiclassing
+      const multiclassClassDomains = getClassDomains(character.multiclass_id);
       const existingMulticlassDomain = character.domains?.find(
-        d => !primaryDomains.map(p => p.toLowerCase()).includes(d.toLowerCase())
+        d => multiclassClassDomains.map(m => m.toLowerCase()).includes(d.toLowerCase())
       );
       multiclassDomain = existingMulticlassDomain;
     }
