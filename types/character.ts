@@ -159,6 +159,9 @@ export interface Character {
   character_inventory?: CharacterInventoryItem[];
   class_data?: LibraryItem; // Joined class data
   subclass_data?: LibraryItem; // Joined subclass data
+
+  // Beastbond Ranger Companion
+  ranger_companion?: RangerCompanion;
 }
 
 export interface AdvancementRecord {
@@ -168,6 +171,40 @@ export interface AdvancementRecord {
   hpAdded?: number;
   stressAdded?: number;
   domainCardsSelected?: string[];
+}
+
+// Ranger Companion Types
+export interface CompanionExperience {
+  name: string;
+  value: number;
+}
+
+export interface RangerCompanion {
+  name: string;
+  animal_type: string;
+  evasion: number;
+  stress_max: number;
+  stress_current: number;
+  armor_slot: boolean;
+  armor_slot_used: boolean;
+  hope_max: number;
+  hope_current: number;
+  attack_type: 'melee' | 'ranged';
+  damage_die: string; // e.g., "d6", "d8", "d10", "d12"
+  attack_range?: 'melee' | 'very_close' | 'close' | 'far';
+  experiences: CompanionExperience[];
+  level_up_options: {
+    intelligent: number; // Can be taken multiple times
+    light_in_the_dark: number; // Can be taken multiple times
+    creature_comfort: boolean;
+    creature_comfort_used?: boolean; // Reset on rest
+    armored: boolean;
+    armored_used?: boolean; // Reset on short rest
+    vicious: number; // Can be taken multiple times
+    resilient: number; // Can be taken multiple times
+    bonded: boolean;
+    aware: boolean;
+  };
 }
 
 export interface RollResult {
