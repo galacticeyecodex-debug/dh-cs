@@ -599,22 +599,31 @@ export default function CharacterView() {
                     )}
 
                     {/* Core Class Features */}
-                    {character.class_data.data.class_features?.map((feature: any, idx: number) => (
-                      <div key={idx} className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-                        <h4 className="font-serif font-bold text-white mb-1">{feature.name}</h4>
-                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{feature.text}</p>
-                      </div>
-                    ))}
+                    {character.class_data.data.class_features?.map((feature: any, idx: number) => {
+                      // Special handling for Prayer Dice - render interactive component
+                      if (feature.name === 'Prayer Dice') {
+                        const traitName = (character.spellcast_trait || character.subclass_data?.data?.spellcast_trait || '').toLowerCase();
+                        const spellcastValue = character.stats[traitName as keyof typeof character.stats] || 0;
 
-                    {/* Prayer Dice Interactive Feature (Seraph Class Only) */}
-                    {character.class_id?.toLowerCase() === 'seraph' && (
-                      <PrayerDiceCard
-                        prayerDice={character.seraph_prayer_dice}
-                        spellcastValue={character.stats[character.spellcast_trait?.toLowerCase() as keyof typeof character.stats] || 0}
-                        hasDevout={character.subclass_data?.name?.toLowerCase() === 'divine wielder' && character.subclass_progression?.specialization_obtained === true}
-                        onUpdatePrayerDice={updatePrayerDice}
-                      />
-                    )}
+                        return (
+                          <PrayerDiceCard
+                            key={idx}
+                            prayerDice={character.seraph_prayer_dice}
+                            spellcastValue={spellcastValue}
+                            hasDevout={character.subclass_data?.name?.toLowerCase() === 'divine wielder' && character.subclass_progression?.specialization_obtained === true}
+                            onUpdatePrayerDice={updatePrayerDice}
+                          />
+                        );
+                      }
+
+                      // Standard class feature display
+                      return (
+                        <div key={idx} className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                          <h4 className="font-serif font-bold text-white mb-1">{feature.name}</h4>
+                          <p className="text-sm text-gray-300 whitespace-pre-wrap">{feature.text}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
