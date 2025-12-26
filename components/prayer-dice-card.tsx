@@ -6,17 +6,18 @@
  * A card interface for managing Seraph Prayer Dice.
  *
  * FUNCTIONALITY:
- * - Roll d4s equal to Spellcast trait (Strength for Seraph)
+ * - Roll d4s equal to Spellcast trait (Strength for Seraph) using 3D dice roller
  * - Display each die result in a row with use/restore toggle
  * - Track which dice have been used
  * - Special handling for Divine Wielder "Devout" feature (roll +1, discard lowest)
  * - Clear all dice at session end
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Dices, Info, RotateCcw, CheckCircle2, Circle } from 'lucide-react';
 import clsx from 'clsx';
 import { SeraphPrayerDice, PrayerDie } from '@/types/character';
+import { useCharacterStore } from '@/store/character-store';
 import { toast } from 'sonner';
 
 interface PrayerDiceCardProps {
@@ -33,48 +34,72 @@ export default function PrayerDiceCard({
   onUpdatePrayerDice,
 }: PrayerDiceCardProps) {
   const [showInfo, setShowInfo] = useState(false);
+  const { prepareRoll, lastRollResult } = useCharacterStore();
+  const isAwaitingRollRef = useRef(false);
+  const expectedDiceCountRef = useRef(0);
 
-  // Roll prayer dice
+  // Roll prayer dice using 3D dice roller
   const handleRoll = () => {
     const diceCount = spellcastValue;
     const rollCount = hasDevout ? diceCount + 1 : diceCount; // Devout: roll +1 die
 
-    const rolls: number[] = [];
-    for (let i = 0; i < rollCount; i++) {
-      rolls.push(Math.floor(Math.random() * 4) + 1); // d4: 1-4
+    if (rollCount === 0) {
+      toast.error('No dice to roll (Spellcast trait is 0)');
+      return;
     }
 
-    let finalRolls = rolls;
-    let discardedValue: number | null = null;
+    // Mark that we're waiting for dice results
+    isAwaitingRollRef.current = true;
+    expectedDiceCountRef.current = rollCount;
 
-    // If Devout, discard the lowest
-    if (hasDevout && rollCount > diceCount) {
-      const minValue = Math.min(...rolls);
-      const minIndex = rolls.indexOf(minValue);
-      discardedValue = minValue;
-      finalRolls = rolls.filter((_, idx) => idx !== minIndex);
-    }
-
-    // Create dice objects
-    const dice: PrayerDie[] = finalRolls.map((value, idx) => ({
-      id: `${Date.now()}-${idx}`,
-      value,
-      used: false,
-    }));
-
-    const newPrayerDice: SeraphPrayerDice = {
-      dice,
-      lastRolled: new Date().toISOString(),
-    };
-
-    onUpdatePrayerDice(newPrayerDice);
-
-    if (hasDevout && discardedValue !== null) {
-      toast.success(`Rolled ${rollCount}d4, discarded lowest (${discardedValue})`);
-    } else {
-      toast.success(`Rolled ${diceCount} prayer dice`);
-    }
+    // Open 3D dice roller with the appropriate number of d4s
+    const diceNotation = `${rollCount}d4`;
+    prepareRoll('Prayer Dice', 0, diceNotation);
   };
+
+  // Listen for dice roll results
+  useEffect(() => {
+    if (!isAwaitingRollRef.current || !lastRollResult) return;
+
+    // Check if this is our Prayer Dice roll (d4s)
+    const isDiceRoll = lastRollResult.dice && lastRollResult.dice.length > 0;
+    const isD4Roll = lastRollResult.dice?.every(d => d.sides === 4);
+
+    if (isDiceRoll && isD4Roll && lastRollResult.dice.length === expectedDiceCountRef.current) {
+      isAwaitingRollRef.current = false;
+
+      let finalRolls = lastRollResult.dice.map(d => d.value);
+      let discardedValue: number | null = null;
+
+      // If Devout, discard the lowest
+      if (hasDevout && finalRolls.length > spellcastValue) {
+        const minValue = Math.min(...finalRolls);
+        const minIndex = finalRolls.indexOf(minValue);
+        discardedValue = minValue;
+        finalRolls = finalRolls.filter((_, idx) => idx !== minIndex);
+      }
+
+      // Create dice objects
+      const dice: PrayerDie[] = finalRolls.map((value, idx) => ({
+        id: `${Date.now()}-${idx}`,
+        value,
+        used: false,
+      }));
+
+      const newPrayerDice: SeraphPrayerDice = {
+        dice,
+        lastRolled: new Date().toISOString(),
+      };
+
+      onUpdatePrayerDice(newPrayerDice);
+
+      if (hasDevout && discardedValue !== null) {
+        toast.success(`Rolled ${expectedDiceCountRef.current}d4, discarded lowest (${discardedValue})`);
+      } else {
+        toast.success(`Rolled ${spellcastValue} prayer dice`);
+      }
+    }
+  }, [lastRollResult, hasDevout, spellcastValue, onUpdatePrayerDice]);
 
   // Toggle die used state
   const toggleDieUsed = (dieId: string) => {
