@@ -31,26 +31,40 @@ import DevErrorTriggers from '@/components/dev-error-triggers';
 
 export default function DaggerheartApp({ clientUser }: { clientUser: AppUser | null }) {
   const router = useRouter();
-  const { activeTab, setCharacter, setUser, fetchUser, fetchCharacter, isLoading, character, user } = useCharacterStore();
+  const { activeTab, setCharacter, setUser, fetchUser, isLoading, character, user, selectedCharacterId } = useCharacterStore();
   const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
     // Only run this effect once on mount
     if (!initialLoad) return;
 
-    // If we have a clientUser from the server, set it immediately
-    if (clientUser) {
-      setUser(clientUser);
-      // Then trigger the full fetchUser flow which checks/creates the profile and fetches the character
-      fetchUser().then(() => {
+    const initApp = async () => {
+      // If we have a clientUser from the server, set it immediately
+      if (clientUser) {
+        setUser(clientUser);
+
+        // Check if we already have a character loaded (from character selection page)
+        const currentCharacter = useCharacterStore.getState().character;
+        const selectedId = useCharacterStore.getState().selectedCharacterId;
+
+        if (currentCharacter && selectedId && currentCharacter.id === selectedId) {
+          // Character was already loaded by the selection page - don't re-fetch
+          setInitialLoad(false);
+        } else {
+          // No character loaded yet, or need to load a different one
+          // fetchUser will respect selectedCharacterId if set
+          await fetchUser();
+          setInitialLoad(false);
+        }
+      } else {
+        // If no user, just clear state
+        setUser(null);
+        setCharacter(null);
         setInitialLoad(false);
-      });
-    } else {
-      // If no user, just clear state
-      setUser(null);
-      setCharacter(null);
-      setInitialLoad(false);
-    }
+      }
+    };
+
+    initApp();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount
 
