@@ -39,11 +39,15 @@ You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](ht
 
 | Class | Subclass | Feature | Status | Description |
 |-------|----------|---------|--------|-------------|
-| Ranger | Beastbond | Companion Card | ✅ Done | Interactive companion sheet with image upload, training options, and companion level-up |
-| Seraph | All | Prayer Dice | ❌ Todo | d4 roller with prayer dice result tracker for Seraph's core mechanic |
-| Wizard | All | Grimoire Manager | ❌ Todo | Enhanced grimoire card interface for managing spell books |
-| Bard | All | Grimoire Manager | ❌ Todo | Enhanced grimoire card interface (Bards also use grimoires) |
-| Sorcerer | All | Chaos Tokens | ❌ Todo | Visual token tracker for abilities like Unleash Chaos |
+| Ranger | Beastbound | Companion Card | ✅ Done | Interactive companion sheet with image upload, training options, and companion level-up |
+| Bard | All | Rally Die | ❌ Todo | d6 die tracker (upgrades to d8 at level 5) to give to party members |
+| Druid | All | Beastform | ❌ Todo | Creature form selector with stats from Beastform creature list (Tiers 1-4) |
+| Druid | Warden of the Elements | Elemental Incarnation | ❌ Todo | Element selection (Fire, Earth, Water, Air) for channeling |
+| Guardian | All | Unstoppable Die | ❌ Todo | d4 escalating die tracker (upgrades to d6 at level 5) for damage bonus |
+| Seraph | All | Prayer Dice | ❌ Todo | d4 roller with prayer dice result tracker (dice equal to Spellcast trait) |
+| Sorcerer | Elemental Origin | Element Selection | ❌ Todo | Choose element (air, earth, fire, lightning, water) at character creation |
+| Warrior | Call of the Slayer | Slayer Dice | ❌ Todo | d6 dice pool tracker (up to Proficiency dice) for Slayer abilities |
+| Wizard | All | Strange Patterns | ❌ Todo | Number selector (1-12) for Strange Patterns class feature |
 
 ### Interactive Domain Cards with Tokens
 
@@ -71,37 +75,11 @@ Many domain cards require token tracking. These need dedicated interactive UI:
 | Splendor | Zone of Protection | 6 | Escalating d6 | Protection die that increments |
 | Splendor | Restoration | 6 | Spellcast tokens | Healing resource tokens |
 
-### Daggerheart-Specific Mechanics
+### Other Features
 
 | Feature | Status | Description |
 |---------|--------|-------------|
 | Hybrid Ancestries | ❌ Todo | Allow mixing two ancestries, selecting one feat from each |
-| GM Fear Pool | ❌ Todo | Track GM's Fear pool for gameplay (if adding GM tools) |
-| Countdown Tracker | ❌ Todo | Generic countdown component for abilities that use countdowns |
-| Condition Tracker | ❌ Todo | Track conditions like Vulnerable, Restrained, Stunned, etc. |
-| Token Card Overlay | ❌ Todo | Interactive overlay for cards that track tokens |
-| Dice Accumulator | ❌ Todo | For cards like Sigil of Retribution that accumulate dice |
-| Experience Tracker | ❌ Todo | Enhanced XP tracking with milestone suggestions |
-
-### Grimoire Cards (Special Spell Books)
-
-Grimoires contain multiple spells on a single card. Enhanced UI needed:
-
-| Domain | Grimoire | Level |
-|--------|----------|-------|
-| Codex | Book of Ava | 1 |
-| Codex | Book of Illiat | 1 |
-| Codex | Book of Tyfar | 1 |
-| Codex | Book of Sitil | 2 |
-| Codex | Book of Vagras | 2 |
-| Codex | Book of Korvax | 3 |
-| Codex | Book of Norai | 3 |
-| Codex | Book of Exota | 4 |
-| Codex | Book of Grynn | 4 |
-| Codex | Book of Homet | 7 |
-| Codex | Book of Vyola | 8 |
-| Codex | Book of Ronin | 9 |
-| Codex | Book of Yarrow | 10 |
 
 ## Tech Stack
 
