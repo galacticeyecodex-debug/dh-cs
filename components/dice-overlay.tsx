@@ -320,7 +320,7 @@ export default function DiceOverlay() {
           id="dice-tray-overlay"
           ref={containerRef}
           className="absolute inset-0 w-screen h-screen z-45"
-          style={{ pointerEvents: hasRolled ? 'none' : 'auto' }}
+          style={{ pointerEvents: isDiceOverlayOpen && !hasRolled ? 'auto' : 'none' }}
         />
       </div>
 
