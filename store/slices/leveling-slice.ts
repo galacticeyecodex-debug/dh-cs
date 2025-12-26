@@ -28,6 +28,7 @@ export interface LevelingSlice {
     experienceIncrements?: { experienceId: string; amount: number }[];
     hpSlotsAdded?: number;
     stressSlotsAdded?: number;
+    companionTraining?: string;
   }) => Promise<void>;
   updateCharacterDetails: (updates: {
     name?: string;
@@ -342,6 +343,46 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
         }
       } catch (err) {
         console.error('Failed to add multiclass foundation card:', err);
+      }
+    }
+
+    // Apply companion training if selected (Beastbound Ranger)
+    if (options.companionTraining && state.character.ranger_companion) {
+      const companion = { ...state.character.ranger_companion };
+      const levelUpOptions = { ...companion.level_up_options };
+      const trainingKey = options.companionTraining as keyof typeof levelUpOptions;
+
+      // Apply the training option
+      if (typeof levelUpOptions[trainingKey] === 'number') {
+        (levelUpOptions[trainingKey] as number) += 1;
+
+        // Apply stat changes based on training
+        if (trainingKey === 'light_in_the_dark') {
+          companion.hope_max = (companion.hope_max || 1) + 1;
+        } else if (trainingKey === 'resilient') {
+          companion.stress_max = (companion.stress_max || 3) + 1;
+        }
+      } else if (typeof levelUpOptions[trainingKey] === 'boolean') {
+        (levelUpOptions[trainingKey] as boolean) = true;
+
+        // Apply stat changes based on training
+        if (trainingKey === 'armored') {
+          companion.armor_slot = true;
+        } else if (trainingKey === 'aware') {
+          companion.evasion = (companion.evasion || 10) + 2;
+        }
+      }
+
+      companion.level_up_options = levelUpOptions;
+
+      // Update the companion in the database and local state
+      try {
+        await dataService.character.update(characterId, { ranger_companion: companion });
+        set((s: any) => ({
+          character: s.character ? { ...s.character, ranger_companion: companion } : null,
+        }));
+      } catch (err) {
+        console.error('Failed to update companion training:', err);
       }
     }
 

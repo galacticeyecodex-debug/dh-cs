@@ -760,154 +760,250 @@ export default function CharacterView() {
                 </div>
 
                 {showCompanion && (
-                  <div className="bg-dagger-panel border border-emerald-500/30 rounded-xl p-4 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-
+                  <div className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden">
                     {character.ranger_companion ? (
-                      <div className="space-y-4">
-                        {/* Companion Header */}
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-serif font-bold text-white text-lg flex items-center gap-2">
-                              <PawPrint size={18} className="text-emerald-400" />
+                      <div>
+                        {/* Companion Header with Portrait */}
+                        <div className="flex items-center gap-4 p-4 border-b border-white/10">
+                          {/* Companion Portrait */}
+                          <div
+                            onClick={() => setIsCompanionSheetOpen(true)}
+                            className="w-16 h-16 bg-gray-800 rounded-xl border-2 border-dagger-gold/50 flex-shrink-0 relative group cursor-pointer overflow-hidden"
+                          >
+                            {character.ranger_companion.image_url ? (
+                              <Image
+                                src={character.ranger_companion.image_url}
+                                alt={character.ranger_companion.name}
+                                width={64}
+                                height={64}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-dagger-gold/20 to-dagger-gold/5">
+                                <PawPrint size={24} className="text-dagger-gold/60" />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Camera className="text-white" size={16} />
+                            </div>
+                          </div>
+
+                          {/* Name & Type */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-serif font-bold text-white text-lg truncate">
                               {character.ranger_companion.name}
                             </h4>
                             <p className="text-sm text-gray-400 capitalize">{character.ranger_companion.animal_type}</p>
                           </div>
-                          <div className="text-right">
-                            <div className="text-xs text-gray-500 uppercase">Evasion</div>
-                            <div className="text-2xl font-bold text-white">{character.ranger_companion.evasion}</div>
+
+                          {/* Evasion Badge */}
+                          <div className="bg-dagger-panel border border-cyan-500/30 rounded-lg px-3 py-2 text-center">
+                            <div className="text-[10px] font-bold uppercase tracking-wide text-cyan-400 flex items-center gap-1">
+                              <Eye size={10} /> Evasion
+                            </div>
+                            <div className="text-xl font-serif font-bold text-white">{character.ranger_companion.evasion}</div>
                           </div>
                         </div>
 
-                        {/* Companion Vitals */}
-                        <div className="grid grid-cols-2 gap-3">
+                        {/* Vitals Row */}
+                        <div className="grid grid-cols-2 gap-px bg-white/5">
                           {/* Stress */}
-                          <div className="bg-black/20 rounded-lg p-3">
-                            <div className="text-xs text-gray-500 uppercase mb-2">Stress</div>
-                            <div className="flex gap-1">
-                              {Array.from({ length: character.ranger_companion.stress_max }).map((_, i) => (
-                                <div
-                                  key={i}
-                                  className={clsx(
-                                    "w-6 h-6 rounded border-2",
-                                    i < character.ranger_companion!.stress_current
-                                      ? "bg-red-500 border-red-400"
-                                      : "bg-transparent border-gray-600"
-                                  )}
-                                />
-                              ))}
+                          <div className="bg-dagger-panel p-3">
+                            <div className="text-[10px] font-bold uppercase tracking-wide text-purple-400 flex items-center gap-1 mb-2">
+                              <Zap size={10} /> Stress
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {Array.from({ length: character.ranger_companion.stress_max }).map((_, i) => {
+                                const isFilled = i < character.ranger_companion!.stress_current;
+                                const isMax = character.ranger_companion!.stress_current >= character.ranger_companion!.stress_max;
+                                return (
+                                  <button
+                                    key={i}
+                                    onClick={() => {
+                                      const newStress = isFilled ? i : i + 1;
+                                      updateCompanion({ ...character.ranger_companion!, stress_current: newStress });
+                                    }}
+                                    className="transition-all"
+                                  >
+                                    <Zap
+                                      size={16}
+                                      className={clsx(
+                                        "transition-all",
+                                        isFilled
+                                          ? isMax ? "text-red-500 scale-100" : "text-purple-400 scale-100"
+                                          : "text-white/10 scale-90"
+                                      )}
+                                      fill={isFilled ? "currentColor" : "none"}
+                                    />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <div className="flex gap-1 mt-2">
+                              <button
+                                onClick={() => updateCompanion({ ...character.ranger_companion!, stress_current: Math.max(0, character.ranger_companion!.stress_current - 1) })}
+                                className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded text-[10px] font-bold uppercase"
+                              >
+                                Clear
+                              </button>
+                              <button
+                                onClick={() => updateCompanion({ ...character.ranger_companion!, stress_current: Math.min(character.ranger_companion!.stress_max, character.ranger_companion!.stress_current + 1) })}
+                                className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded text-[10px] font-bold uppercase"
+                              >
+                                Mark
+                              </button>
                             </div>
                           </div>
 
                           {/* Hope */}
-                          <div className="bg-black/20 rounded-lg p-3">
-                            <div className="text-xs text-gray-500 uppercase mb-2">Hope</div>
-                            <div className="flex gap-1">
-                              {Array.from({ length: character.ranger_companion.hope_max }).map((_, i) => (
-                                <div
-                                  key={i}
-                                  className={clsx(
-                                    "w-6 h-6 rounded border-2",
-                                    i < character.ranger_companion!.hope_current
-                                      ? "bg-dagger-gold border-dagger-gold"
-                                      : "bg-transparent border-gray-600"
-                                  )}
-                                />
-                              ))}
+                          <div className="bg-dagger-panel p-3">
+                            <div className="text-[10px] font-bold uppercase tracking-wide text-dagger-gold flex items-center gap-1 mb-2">
+                              <Zap size={10} /> Hope
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {Array.from({ length: character.ranger_companion.hope_max }).map((_, i) => {
+                                const isFilled = i < character.ranger_companion!.hope_current;
+                                return (
+                                  <button
+                                    key={i}
+                                    onClick={() => {
+                                      const newHope = isFilled ? i : i + 1;
+                                      updateCompanion({ ...character.ranger_companion!, hope_current: newHope });
+                                    }}
+                                    className="transition-all"
+                                  >
+                                    <Zap
+                                      size={16}
+                                      className={clsx(
+                                        "transition-all",
+                                        isFilled ? "text-dagger-gold scale-100" : "text-white/10 scale-90"
+                                      )}
+                                      fill={isFilled ? "currentColor" : "none"}
+                                    />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <div className="flex gap-1 mt-2">
+                              <button
+                                onClick={() => updateCompanion({ ...character.ranger_companion!, hope_current: Math.max(0, character.ranger_companion!.hope_current - 1) })}
+                                className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded text-[10px] font-bold uppercase"
+                              >
+                                Spend
+                              </button>
+                              <button
+                                onClick={() => updateCompanion({ ...character.ranger_companion!, hope_current: Math.min(character.ranger_companion!.hope_max, character.ranger_companion!.hope_current + 1) })}
+                                className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded text-[10px] font-bold uppercase"
+                              >
+                                Gain
+                              </button>
                             </div>
                           </div>
                         </div>
 
-                        {/* Combat Stats */}
-                        <div className="flex items-center gap-4 bg-black/20 rounded-lg p-3">
-                          <div>
-                            <div className="text-xs text-gray-500 uppercase">Attack</div>
-                            <div className="text-sm font-bold text-white capitalize">{character.ranger_companion.attack_type}</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-gray-500 uppercase">Damage</div>
-                            <div className="text-sm font-bold text-emerald-400">{character.ranger_companion.damage_die}</div>
-                          </div>
-                          {character.ranger_companion.attack_range && character.ranger_companion.attack_range !== 'melee' && (
-                            <div>
-                              <div className="text-xs text-gray-500 uppercase">Range</div>
-                              <div className="text-sm font-bold text-white capitalize">{character.ranger_companion.attack_range.replace('_', ' ')}</div>
+                        {/* Combat Stats & Armor */}
+                        <div className="p-3 border-t border-white/5">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <div className="bg-black/20 rounded-lg px-3 py-2">
+                              <div className="text-[9px] text-gray-500 uppercase">Attack</div>
+                              <div className="text-sm font-bold text-white capitalize">{character.ranger_companion.attack_type}</div>
                             </div>
-                          )}
-                          {character.ranger_companion.armor_slot && (
-                            <div>
-                              <div className="text-xs text-gray-500 uppercase">Armor</div>
-                              <div className={clsx(
-                                "w-6 h-6 rounded border-2",
-                                character.ranger_companion.armor_slot_used
-                                  ? "bg-blue-500 border-blue-400"
-                                  : "bg-transparent border-gray-600"
-                              )} />
+                            <div className="bg-black/20 rounded-lg px-3 py-2">
+                              <div className="text-[9px] text-gray-500 uppercase">Damage</div>
+                              <div className="text-sm font-bold text-dagger-gold">{character.ranger_companion.damage_die}</div>
                             </div>
-                          )}
+                            {character.ranger_companion.attack_range && character.ranger_companion.attack_range !== 'melee' && (
+                              <div className="bg-black/20 rounded-lg px-3 py-2">
+                                <div className="text-[9px] text-gray-500 uppercase">Range</div>
+                                <div className="text-sm font-bold text-white capitalize">{character.ranger_companion.attack_range.replace('_', ' ')}</div>
+                              </div>
+                            )}
+                            {character.ranger_companion.armor_slot && (
+                              <div className="bg-black/20 rounded-lg px-3 py-2">
+                                <div className="text-[9px] text-gray-500 uppercase mb-1">Armor</div>
+                                <button
+                                  onClick={() => updateCompanion({ ...character.ranger_companion!, armor_slot_used: !character.ranger_companion!.armor_slot_used })}
+                                  className="block"
+                                >
+                                  <Zap
+                                    size={16}
+                                    className={clsx(
+                                      "transition-all",
+                                      character.ranger_companion.armor_slot_used ? "text-blue-400" : "text-white/10"
+                                    )}
+                                    fill={character.ranger_companion.armor_slot_used ? "currentColor" : "none"}
+                                  />
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {/* Companion Experiences */}
                         {character.ranger_companion.experiences && character.ranger_companion.experiences.length > 0 && (
-                          <div>
-                            <div className="text-xs text-gray-500 uppercase mb-2">Experiences</div>
+                          <div className="p-3 border-t border-white/5">
+                            <div className="text-[10px] font-bold uppercase tracking-wide text-gray-500 mb-2">Experiences</div>
                             <div className="space-y-1">
                               {character.ranger_companion.experiences.map((exp, i) => (
-                                <div key={i} className="flex justify-between items-center bg-black/20 rounded px-3 py-2">
-                                  <span className="text-sm text-gray-300">{exp.name}</span>
-                                  <span className="font-bold text-white">+{exp.value}</span>
+                                <div key={i} className="flex justify-between items-center bg-white/5 rounded-lg px-3 py-2">
+                                  <span className="text-sm text-gray-300 capitalize">{exp.name}</span>
+                                  <span className="font-bold text-dagger-gold min-w-[3rem] text-right">
+                                    {exp.value >= 0 ? `+${exp.value}` : exp.value}
+                                    {character.ranger_companion!.level_up_options.intelligent > 0 && (
+                                      <span className="text-xs text-gray-500"> (+{character.ranger_companion!.level_up_options.intelligent})</span>
+                                    )}
+                                  </span>
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
 
-                        {/* Level-Up Options Obtained */}
+                        {/* Training Badges */}
                         {Object.entries(character.ranger_companion.level_up_options).some(([key, val]) =>
                           (typeof val === 'boolean' && val && !key.includes('used')) ||
                           (typeof val === 'number' && val > 0)
                         ) && (
-                          <div>
-                            <div className="text-xs text-gray-500 uppercase mb-2">Training</div>
-                            <div className="flex flex-wrap gap-1">
+                          <div className="p-3 border-t border-white/5">
+                            <div className="text-[10px] font-bold uppercase tracking-wide text-gray-500 mb-2">Training</div>
+                            <div className="flex flex-wrap gap-1.5">
                               {character.ranger_companion.level_up_options.intelligent > 0 && (
-                                <span className="text-xs bg-emerald-900/30 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded">
+                                <span className="text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-1 rounded-full font-medium">
                                   Intelligent {character.ranger_companion.level_up_options.intelligent > 1 ? `×${character.ranger_companion.level_up_options.intelligent}` : ''}
                                 </span>
                               )}
                               {character.ranger_companion.level_up_options.light_in_the_dark > 0 && (
-                                <span className="text-xs bg-dagger-gold/20 text-dagger-gold border border-dagger-gold/30 px-2 py-1 rounded">
+                                <span className="text-xs bg-dagger-gold/10 text-dagger-gold border border-dagger-gold/20 px-2 py-1 rounded-full font-medium">
                                   Light in the Dark {character.ranger_companion.level_up_options.light_in_the_dark > 1 ? `×${character.ranger_companion.level_up_options.light_in_the_dark}` : ''}
                                 </span>
                               )}
                               {character.ranger_companion.level_up_options.creature_comfort && (
-                                <span className="text-xs bg-pink-900/30 text-pink-400 border border-pink-500/30 px-2 py-1 rounded">
+                                <span className="text-xs bg-pink-500/10 text-pink-400 border border-pink-500/20 px-2 py-1 rounded-full font-medium">
                                   Creature Comfort
                                 </span>
                               )}
                               {character.ranger_companion.level_up_options.armored && (
-                                <span className="text-xs bg-blue-900/30 text-blue-400 border border-blue-500/30 px-2 py-1 rounded">
+                                <span className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-1 rounded-full font-medium">
                                   Armored
                                 </span>
                               )}
                               {character.ranger_companion.level_up_options.vicious > 0 && (
-                                <span className="text-xs bg-red-900/30 text-red-400 border border-red-500/30 px-2 py-1 rounded">
+                                <span className="text-xs bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-1 rounded-full font-medium">
                                   Vicious {character.ranger_companion.level_up_options.vicious > 1 ? `×${character.ranger_companion.level_up_options.vicious}` : ''}
                                 </span>
                               )}
                               {character.ranger_companion.level_up_options.resilient > 0 && (
-                                <span className="text-xs bg-orange-900/30 text-orange-400 border border-orange-500/30 px-2 py-1 rounded">
+                                <span className="text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-1 rounded-full font-medium">
                                   Resilient {character.ranger_companion.level_up_options.resilient > 1 ? `×${character.ranger_companion.level_up_options.resilient}` : ''}
                                 </span>
                               )}
                               {character.ranger_companion.level_up_options.bonded && (
-                                <span className="text-xs bg-purple-900/30 text-purple-400 border border-purple-500/30 px-2 py-1 rounded">
+                                <span className="text-xs bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2 py-1 rounded-full font-medium">
                                   Bonded
                                 </span>
                               )}
                               {character.ranger_companion.level_up_options.aware && (
-                                <span className="text-xs bg-cyan-900/30 text-cyan-400 border border-cyan-500/30 px-2 py-1 rounded">
+                                <span className="text-xs bg-teal-500/10 text-teal-400 border border-teal-500/20 px-2 py-1 rounded-full font-medium">
                                   Aware
                                 </span>
                               )}
@@ -918,11 +1014,13 @@ export default function CharacterView() {
                     ) : (
                       <div
                         onClick={() => setIsCompanionSheetOpen(true)}
-                        className="text-center py-6 cursor-pointer hover:bg-white/5 rounded-lg transition-colors"
+                        className="text-center py-8 cursor-pointer hover:bg-white/5 transition-colors"
                       >
-                        <PawPrint size={32} className="mx-auto text-gray-600 mb-2" />
+                        <div className="w-16 h-16 mx-auto mb-3 rounded-xl bg-dagger-gold/10 border-2 border-dashed border-dagger-gold/30 flex items-center justify-center">
+                          <PawPrint size={28} className="text-dagger-gold/50" />
+                        </div>
                         <p className="text-gray-400 text-sm">No companion configured yet.</p>
-                        <p className="text-emerald-400 text-sm font-medium mt-1">Tap to set up your companion</p>
+                        <p className="text-dagger-gold text-sm font-medium mt-1">Tap to set up your companion</p>
                       </div>
                     )}
                   </div>
@@ -1168,6 +1266,8 @@ export default function CharacterView() {
         onClose={() => setIsCompanionSheetOpen(false)}
         companion={character.ranger_companion}
         onUpdateCompanion={updateCompanion}
+        characterId={character.id}
+        userId={user?.id}
       />
       </div>
     </ErrorBoundary>
