@@ -829,18 +829,8 @@ export default function LevelUpModal({
               {step === 4 && (
                 <div>
                   <h3 className="text-xl font-bold text-white mb-4">Damage Thresholds</h3>
-                  <p className="text-gray-300 mb-4">All your damage thresholds increase by +1:</p>
+                  <p className="text-gray-300 mb-4">Your damage thresholds increase by +1:</p>
                   <div className="space-y-3">
-                    <div className="p-4 bg-black/30 rounded-lg border border-dagger-gold/20">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-300">Minor Threshold</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-400">{character.damage_thresholds.minor}</span>
-                          <span className="text-dagger-gold">→</span>
-                          <span className="text-dagger-gold font-bold">{newThresholds.minor}</span>
-                        </div>
-                      </div>
-                    </div>
                     <div className="p-4 bg-black/30 rounded-lg border border-dagger-gold/20">
                       <div className="flex items-center justify-between">
                         <span className="text-gray-300">Major Threshold</span>
@@ -862,6 +852,9 @@ export default function LevelUpModal({
                       </div>
                     </div>
                   </div>
+                  <p className="text-xs text-gray-500 mt-4">
+                    Damage below Major marks 1 HP. Damage at or above Major marks 2 HP. Damage at or above Severe marks 3 HP.
+                  </p>
                 </div>
               )}
 
