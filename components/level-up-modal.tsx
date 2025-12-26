@@ -46,8 +46,9 @@
  */
 
 import React, { useState } from 'react';
-import { X, Zap, Check, Search } from 'lucide-react';
+import { X, Zap, Check, Search, PawPrint, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { RangerCompanion } from '@/types/character';
 import { calculateTierAchievements, calculateNewDamageThresholds, getTier, getMaxCardLevelForDomain, getClassDomains } from '@/lib/level-up-helpers';
 import { validateNewLevel, validateAdvancementSelections } from '@/lib/level-up-validation';
 import { getCardLevel, getCardDescription, getCardType, isCardInDomain, isCardAvailableAtLevel } from '@/lib/card-helpers';
@@ -79,6 +80,7 @@ interface LevelUpModalProps {
     experienceIncrements?: { experienceId: string; amount: number }[];
     hpSlotsAdded?: number;
     stressSlotsAdded?: number;
+    companionTraining?: string; // Training option key for Beastbound Ranger companion
   }) => Promise<void>;
   isLoading?: boolean;
 }
@@ -109,6 +111,18 @@ const TIER_LIMITS: Record<string, number> = {
   // level_domain_card: 3, // Allow taking domain cards once per level in a tier
 };
 
+// Companion Training Options for Beastbound Rangers
+const COMPANION_TRAINING_OPTIONS = [
+  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience rolls', multi: true, color: 'cyan' },
+  { key: 'light_in_the_dark', name: 'Light in the Dark', description: 'Additional Hope slot', multi: true, color: 'yellow' },
+  { key: 'creature_comfort', name: 'Creature Comfort', description: 'Once per rest: Clear 1 Stress OR Give 1 Hope', multi: false, color: 'pink' },
+  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Stress (once per short rest)', multi: false, color: 'blue' },
+  { key: 'vicious', name: 'Vicious', description: 'Increase damage die or range to Very Close', multi: true, color: 'red' },
+  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, color: 'purple' },
+  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when you reach 0 HP', multi: false, color: 'orange' },
+  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, color: 'teal' },
+];
+
 export default function LevelUpModal({
   isOpen,
   onClose,
@@ -138,6 +152,7 @@ export default function LevelUpModal({
   const [selectedExperienceIndices, setSelectedExperienceIndices] = useState<number[]>([]);
   const [hpSlotsAdded, setHpSlotsAdded] = useState(1);
   const [stressSlotsAdded, setStressSlotsAdded] = useState(1);
+  const [selectedCompanionTraining, setSelectedCompanionTraining] = useState<string>('');
 
   const [error, setError] = useState<string>('');
 
@@ -157,6 +172,7 @@ export default function LevelUpModal({
       setSelectedExperienceIndices([]);
       setHpSlotsAdded(1);
       setStressSlotsAdded(1);
+      setSelectedCompanionTraining('');
       setError('');
     }
   }, [isOpen]);
@@ -225,6 +241,13 @@ export default function LevelUpModal({
   }, 0);
 
   const hasAdditionalDomainCard = selectedAdvancements.includes('additional_domain_card');
+
+  // Check if character is a Beastbound Ranger with a companion
+  const isBeastboundRanger =
+    character.class_id?.toLowerCase() === 'ranger' &&
+    character.subclass_data?.name?.toLowerCase() === 'beastbound' &&
+    character.subclass_progression?.foundation_obtained &&
+    character.ranger_companion;
 
   // Check for Tier-based restrictions (Subclass vs Multiclass)
   // And calculate usage counts for this tier
@@ -314,6 +337,12 @@ export default function LevelUpModal({
       return selectedAdditionalCard !== '';
     }
 
+    // Step 7: Companion Training (if Beastbound Ranger)
+    if (step === 7) {
+      // Companion training is optional - can skip or select one
+      return true;
+    }
+
     return true;
   };
 
@@ -389,11 +418,18 @@ export default function LevelUpModal({
     if (step === 2 && !needsConfiguration) {
       setStep(4); // Skip to thresholds
     } else if (step === 5 && !hasAdditionalDomainCard) {
-      // If no additional card needed, we are done (handled by button text, but conceptually next is finish)
-      // Actually UI logic handles the "Complete" button rendering.
-      // This function is called for "Next".
-      // If we are at step 5 and NO additional card, we shouldn't be here (Complete button should be shown)
-      // But for safety:
+      // Skip to companion training if Beastbound Ranger, otherwise we're done
+      if (isBeastboundRanger) {
+        setStep(7);
+      }
+      // Otherwise, Complete button should be shown, not Next
+      return;
+    } else if (step === 6) {
+      // After additional domain card, go to companion training if Beastbound Ranger
+      if (isBeastboundRanger) {
+        setStep(7);
+      }
+      // Otherwise, Complete button should be shown
       return;
     } else {
       setStep(step + 1);
@@ -405,6 +441,13 @@ export default function LevelUpModal({
     if (step > 1) {
       if (step === 4 && !needsConfiguration) {
         setStep(2);
+      } else if (step === 7) {
+        // Go back from companion training to step 6 or 5 depending on additional card
+        if (hasAdditionalDomainCard) {
+          setStep(6);
+        } else {
+          setStep(5);
+        }
       } else {
         setStep(step - 1);
       }
@@ -467,6 +510,7 @@ export default function LevelUpModal({
           experienceIncrements: selectedAdvancements.includes('increase_experience') ? experienceIncrements : [],
           hpSlotsAdded: selectedAdvancements.includes('add_hp') ? 1 : 0,
           stressSlotsAdded: selectedAdvancements.includes('add_stress') ? 1 : 0,
+          companionTraining: selectedCompanionTraining || undefined,
         });
         onClose();
       } catch (err) {
@@ -534,20 +578,33 @@ export default function LevelUpModal({
   if (!needsConfiguration) maxSteps = 4; // 1, 2, 4, 5
   // If additional domain card, add 1 step
   if (hasAdditionalDomainCard) maxSteps += 1;
+  // If Beastbound Ranger with companion, add 1 step
+  if (isBeastboundRanger) maxSteps += 1;
 
   // UI Step Mapper
-  // If config: 1, 2, 3, 4, 5, (6)
-  // If no config: 1, 2, 4->3, 5->4, (6->5)
+  // If config: 1, 2, 3, 4, 5, (6), (7)
+  // If no config: 1, 2, 4->3, 5->4, (6->5), (7->6)
   const getUiStep = (internalStep: number) => {
-    if (needsConfiguration) return internalStep;
-    if (internalStep <= 2) return internalStep;
-    return internalStep - 1;
+    let uiStep = internalStep;
+    if (!needsConfiguration && internalStep > 2) {
+      uiStep = internalStep - 1;
+    }
+    // Step 7 is companion training - map it appropriately
+    if (internalStep === 7) {
+      if (needsConfiguration) {
+        return hasAdditionalDomainCard ? 7 : 6;
+      } else {
+        return hasAdditionalDomainCard ? 6 : 5;
+      }
+    }
+    return uiStep;
   };
 
   const currentUiStep = getUiStep(step);
-  const totalUiSteps = needsConfiguration
+  let totalUiSteps = needsConfiguration
     ? (hasAdditionalDomainCard ? 6 : 5)
     : (hasAdditionalDomainCard ? 5 : 4);
+  if (isBeastboundRanger) totalUiSteps += 1;
 
   return (
     <AnimatePresence>
@@ -971,6 +1028,94 @@ export default function LevelUpModal({
                 </div>
               )}
 
+              {step === 7 && isBeastboundRanger && (
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <PawPrint size={24} className="text-dagger-gold" />
+                    <div>
+                      <h3 className="text-xl font-bold text-white">Companion Training</h3>
+                      <p className="text-gray-400 text-sm">
+                        Choose a training option for {character.ranger_companion?.name || 'your companion'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs text-gray-500 mb-3">
+                      Training options improve your companion&apos;s abilities. Some options can be taken multiple times.
+                      This is optional - you can skip and train later.
+                    </p>
+
+                    {COMPANION_TRAINING_OPTIONS.map((option) => {
+                      const currentValue = character.ranger_companion?.level_up_options[option.key as keyof typeof character.ranger_companion.level_up_options];
+                      const isAlreadyTaken = !option.multi && currentValue;
+                      const currentCount = option.multi ? (currentValue as number || 0) : 0;
+                      const isSelected = selectedCompanionTraining === option.key;
+
+                      const colorClasses: Record<string, { bg: string; text: string; border: string }> = {
+                        cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/30' },
+                        yellow: { bg: 'bg-dagger-gold/10', text: 'text-dagger-gold', border: 'border-dagger-gold/30' },
+                        pink: { bg: 'bg-pink-500/10', text: 'text-pink-400', border: 'border-pink-500/30' },
+                        blue: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/30' },
+                        red: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/30' },
+                        purple: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/30' },
+                        orange: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/30' },
+                        teal: { bg: 'bg-teal-500/10', text: 'text-teal-400', border: 'border-teal-500/30' },
+                      };
+
+                      const colors = colorClasses[option.color] || colorClasses.cyan;
+
+                      return (
+                        <button
+                          key={option.key}
+                          onClick={() => setSelectedCompanionTraining(isSelected ? '' : option.key)}
+                          disabled={!!isAlreadyTaken}
+                          className={`w-full text-left p-4 rounded-lg border transition-all ${
+                            isSelected
+                              ? `${colors.bg} ${colors.border} border-2`
+                              : isAlreadyTaken
+                                ? 'bg-black/20 border-white/5 opacity-50 cursor-not-allowed'
+                                : 'bg-black/20 border-white/10 hover:border-white/30'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className={`font-bold ${isSelected ? colors.text : 'text-white'}`}>
+                                  {option.name}
+                                </h4>
+                                {option.multi && currentCount > 0 && (
+                                  <span className={`text-xs px-2 py-0.5 rounded font-bold ${colors.bg} ${colors.text}`}>
+                                    Current: ×{currentCount}
+                                  </span>
+                                )}
+                                {isAlreadyTaken && (
+                                  <span className="text-xs text-gray-500">(Already taken)</span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-400 mt-1">{option.description}</p>
+                            </div>
+                            <div className={`w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                              isSelected ? 'bg-dagger-gold border-dagger-gold' : 'border-gray-600'
+                            }`}>
+                              {isSelected && <Check size={14} className="text-black" />}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+
+                    {selectedCompanionTraining && (
+                      <div className="mt-4 p-3 bg-dagger-gold/10 border border-dagger-gold/30 rounded-lg">
+                        <p className="text-sm text-dagger-gold">
+                          <strong>Selected:</strong> {COMPANION_TRAINING_OPTIONS.find(o => o.key === selectedCompanionTraining)?.name}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {error && (
                 <div className="mt-4 p-3 bg-red-900/20 border border-red-700 rounded-lg text-red-200 text-sm">
                   {error}
@@ -990,23 +1135,33 @@ export default function LevelUpModal({
               <span className="text-sm text-gray-400">
                 Step {currentUiStep} of {totalUiSteps}
               </span>
-              {step < (hasAdditionalDomainCard ? 6 : 5) ? (
-                <button
-                  onClick={handleNext}
-                  disabled={!canProceed() || isLoading}
-                  className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next
-                </button>
-              ) : (
-                <button
-                  onClick={handleComplete}
-                  disabled={!canProceed() || isLoading}
-                  className="px-3 py-1.5 text-sm rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                >
-                  {isLoading ? 'Leveling up...' : 'Complete Level Up'}
-                </button>
-              )}
+              {(() => {
+                // Determine the final step
+                const finalStep = isBeastboundRanger ? 7 : (hasAdditionalDomainCard ? 6 : 5);
+                const showNextButton = step < finalStep;
+
+                if (showNextButton) {
+                  return (
+                    <button
+                      onClick={handleNext}
+                      disabled={!canProceed() || isLoading}
+                      className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next
+                    </button>
+                  );
+                } else {
+                  return (
+                    <button
+                      onClick={handleComplete}
+                      disabled={!canProceed() || isLoading}
+                      className="px-3 py-1.5 text-sm rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    >
+                      {isLoading ? 'Leveling up...' : 'Complete Level Up'}
+                    </button>
+                  );
+                }
+              })()}
             </div>
           </motion.div>
           </>

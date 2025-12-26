@@ -10,24 +10,31 @@
  * - Edit Companion: Modify companion info, experiences, vitals
  * - Level-Up Options: Track and apply the 8 different training options
  * - Vitals Management: Track stress, hope, armor usage
+ * - Image Upload: Upload companion portrait from gallery
  */
 
-import React, { useState, useEffect } from 'react';
-import { X, Trash2, Check, Pencil, Plus, PawPrint, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
+import { X, Trash2, Check, Pencil, Plus, PawPrint, ChevronDown, ChevronUp, Camera, Zap, Eye } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RangerCompanion, CompanionExperience } from '@/types/character';
+import { uploadCharacterImage } from '@/lib/storage-service';
+import { toast } from 'sonner';
 
 interface CompanionSheetProps {
   isOpen: boolean;
   onClose: () => void;
   companion: RangerCompanion | undefined;
   onUpdateCompanion: (companion: RangerCompanion) => void;
+  characterId?: string;
+  userId?: string;
 }
 
 const DEFAULT_COMPANION: RangerCompanion = {
   name: '',
   animal_type: '',
+  image_url: undefined,
   evasion: 10,
   stress_max: 3,
   stress_current: 0,
@@ -57,24 +64,28 @@ const DAMAGE_DICE = ['d4', 'd6', 'd8', 'd10', 'd12'];
 const ATTACK_RANGES = ['melee', 'very_close', 'close', 'far'] as const;
 
 const LEVEL_UP_OPTIONS = [
-  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience (can take multiple times)', multi: true, color: 'emerald' },
+  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience rolls', multi: true, color: 'cyan' },
   { key: 'light_in_the_dark', name: 'Light in the Dark', description: 'Additional Hope slot', multi: true, color: 'yellow' },
   { key: 'creature_comfort', name: 'Creature Comfort', description: 'Once per rest: Clear 1 Stress OR Give 1 Hope', multi: false, color: 'pink' },
-  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Companion Stress (once per short rest)', multi: false, color: 'blue' },
-  { key: 'vicious', name: 'Vicious', description: 'Increase damage die by one step OR increase range to Very Close', multi: true, color: 'red' },
-  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, color: 'orange' },
-  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when character reaches 0 HP', multi: false, color: 'purple' },
-  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, color: 'cyan' },
+  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Stress (once per short rest)', multi: false, color: 'blue' },
+  { key: 'vicious', name: 'Vicious', description: 'Increase damage die or range to Very Close', multi: true, color: 'red' },
+  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, color: 'purple' },
+  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when you reach 0 HP', multi: false, color: 'orange' },
+  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, color: 'teal' },
 ];
 
 export default function CompanionSheet({
   isOpen,
   onClose,
   companion,
-  onUpdateCompanion
+  onUpdateCompanion,
+  characterId,
+  userId
 }: CompanionSheetProps) {
   const [localCompanion, setLocalCompanion] = useState<RangerCompanion>(companion || DEFAULT_COMPANION);
   const [activeSection, setActiveSection] = useState<'info' | 'experiences' | 'training'>('info');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Experience editing state
   const [newExpName, setNewExpName] = useState('');
@@ -87,6 +98,7 @@ export default function CompanionSheet({
   useEffect(() => {
     if (isOpen) {
       setLocalCompanion(companion || DEFAULT_COMPANION);
+      setActiveSection('info');
     }
   }, [companion, isOpen]);
 
@@ -94,6 +106,7 @@ export default function CompanionSheet({
 
   const handleSave = () => {
     if (!localCompanion.name.trim() || !localCompanion.animal_type.trim()) {
+      toast.error('Please enter a name and animal type');
       return;
     }
     onUpdateCompanion(localCompanion);
@@ -102,6 +115,28 @@ export default function CompanionSheet({
 
   const updateLocal = (updates: Partial<RangerCompanion>) => {
     setLocalCompanion(prev => ({ ...prev, ...updates }));
+  };
+
+  // Image upload handler
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !characterId || !userId) return;
+
+    setIsUploading(true);
+    try {
+      const { url, error } = await uploadCharacterImage(userId, file, characterId);
+      if (error || !url) {
+        toast.error(error || 'Failed to upload image');
+        return;
+      }
+      updateLocal({ image_url: url });
+      toast.success('Companion image uploaded');
+    } catch (err) {
+      console.error('Failed to upload image:', err);
+      toast.error('Failed to upload image');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // Experience handlers
@@ -141,20 +176,16 @@ export default function CompanionSheet({
     const newCompanion = { ...localCompanion };
 
     if (multi) {
-      // Multi-select options increment
       newOptions = { ...newOptions, [key]: (current as number) + 1 };
 
-      // Apply effects
       if (key === 'light_in_the_dark') {
         newCompanion.hope_max = (newCompanion.hope_max || 1) + 1;
       } else if (key === 'resilient') {
         newCompanion.stress_max = (newCompanion.stress_max || 3) + 1;
       }
     } else {
-      // Toggle boolean options
       newOptions = { ...newOptions, [key]: !current };
 
-      // Apply effects
       if (key === 'armored' && !current) {
         newCompanion.armor_slot = true;
       } else if (key === 'armored' && current) {
@@ -175,7 +206,6 @@ export default function CompanionSheet({
     const newOptions = { ...localCompanion.level_up_options, [key]: current - 1 };
     const newCompanion = { ...localCompanion };
 
-    // Reverse effects
     if (key === 'light_in_the_dark') {
       newCompanion.hope_max = Math.max(1, (newCompanion.hope_max || 1) - 1);
       newCompanion.hope_current = Math.min(newCompanion.hope_current, newCompanion.hope_max);
@@ -206,21 +236,59 @@ export default function CompanionSheet({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-dagger-panel border-t border-emerald-500/30 rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 z-50 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col"
           >
             {/* Handle */}
             <div className="flex justify-center p-3 cursor-pointer" onClick={onClose}>
-              <div className="w-12 h-1.5 bg-emerald-500/40 rounded-full" />
+              <div className="w-12 h-1.5 bg-white/20 rounded-full" />
             </div>
 
             {/* Header */}
-            <div className="px-6 pb-4 border-b border-white/10 text-center">
-              <div className="text-lg font-serif font-bold text-white flex items-center justify-center gap-2">
-                <PawPrint className="text-emerald-400" size={20} />
-                {isNewCompanion ? 'Create Companion' : 'Manage Companion'}
-              </div>
-              <div className="text-xs text-gray-500">
-                {isNewCompanion ? 'Set up your animal companion' : 'Edit companion details and training'}
+            <div className="px-6 pb-4 border-b border-white/10">
+              <div className="flex items-center gap-4">
+                {/* Companion Portrait */}
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-16 h-16 bg-gray-800 rounded-xl border-2 border-dagger-gold/50 flex-shrink-0 relative group cursor-pointer overflow-hidden"
+                >
+                  {localCompanion.image_url ? (
+                    <Image
+                      src={localCompanion.image_url}
+                      alt={localCompanion.name || 'Companion'}
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-dagger-gold/20 to-dagger-gold/5">
+                      <PawPrint size={24} className="text-dagger-gold/60" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    {isUploading ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Camera className="text-white" size={16} />
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                </div>
+
+                <div className="flex-1">
+                  <div className="text-lg font-serif font-bold text-white flex items-center gap-2">
+                    <PawPrint className="text-dagger-gold" size={18} />
+                    {isNewCompanion ? 'Create Companion' : localCompanion.name || 'Companion'}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {isNewCompanion ? 'Set up your animal companion' : 'Manage companion details'}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -229,8 +297,8 @@ export default function CompanionSheet({
               <button
                 onClick={() => setActiveSection('info')}
                 className={clsx(
-                  "flex-1 py-2 text-sm font-bold transition-colors",
-                  activeSection === 'info' ? "text-emerald-400 border-b-2 border-emerald-400" : "text-gray-500 hover:text-white"
+                  "flex-1 py-3 text-sm font-bold transition-colors",
+                  activeSection === 'info' ? "text-dagger-gold border-b-2 border-dagger-gold" : "text-gray-500 hover:text-white"
                 )}
               >
                 Info
@@ -238,8 +306,8 @@ export default function CompanionSheet({
               <button
                 onClick={() => setActiveSection('experiences')}
                 className={clsx(
-                  "flex-1 py-2 text-sm font-bold transition-colors",
-                  activeSection === 'experiences' ? "text-emerald-400 border-b-2 border-emerald-400" : "text-gray-500 hover:text-white"
+                  "flex-1 py-3 text-sm font-bold transition-colors",
+                  activeSection === 'experiences' ? "text-dagger-gold border-b-2 border-dagger-gold" : "text-gray-500 hover:text-white"
                 )}
               >
                 Experiences
@@ -247,8 +315,8 @@ export default function CompanionSheet({
               <button
                 onClick={() => setActiveSection('training')}
                 className={clsx(
-                  "flex-1 py-2 text-sm font-bold transition-colors",
-                  activeSection === 'training' ? "text-emerald-400 border-b-2 border-emerald-400" : "text-gray-500 hover:text-white"
+                  "flex-1 py-3 text-sm font-bold transition-colors",
+                  activeSection === 'training' ? "text-dagger-gold border-b-2 border-dagger-gold" : "text-gray-500 hover:text-white"
                 )}
               >
                 Training
@@ -266,7 +334,7 @@ export default function CompanionSheet({
                       value={localCompanion.name}
                       onChange={(e) => updateLocal({ name: e.target.value })}
                       placeholder="e.g., Shadow, Fang, Luna..."
-                      className="w-full bg-black/40 border border-white/20 rounded-lg px-3 py-2 text-white focus:border-emerald-500 outline-none"
+                      className="w-full bg-black/30 border border-white/20 rounded-lg px-3 py-2 text-white focus:border-dagger-gold outline-none transition-colors"
                     />
                   </div>
 
@@ -277,7 +345,7 @@ export default function CompanionSheet({
                       value={localCompanion.animal_type}
                       onChange={(e) => updateLocal({ animal_type: e.target.value })}
                       placeholder="e.g., Wolf, Hawk, Bear..."
-                      className="w-full bg-black/40 border border-white/20 rounded-lg px-3 py-2 text-white focus:border-emerald-500 outline-none"
+                      className="w-full bg-black/30 border border-white/20 rounded-lg px-3 py-2 text-white focus:border-dagger-gold outline-none transition-colors"
                     />
                   </div>
 
@@ -288,10 +356,10 @@ export default function CompanionSheet({
                       <button
                         onClick={() => updateLocal({ attack_type: 'melee', attack_range: 'melee' })}
                         className={clsx(
-                          "flex-1 py-2 rounded-lg font-bold text-sm transition-colors",
+                          "flex-1 py-2 rounded-lg font-bold text-sm transition-colors border",
                           localCompanion.attack_type === 'melee'
-                            ? "bg-emerald-500 text-black"
-                            : "bg-white/10 text-gray-400 hover:bg-white/20"
+                            ? "bg-dagger-gold text-black border-dagger-gold"
+                            : "bg-black/30 text-gray-400 border-white/10 hover:border-white/30"
                         )}
                       >
                         Melee
@@ -299,10 +367,10 @@ export default function CompanionSheet({
                       <button
                         onClick={() => updateLocal({ attack_type: 'ranged', attack_range: 'close' })}
                         className={clsx(
-                          "flex-1 py-2 rounded-lg font-bold text-sm transition-colors",
+                          "flex-1 py-2 rounded-lg font-bold text-sm transition-colors border",
                           localCompanion.attack_type === 'ranged'
-                            ? "bg-emerald-500 text-black"
-                            : "bg-white/10 text-gray-400 hover:bg-white/20"
+                            ? "bg-dagger-gold text-black border-dagger-gold"
+                            : "bg-black/30 text-gray-400 border-white/10 hover:border-white/30"
                         )}
                       >
                         Ranged
@@ -319,10 +387,10 @@ export default function CompanionSheet({
                           key={die}
                           onClick={() => updateLocal({ damage_die: die })}
                           className={clsx(
-                            "px-4 py-2 rounded-lg font-bold text-sm transition-colors",
+                            "px-4 py-2 rounded-lg font-bold text-sm transition-colors border",
                             localCompanion.damage_die === die
-                              ? "bg-emerald-500 text-black"
-                              : "bg-white/10 text-gray-400 hover:bg-white/20"
+                              ? "bg-dagger-gold text-black border-dagger-gold"
+                              : "bg-black/30 text-gray-400 border-white/10 hover:border-white/30"
                           )}
                         >
                           {die}
@@ -331,7 +399,7 @@ export default function CompanionSheet({
                     </div>
                   </div>
 
-                  {/* Range (for ranged attackers or if Vicious was applied) */}
+                  {/* Range */}
                   {(localCompanion.attack_type === 'ranged' || localCompanion.level_up_options.vicious > 0) && (
                     <div>
                       <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Attack Range</label>
@@ -341,10 +409,10 @@ export default function CompanionSheet({
                             key={range}
                             onClick={() => updateLocal({ attack_range: range })}
                             className={clsx(
-                              "px-3 py-2 rounded-lg font-bold text-sm transition-colors capitalize",
+                              "px-3 py-2 rounded-lg font-bold text-sm transition-colors capitalize border",
                               localCompanion.attack_range === range
-                                ? "bg-emerald-500 text-black"
-                                : "bg-white/10 text-gray-400 hover:bg-white/20"
+                                ? "bg-dagger-gold text-black border-dagger-gold"
+                                : "bg-black/30 text-gray-400 border-white/10 hover:border-white/30"
                             )}
                           >
                             {range.replace('_', ' ')}
@@ -354,103 +422,77 @@ export default function CompanionSheet({
                     </div>
                   )}
 
-                  {/* Evasion Display */}
-                  <div className="bg-black/20 rounded-lg p-3 flex items-center justify-between">
-                    <div>
-                      <div className="text-xs text-gray-500 uppercase">Evasion</div>
-                      <div className="text-xs text-gray-600">Base 10 {localCompanion.level_up_options.aware ? '+ 2 (Aware)' : ''}</div>
-                    </div>
-                    <div className="text-2xl font-bold text-white">{localCompanion.evasion}</div>
-                  </div>
-
-                  {/* Vitals Display */}
+                  {/* Stats Display */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-black/20 rounded-lg p-3">
-                      <div className="text-xs text-gray-500 uppercase mb-2">
-                        Stress ({localCompanion.stress_current}/{localCompanion.stress_max})
+                    {/* Evasion */}
+                    <div className="bg-dagger-panel border border-cyan-500/30 rounded-lg p-3">
+                      <div className="text-[10px] font-bold uppercase tracking-wide text-cyan-400 flex items-center gap-1 mb-1">
+                        <Eye size={10} /> Evasion
                       </div>
-                      <div className="flex gap-1 flex-wrap">
-                        {Array.from({ length: localCompanion.stress_max }).map((_, i) => (
-                          <button
-                            key={i}
-                            onClick={() => updateLocal({
-                              stress_current: i < localCompanion.stress_current ? i : i + 1
-                            })}
-                            className={clsx(
-                              "w-8 h-8 rounded border-2 transition-colors",
-                              i < localCompanion.stress_current
-                                ? "bg-red-500 border-red-400"
-                                : "bg-transparent border-gray-600 hover:border-red-500"
-                            )}
-                          />
-                        ))}
-                      </div>
+                      <div className="text-2xl font-serif font-bold text-white">{localCompanion.evasion}</div>
+                      {localCompanion.level_up_options.aware && (
+                        <div className="text-[10px] text-gray-500">Base 10 + 2 (Aware)</div>
+                      )}
                     </div>
 
-                    <div className="bg-black/20 rounded-lg p-3">
-                      <div className="text-xs text-gray-500 uppercase mb-2">
-                        Hope ({localCompanion.hope_current}/{localCompanion.hope_max})
+                    {/* Stress Slots */}
+                    <div className="bg-dagger-panel border border-purple-500/30 rounded-lg p-3">
+                      <div className="text-[10px] font-bold uppercase tracking-wide text-purple-400 flex items-center gap-1 mb-1">
+                        <Zap size={10} /> Stress Slots
                       </div>
-                      <div className="flex gap-1 flex-wrap">
-                        {Array.from({ length: localCompanion.hope_max }).map((_, i) => (
-                          <button
-                            key={i}
-                            onClick={() => updateLocal({
-                              hope_current: i < localCompanion.hope_current ? i : i + 1
-                            })}
-                            className={clsx(
-                              "w-8 h-8 rounded border-2 transition-colors",
-                              i < localCompanion.hope_current
-                                ? "bg-dagger-gold border-dagger-gold"
-                                : "bg-transparent border-gray-600 hover:border-dagger-gold"
-                            )}
-                          />
-                        ))}
-                      </div>
+                      <div className="text-2xl font-serif font-bold text-white">{localCompanion.stress_max}</div>
+                      {localCompanion.level_up_options.resilient > 0 && (
+                        <div className="text-[10px] text-gray-500">Base 3 + {localCompanion.level_up_options.resilient} (Resilient)</div>
+                      )}
                     </div>
+
+                    {/* Hope Slots */}
+                    <div className="bg-dagger-panel border border-dagger-gold/30 rounded-lg p-3">
+                      <div className="text-[10px] font-bold uppercase tracking-wide text-dagger-gold flex items-center gap-1 mb-1">
+                        <Zap size={10} /> Hope Slots
+                      </div>
+                      <div className="text-2xl font-serif font-bold text-white">{localCompanion.hope_max}</div>
+                      {localCompanion.level_up_options.light_in_the_dark > 0 && (
+                        <div className="text-[10px] text-gray-500">Base 1 + {localCompanion.level_up_options.light_in_the_dark} (Light)</div>
+                      )}
+                    </div>
+
+                    {/* Armor Slot */}
+                    {localCompanion.armor_slot && (
+                      <div className="bg-dagger-panel border border-blue-500/30 rounded-lg p-3">
+                        <div className="text-[10px] font-bold uppercase tracking-wide text-blue-400 flex items-center gap-1 mb-1">
+                          <Zap size={10} /> Armor Slot
+                        </div>
+                        <div className="text-2xl font-serif font-bold text-white">1</div>
+                        <div className="text-[10px] text-gray-500">From Armored training</div>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Armor Slot (if Armored) */}
-                  {localCompanion.armor_slot && (
-                    <div className="bg-black/20 rounded-lg p-3">
-                      <div className="text-xs text-gray-500 uppercase mb-2">Armor Slot</div>
-                      <button
-                        onClick={() => updateLocal({ armor_slot_used: !localCompanion.armor_slot_used })}
-                        className={clsx(
-                          "w-8 h-8 rounded border-2 transition-colors",
-                          localCompanion.armor_slot_used
-                            ? "bg-blue-500 border-blue-400"
-                            : "bg-transparent border-gray-600 hover:border-blue-500"
-                        )}
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Mark instead of stress (resets on short rest)</p>
-                    </div>
-                  )}
                 </div>
               )}
 
               {activeSection === 'experiences' && (
                 <div className="space-y-4">
                   {/* Add New Experience */}
-                  <div className="bg-black/20 rounded-lg p-4 space-y-3">
+                  <div className="bg-black/20 rounded-lg p-4 space-y-3 border border-white/5">
                     <div className="text-xs font-bold text-gray-400 uppercase">Add Experience</div>
                     <div className="flex items-center gap-2">
                       <input
                         value={newExpName}
                         onChange={(e) => setNewExpName(e.target.value)}
                         placeholder="Experience name..."
-                        className="flex-1 bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none"
+                        className="flex-1 bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-dagger-gold outline-none transition-colors"
                       />
-                      <div className="flex items-center bg-white/5 rounded border border-white/10">
+                      <div className="flex items-center bg-black/40 rounded border border-white/10">
                         <button onClick={() => setNewExpValue(v => Math.max(0, v - 1))} className="px-2 py-1 hover:bg-white/10 text-white">-</button>
-                        <span className="w-8 text-center font-bold text-emerald-400">+{newExpValue}</span>
+                        <span className="w-8 text-center font-bold text-dagger-gold">+{newExpValue}</span>
                         <button onClick={() => setNewExpValue(v => v + 1)} className="px-2 py-1 hover:bg-white/10 text-white">+</button>
                       </div>
                     </div>
                     <button
                       onClick={handleAddExperience}
                       disabled={!newExpName.trim()}
-                      className="w-full py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full py-2 bg-dagger-gold/20 hover:bg-dagger-gold/30 text-dagger-gold font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border border-dagger-gold/30"
                     >
                       <Plus size={16} /> Add Experience
                     </button>
@@ -459,7 +501,7 @@ export default function CompanionSheet({
                   {/* Experience List */}
                   <div className="space-y-2">
                     {localCompanion.experiences.length === 0 && (
-                      <div className="text-center text-gray-600 italic py-4">
+                      <div className="text-center text-gray-500 italic py-4 bg-black/20 rounded-lg border border-white/5">
                         No experiences recorded. Add 2 experiences based on your companion&apos;s training.
                       </div>
                     )}
@@ -472,17 +514,17 @@ export default function CompanionSheet({
                               autoFocus
                               value={editExpName}
                               onChange={(e) => setEditExpName(e.target.value)}
-                              className="bg-black/40 border border-white/20 rounded px-2 py-1 text-sm w-full text-white focus:border-emerald-500 outline-none"
+                              className="bg-black/40 border border-white/20 rounded px-2 py-1 text-sm w-full text-white focus:border-dagger-gold outline-none"
                             />
                             <div className="flex items-center justify-between">
                               <div className="flex items-center bg-black/40 rounded border border-white/20">
                                 <button onClick={() => setEditExpValue(v => Math.max(0, v - 1))} className="px-2 py-0.5 hover:bg-white/10 text-white">-</button>
-                                <span className="w-8 text-center font-bold text-emerald-400">+{editExpValue}</span>
+                                <span className="w-8 text-center font-bold text-dagger-gold">+{editExpValue}</span>
                                 <button onClick={() => setEditExpValue(v => v + 1)} className="px-2 py-0.5 hover:bg-white/10 text-white">+</button>
                               </div>
                               <div className="flex gap-2">
                                 <button onClick={() => setEditingExpIndex(null)} className="p-1 text-gray-400 hover:text-white"><X size={16} /></button>
-                                <button onClick={saveEditExperience} className="p-1 text-green-400 hover:text-green-300"><Check size={16} /></button>
+                                <button onClick={saveEditExperience} className="p-1 text-dagger-gold hover:text-dagger-gold/80"><Check size={16} /></button>
                               </div>
                             </div>
                           </div>
@@ -490,13 +532,13 @@ export default function CompanionSheet({
                           <div className="flex items-center justify-between w-full">
                             <div
                               onClick={() => startEditExperience(index, exp)}
-                              className="font-bold text-white cursor-pointer flex items-center gap-2 hover:text-emerald-400 transition-colors"
+                              className="font-medium text-white cursor-pointer flex items-center gap-2 hover:text-dagger-gold transition-colors capitalize"
                             >
                               {exp.name}
                               <Pencil size={12} className="text-gray-600 opacity-50" />
                             </div>
                             <div className="flex items-center gap-3">
-                              <div className="text-emerald-400 font-medium">+{exp.value}</div>
+                              <div className="text-dagger-gold font-bold">+{exp.value}</div>
                               <button onClick={() => handleDeleteExperience(index)} className="text-gray-500 hover:text-red-400 p-1">
                                 <Trash2 size={16} />
                               </button>
@@ -509,8 +551,8 @@ export default function CompanionSheet({
 
                   {/* Intelligent bonus display */}
                   {localCompanion.level_up_options.intelligent > 0 && (
-                    <div className="bg-emerald-900/20 border border-emerald-500/30 rounded-lg p-3">
-                      <div className="text-sm text-emerald-400">
+                    <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-3">
+                      <div className="text-sm text-cyan-400">
                         <strong>Intelligent Training:</strong> +{localCompanion.level_up_options.intelligent} bonus to all Companion Experience rolls
                       </div>
                     </div>
@@ -521,7 +563,7 @@ export default function CompanionSheet({
               {activeSection === 'training' && (
                 <div className="space-y-3">
                   <p className="text-xs text-gray-500">
-                    Select training options gained through level-ups. Some options can be taken multiple times.
+                    Training options gained through level-ups. Some options can be taken multiple times.
                   </p>
 
                   {LEVEL_UP_OPTIONS.map(option => {
@@ -529,27 +571,35 @@ export default function CompanionSheet({
                     const isActive = option.multi ? (value as number) > 0 : value as boolean;
                     const count = option.multi ? value as number : 0;
 
+                    const colorClasses: Record<string, { bg: string; text: string; border: string }> = {
+                      cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/20' },
+                      yellow: { bg: 'bg-dagger-gold/10', text: 'text-dagger-gold', border: 'border-dagger-gold/20' },
+                      pink: { bg: 'bg-pink-500/10', text: 'text-pink-400', border: 'border-pink-500/20' },
+                      blue: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20' },
+                      red: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20' },
+                      purple: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
+                      orange: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20' },
+                      teal: { bg: 'bg-teal-500/10', text: 'text-teal-400', border: 'border-teal-500/20' },
+                    };
+
+                    const colors = colorClasses[option.color] || colorClasses.cyan;
+
                     return (
                       <div
                         key={option.key}
                         className={clsx(
                           "rounded-lg p-4 border transition-colors",
-                          isActive
-                            ? `bg-${option.color}-900/20 border-${option.color}-500/30`
-                            : "bg-black/20 border-white/10"
+                          isActive ? `${colors.bg} ${colors.border}` : "bg-black/20 border-white/5"
                         )}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <h4 className={clsx(
-                                "font-bold",
-                                isActive ? `text-${option.color}-400` : "text-white"
-                              )}>
+                              <h4 className={clsx("font-bold", isActive ? colors.text : "text-white")}>
                                 {option.name}
                               </h4>
                               {option.multi && count > 0 && (
-                                <span className={`text-xs bg-${option.color}-500/20 text-${option.color}-400 px-2 py-0.5 rounded font-bold`}>
+                                <span className={clsx("text-xs px-2 py-0.5 rounded font-bold", colors.bg, colors.text)}>
                                   ×{count}
                                 </span>
                               )}
@@ -572,9 +622,7 @@ export default function CompanionSheet({
                                   onClick={() => toggleLevelUpOption(option.key, true)}
                                   className={clsx(
                                     "w-8 h-8 rounded flex items-center justify-center transition-colors",
-                                    isActive
-                                      ? "bg-emerald-500 text-black"
-                                      : "bg-white/10 hover:bg-white/20 text-white"
+                                    isActive ? "bg-dagger-gold text-black" : "bg-white/10 hover:bg-white/20 text-white"
                                   )}
                                 >
                                   <ChevronUp size={16} />
@@ -584,13 +632,11 @@ export default function CompanionSheet({
                               <button
                                 onClick={() => toggleLevelUpOption(option.key, false)}
                                 className={clsx(
-                                  "w-8 h-8 rounded border-2 transition-colors",
-                                  isActive
-                                    ? "bg-emerald-500 border-emerald-400"
-                                    : "bg-transparent border-gray-600 hover:border-emerald-500"
+                                  "w-8 h-8 rounded border-2 transition-colors flex items-center justify-center",
+                                  isActive ? "bg-dagger-gold border-dagger-gold" : "bg-transparent border-gray-600 hover:border-dagger-gold"
                                 )}
                               >
-                                {isActive && <Check size={16} className="mx-auto text-black" />}
+                                {isActive && <Check size={16} className="text-black" />}
                               </button>
                             )}
                           </div>
@@ -613,7 +659,7 @@ export default function CompanionSheet({
               <button
                 onClick={handleSave}
                 disabled={!localCompanion.name.trim() || !localCompanion.animal_type.trim()}
-                className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3 bg-dagger-gold hover:bg-dagger-gold/90 text-black font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isNewCompanion ? 'Create Companion' : 'Save Changes'}
               </button>
