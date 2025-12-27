@@ -110,6 +110,9 @@ CREATE TABLE IF NOT EXISTS public.characters (
   -- Beastbond Ranger Companion
   ranger_companion JSONB, -- Stores companion data for Beastbound Rangers
 
+  -- Seraph Prayer Dice
+  seraph_prayer_dice JSONB, -- Stores prayer dice data for Seraph class
+
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
