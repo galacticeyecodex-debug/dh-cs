@@ -20,8 +20,9 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCharacterStore, Character, LibraryItem } from '@/store/character-store';
 import { dataService } from '@/lib/data-service';
+import useContentAccess from '@/hooks/useContentAccess';
 import clsx from 'clsx';
-import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins, Sword, X, Heart, Upload, PawPrint } from 'lucide-react';
+import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins, Sword, X, Heart, Upload, PawPrint, FlaskConical } from 'lucide-react';
 import AddItemModal from '@/components/add-item-modal';
 import { uploadCharacterAvatar } from '@/lib/storage-service';
 import { calculateDamageThresholds } from '@/lib/gameLogic';
@@ -60,12 +61,14 @@ interface LibraryLookupItem {
   name: string;
   domain?: string;
   tier?: number;
+  source?: 'srd' | 'playtest' | 'homebrew';
   data: Record<string, any>; // Keep 'any' for now, as JSONB is highly variable and strict typing would be complex here.
 }
 
 export default function CreateCharacterPage() {
   const router = useRouter();
   const { user, fetchCharacter } = useCharacterStore();
+  const { includePlaytest, loading: contentAccessLoading } = useContentAccess();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<CharacterFormData>>({
     name: '',
@@ -137,9 +140,16 @@ export default function CreateCharacterPage() {
       return;
     }
 
+    // Wait for content access settings to load before fetching library data
+    if (contentAccessLoading) {
+      return;
+    }
+
     const fetchAllLibraryData = async () => {
       setLibraryLoading(true);
       setError(null);
+
+      const contentOptions = { includePlaytest };
 
       try {
         const [
@@ -155,17 +165,17 @@ export default function CreateCharacterPage() {
           spellsData,
           grimoiresData
         ] = await Promise.all([
-          dataService.library.getByType('ancestry'),
-          dataService.library.getByType('community'),
-          dataService.library.getByType('class'),
-          dataService.library.getByType('subclass'),
-          dataService.library.getByType('domain'),
-          dataService.library.getByType('weapon'),
-          dataService.library.getByType('armor'),
-          dataService.library.getByType('consumable'),
-          dataService.library.getByType('ability'),
-          dataService.library.getByType('spell'),
-          dataService.library.getByType('grimoire'),
+          dataService.library.getByType('ancestry', contentOptions),
+          dataService.library.getByType('community', contentOptions),
+          dataService.library.getByType('class', contentOptions),
+          dataService.library.getByType('subclass', contentOptions),
+          dataService.library.getByType('domain', contentOptions),
+          dataService.library.getByType('weapon', contentOptions),
+          dataService.library.getByType('armor', contentOptions),
+          dataService.library.getByType('consumable', contentOptions),
+          dataService.library.getByType('ability', contentOptions),
+          dataService.library.getByType('spell', contentOptions),
+          dataService.library.getByType('grimoire', contentOptions),
         ]);
 
         setLibraryData({
@@ -189,7 +199,7 @@ export default function CreateCharacterPage() {
     };
 
     fetchAllLibraryData();
-  }, [user, router]);
+  }, [user, router, includePlaytest, contentAccessLoading]);
 
   // Effect to calculate vitals and starting gear based on Class/Ancestry selection
   useEffect(() => {
@@ -922,7 +932,11 @@ export default function CreateCharacterPage() {
               <select id="class_id" name="class_id" value={formData.class_id || ''} onChange={handleInputChange}
                 className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold" required>
                 <option value="">Select a Class</option>
-                {libraryData.classes.map(cls => <option key={cls.id} value={cls.id}>{cls.name}</option>)}
+                {libraryData.classes.map(cls => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.name}{cls.source === 'playtest' ? ' [Playtest]' : ''}
+                  </option>
+                ))}
               </select>
             </div>
             {formData.class_id && (
@@ -934,7 +948,11 @@ export default function CreateCharacterPage() {
                     <option value="">Select a Subclass</option>
                     {libraryData.subclasses
                       .filter(sc => sc.data.parent_class_id === formData.class_id)
-                      .map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
+                      .map(sc => (
+                        <option key={sc.id} value={sc.id}>
+                          {sc.name}{sc.source === 'playtest' ? ' [Playtest]' : ''}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
@@ -947,7 +965,11 @@ export default function CreateCharacterPage() {
                       className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
                     >
                       <option value="">Select Domain</option>
-                      {libraryData.domains.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}
+                      {libraryData.domains.map(d => (
+                        <option key={d.name} value={d.name}>
+                          {d.name}{d.source === 'playtest' ? ' [Playtest]' : ''}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -958,7 +980,11 @@ export default function CreateCharacterPage() {
                       className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
                     >
                       <option value="">Select Domain</option>
-                      {libraryData.domains.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}
+                      {libraryData.domains.map(d => (
+                        <option key={d.name} value={d.name}>
+                          {d.name}{d.source === 'playtest' ? ' [Playtest]' : ''}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -1009,6 +1035,7 @@ export default function CreateCharacterPage() {
               <div className="grid grid-cols-1 gap-2 max-h-[30vh] overflow-y-auto pr-2">
                 {cardsDomain1.map(card => {
                   const isSelected = formData.selectedCards?.includes(card.id);
+                  const isPlaytest = card.source === 'playtest';
                   return (
                     <div
                       key={card.id}
@@ -1020,8 +1047,11 @@ export default function CreateCharacterPage() {
                           : "bg-black/20 border-white/10 hover:bg-white/5 opacity-80 hover:opacity-100"
                       )}
                     >
-                      <div className="font-bold text-dagger-gold flex justify-between">
-                        <span>{card.name}</span>
+                      <div className="font-bold text-dagger-gold flex justify-between items-center">
+                        <span className="flex items-center gap-1.5">
+                          {card.name}
+                          {isPlaytest && <FlaskConical size={14} className="text-purple-400" title="Playtest Content" />}
+                        </span>
                         {isSelected && <span className="text-xs bg-dagger-gold text-black px-2 py-0.5 rounded-full">Selected</span>}
                       </div>
                       <div className="text-xs text-gray-400 mb-1">{card.type} - Level {card.data.level}</div>
@@ -1038,6 +1068,7 @@ export default function CreateCharacterPage() {
               <div className="grid grid-cols-1 gap-2 max-h-[30vh] overflow-y-auto pr-2">
                 {cardsDomain2.map(card => {
                   const isSelected = formData.selectedCards?.includes(card.id);
+                  const isPlaytest = card.source === 'playtest';
                   return (
                     <div
                       key={card.id}
@@ -1049,8 +1080,11 @@ export default function CreateCharacterPage() {
                           : "bg-black/20 border-white/10 hover:bg-white/5 opacity-80 hover:opacity-100"
                       )}
                     >
-                      <div className="font-bold text-dagger-gold flex justify-between">
-                        <span>{card.name}</span>
+                      <div className="font-bold text-dagger-gold flex justify-between items-center">
+                        <span className="flex items-center gap-1.5">
+                          {card.name}
+                          {isPlaytest && <FlaskConical size={14} className="text-purple-400" title="Playtest Content" />}
+                        </span>
                         {isSelected && <span className="text-xs bg-dagger-gold text-black px-2 py-0.5 rounded-full">Selected</span>}
                       </div>
                       <div className="text-xs text-gray-400 mb-1">{card.type} - Level {card.data.level}</div>
