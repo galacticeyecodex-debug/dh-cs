@@ -25,6 +25,7 @@ import React, { useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import clsx from 'clsx';
 import ModifierSheet from '@/components/modifier-sheet';
+import { getValueColor, MODIFIED_INDICATOR } from '@/lib/styles';
 
 interface StatButtonProps {
   label: string;
@@ -69,11 +70,11 @@ const StatButton = React.memo(function StatButton({ label, value, baseValue, mod
           }}
           className={clsx(
             "p-3 min-w-[3rem] flex items-center justify-center font-bold text-xl border-l border-white/5 hover:bg-white/10 transition-colors relative",
-            isModified ? "text-dagger-gold" : "text-white"
+            getValueColor(isModified)
           )}
         >
           {value >= 0 ? `+${value}` : value}
-          {isModified && <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-dagger-gold rounded-full" />}
+          {isModified && <div className={MODIFIED_INDICATOR} />}
         </button>
       </div>
 
