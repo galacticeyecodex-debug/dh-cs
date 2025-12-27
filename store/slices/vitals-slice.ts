@@ -11,7 +11,7 @@
 import { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
-import { Experience, RangerCompanion } from '@/types/character';
+import { Experience, RangerCompanion, SeraphPrayerDice } from '@/types/character';
 import { CharacterStore } from '@/types/store';
 
 export interface VitalsSlice {
@@ -22,6 +22,7 @@ export interface VitalsSlice {
   updateModifiers: (stat: string, modifiers: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[]) => Promise<void>;
   updateExperiences: (experiences: Experience[]) => Promise<void>;
   updateCompanion: (companion: RangerCompanion) => Promise<void>;
+  updatePrayerDice: (prayerDice: SeraphPrayerDice) => Promise<void>;
 }
 
 export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice> = (set, get) => ({
@@ -205,6 +206,29 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
       },
       async () => dataService.character.update(characterId, { ranger_companion: companion }),
       'Failed to update companion'
+    );
+  },
+
+  updatePrayerDice: async (prayerDice) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const previousPrayerDice = (get() as any).character!.seraph_prayer_dice;
+        set((s: any) => ({
+          character: s.character ? { ...s.character, seraph_prayer_dice: prayerDice } : null,
+        }));
+        return () => {
+          set((s: any) => ({
+            character: s.character ? { ...s.character, seraph_prayer_dice: previousPrayerDice } : null,
+          }));
+        };
+      },
+      async () => dataService.character.update(characterId, { seraph_prayer_dice: prayerDice }),
+      'Failed to update prayer dice'
     );
   },
 });
