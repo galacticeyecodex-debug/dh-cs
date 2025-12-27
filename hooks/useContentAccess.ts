@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { dataService } from '@/lib/data-service';
 import useUser from '@/hooks/useUser';
 import type { ContentAccess } from '@/types/character';
@@ -31,7 +31,7 @@ export default function useContentAccess(): UseContentAccessResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadContentAccess = async () => {
+  const loadContentAccess = useCallback(async () => {
     if (!user?.id) {
       setContentAccess(DEFAULT_CONTENT_ACCESS);
       setLoading(false);
@@ -54,11 +54,11 @@ export default function useContentAccess(): UseContentAccessResult {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     loadContentAccess();
-  }, [user?.id]);
+  }, [loadContentAccess]);
 
   const includePlaytest = useMemo(() => contentAccess.playtest, [contentAccess]);
 
