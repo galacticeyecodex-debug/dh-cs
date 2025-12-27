@@ -1268,7 +1268,7 @@ export default function CreateCharacterPage() {
                     experiences: prev.companion?.experiences || [{ name: '', value: 2 }, { name: '', value: 2 }],
                     level_up_options: {
                       intelligent: 0,
-                      light_in_the_dark: 0,
+                      light_in_the_dark: false,
                       creature_comfort: false,
                       armored: false,
                       vicious: 0,
