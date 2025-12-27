@@ -1050,7 +1050,7 @@ export default function CreateCharacterPage() {
                       <div className="font-bold text-dagger-gold flex justify-between items-center">
                         <span className="flex items-center gap-1.5">
                           {card.name}
-                          {isPlaytest && <FlaskConical size={14} className="text-purple-400" title="Playtest Content" />}
+                          {isPlaytest && <FlaskConical size={14} className="text-purple-400" />}
                         </span>
                         {isSelected && <span className="text-xs bg-dagger-gold text-black px-2 py-0.5 rounded-full">Selected</span>}
                       </div>
@@ -1083,7 +1083,7 @@ export default function CreateCharacterPage() {
                       <div className="font-bold text-dagger-gold flex justify-between items-center">
                         <span className="flex items-center gap-1.5">
                           {card.name}
-                          {isPlaytest && <FlaskConical size={14} className="text-purple-400" title="Playtest Content" />}
+                          {isPlaytest && <FlaskConical size={14} className="text-purple-400" />}
                         </span>
                         {isSelected && <span className="text-xs bg-dagger-gold text-black px-2 py-0.5 rounded-full">Selected</span>}
                       </div>
