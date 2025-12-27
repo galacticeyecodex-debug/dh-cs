@@ -1,11 +1,11 @@
 /**
  * PROFILE PAGE
  * ----------------------------------------------------------------------------
- * Displays user account information and provides authentication controls.
- * 
+ * Displays user account information, content access settings, and authentication controls.
+ *
  * DESIGN:
  * - Responsive: Uses a centered card layout optimized for both web and mobile.
- * - Shared: Converted to a Client Component to support both Supabase (Web) 
+ * - Shared: Converted to a Client Component to support both Supabase (Web)
  *   and Local Auth (Native).
  */
 
@@ -14,6 +14,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AuthButton from "@/components/auth-buttons";
+import ContentAccessSettings from "@/components/content-access-settings";
 import useUser from "@/hooks/useUser";
 
 export default function ProfilePage() {
@@ -27,7 +28,8 @@ export default function ProfilePage() {
   const avatarUrl = user.user_metadata?.avatar_url;
 
   return (
-    <section className="max-w-4xl mx-auto space-y-4">
+    <section className="max-w-4xl mx-auto space-y-4 p-4">
+      {/* Profile Card */}
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
@@ -55,6 +57,9 @@ export default function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Content Access Settings */}
+      <ContentAccessSettings />
     </section>
   );
 }
