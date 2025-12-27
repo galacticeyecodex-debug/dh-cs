@@ -25,6 +25,7 @@ import ManageCharacterModal from '../manage-character-modal';
 import AdvancementHistory from '../advancement-history';
 import SubclassFeatureCard from '../subclass-feature-card';
 import CompanionSheet from '../companion-sheet';
+import PrayerDiceCard from '../prayer-dice-card';
 import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap, Info, Sparkles, PawPrint } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/storage-service';
@@ -33,7 +34,7 @@ import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 export default function CharacterView() {
-  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion } = useCharacterStore();
+  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice } = useCharacterStore();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
   const [isLevelUpLoading, setIsLevelUpLoading] = useState(false);
@@ -55,6 +56,8 @@ export default function CharacterView() {
   const [isCompanionSheetOpen, setIsCompanionSheetOpen] = useState(false);
   const [ancestryCard, setAncestryCard] = useState<any>(null);
   const [communityCard, setCommunityCard] = useState<any>(null);
+  const [showAncestryLore, setShowAncestryLore] = useState(false);
+  const [showCommunityLore, setShowCommunityLore] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [savingField, setSavingField] = useState<string>('');
   const [savedField, setSavedField] = useState<string>('');
@@ -488,8 +491,21 @@ export default function CharacterView() {
                   <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
                     {ancestryCard ? (
                       <>
-                        <h4 className="font-serif font-bold text-white mb-1">{ancestryCard.name}</h4>
-                        <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3">{ancestryCard.description}</p>
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-serif font-bold text-white">{ancestryCard.name}</h4>
+                          <button
+                            onClick={() => setShowAncestryLore(!showAncestryLore)}
+                            className="p-1 hover:bg-white/10 rounded transition-colors"
+                            title={showAncestryLore ? "Hide lore" : "Show lore"}
+                          >
+                            <Info size={14} className="text-gray-400" />
+                          </button>
+                        </div>
+                        {showAncestryLore && (
+                          <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                            {ancestryCard.description}
+                          </p>
+                        )}
                         {ancestryCard.features?.map((feature: any, i: number) => (
                           <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
                             <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
@@ -531,8 +547,21 @@ export default function CharacterView() {
                   <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
                     {communityCard ? (
                       <>
-                        <h4 className="font-serif font-bold text-white mb-1">{communityCard.name}</h4>
-                        <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3">{communityCard.description}</p>
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-serif font-bold text-white">{communityCard.name}</h4>
+                          <button
+                            onClick={() => setShowCommunityLore(!showCommunityLore)}
+                            className="p-1 hover:bg-white/10 rounded transition-colors"
+                            title={showCommunityLore ? "Hide lore" : "Show lore"}
+                          >
+                            <Info size={14} className="text-gray-400" />
+                          </button>
+                        </div>
+                        {showCommunityLore && (
+                          <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                            {communityCard.description}
+                          </p>
+                        )}
                         {communityCard.features?.map((feature: any, i: number) => (
                           <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
                             <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
@@ -598,12 +627,31 @@ export default function CharacterView() {
                     )}
 
                     {/* Core Class Features */}
-                    {character.class_data.data.class_features?.map((feature: any, idx: number) => (
-                      <div key={idx} className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-                        <h4 className="font-serif font-bold text-white mb-1">{feature.name}</h4>
-                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{feature.text}</p>
-                      </div>
-                    ))}
+                    {character.class_data.data.class_features?.map((feature: any, idx: number) => {
+                      // Special handling for Prayer Dice - render interactive component
+                      if (feature.name === 'Prayer Dice') {
+                        const traitName = (character.spellcast_trait || character.subclass_data?.data?.spellcast_trait || '').toLowerCase();
+                        const spellcastValue = character.stats[traitName as keyof typeof character.stats] || 0;
+
+                        return (
+                          <PrayerDiceCard
+                            key={idx}
+                            prayerDice={character.seraph_prayer_dice}
+                            spellcastValue={spellcastValue}
+                            hasDevout={character.subclass_data?.name?.toLowerCase() === 'divine wielder' && character.subclass_progression?.specialization_obtained === true}
+                            onUpdatePrayerDice={updatePrayerDice}
+                          />
+                        );
+                      }
+
+                      // Standard class feature display
+                      return (
+                        <div key={idx} className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                          <h4 className="font-serif font-bold text-white mb-1">{feature.name}</h4>
+                          <p className="text-sm text-gray-300 whitespace-pre-wrap">{feature.text}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
