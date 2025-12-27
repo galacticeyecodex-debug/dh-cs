@@ -1,5 +1,9 @@
-import { Character, CharacterInventoryItem, Experience } from './character';
+import { Character, CharacterInventoryItem, Experience, LibraryItem, Profile, ContentAccess } from './character';
 import { Modifier } from './modifiers';
+
+export interface LibraryFilterOptions {
+  includePlaytest?: boolean;
+}
 
 export interface DataClient {
   character: {
@@ -24,10 +28,11 @@ export interface DataClient {
     update: (cardId: string, updates: any) => Promise<void>;
   };
   library: {
-    get: (id: string) => Promise<any>;
-    search: (query: string, type?: string) => Promise<any[]>;
-    getByType: (type: string) => Promise<any[]>;
-    getAll: () => Promise<any[]>;
+    get: (id: string) => Promise<LibraryItem>;
+    search: (query: string, type?: string, options?: LibraryFilterOptions) => Promise<LibraryItem[]>;
+    getByType: (type: string, options?: LibraryFilterOptions) => Promise<LibraryItem[]>;
+    getAll: (options?: LibraryFilterOptions) => Promise<LibraryItem[]>;
+    getByTypeForUser: (type: string, userId: string) => Promise<LibraryItem[]>;
   };
   homebrew: {
     list: (userId: string) => Promise<any[]>;
@@ -36,7 +41,9 @@ export interface DataClient {
     delete: (id: string) => Promise<void>;
   };
   profile: {
-    get: (userId: string) => Promise<any | null>;
+    get: (userId: string) => Promise<Profile | null>;
     create: (userId: string, profile: any) => Promise<void>;
+    update: (userId: string, updates: Partial<Profile>) => Promise<void>;
+    updateContentAccess: (userId: string, contentAccess: ContentAccess) => Promise<void>;
   };
 }

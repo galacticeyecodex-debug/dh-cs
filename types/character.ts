@@ -43,9 +43,24 @@ export interface LibraryItem {
   name: string;
   domain?: string;
   tier?: number;
+  source?: 'srd' | 'playtest' | 'homebrew'; // Content source for access control
   data: HomebrewItemData | any; // JSONB column content - typed for homebrew, flexible for library
   _isHomebrew?: boolean; // UI marker for homebrew items
   _homebrewId?: string; // Original homebrew ID for UI
+}
+
+export interface ContentAccess {
+  srd: boolean;
+  playtest: boolean;
+}
+
+export interface Profile {
+  id: string;
+  username?: string;
+  avatar_url?: string;
+  content_access: ContentAccess;
+  updated_at?: string;
+  created_at?: string;
 }
 
 export interface CharacterCard {
