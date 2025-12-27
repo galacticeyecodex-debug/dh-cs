@@ -382,14 +382,16 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
           companion.evasion = (companion.evasion || 10) + 2;
         } else if (trainingKey === 'light_in_the_dark') {
           // Light in the Dark gives the PLAYER an extra hope slot via modifier
-          const hopeModifiers = updatedModifiers.hope || [];
-          hopeModifiers.push({
+          const currentModifiers = { ...(updatedCharacter.modifiers || {}) };
+          if (!currentModifiers.hope) currentModifiers.hope = [];
+
+          currentModifiers.hope.push({
             id: `companion-light-in-the-dark-${Date.now()}`,
             name: 'Light in the Dark',
             value: 1,
             source: 'system' as const,
           });
-          updatedModifiers.hope = hopeModifiers;
+          updatedCharacter.modifiers = currentModifiers;
         }
       }
 
@@ -397,9 +399,20 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
 
       // Update the companion in the database and local state
       try {
-        await dataService.character.update(characterId, { ranger_companion: companion });
+        const updateData: Record<string, any> = { ranger_companion: companion };
+
+        // If Light in the Dark was selected, also update character modifiers
+        if (trainingKey === 'light_in_the_dark' && updatedCharacter.modifiers) {
+          updateData.modifiers = updatedCharacter.modifiers;
+        }
+
+        await dataService.character.update(characterId, updateData);
         set((s: any) => ({
-          character: s.character ? { ...s.character, ranger_companion: companion } : null,
+          character: s.character ? {
+            ...s.character,
+            ranger_companion: companion,
+            ...(updateData.modifiers ? { modifiers: updateData.modifiers } : {})
+          } : null,
         }));
       } catch (err) {
         console.error('Failed to update companion training:', err);
