@@ -113,14 +113,14 @@ const TIER_LIMITS: Record<string, number> = {
 
 // Companion Training Options for Beastbound Rangers
 const COMPANION_TRAINING_OPTIONS = [
-  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience rolls', multi: true, color: 'cyan' },
+  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience rolls', multi: true, color: 'yellow' },
   { key: 'light_in_the_dark', name: 'Light in the Dark', description: 'Additional Hope slot', multi: true, color: 'yellow' },
-  { key: 'creature_comfort', name: 'Creature Comfort', description: 'Once per rest: Clear 1 Stress OR Give 1 Hope', multi: false, color: 'pink' },
-  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Stress (once per short rest)', multi: false, color: 'blue' },
-  { key: 'vicious', name: 'Vicious', description: 'Increase damage die or range to Very Close', multi: true, color: 'red' },
-  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, color: 'purple' },
-  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when you reach 0 HP', multi: false, color: 'orange' },
-  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, color: 'teal' },
+  { key: 'creature_comfort', name: 'Creature Comfort', description: 'Once per rest: Clear 1 Stress OR Give 1 Hope', multi: false, color: 'yellow' },
+  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Stress (once per short rest)', multi: false, color: 'yellow' },
+  { key: 'vicious', name: 'Vicious', description: 'Increase damage die or range to Very Close', multi: true, color: 'yellow' },
+  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, color: 'yellow' },
+  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when you reach 0 HP', multi: false, color: 'yellow' },
+  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, color: 'yellow' },
 ];
 
 export default function LevelUpModal({
@@ -341,8 +341,11 @@ export default function LevelUpModal({
 
     // Step 7: Companion Training (if Beastbound Ranger)
     if (step === 7) {
-      // Companion training is optional - can skip or select one
-      return true;
+      // Companion training is MANDATORY for Beastbound Rangers (they level up with the character)
+      if (isBeastboundRanger) {
+        return selectedCompanionTraining !== '';
+      }
+      return true; // Not Beastbound, skip validation
     }
 
     return true;
@@ -1037,8 +1040,7 @@ export default function LevelUpModal({
 
                   <div className="space-y-2">
                     <p className="text-xs text-gray-500 mb-3">
-                      Training options improve your companion&apos;s abilities. Some options can be taken multiple times.
-                      This is optional - you can skip and train later.
+                      Your companion levels up with you! Choose a training option to improve your companion&apos;s abilities. Some options can be taken multiple times.
                     </p>
 
                     {COMPANION_TRAINING_OPTIONS.map((option) => {
