@@ -26,21 +26,26 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username TEXT,
   avatar_url TEXT,
+  content_access JSONB DEFAULT '{"srd": true, "playtest": false}'::jsonb, -- Controls access to content sources
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 2. LIBRARY (SRD Data)
--- Used for static game data (classes, cards, etc.)
+-- 2. LIBRARY (Game Content)
+-- Used for static game data (classes, cards, etc.) from various sources
 CREATE TABLE IF NOT EXISTS public.library (
   id TEXT PRIMARY KEY, -- e.g. 'class-bard', 'card-beastbound'
   type TEXT NOT NULL, -- 'class', 'subclass', 'card', 'item'
   name TEXT NOT NULL,
   domain TEXT, -- Nullable (e.g. for classes)
   tier INT,    -- Nullable
+  source TEXT DEFAULT 'srd' CHECK (source IN ('srd', 'playtest', 'homebrew')), -- Content source for access control
   data JSONB NOT NULL, -- The raw JSON content
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Index for efficient content filtering by source
+CREATE INDEX IF NOT EXISTS idx_library_source ON public.library(source);
 
 -- DROP TABLES for Clean Reset (Development Mode)
 -- This ensures that if the schema changes, we don't get "relation exists" errors with old structures.
