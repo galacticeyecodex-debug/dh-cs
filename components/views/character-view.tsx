@@ -902,51 +902,6 @@ export default function CharacterView() {
                               </button>
                             </div>
                           </div>
-
-                          {/* Hope */}
-                          <div className="bg-dagger-panel p-3">
-                            <div className="text-[10px] font-bold uppercase tracking-wide text-dagger-gold flex items-center gap-1 mb-2">
-                              <Zap size={10} /> Hope
-                            </div>
-                            <div className="flex flex-wrap gap-1.5">
-                              {Array.from({ length: character.ranger_companion.hope_max }).map((_, i) => {
-                                const isFilled = i < character.ranger_companion!.hope_current;
-                                return (
-                                  <button
-                                    key={i}
-                                    onClick={() => {
-                                      const newHope = isFilled ? i : i + 1;
-                                      updateCompanion({ ...character.ranger_companion!, hope_current: newHope });
-                                    }}
-                                    className="transition-all"
-                                  >
-                                    <Zap
-                                      size={16}
-                                      className={clsx(
-                                        "transition-all",
-                                        isFilled ? "text-dagger-gold scale-100" : "text-white/10 scale-90"
-                                      )}
-                                      fill={isFilled ? "currentColor" : "none"}
-                                    />
-                                  </button>
-                                );
-                              })}
-                            </div>
-                            <div className="flex gap-1 mt-2">
-                              <button
-                                onClick={() => updateCompanion({ ...character.ranger_companion!, hope_current: Math.max(0, character.ranger_companion!.hope_current - 1) })}
-                                className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded text-[10px] font-bold uppercase"
-                              >
-                                Spend
-                              </button>
-                              <button
-                                onClick={() => updateCompanion({ ...character.ranger_companion!, hope_current: Math.min(character.ranger_companion!.hope_max, character.ranger_companion!.hope_current + 1) })}
-                                className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded text-[10px] font-bold uppercase"
-                              >
-                                Gain
-                              </button>
-                            </div>
-                          </div>
                         </div>
 
                         {/* Combat Stats & Armor */}

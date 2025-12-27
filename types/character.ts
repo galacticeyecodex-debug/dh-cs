@@ -194,6 +194,7 @@ export interface RangerCompanion {
   hope_max: number;
   hope_current: number;
   attack_type: 'melee' | 'ranged';
+  attack_name: string; // e.g., "Claw Swipe", "Bite", "Pounce"
   damage_die: string; // e.g., "d6", "d8", "d10", "d12"
   attack_range?: 'melee' | 'very_close' | 'close' | 'far';
   experiences: CompanionExperience[];
