@@ -168,6 +168,15 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
         return;
       }
 
+      // Normalize companion data format (migrate from old number format to new boolean format)
+      if (fullCharacter.ranger_companion) {
+        const companion = fullCharacter.ranger_companion;
+        // Convert light_in_the_dark from number to boolean if needed
+        if (typeof companion.level_up_options.light_in_the_dark === 'number') {
+          companion.level_up_options.light_in_the_dark = companion.level_up_options.light_in_the_dark > 0;
+        }
+      }
+
       set({ character: fullCharacter, isLoading: false });
 
       // Recalculate derived stats only if we have the necessary data

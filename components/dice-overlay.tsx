@@ -62,7 +62,12 @@ export default function DiceOverlay() {
   }, [isDiceOverlayOpen]);
 
   // Calculate Experience Modifiers
-  const experiences = character?.experiences || [];
+  const playerExperiences = character?.experiences || [];
+  const companionExperiences = character?.ranger_companion?.experiences || [];
+  const experiences = [
+    ...playerExperiences.map(exp => ({ ...exp, source: 'player' as const })),
+    ...companionExperiences.map(exp => ({ ...exp, source: 'companion' as const }))
+  ];
   const experienceModifier = selectedExpIndices.reduce((sum, idx) => sum + (experiences[idx]?.value || 0), 0);
   const hopeCost = selectedExpIndices.length;
   const currentHope = character?.hope || 0;
@@ -434,6 +439,7 @@ export default function DiceOverlay() {
                         {experiences.map((exp, idx) => {
                           const isSelected = selectedExpIndices.includes(idx);
                           const canAfford = currentHope - hopeCost >= 1;
+                          const isCompanionExp = exp.source === 'companion';
                           return (
                             <button
                               key={idx}
@@ -448,6 +454,7 @@ export default function DiceOverlay() {
                                     : "bg-black/50 text-gray-600 border-white/5 opacity-50 cursor-not-allowed"
                               )}
                             >
+                              {isCompanionExp && <span className="text-xs opacity-70">🐾</span>}
                               {exp.name} <span className="opacity-80">+{exp.value}</span>
                             </button>
                           );
