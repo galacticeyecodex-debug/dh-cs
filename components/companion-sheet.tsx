@@ -48,7 +48,7 @@ const DEFAULT_COMPANION: RangerCompanion = {
   experiences: [],
   level_up_options: {
     intelligent: 0,
-    light_in_the_dark: 0,
+    light_in_the_dark: false,
     creature_comfort: false,
     creature_comfort_used: false,
     armored: false,
@@ -64,14 +64,14 @@ const DAMAGE_DICE = ['d4', 'd6', 'd8', 'd10', 'd12'];
 const ATTACK_RANGES = ['melee', 'very_close', 'close', 'far'] as const;
 
 const LEVEL_UP_OPTIONS = [
-  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience rolls', multi: true, color: 'yellow' },
-  { key: 'light_in_the_dark', name: 'Light in the Dark', description: 'Additional Hope slot', multi: true, color: 'yellow' },
-  { key: 'creature_comfort', name: 'Creature Comfort', description: 'Once per rest: Clear 1 Stress OR Give 1 Hope', multi: false, color: 'yellow' },
-  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Stress (once per short rest)', multi: false, color: 'yellow' },
-  { key: 'vicious', name: 'Vicious', description: 'Increase damage die or range to Very Close', multi: true, color: 'yellow' },
-  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, color: 'yellow' },
-  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when you reach 0 HP', multi: false, color: 'yellow' },
-  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, color: 'yellow' },
+  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience rolls', multi: true, max: 3, color: 'yellow' },
+  { key: 'light_in_the_dark', name: 'Light in the Dark', description: 'Gives YOU an additional Hope slot', multi: false, max: 1, color: 'yellow' },
+  { key: 'creature_comfort', name: 'Creature Comfort', description: 'Once per rest: Clear 1 Stress OR Give 1 Hope', multi: false, max: 1, color: 'yellow' },
+  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Stress (once per short rest)', multi: false, max: 1, color: 'yellow' },
+  { key: 'vicious', name: 'Vicious', description: 'Increase damage die or range to Very Close', multi: true, max: 3, color: 'yellow' },
+  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, max: 3, color: 'yellow' },
+  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when you reach 0 HP', multi: false, max: 1, color: 'yellow' },
+  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, max: 1, color: 'yellow' },
 ];
 
 export default function CompanionSheet({
@@ -178,11 +178,10 @@ export default function CompanionSheet({
     if (multi) {
       newOptions = { ...newOptions, [key]: (current as number) + 1 };
 
-      if (key === 'light_in_the_dark') {
-        newCompanion.hope_max = (newCompanion.hope_max || 1) + 1;
-      } else if (key === 'resilient') {
+      if (key === 'resilient') {
         newCompanion.stress_max = (newCompanion.stress_max || 3) + 1;
       }
+      // Note: light_in_the_dark now gives player a hope modifier, not companion hope
     } else {
       newOptions = { ...newOptions, [key]: !current };
 
@@ -194,6 +193,7 @@ export default function CompanionSheet({
       } else if (key === 'aware') {
         newCompanion.evasion = !current ? (newCompanion.evasion || 10) + 2 : (newCompanion.evasion || 12) - 2;
       }
+      // Note: light_in_the_dark now gives player a hope modifier, handled in level-up-modal
     }
 
     setLocalCompanion({ ...newCompanion, level_up_options: newOptions });
@@ -206,13 +206,11 @@ export default function CompanionSheet({
     const newOptions = { ...localCompanion.level_up_options, [key]: current - 1 };
     const newCompanion = { ...localCompanion };
 
-    if (key === 'light_in_the_dark') {
-      newCompanion.hope_max = Math.max(1, (newCompanion.hope_max || 1) - 1);
-      newCompanion.hope_current = Math.min(newCompanion.hope_current, newCompanion.hope_max);
-    } else if (key === 'resilient') {
+    if (key === 'resilient') {
       newCompanion.stress_max = Math.max(3, (newCompanion.stress_max || 3) - 1);
       newCompanion.stress_current = Math.min(newCompanion.stress_current, newCompanion.stress_max);
     }
+    // Note: light_in_the_dark is now boolean, not number
 
     setLocalCompanion({ ...newCompanion, level_up_options: newOptions });
   };
@@ -452,9 +450,7 @@ export default function CompanionSheet({
                         <Zap size={10} /> Hope Slots
                       </div>
                       <div className="text-2xl font-serif font-bold text-white">{localCompanion.hope_max}</div>
-                      {localCompanion.level_up_options.light_in_the_dark > 0 && (
-                        <div className="text-[10px] text-gray-500">Base 1 + {localCompanion.level_up_options.light_in_the_dark} (Light)</div>
-                      )}
+                      <div className="text-[10px] text-gray-500">Base companion hope</div>
                     </div>
 
                     {/* Armor Slot */}
@@ -563,13 +559,14 @@ export default function CompanionSheet({
               {activeSection === 'training' && (
                 <div className="space-y-3">
                   <p className="text-xs text-gray-500">
-                    Training options gained through level-ups. Some options can be taken multiple times.
+                    Training options gained through level-ups. Some options can be taken multiple times (max 3).
                   </p>
 
                   {LEVEL_UP_OPTIONS.map(option => {
                     const value = localCompanion.level_up_options[option.key as keyof typeof localCompanion.level_up_options];
                     const isActive = option.multi ? (value as number) > 0 : value as boolean;
                     const count = option.multi ? value as number : 0;
+                    const isMaxed = option.max && (option.multi ? count >= option.max : isActive);
 
                     const colorClasses: Record<string, { bg: string; text: string; border: string }> = {
                       cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/20' },
@@ -600,7 +597,12 @@ export default function CompanionSheet({
                               </h4>
                               {option.multi && count > 0 && (
                                 <span className={clsx("text-xs px-2 py-0.5 rounded font-bold", colors.bg, colors.text)}>
-                                  ×{count}
+                                  {count}/{option.max}
+                                </span>
+                              )}
+                              {isMaxed && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 font-bold">
+                                  MAX
                                 </span>
                               )}
                             </div>
@@ -620,9 +622,14 @@ export default function CompanionSheet({
                                 )}
                                 <button
                                   onClick={() => toggleLevelUpOption(option.key, true)}
+                                  disabled={isMaxed}
                                   className={clsx(
                                     "w-8 h-8 rounded flex items-center justify-center transition-colors",
-                                    isActive ? "bg-dagger-gold text-black" : "bg-white/10 hover:bg-white/20 text-white"
+                                    isMaxed
+                                      ? "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"
+                                      : isActive
+                                        ? "bg-dagger-gold text-black"
+                                        : "bg-white/10 hover:bg-white/20 text-white"
                                   )}
                                 >
                                   <ChevronUp size={16} />
@@ -631,6 +638,7 @@ export default function CompanionSheet({
                             ) : (
                               <button
                                 onClick={() => toggleLevelUpOption(option.key, false)}
+                                disabled={isMaxed && isActive}
                                 className={clsx(
                                   "w-8 h-8 rounded border-2 transition-colors flex items-center justify-center",
                                   isActive ? "bg-dagger-gold border-dagger-gold" : "bg-transparent border-gray-600 hover:border-dagger-gold"

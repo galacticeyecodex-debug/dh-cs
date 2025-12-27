@@ -113,14 +113,14 @@ const TIER_LIMITS: Record<string, number> = {
 
 // Companion Training Options for Beastbound Rangers
 const COMPANION_TRAINING_OPTIONS = [
-  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience rolls', multi: true, color: 'yellow' },
-  { key: 'light_in_the_dark', name: 'Light in the Dark', description: 'Additional Hope slot', multi: true, color: 'yellow' },
-  { key: 'creature_comfort', name: 'Creature Comfort', description: 'Once per rest: Clear 1 Stress OR Give 1 Hope', multi: false, color: 'yellow' },
-  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Stress (once per short rest)', multi: false, color: 'yellow' },
-  { key: 'vicious', name: 'Vicious', description: 'Increase damage die or range to Very Close', multi: true, color: 'yellow' },
-  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, color: 'yellow' },
-  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when you reach 0 HP', multi: false, color: 'yellow' },
-  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, color: 'yellow' },
+  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience rolls', multi: true, max: 3, color: 'yellow' },
+  { key: 'light_in_the_dark', name: 'Light in the Dark', description: 'Gives YOU an additional Hope slot', multi: false, max: 1, color: 'yellow' },
+  { key: 'creature_comfort', name: 'Creature Comfort', description: 'Once per rest: Clear 1 Stress OR Give 1 Hope', multi: false, max: 1, color: 'yellow' },
+  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Stress (once per short rest)', multi: false, max: 1, color: 'yellow' },
+  { key: 'vicious', name: 'Vicious', description: 'Increase damage die or range to Very Close', multi: true, max: 3, color: 'yellow' },
+  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, max: 3, color: 'yellow' },
+  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when you reach 0 HP', multi: false, max: 1, color: 'yellow' },
+  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, max: 1, color: 'yellow' },
 ];
 
 export default function LevelUpModal({
@@ -1040,13 +1040,14 @@ export default function LevelUpModal({
 
                   <div className="space-y-2">
                     <p className="text-xs text-gray-500 mb-3">
-                      Your companion levels up with you! Choose a training option to improve your companion&apos;s abilities. Some options can be taken multiple times.
+                      Your companion levels up with you! Choose a training option to improve your companion&apos;s abilities. Some options can be taken multiple times (max 3).
                     </p>
 
                     {COMPANION_TRAINING_OPTIONS.map((option) => {
                       const currentValue = character.ranger_companion?.level_up_options[option.key as keyof typeof character.ranger_companion.level_up_options];
                       const isAlreadyTaken = !option.multi && currentValue;
                       const currentCount = option.multi ? (currentValue as number || 0) : 0;
+                      const isMaxed = option.max && (option.multi ? currentCount >= option.max : isAlreadyTaken);
                       const isSelected = selectedCompanionTraining === option.key;
 
                       const colorClasses: Record<string, { bg: string; text: string; border: string }> = {
@@ -1066,11 +1067,11 @@ export default function LevelUpModal({
                         <button
                           key={option.key}
                           onClick={() => setSelectedCompanionTraining(isSelected ? '' : option.key)}
-                          disabled={!!isAlreadyTaken}
+                          disabled={!!isMaxed}
                           className={`w-full text-left p-4 rounded-lg border transition-all ${
                             isSelected
                               ? `${colors.bg} ${colors.border} border-2`
-                              : isAlreadyTaken
+                              : isMaxed
                                 ? 'bg-black/20 border-white/5 opacity-50 cursor-not-allowed'
                                 : 'bg-black/20 border-white/10 hover:border-white/30'
                           }`}
@@ -1083,11 +1084,13 @@ export default function LevelUpModal({
                                 </h4>
                                 {option.multi && currentCount > 0 && (
                                   <span className={`text-xs px-2 py-0.5 rounded font-bold ${colors.bg} ${colors.text}`}>
-                                    Current: ×{currentCount}
+                                    {currentCount}/{option.max}
                                   </span>
                                 )}
-                                {isAlreadyTaken && (
-                                  <span className="text-xs text-gray-500">(Already taken)</span>
+                                {isMaxed && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 font-bold">
+                                    MAX
+                                  </span>
                                 )}
                               </div>
                               <p className="text-xs text-gray-400 mt-1">{option.description}</p>

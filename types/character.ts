@@ -198,14 +198,14 @@ export interface RangerCompanion {
   attack_range?: 'melee' | 'very_close' | 'close' | 'far';
   experiences: CompanionExperience[];
   level_up_options: {
-    intelligent: number; // Can be taken multiple times
-    light_in_the_dark: number; // Can be taken multiple times
+    intelligent: number; // Max 3 times - gives +1 to companion experience rolls
+    light_in_the_dark: boolean; // Only once - gives PLAYER +1 hope slot (via modifier)
     creature_comfort: boolean;
     creature_comfort_used?: boolean; // Reset on rest
     armored: boolean;
     armored_used?: boolean; // Reset on short rest
-    vicious: number; // Can be taken multiple times
-    resilient: number; // Can be taken multiple times
+    vicious: number; // Max 3 times - increases damage die or range
+    resilient: number; // Max 3 times - adds companion stress slot
     bonded: boolean;
     aware: boolean;
   };
