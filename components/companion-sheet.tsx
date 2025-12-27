@@ -21,7 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RangerCompanion, CompanionExperience } from '@/types/character';
 import { uploadCharacterImage } from '@/lib/storage-service';
 import { toast } from 'sonner';
-import { VALUE_COLORS, FEATURE_COLORS, type FeatureColorKey } from '@/lib/styles';
+import { VALUE_COLORS } from '@/lib/styles';
 
 interface CompanionSheetProps {
   isOpen: boolean;
@@ -66,18 +66,18 @@ const DAMAGE_DICE = ['d4', 'd6', 'd8', 'd10', 'd12'];
 const ATTACK_RANGES = ['melee', 'very_close', 'close', 'far'] as const;
 
 /**
- * Companion training options with distinct colors for visual differentiation.
- * Colors map to FEATURE_COLORS in lib/styles.ts
+ * Companion training options.
+ * Uses harmonized color scheme: gold when active (consistent with modified values)
  */
 const LEVEL_UP_OPTIONS = [
-  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience rolls', multi: true, max: 3, colorKey: 'intelligent' as FeatureColorKey },
-  { key: 'light_in_the_dark', name: 'Light in the Dark', description: 'Gives YOU an additional Hope slot', multi: false, max: 1, colorKey: 'lightInTheDark' as FeatureColorKey },
-  { key: 'creature_comfort', name: 'Creature Comfort', description: 'Once per rest: Clear 1 Stress OR Give 1 Hope', multi: false, max: 1, colorKey: 'creatureComfort' as FeatureColorKey },
-  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Stress (once per short rest)', multi: false, max: 1, colorKey: 'armored' as FeatureColorKey },
-  { key: 'vicious', name: 'Vicious', description: 'Increase damage die or range to Very Close', multi: true, max: 3, colorKey: 'vicious' as FeatureColorKey },
-  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, max: 3, colorKey: 'resilient' as FeatureColorKey },
-  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when you reach 0 HP', multi: false, max: 1, colorKey: 'bonded' as FeatureColorKey },
-  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, max: 1, colorKey: 'aware' as FeatureColorKey },
+  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience rolls', multi: true, max: 3 },
+  { key: 'light_in_the_dark', name: 'Light in the Dark', description: 'Gives YOU an additional Hope slot', multi: false, max: 1 },
+  { key: 'creature_comfort', name: 'Creature Comfort', description: 'Once per rest: Clear 1 Stress OR Give 1 Hope', multi: false, max: 1 },
+  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Stress (once per short rest)', multi: false, max: 1 },
+  { key: 'vicious', name: 'Vicious', description: 'Increase damage die or range to Very Close', multi: true, max: 3 },
+  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, max: 3 },
+  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when you reach 0 HP', multi: false, max: 1 },
+  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, max: 1 },
 ];
 
 export default function CompanionSheet({
@@ -593,25 +593,24 @@ export default function CompanionSheet({
                     const count = option.multi ? value as number : 0;
                     const isMaxed = Boolean(option.max && (option.multi ? count >= option.max : isActive));
 
-                    // Use centralized feature colors from lib/styles.ts
-                    const colors = FEATURE_COLORS[option.colorKey] || FEATURE_COLORS.default;
-
                     return (
                       <div
                         key={option.key}
                         className={clsx(
                           "rounded-lg p-4 border transition-colors",
-                          isActive ? `${colors.bg} ${colors.border}` : "bg-black/20 border-white/5"
+                          // Harmonized colors: gold accent when active, subtle when inactive
+                          isActive ? "bg-dagger-gold/10 border-dagger-gold/30" : "bg-black/20 border-white/5"
                         )}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <h4 className={clsx("font-bold", isActive ? colors.text : "text-white")}>
+                              {/* White text by default, gold when active */}
+                              <h4 className={clsx("font-bold", isActive ? "text-dagger-gold" : "text-white")}>
                                 {option.name}
                               </h4>
                               {option.multi && count > 0 && (
-                                <span className={clsx("text-xs px-2 py-0.5 rounded font-bold", colors.bg, colors.text)}>
+                                <span className="text-xs px-2 py-0.5 rounded font-bold bg-dagger-gold/20 text-dagger-gold">
                                   {count}/{option.max}
                                 </span>
                               )}
@@ -656,7 +655,7 @@ export default function CompanionSheet({
                                 disabled={isMaxed && isActive}
                                 className={clsx(
                                   "w-8 h-8 rounded border-2 transition-colors flex items-center justify-center",
-                                  isActive ? "bg-dagger-gold border-dagger-gold" : "bg-transparent border-gray-600 hover:border-dagger-gold"
+                                  isActive ? "bg-dagger-gold border-dagger-gold" : "bg-transparent border-white/20 hover:border-dagger-gold"
                                 )}
                               >
                                 {isActive && <Check size={16} className="text-black" />}
