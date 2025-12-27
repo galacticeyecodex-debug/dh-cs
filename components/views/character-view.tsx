@@ -853,54 +853,51 @@ export default function CharacterView() {
                           </div>
                         </div>
 
-                        {/* Vitals Row */}
-                        <div className="grid grid-cols-2 gap-px bg-white/5">
-                          {/* Stress */}
-                          <div className="bg-dagger-panel p-3">
-                            <div className="text-[10px] font-bold uppercase tracking-wide text-purple-400 flex items-center gap-1 mb-2">
-                              <Zap size={10} /> Stress
-                            </div>
-                            <div className="flex flex-wrap gap-1.5">
-                              {Array.from({ length: character.ranger_companion.stress_max }).map((_, i) => {
-                                const isFilled = i < character.ranger_companion!.stress_current;
-                                const isMax = character.ranger_companion!.stress_current >= character.ranger_companion!.stress_max;
-                                return (
-                                  <button
-                                    key={i}
-                                    onClick={() => {
-                                      const newStress = isFilled ? i : i + 1;
-                                      updateCompanion({ ...character.ranger_companion!, stress_current: newStress });
-                                    }}
-                                    className="transition-all"
-                                  >
-                                    <Zap
-                                      size={16}
-                                      className={clsx(
-                                        "transition-all",
-                                        isFilled
-                                          ? isMax ? "text-red-500 scale-100" : "text-purple-400 scale-100"
-                                          : "text-white/10 scale-90"
-                                      )}
-                                      fill={isFilled ? "currentColor" : "none"}
-                                    />
-                                  </button>
-                                );
-                              })}
-                            </div>
-                            <div className="flex gap-1 mt-2">
-                              <button
-                                onClick={() => updateCompanion({ ...character.ranger_companion!, stress_current: Math.max(0, character.ranger_companion!.stress_current - 1) })}
-                                className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded text-[10px] font-bold uppercase"
-                              >
-                                Clear
-                              </button>
-                              <button
-                                onClick={() => updateCompanion({ ...character.ranger_companion!, stress_current: Math.min(character.ranger_companion!.stress_max, character.ranger_companion!.stress_current + 1) })}
-                                className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded text-[10px] font-bold uppercase"
-                              >
-                                Mark
-                              </button>
-                            </div>
+                        {/* Stress */}
+                        <div className="bg-dagger-panel p-3 border-t border-white/5">
+                          <div className="text-[10px] font-bold uppercase tracking-wide text-purple-400 flex items-center gap-1 mb-2">
+                            <Zap size={10} /> Stress
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {Array.from({ length: character.ranger_companion.stress_max }).map((_, i) => {
+                              const isFilled = i < character.ranger_companion!.stress_current;
+                              const isMax = character.ranger_companion!.stress_current >= character.ranger_companion!.stress_max;
+                              return (
+                                <button
+                                  key={i}
+                                  onClick={() => {
+                                    const newStress = isFilled ? i : i + 1;
+                                    updateCompanion({ ...character.ranger_companion!, stress_current: newStress });
+                                  }}
+                                  className="transition-all"
+                                >
+                                  <Zap
+                                    size={16}
+                                    className={clsx(
+                                      "transition-all",
+                                      isFilled
+                                        ? isMax ? "text-red-500 scale-100" : "text-purple-400 scale-100"
+                                        : "text-white/10 scale-90"
+                                    )}
+                                    fill={isFilled ? "currentColor" : "none"}
+                                  />
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div className="flex gap-1 mt-2">
+                            <button
+                              onClick={() => updateCompanion({ ...character.ranger_companion!, stress_current: Math.max(0, character.ranger_companion!.stress_current - 1) })}
+                              className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded text-[10px] font-bold uppercase"
+                            >
+                              Clear
+                            </button>
+                            <button
+                              onClick={() => updateCompanion({ ...character.ranger_companion!, stress_current: Math.min(character.ranger_companion!.stress_max, character.ranger_companion!.stress_current + 1) })}
+                              className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded text-[10px] font-bold uppercase"
+                            >
+                              Mark
+                            </button>
                           </div>
                         </div>
 
