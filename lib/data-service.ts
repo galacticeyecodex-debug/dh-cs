@@ -322,28 +322,65 @@ export const dataService: DataClient = {
        if (error) throw error;
        return data;
     },
-    search: async (query, type) => {
+    search: async (query, type, options?: { includePlaytest?: boolean }) => {
         const supabase = createClient();
         let q = supabase.from('library').select('*').ilike('name', `%${query}%`);
         if (type) q = q.eq('type', type);
+        // Filter by source if playtest content should be excluded
+        if (!options?.includePlaytest) {
+          q = q.eq('source', 'srd');
+        }
         const { data, error } = await q;
         if (error) throw error;
         return data || [];
     },
-    getByType: async (type) => {
+    getByType: async (type, options?: { includePlaytest?: boolean }) => {
         const supabase = createClient();
-        const { data, error } = await supabase
+        let q = supabase
           .from('library')
           .select('*')
           .eq('type', type);
+        // Filter by source if playtest content should be excluded
+        if (!options?.includePlaytest) {
+          q = q.eq('source', 'srd');
+        }
+        const { data, error } = await q;
         if (error) throw error;
         return data || [];
     },
-    getAll: async () => {
+    getAll: async (options?: { includePlaytest?: boolean }) => {
         const supabase = createClient();
-        const { data, error } = await supabase
+        let q = supabase
           .from('library')
           .select('*');
+        // Filter by source if playtest content should be excluded
+        if (!options?.includePlaytest) {
+          q = q.eq('source', 'srd');
+        }
+        const { data, error } = await q;
+        if (error) throw error;
+        return data || [];
+    },
+    // Get content filtered by user's content access settings
+    getByTypeForUser: async (type: string, userId: string) => {
+        const supabase = createClient();
+
+        // Get user's content access settings
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('content_access')
+          .eq('id', userId)
+          .single();
+
+        const hasPlaytestAccess = profile?.content_access?.playtest ?? false;
+
+        let q = supabase.from('library').select('*').eq('type', type);
+
+        if (!hasPlaytestAccess) {
+          q = q.eq('source', 'srd');
+        }
+
+        const { data, error } = await q;
         if (error) throw error;
         return data || [];
     }
@@ -397,6 +434,22 @@ export const dataService: DataClient = {
           id: userId,
           ...profile
         });
+      if (error) throw error;
+    },
+    update: async (userId, updates) => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId);
+      if (error) throw error;
+    },
+    updateContentAccess: async (userId: string, contentAccess: { srd?: boolean; playtest?: boolean }) => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('profiles')
+        .update({ content_access: contentAccess })
+        .eq('id', userId);
       if (error) throw error;
     }
   }
