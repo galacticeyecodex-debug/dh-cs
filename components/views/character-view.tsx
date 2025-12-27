@@ -1020,9 +1020,9 @@ export default function CharacterView() {
                                   Intelligent {character.ranger_companion.level_up_options.intelligent > 1 ? `×${character.ranger_companion.level_up_options.intelligent}` : ''}
                                 </span>
                               )}
-                              {character.ranger_companion.level_up_options.light_in_the_dark > 0 && (
+                              {character.ranger_companion.level_up_options.light_in_the_dark && (
                                 <span className="text-xs bg-dagger-gold/10 text-dagger-gold border border-dagger-gold/20 px-2 py-1 rounded-full font-medium">
-                                  Light in the Dark {character.ranger_companion.level_up_options.light_in_the_dark > 1 ? `×${character.ranger_companion.level_up_options.light_in_the_dark}` : ''}
+                                  Light in the Dark
                                 </span>
                               )}
                               {character.ranger_companion.level_up_options.creature_comfort && (
