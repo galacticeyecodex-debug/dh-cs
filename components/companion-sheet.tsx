@@ -43,6 +43,7 @@ const DEFAULT_COMPANION: RangerCompanion = {
   hope_max: 1,
   hope_current: 0,
   attack_type: 'melee',
+  attack_name: '',
   damage_die: 'd6',
   attack_range: 'melee',
   experiences: [],
@@ -105,8 +106,8 @@ export default function CompanionSheet({
   const isNewCompanion = !companion;
 
   const handleSave = () => {
-    if (!localCompanion.name.trim() || !localCompanion.animal_type.trim()) {
-      toast.error('Please enter a name and animal type');
+    if (!localCompanion.name.trim() || !localCompanion.animal_type.trim() || !localCompanion.attack_name.trim()) {
+      toast.error('Please enter a name, animal type, and attack name');
       return;
     }
     onUpdateCompanion(localCompanion);
@@ -343,6 +344,17 @@ export default function CompanionSheet({
                       value={localCompanion.animal_type}
                       onChange={(e) => updateLocal({ animal_type: e.target.value })}
                       placeholder="e.g., Wolf, Hawk, Bear..."
+                      className="w-full bg-black/30 border border-white/20 rounded-lg px-3 py-2 text-white focus:border-dagger-gold outline-none transition-colors"
+                    />
+                  </div>
+
+                  {/* Attack Name */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Attack Name</label>
+                    <input
+                      value={localCompanion.attack_name}
+                      onChange={(e) => updateLocal({ attack_name: e.target.value })}
+                      placeholder="e.g., Claw Swipe, Bite, Pounce..."
                       className="w-full bg-black/30 border border-white/20 rounded-lg px-3 py-2 text-white focus:border-dagger-gold outline-none transition-colors"
                     />
                   </div>
@@ -666,7 +678,7 @@ export default function CompanionSheet({
               </button>
               <button
                 onClick={handleSave}
-                disabled={!localCompanion.name.trim() || !localCompanion.animal_type.trim()}
+                disabled={!localCompanion.name.trim() || !localCompanion.animal_type.trim() || !localCompanion.attack_name.trim()}
                 className="flex-1 py-3 bg-dagger-gold hover:bg-dagger-gold/90 text-black font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isNewCompanion ? 'Create Companion' : 'Save Changes'}
