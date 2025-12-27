@@ -19,10 +19,11 @@ import { Shield, Swords, Zap, Skull, Info, Crosshair, Eye, EyeOff, Sparkles, Wan
 import clsx from 'clsx';
 import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers, calculateAttackModifier, calculateDamageModifier } from '@/lib/utils';
 import { getLoadoutCombatAbilities } from '@/lib/combat-spell-parser';
-import CommonVitalsDisplay from '@/components/common-vitals-display'; // Import the new common component
+import CommonVitalsDisplay from '@/components/common-vitals-display';
 import ModifierSheet from '@/components/modifier-sheet';
 import SubclassFeatureCard from '@/components/subclass-feature-card';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { getValueColor, MODIFIED_INDICATOR } from '@/lib/styles';
 
 export default function CombatView() {
   const { character, prepareRoll, updateModifiers } = useCharacterStore();
@@ -147,8 +148,11 @@ export default function CombatView() {
                           <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{range}</span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-xl font-bold text-dagger-gold">{calculatedDamage}</div>
+                      <div className="text-right relative">
+                        <div className={clsx("text-xl font-bold", getValueColor(damageModifier !== 0))}>
+                          {calculatedDamage}
+                        </div>
+                        {damageModifier !== 0 && <div className={MODIFIED_INDICATOR} />}
                         <div className="text-[10px] text-gray-500 uppercase">
                           {baseDamage} × {totalProficiency}
                         </div>
@@ -223,10 +227,12 @@ export default function CombatView() {
                         <span className="text-dagger-gold">Companion</span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-xl font-bold text-dagger-gold">
+                    <div className="text-right relative">
+                      {/* Companion damage: white by default, gold if character has damage modifiers */}
+                      <div className={clsx("text-xl font-bold", getValueColor(calculateDamageModifier(character) !== 0))}>
                         {calculateWeaponDamage(companion.damage_die, totalProficiency)}
                       </div>
+                      {calculateDamageModifier(character) !== 0 && <div className={MODIFIED_INDICATOR} />}
                       <div className="text-[10px] text-gray-500 uppercase">
                         {companion.damage_die} × {totalProficiency}
                       </div>
@@ -239,11 +245,15 @@ export default function CombatView() {
                       onClick={(e) => {
                         e.stopPropagation();
                         // Companion attack uses companion's experiences which are included in the dice roller
-                        const attackModifier = calculateAttackModifier(character);
-                        prepareRoll(`${companion.name} Attack`, attackModifier);
+                        const companionAttackMod = calculateAttackModifier(character);
+                        prepareRoll(`${companion.name} Attack`, companionAttackMod);
                       }}
-                      className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                      className={clsx(
+                        "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors relative",
+                        calculateAttackModifier(character) !== 0 && "text-dagger-gold"
+                      )}
                     >
+                      {calculateAttackModifier(character) !== 0 && <div className={MODIFIED_INDICATOR} />}
                       <Zap size={16} className="text-yellow-400" /> Attack
                     </button>
                     <button
@@ -251,12 +261,16 @@ export default function CombatView() {
                         e.stopPropagation();
                         const calculatedDamage = calculateWeaponDamage(companion.damage_die, totalProficiency);
                         const { dice, modifier } = parseDamageRoll(calculatedDamage);
-                        const damageModifier = calculateDamageModifier(character);
-                        const totalDamageBonus = modifier + damageModifier;
+                        const companionDamageMod = calculateDamageModifier(character);
+                        const totalDamageBonus = modifier + companionDamageMod;
                         prepareRoll(`${companion.name} Damage`, totalDamageBonus, dice);
                       }}
-                      className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                      className={clsx(
+                        "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors relative",
+                        calculateDamageModifier(character) !== 0 && "text-dagger-gold"
+                      )}
                     >
+                      {calculateDamageModifier(character) !== 0 && <div className={MODIFIED_INDICATOR} />}
                       <Skull size={16} className="text-red-400" /> Damage
                     </button>
                   </div>

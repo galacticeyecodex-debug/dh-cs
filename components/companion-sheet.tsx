@@ -21,6 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RangerCompanion, CompanionExperience } from '@/types/character';
 import { uploadCharacterImage } from '@/lib/storage-service';
 import { toast } from 'sonner';
+import { VALUE_COLORS, FEATURE_COLORS, type FeatureColorKey } from '@/lib/styles';
 
 interface CompanionSheetProps {
   isOpen: boolean;
@@ -64,15 +65,19 @@ const DEFAULT_COMPANION: RangerCompanion = {
 const DAMAGE_DICE = ['d4', 'd6', 'd8', 'd10', 'd12'];
 const ATTACK_RANGES = ['melee', 'very_close', 'close', 'far'] as const;
 
+/**
+ * Companion training options with distinct colors for visual differentiation.
+ * Colors map to FEATURE_COLORS in lib/styles.ts
+ */
 const LEVEL_UP_OPTIONS = [
-  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience rolls', multi: true, max: 3, color: 'yellow' },
-  { key: 'light_in_the_dark', name: 'Light in the Dark', description: 'Gives YOU an additional Hope slot', multi: false, max: 1, color: 'yellow' },
-  { key: 'creature_comfort', name: 'Creature Comfort', description: 'Once per rest: Clear 1 Stress OR Give 1 Hope', multi: false, max: 1, color: 'yellow' },
-  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Stress (once per short rest)', multi: false, max: 1, color: 'yellow' },
-  { key: 'vicious', name: 'Vicious', description: 'Increase damage die or range to Very Close', multi: true, max: 3, color: 'yellow' },
-  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, max: 3, color: 'yellow' },
-  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when you reach 0 HP', multi: false, max: 1, color: 'yellow' },
-  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, max: 1, color: 'yellow' },
+  { key: 'intelligent', name: 'Intelligent', description: '+1 bonus to Companion Experience rolls', multi: true, max: 3, colorKey: 'intelligent' as FeatureColorKey },
+  { key: 'light_in_the_dark', name: 'Light in the Dark', description: 'Gives YOU an additional Hope slot', multi: false, max: 1, colorKey: 'lightInTheDark' as FeatureColorKey },
+  { key: 'creature_comfort', name: 'Creature Comfort', description: 'Once per rest: Clear 1 Stress OR Give 1 Hope', multi: false, max: 1, colorKey: 'creatureComfort' as FeatureColorKey },
+  { key: 'armored', name: 'Armored', description: 'Mark Armor Slot instead of Stress (once per short rest)', multi: false, max: 1, colorKey: 'armored' as FeatureColorKey },
+  { key: 'vicious', name: 'Vicious', description: 'Increase damage die or range to Very Close', multi: true, max: 3, colorKey: 'vicious' as FeatureColorKey },
+  { key: 'resilient', name: 'Resilient', description: 'Additional Stress slot', multi: true, max: 3, colorKey: 'resilient' as FeatureColorKey },
+  { key: 'bonded', name: 'Bonded', description: 'Emergency assistance when you reach 0 HP', multi: false, max: 1, colorKey: 'bonded' as FeatureColorKey },
+  { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, max: 1, colorKey: 'aware' as FeatureColorKey },
 ];
 
 export default function CompanionSheet({
@@ -498,7 +503,8 @@ export default function CompanionSheet({
                       />
                       <div className="flex items-center bg-black/40 rounded border border-white/10">
                         <button onClick={() => setNewExpValue(v => Math.max(0, v - 1))} className="px-2 py-1 hover:bg-white/10 text-white">-</button>
-                        <span className="w-8 text-center font-bold text-dagger-gold">+{newExpValue}</span>
+                        {/* Experience values are base values, use white (VALUE_COLORS.default) */}
+                        <span className={clsx("w-8 text-center font-bold", VALUE_COLORS.default)}>+{newExpValue}</span>
                         <button onClick={() => setNewExpValue(v => v + 1)} className="px-2 py-1 hover:bg-white/10 text-white">+</button>
                       </div>
                     </div>
@@ -532,7 +538,8 @@ export default function CompanionSheet({
                             <div className="flex items-center justify-between">
                               <div className="flex items-center bg-black/40 rounded border border-white/20">
                                 <button onClick={() => setEditExpValue(v => Math.max(0, v - 1))} className="px-2 py-0.5 hover:bg-white/10 text-white">-</button>
-                                <span className="w-8 text-center font-bold text-dagger-gold">+{editExpValue}</span>
+                                {/* Experience values are base values, use white */}
+                                <span className={clsx("w-8 text-center font-bold", VALUE_COLORS.default)}>+{editExpValue}</span>
                                 <button onClick={() => setEditExpValue(v => v + 1)} className="px-2 py-0.5 hover:bg-white/10 text-white">+</button>
                               </div>
                               <div className="flex gap-2">
@@ -551,7 +558,8 @@ export default function CompanionSheet({
                               <Pencil size={12} className="text-gray-600 opacity-50" />
                             </div>
                             <div className="flex items-center gap-3">
-                              <div className="text-dagger-gold font-bold">+{exp.value}</div>
+                              {/* Experience values are base values, use white */}
+                              <div className={clsx("font-bold", VALUE_COLORS.default)}>+{exp.value}</div>
                               <button onClick={() => handleDeleteExperience(index)} className="text-gray-500 hover:text-red-400 p-1">
                                 <Trash2 size={16} />
                               </button>
@@ -585,18 +593,8 @@ export default function CompanionSheet({
                     const count = option.multi ? value as number : 0;
                     const isMaxed = Boolean(option.max && (option.multi ? count >= option.max : isActive));
 
-                    const colorClasses: Record<string, { bg: string; text: string; border: string }> = {
-                      cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/20' },
-                      yellow: { bg: 'bg-dagger-gold/10', text: 'text-dagger-gold', border: 'border-dagger-gold/20' },
-                      pink: { bg: 'bg-pink-500/10', text: 'text-pink-400', border: 'border-pink-500/20' },
-                      blue: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20' },
-                      red: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20' },
-                      purple: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
-                      orange: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20' },
-                      teal: { bg: 'bg-teal-500/10', text: 'text-teal-400', border: 'border-teal-500/20' },
-                    };
-
-                    const colors = colorClasses[option.color] || colorClasses.cyan;
+                    // Use centralized feature colors from lib/styles.ts
+                    const colors = FEATURE_COLORS[option.colorKey] || FEATURE_COLORS.default;
 
                     return (
                       <div

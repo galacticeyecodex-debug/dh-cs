@@ -20,6 +20,7 @@ import { X, AlertCircle, Settings, Plus, Minus, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { PANEL_BORDERS } from '@/lib/styles';
 
 interface ManageCharacterModalProps {
   isOpen: boolean;
@@ -221,7 +222,7 @@ export default function ManageCharacterModal({
               <div className="border-t border-red-700/30 px-6 py-4 flex gap-3 justify-end">
                 <button
                   onClick={() => setConfirmDeLevelOpen(false)}
-                  className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:text-white hover:border-gray-400 transition-colors font-bold"
+                  className="px-4 py-2 rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-white/30 transition-colors font-bold"
                 >
                   Cancel
                 </button>
@@ -295,7 +296,7 @@ export default function ManageCharacterModal({
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-white focus:border-dagger-gold outline-none transition-colors"
                   placeholder="Enter character name"
                 />
               </div>
@@ -309,7 +310,7 @@ export default function ManageCharacterModal({
                   <button
                     onClick={() => level > 1 && setLevel(level - 1)}
                     disabled={level <= 1}
-                    className="px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-gray-300 hover:text-white hover:border-dagger-gold/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-gray-300 hover:text-white hover:border-dagger-gold/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   >
                     <Minus size={20} />
                   </button>
@@ -328,7 +329,7 @@ export default function ManageCharacterModal({
                     className={
                       level >= currentLevel
                         ? "px-3 py-2 rounded-lg bg-dagger-gold text-black hover:bg-dagger-gold/90 transition-colors shadow-[0_0_10px_rgba(251,191,36,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                        : "px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-gray-300 hover:text-white hover:border-dagger-gold/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        : "px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-gray-300 hover:text-white hover:border-dagger-gold/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     }
                   >
                     {level >= currentLevel ? <Zap size={20} className="fill-black" /> : <Plus size={20} />}
@@ -349,7 +350,7 @@ export default function ManageCharacterModal({
                 <select
                   value={ancestry}
                   onChange={(e) => setAncestry(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-white focus:border-dagger-gold outline-none transition-colors"
                 >
                   <option value="">Select an ancestry...</option>
                   {availableAncestries.map((anc) => (
@@ -368,7 +369,7 @@ export default function ManageCharacterModal({
                 <select
                   value={community}
                   onChange={(e) => setCommunity(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-white focus:border-dagger-gold outline-none transition-colors"
                 >
                   <option value="">Select a community...</option>
                   {availableCommunities.map((com) => (
@@ -387,7 +388,7 @@ export default function ManageCharacterModal({
                 <select
                   value={spellcastTrait}
                   onChange={(e) => setSpellcastTrait(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-black/50 border border-gray-600 text-white focus:border-dagger-gold outline-none transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-white focus:border-dagger-gold outline-none transition-colors"
                 >
                   <option value="">Select a trait...</option>
                   {['Agility', 'Strength', 'Finesse', 'Instinct', 'Presence', 'Knowledge'].map((trait) => (
@@ -409,7 +410,7 @@ export default function ManageCharacterModal({
             <div className="border-t border-white/10 px-6 py-4 flex gap-3 justify-end">
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:text-white hover:border-gray-400 transition-colors font-bold"
+                className="px-4 py-2 rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-white/30 transition-colors font-bold"
               >
                 Cancel
               </button>
