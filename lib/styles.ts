@@ -195,34 +195,6 @@ export function getTabClass(isActive: boolean): string {
 }
 
 // =============================================================================
-// FEATURE/TRAINING COLORS
-// Colors for different feature types (e.g., companion training options)
-// =============================================================================
-
-export const FEATURE_COLORS = {
-  intelligent: { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/20' },
-  lightInTheDark: { bg: 'bg-dagger-gold/10', text: 'text-dagger-gold', border: 'border-dagger-gold/20' },
-  creatureComfort: { bg: 'bg-pink-500/10', text: 'text-pink-400', border: 'border-pink-500/20' },
-  armored: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20' },
-  vicious: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20' },
-  resilient: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
-  bonded: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20' },
-  aware: { bg: 'bg-teal-500/10', text: 'text-teal-400', border: 'border-teal-500/20' },
-  // Fallback
-  default: { bg: 'bg-dagger-gold/10', text: 'text-dagger-gold', border: 'border-dagger-gold/20' },
-} as const;
-
-export type FeatureColorKey = keyof typeof FEATURE_COLORS;
-
-/**
- * Get feature color classes by key.
- */
-export function getFeatureColors(key: string): { bg: string; text: string; border: string } {
-  const colorKey = key.replace(/_/g, '') as FeatureColorKey;
-  return FEATURE_COLORS[colorKey] || FEATURE_COLORS.default;
-}
-
-// =============================================================================
 // SHADOW HIERARCHY
 // Consistent elevation levels
 // =============================================================================
