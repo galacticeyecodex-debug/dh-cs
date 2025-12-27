@@ -21,10 +21,11 @@ import { useRouter } from 'next/navigation';
 import { useCharacterStore, Character, LibraryItem } from '@/store/character-store';
 import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
-import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins, Sword, X, Heart, Upload } from 'lucide-react';
+import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins, Sword, X, Heart, Upload, PawPrint } from 'lucide-react';
 import AddItemModal from '@/components/add-item-modal';
 import { uploadCharacterAvatar } from '@/lib/storage-service';
 import { calculateDamageThresholds } from '@/lib/gameLogic';
+import { RangerCompanion } from '@/types/character';
 
 // Define the shape of our form data
 interface CharacterFormData {
@@ -49,6 +50,7 @@ interface CharacterFormData {
   selectedSecondaryWeaponId: string | null;
   selectedArmorId: string | null;
   selectedPotionType: 'health' | 'stamina' | null;
+  companion?: RangerCompanion; // For Beastbond Rangers
 }
 
 // Minimal Library Item type for dropdowns and lookup
@@ -466,6 +468,10 @@ export default function CreateCharacterPage() {
   }, [equipmentModalContext]);
 
   const validateStep = useCallback((step: number) => {
+    // Check if Beastbond Ranger
+    const isBeastboundRanger = formData.subclass_id &&
+      libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
+
     switch (step) {
       case 1: // Basic Info
         return !!formData.name;
@@ -488,12 +494,17 @@ export default function CreateCharacterPage() {
         return allAssigned;
       case 6: // Experiences
         return !!formData.experiences && formData.experiences.length === 2 && formData.experiences.every(e => e.trim().length > 0);
-      case 7: // Equipment
+      case 7: // Companion Creation (only for Beastbond Rangers)
+        if (!isBeastboundRanger) return true; // Skip if not Beastbond
+        return !!(formData.companion?.name && formData.companion?.animal_type && formData.companion?.attack_name &&
+                 formData.companion?.experiences?.length === 2 &&
+                 formData.companion?.experiences.every(e => e.name.trim().length > 0));
+      case 8: // Equipment
         return !!formData.selectedPrimaryWeaponId && !!formData.selectedArmorId && !!formData.selectedPotionType;
       default:
         return true;
     }
-  }, [formData, TRAIT_ASSIGNMENT_POOL]);
+  }, [formData, libraryData.subclasses, TRAIT_ASSIGNMENT_POOL]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -766,7 +777,9 @@ export default function CreateCharacterPage() {
         stats: newCharacterData.stats,
         vitals: newCharacterData.vitals,
         gold: newCharacterData.gold,
-        modifiers: {}
+        modifiers: {},
+        // Add companion for Beastbond Rangers
+        ...(formData.companion && { ranger_companion: formData.companion })
       },
       cards: cardsToInsert.map(({ card_id, location, sort_order }) => ({
         card_id,
@@ -1195,7 +1208,12 @@ export default function CreateCharacterPage() {
               <button type="button" onClick={() => setCurrentStep(5)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
               <button
                 type="button"
-                onClick={() => setCurrentStep(7)}
+                onClick={() => {
+                  // Skip companion step if not Beastbond
+                  const isBeastbound = formData.subclass_id &&
+                    libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
+                  setCurrentStep(isBeastbound ? 7 : 8);
+                }}
                 disabled={!validateStep(6)}
                 className={clsx(
                   "px-4 py-2 font-bold rounded-full shadow-md transition-all",
@@ -1209,7 +1227,153 @@ export default function CreateCharacterPage() {
             </div>
           </div>
         );
-      case 7: // Equipment Selection
+      case 7: // Companion Creation (only for Beastbond Rangers)
+        const isBeastbound = formData.subclass_id &&
+          libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
+
+        if (!isBeastbound) {
+          // Skip this step if not Beastbond
+          return null;
+        }
+
+        return (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold font-serif flex items-center gap-2">
+              <PawPrint size={20} className="text-dagger-gold" /> Step 7: Create Your Companion
+            </h2>
+            <p className="text-sm text-gray-400">
+              As a Beastbound Ranger, you have an animal companion. Give them a name and describe their background.
+            </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-400">Companion Name</label>
+              <input
+                type="text"
+                value={formData.companion?.name || ''}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  companion: {
+                    ...prev.companion,
+                    name: e.target.value,
+                    animal_type: prev.companion?.animal_type || '',
+                    evasion: 10,
+                    stress_max: 3,
+                    stress_current: 0,
+                    armor_slot: false,
+                    armor_slot_used: false,
+                    hope_max: 1,
+                    hope_current: 0,
+                    attack_type: prev.companion?.attack_type || 'melee',
+                    attack_name: prev.companion?.attack_name || '',
+                    damage_die: 'd6',
+                    attack_range: prev.companion?.attack_range || 'melee',
+                    experiences: prev.companion?.experiences || [{ name: '', value: 2 }, { name: '', value: 2 }],
+                    level_up_options: {
+                      intelligent: 0,
+                      light_in_the_dark: false,
+                      creature_comfort: false,
+                      armored: false,
+                      vicious: 0,
+                      resilient: 0,
+                      bonded: false,
+                      aware: false,
+                    }
+                  } as RangerCompanion
+                }))}
+                placeholder="e.g., Shadow, Fang, Luna"
+                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400">Animal Type</label>
+              <input
+                type="text"
+                value={formData.companion?.animal_type || ''}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  companion: {
+                    ...prev.companion!,
+                    animal_type: e.target.value
+                  } as RangerCompanion
+                }))}
+                placeholder="e.g., Wolf, Hawk, Bear"
+                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400">Attack Name</label>
+              <input
+                type="text"
+                value={formData.companion?.attack_name || ''}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  companion: {
+                    ...prev.companion!,
+                    attack_name: e.target.value
+                  } as RangerCompanion
+                }))}
+                placeholder="e.g., Claw Swipe, Bite, Pounce"
+                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400">Companion Experience 1 (+2)</label>
+              <input
+                type="text"
+                value={formData.companion?.experiences?.[0]?.name || ''}
+                onChange={(e) => {
+                  const newExperiences = [...(formData.companion?.experiences || [{ name: '', value: 2 }, { name: '', value: 2 }])];
+                  newExperiences[0] = { name: e.target.value, value: 2 };
+                  setFormData(prev => ({
+                    ...prev,
+                    companion: {
+                      ...prev.companion!,
+                      experiences: newExperiences
+                    } as RangerCompanion
+                  }));
+                }}
+                placeholder="e.g., Tracking, Hunting"
+                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400">Companion Experience 2 (+2)</label>
+              <input
+                type="text"
+                value={formData.companion?.experiences?.[1]?.name || ''}
+                onChange={(e) => {
+                  const newExperiences = [...(formData.companion?.experiences || [{ name: '', value: 2 }, { name: '', value: 2 }])];
+                  newExperiences[1] = { name: e.target.value, value: 2 };
+                  setFormData(prev => ({
+                    ...prev,
+                    companion: {
+                      ...prev.companion!,
+                      experiences: newExperiences
+                    } as RangerCompanion
+                  }));
+                }}
+                placeholder="e.g., Loyal Guardian"
+                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
+              />
+            </div>
+            <div className="flex justify-between mt-4">
+              <button type="button" onClick={() => setCurrentStep(6)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(8)}
+                disabled={!validateStep(7)}
+                className={clsx(
+                  "px-4 py-2 font-bold rounded-full shadow-md transition-all",
+                  validateStep(7)
+                    ? "bg-dagger-gold text-black hover:scale-[1.02]"
+                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                )}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        );
+      case 8: // Equipment Selection
         // Filter Tier 1 weapons and armor
         const tier1PrimaryWeapons = libraryData.weapons.filter(w => w.tier === 1 && (w.data.primary_or_secondary === 'Primary' || w.data.hand === 'Primary'));
         const tier1SecondaryWeapons = libraryData.weapons.filter(w => w.tier === 1 && (w.data.primary_or_secondary === 'Secondary' || w.data.hand === 'Secondary'));
@@ -1365,14 +1529,25 @@ export default function CreateCharacterPage() {
             </div>
 
             <div className="flex justify-between mt-4">
-              <button type="button" onClick={() => setCurrentStep(6)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
               <button
                 type="button"
-                onClick={() => setCurrentStep(8)}
-                disabled={!validateStep(7)}
+                onClick={() => {
+                  // Go back to companion step if Beastbond, otherwise experiences
+                  const isBeastbound = formData.subclass_id &&
+                    libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
+                  setCurrentStep(isBeastbound ? 7 : 6);
+                }}
+                className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(9)}
+                disabled={!validateStep(8)}
                 className={clsx(
                   "px-4 py-2 font-bold rounded-full shadow-md transition-all",
-                  validateStep(7)
+                  validateStep(8)
                     ? "bg-dagger-gold text-black hover:scale-[1.02]"
                     : "bg-gray-600 text-gray-400 cursor-not-allowed"
                 )}
@@ -1397,7 +1572,7 @@ export default function CreateCharacterPage() {
             )}
           </div>
         );
-      case 8: // Confirm & Create
+      case 9: // Confirm & Create
         const currentClassSummary = formData.class_id ? libraryData.classes.find(c => c.id === formData.class_id) : null;
         const currentSubclassSummary = formData.subclass_id ? libraryData.subclasses.find(s => s.id === formData.subclass_id) : null;
         const currentAncestrySummary = formData.ancestry_id ? libraryData.ancestries.find(a => a.id === formData.ancestry_id) : null;
@@ -1436,7 +1611,7 @@ export default function CreateCharacterPage() {
               </ul>
             </div>
             <div className="flex justify-between mt-4">
-              <button type="button" onClick={() => setCurrentStep(7)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
+              <button type="button" onClick={() => setCurrentStep(8)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
               <button
                 type="submit"
                 disabled={isSubmitting || uploadingImage}
@@ -1453,13 +1628,18 @@ export default function CreateCharacterPage() {
   }, [currentStep, formData, libraryData, calculatedVitals, startingItemsAndCards, TRAIT_ASSIGNMENT_POOL, DISPLAY_TRAIT_POOL, handleInputChange, assignTraitValue, handleExperienceChange, isSubmitting, selectedTraitIndex, isTraitValueAssigned, handleDomainChange, handleCardSelection, validateStep, equipmentModalContext, equipmentModalOpen, handleEquipmentSelect, imagePreview, selectedImageFile, handleImageFileChange, uploadingImage]);
 
 
+  // Check if current character is Beastbond Ranger
+  const isBeastboundRanger = formData.subclass_id &&
+    libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
+  const totalSteps = isBeastboundRanger ? 9 : 8;
+
   return (
     <div className="min-h-[100dvh] bg-dagger-dark text-white p-4 flex items-center justify-center">
       <div className="max-w-md w-full bg-dagger-panel border border-white/10 rounded-xl shadow-lg p-6 space-y-6">
         <h1 className="text-2xl font-serif font-bold text-center text-dagger-gold">New Character</h1>
 
         <div className="flex justify-center gap-2 mb-4">
-          {Array.from({ length: 8 }).map((_, idx) => (
+          {Array.from({ length: totalSteps }).map((_, idx) => (
             <div key={idx} className={clsx(
               "w-6 h-2 rounded-full",
               idx + 1 === currentStep ? "bg-dagger-gold" : "bg-gray-700"

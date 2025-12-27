@@ -196,6 +196,73 @@ export default function CombatView() {
             ) : (
               <div className="text-gray-500 text-center py-4 italic">No active weapons equipped.</div>
             )}
+
+            {/* Companion Attack */}
+            {character.ranger_companion && (() => {
+              const companion = character.ranger_companion;
+              return (
+                <div
+                  onClick={() => setActiveWeaponId(`companion-${companion.name}`)}
+                  className="bg-dagger-panel border border-dagger-gold/30 rounded-xl overflow-hidden group cursor-pointer hover:border-dagger-gold/50 transition-colors"
+                >
+                  <div className="p-4 flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🐾</span>
+                        <h4 className="font-serif font-bold text-white text-lg">
+                          {companion.name} - {companion.attack_name}
+                        </h4>
+                      </div>
+                      <div className="flex gap-2 text-xs text-gray-400 mt-1">
+                        <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">
+                          {companion.attack_type}
+                        </span>
+                        <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">
+                          {companion.attack_range?.replace('_', ' ')}
+                        </span>
+                        <span className="text-dagger-gold">Companion</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-bold text-dagger-gold">
+                        {calculateWeaponDamage(companion.damage_die, totalProficiency)}
+                      </div>
+                      <div className="text-[10px] text-gray-500 uppercase">
+                        {companion.damage_die} × {totalProficiency}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Bar */}
+                  <div className="bg-black/40 p-2 flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Companion attack uses companion's experiences which are included in the dice roller
+                        const attackModifier = calculateAttackModifier(character);
+                        prepareRoll(`${companion.name} Attack`, attackModifier);
+                      }}
+                      className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                    >
+                      <Zap size={16} className="text-yellow-400" /> Attack
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const calculatedDamage = calculateWeaponDamage(companion.damage_die, totalProficiency);
+                        const { dice, modifier } = parseDamageRoll(calculatedDamage);
+                        const damageModifier = calculateDamageModifier(character);
+                        const totalDamageBonus = modifier + damageModifier;
+                        prepareRoll(`${companion.name} Damage`, totalDamageBonus, dice);
+                      }}
+                      className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                    >
+                      <Skull size={16} className="text-red-400" /> Damage
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </>
         )}
       </div>
