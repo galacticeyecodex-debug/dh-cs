@@ -65,7 +65,7 @@ export default function PrayerDiceCard({
     const isDiceRoll = lastRollResult.dice && lastRollResult.dice.length > 0;
     const isD4Roll = lastRollResult.dice?.every(d => d.sides === 4);
 
-    if (isDiceRoll && isD4Roll && lastRollResult.dice.length === expectedDiceCountRef.current) {
+    if (isDiceRoll && isD4Roll && lastRollResult.dice && lastRollResult.dice.length === expectedDiceCountRef.current) {
       isAwaitingRollRef.current = false;
 
       let finalRolls = lastRollResult.dice.map(d => d.value);
