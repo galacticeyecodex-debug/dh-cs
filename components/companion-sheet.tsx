@@ -98,7 +98,12 @@ export default function CompanionSheet({
   // Reset local state when companion changes or modal opens
   useEffect(() => {
     if (isOpen) {
-      setLocalCompanion(companion || DEFAULT_COMPANION);
+      // Ensure attack_name exists for existing companions (migration)
+      const companionWithDefaults = companion ? {
+        ...companion,
+        attack_name: companion.attack_name || ''
+      } : DEFAULT_COMPANION;
+      setLocalCompanion(companionWithDefaults);
       setActiveSection('info');
     }
   }, [companion, isOpen]);
@@ -106,7 +111,7 @@ export default function CompanionSheet({
   const isNewCompanion = !companion;
 
   const handleSave = () => {
-    if (!localCompanion.name.trim() || !localCompanion.animal_type.trim() || !localCompanion.attack_name.trim()) {
+    if (!localCompanion.name.trim() || !localCompanion.animal_type.trim() || !(localCompanion.attack_name || '').trim()) {
       toast.error('Please enter a name, animal type, and attack name');
       return;
     }
@@ -678,7 +683,7 @@ export default function CompanionSheet({
               </button>
               <button
                 onClick={handleSave}
-                disabled={!localCompanion.name.trim() || !localCompanion.animal_type.trim() || !localCompanion.attack_name.trim()}
+                disabled={!localCompanion.name.trim() || !localCompanion.animal_type.trim() || !(localCompanion.attack_name || '').trim()}
                 className="flex-1 py-3 bg-dagger-gold hover:bg-dagger-gold/90 text-black font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isNewCompanion ? 'Create Companion' : 'Save Changes'}
