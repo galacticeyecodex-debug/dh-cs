@@ -496,7 +496,7 @@ export default function CreateCharacterPage() {
         return !!formData.experiences && formData.experiences.length === 2 && formData.experiences.every(e => e.trim().length > 0);
       case 7: // Companion Creation (only for Beastbond Rangers)
         if (!isBeastboundRanger) return true; // Skip if not Beastbond
-        return !!(formData.companion?.name && formData.companion?.animal_type &&
+        return !!(formData.companion?.name && formData.companion?.animal_type && formData.companion?.attack_name &&
                  formData.companion?.experiences?.length === 2 &&
                  formData.companion?.experiences.every(e => e.name.trim().length > 0));
       case 8: // Equipment
@@ -1263,6 +1263,7 @@ export default function CreateCharacterPage() {
                     hope_max: 1,
                     hope_current: 0,
                     attack_type: prev.companion?.attack_type || 'melee',
+                    attack_name: prev.companion?.attack_name || '',
                     damage_die: 'd6',
                     attack_range: prev.companion?.attack_range || 'melee',
                     experiences: prev.companion?.experiences || [{ name: '', value: 2 }, { name: '', value: 2 }],
@@ -1295,6 +1296,22 @@ export default function CreateCharacterPage() {
                   } as RangerCompanion
                 }))}
                 placeholder="e.g., Wolf, Hawk, Bear"
+                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400">Attack Name</label>
+              <input
+                type="text"
+                value={formData.companion?.attack_name || ''}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  companion: {
+                    ...prev.companion!,
+                    attack_name: e.target.value
+                  } as RangerCompanion
+                }))}
+                placeholder="e.g., Claw Swipe, Bite, Pounce"
                 className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
               />
             </div>
