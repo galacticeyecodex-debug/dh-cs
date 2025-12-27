@@ -566,7 +566,7 @@ export default function CompanionSheet({
                     const value = localCompanion.level_up_options[option.key as keyof typeof localCompanion.level_up_options];
                     const isActive = option.multi ? (value as number) > 0 : value as boolean;
                     const count = option.multi ? value as number : 0;
-                    const isMaxed = option.max && (option.multi ? count >= option.max : isActive);
+                    const isMaxed = Boolean(option.max && (option.multi ? count >= option.max : isActive));
 
                     const colorClasses: Record<string, { bg: string; text: string; border: string }> = {
                       cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/20' },
