@@ -75,25 +75,6 @@ export const VITAL_COLORS = {
 } as const;
 
 // =============================================================================
-// MODIFIED STATE INDICATOR
-// The gold dot shown on modified values
-// =============================================================================
-
-/**
- * Class for the small gold indicator dot shown on modified values.
- * Position this absolutely within a relative parent.
- */
-export const MODIFIED_INDICATOR = 'absolute top-1 right-1 w-1.5 h-1.5 bg-dagger-gold rounded-full';
-
-/**
- * Renders the modified indicator dot if the value is modified.
- * Use this as a convenience when you need the conditional logic.
- */
-export function getModifiedIndicatorClass(isModified: boolean): string {
-  return isModified ? MODIFIED_INDICATOR : '';
-}
-
-// =============================================================================
 // PANEL/CARD STYLES
 // Consistent patterns for panels, cards, and containers
 // =============================================================================

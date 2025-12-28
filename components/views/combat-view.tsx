@@ -22,7 +22,7 @@ import { getLoadoutCombatAbilities } from '@/lib/combat-spell-parser';
 import CommonVitalsDisplay from '@/components/common-vitals-display';
 import ModifierSheet from '@/components/modifier-sheet';
 import { ErrorBoundary } from '@/components/error-boundary';
-import { getValueColor, MODIFIED_INDICATOR } from '@/lib/styles';
+import { getValueColor } from '@/lib/styles';
 
 export default function CombatView() {
   const { character, prepareRoll, updateModifiers } = useCharacterStore();
@@ -145,11 +145,10 @@ export default function CombatView() {
                           <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{range}</span>
                         </div>
                       </div>
-                      <div className="text-right relative">
+                      <div className="text-right">
                         <div className={clsx("text-xl font-bold", getValueColor(damageModifier !== 0))}>
                           {calculatedDamage}
                         </div>
-                        {damageModifier !== 0 && <div className={MODIFIED_INDICATOR} />}
                         <div className="text-[10px] text-gray-500 uppercase">
                           {baseDamage} × {totalProficiency}
                         </div>
@@ -164,13 +163,10 @@ export default function CombatView() {
                           prepareRoll(`${weapon.name} Attack`, totalAttackBonus);
                         }}
                         className={clsx(
-                          "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors relative",
+                          "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
                           attackModifier !== 0 && "text-dagger-gold"
                         )}
                       >
-                        {attackModifier !== 0 && (
-                          <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-dagger-gold rounded-full" />
-                        )}
                         <Zap size={16} className="text-yellow-400" /> Attack ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
                       </button>
                       <button
@@ -181,7 +177,7 @@ export default function CombatView() {
                           prepareRoll(`${weapon.name} Damage`, totalDamageBonus, dice);
                         }}
                         className={clsx(
-                          "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors relative",
+                          "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
                           damageModifier !== 0 && "text-dagger-gold"
                         )}
                       >
@@ -224,12 +220,11 @@ export default function CombatView() {
                         <span className="text-dagger-gold">Companion</span>
                       </div>
                     </div>
-                    <div className="text-right relative">
+                    <div className="text-right">
                       {/* Companion damage: white by default, gold if character has damage modifiers */}
                       <div className={clsx("text-xl font-bold", getValueColor(calculateDamageModifier(character) !== 0))}>
                         {calculateWeaponDamage(companion.damage_die, totalProficiency)}
                       </div>
-                      {calculateDamageModifier(character) !== 0 && <div className={MODIFIED_INDICATOR} />}
                       <div className="text-[10px] text-gray-500 uppercase">
                         {companion.damage_die} × {totalProficiency}
                       </div>
@@ -246,11 +241,10 @@ export default function CombatView() {
                         prepareRoll(`${companion.name} Attack`, companionAttackMod);
                       }}
                       className={clsx(
-                        "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors relative",
+                        "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
                         calculateAttackModifier(character) !== 0 && "text-dagger-gold"
                       )}
                     >
-                      {calculateAttackModifier(character) !== 0 && <div className={MODIFIED_INDICATOR} />}
                       <Zap size={16} className="text-yellow-400" /> Attack
                     </button>
                     <button
@@ -263,11 +257,10 @@ export default function CombatView() {
                         prepareRoll(`${companion.name} Damage`, totalDamageBonus, dice);
                       }}
                       className={clsx(
-                        "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors relative",
+                        "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
                         calculateDamageModifier(character) !== 0 && "text-dagger-gold"
                       )}
                     >
-                      {calculateDamageModifier(character) !== 0 && <div className={MODIFIED_INDICATOR} />}
                       <Skull size={16} className="text-red-400" /> Damage
                     </button>
                   </div>
