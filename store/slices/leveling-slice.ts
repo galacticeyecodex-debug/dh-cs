@@ -35,6 +35,8 @@ export interface LevelingSlice {
     level?: number;
     ancestry?: string;
     community?: string;
+    transformation?: string;
+    spellcast_trait?: string;
   }) => Promise<void>;
   updateMarkedTraits: (markedTraits: Record<string, boolean>) => Promise<void>;
 }
