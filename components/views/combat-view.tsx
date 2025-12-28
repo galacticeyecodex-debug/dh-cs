@@ -15,15 +15,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
-import { Shield, Swords, Zap, Skull, Info, Crosshair, Eye, EyeOff, Sparkles, Wand2, Moon } from 'lucide-react';
+import { Shield, Swords, Zap, Skull, Crosshair, Eye, EyeOff, Wand2, Sparkles, Moon } from 'lucide-react';
 import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
 import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers, calculateAttackModifier, calculateDamageModifier } from '@/lib/utils';
 import { getLoadoutCombatAbilities } from '@/lib/combat-spell-parser';
-import CommonVitalsDisplay from '@/components/common-vitals-display'; // Import the new common component
+import CommonVitalsDisplay from '@/components/common-vitals-display';
 import ModifierSheet from '@/components/modifier-sheet';
-import SubclassFeatureCard from '@/components/subclass-feature-card';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { getValueColor } from '@/lib/styles';
 
 export default function CombatView() {
   const { character, prepareRoll, updateModifiers } = useCharacterStore();
@@ -32,8 +32,6 @@ export default function CombatView() {
   const [showWeapons, setShowWeapons] = useState(true);
   const [showSpells, setShowSpells] = useState(true);
   const [showArmor, setShowArmor] = useState(true);
-  const [showClassFeatures, setShowClassFeatures] = useState(true);
-  const [showSubclassFeatures, setShowSubclassFeatures] = useState(true);
   const [showTransformation, setShowTransformation] = useState(true);
   const [activeWeaponId, setActiveWeaponId] = useState<string | null>(null);
   const [activeAbilityId, setActiveAbilityId] = useState<string | null>(null);
@@ -177,7 +175,9 @@ export default function CombatView() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-xl font-bold text-dagger-gold">{calculatedDamage}</div>
+                        <div className={clsx("text-xl font-bold", getValueColor(damageModifier !== 0))}>
+                          {calculatedDamage}
+                        </div>
                         <div className="text-[10px] text-gray-500 uppercase">
                           {baseDamage} × {totalProficiency}
                         </div>
@@ -192,13 +192,10 @@ export default function CombatView() {
                           prepareRoll(`${weapon.name} Attack`, totalAttackBonus);
                         }}
                         className={clsx(
-                          "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors relative",
+                          "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
                           attackModifier !== 0 && "text-dagger-gold"
                         )}
                       >
-                        {attackModifier !== 0 && (
-                          <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-dagger-gold rounded-full" />
-                        )}
                         <Zap size={16} className="text-yellow-400" /> Attack ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
                       </button>
                       <button
@@ -209,7 +206,7 @@ export default function CombatView() {
                           prepareRoll(`${weapon.name} Damage`, totalDamageBonus, dice);
                         }}
                         className={clsx(
-                          "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors relative",
+                          "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
                           damageModifier !== 0 && "text-dagger-gold"
                         )}
                       >
@@ -253,7 +250,8 @@ export default function CombatView() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold text-dagger-gold">
+                      {/* Companion damage: white by default, gold if character has damage modifiers */}
+                      <div className={clsx("text-xl font-bold", getValueColor(calculateDamageModifier(character) !== 0))}>
                         {calculateWeaponDamage(companion.damage_die, totalProficiency)}
                       </div>
                       <div className="text-[10px] text-gray-500 uppercase">
@@ -268,10 +266,13 @@ export default function CombatView() {
                       onClick={(e) => {
                         e.stopPropagation();
                         // Companion attack uses companion's experiences which are included in the dice roller
-                        const attackModifier = calculateAttackModifier(character);
-                        prepareRoll(`${companion.name} Attack`, attackModifier);
+                        const companionAttackMod = calculateAttackModifier(character);
+                        prepareRoll(`${companion.name} Attack`, companionAttackMod);
                       }}
-                      className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                      className={clsx(
+                        "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
+                        calculateAttackModifier(character) !== 0 && "text-dagger-gold"
+                      )}
                     >
                       <Zap size={16} className="text-yellow-400" /> Attack
                     </button>
@@ -280,11 +281,14 @@ export default function CombatView() {
                         e.stopPropagation();
                         const calculatedDamage = calculateWeaponDamage(companion.damage_die, totalProficiency);
                         const { dice, modifier } = parseDamageRoll(calculatedDamage);
-                        const damageModifier = calculateDamageModifier(character);
-                        const totalDamageBonus = modifier + damageModifier;
+                        const companionDamageMod = calculateDamageModifier(character);
+                        const totalDamageBonus = modifier + companionDamageMod;
                         prepareRoll(`${companion.name} Damage`, totalDamageBonus, dice);
                       }}
-                      className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                      className={clsx(
+                        "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
+                        calculateDamageModifier(character) !== 0 && "text-dagger-gold"
+                      )}
                     >
                       <Skull size={16} className="text-red-400" /> Damage
                     </button>
@@ -591,172 +595,6 @@ export default function CombatView() {
                   )}
                   <p className="mt-1">Score: {armor.library_item.data.base_score}, Thresholds: {armor.library_item.data.base_thresholds}</p>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Class Features */}
-      {character.class_data && (
-        <div className="space-y-4 mt-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-              <Info size={14} /> Class Features
-            </h3>
-            <button
-              onClick={() => setShowClassFeatures(!showClassFeatures)}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-            >
-              {showClassFeatures ? <EyeOff size={14} /> : <Eye size={14} />}
-              {showClassFeatures ? 'Hide' : 'Show'}
-            </button>
-          </div>
-
-          {showClassFeatures && (
-            <>
-              {/* Hope Feature */}
-              {character.class_data.data.hope_feature && (
-                <div className="bg-dagger-panel border border-dagger-gold/30 rounded-xl p-4 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-dagger-gold"></div>
-                  <h4 className="font-serif font-bold text-dagger-gold mb-1 flex items-center gap-2">
-                    <Zap size={14} />
-                    {character.class_data.data.hope_feature.name}
-                  </h4>
-                  <p className="text-sm text-gray-300">{character.class_data.data.hope_feature.description}</p>
-                </div>
-              )}
-
-              {/* Core Class Features */}
-              {character.class_data.data.class_features?.map((feature: any, idx: number) => (
-                <div key={idx} className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-                  <h4 className="font-serif font-bold text-white mb-1">{feature.name}</h4>
-                  <p className="text-sm text-gray-300 whitespace-pre-wrap">{feature.text}</p>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Subclass Features */}
-      {(character.subclass_progression || character.multiclass_progression) && (
-        <div className="space-y-4 mt-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-              <Sparkles size={14} /> Subclass Features
-            </h3>
-            <button
-              onClick={() => setShowSubclassFeatures(!showSubclassFeatures)}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-            >
-              {showSubclassFeatures ? <EyeOff size={14} /> : <Eye size={14} />}
-              {showSubclassFeatures ? 'Hide' : 'Show'}
-            </button>
-          </div>
-
-          {showSubclassFeatures && (
-            <div className="space-y-3">
-              {/* Primary Subclass Features */}
-              {character.subclass_progression && (
-                <>
-                  {character.subclass_progression.foundation_obtained && (
-                    <SubclassFeatureCard
-                      card={character.character_cards?.find(c =>
-                        c.location === 'feature' &&
-                        !c.library_item?.data?.multiclass &&
-                        (c.library_item?.data?.tier === 'foundation' || c.library_item?.type === 'subclass')
-                      ) || (character.subclass_data && character.subclass_id ? { // Use subclass_data as fallback
-                          id: 'primary-subclass-foundation-fallback', // Unique ID for fallback card
-                          character_id: character.id,
-                          card_id: character.subclass_data.id,
-                          location: 'feature',
-                          state: {},
-                          library_item: character.subclass_data
-                      } : undefined)}
-                      tier="Foundation"
-                      isMulticlass={false}
-                    />
-                  )}
-
-                  {character.subclass_progression.specialization_obtained && (
-                    <SubclassFeatureCard
-                      card={character.character_cards?.find(c =>
-                        c.location === 'feature' &&
-                        !c.library_item?.data?.multiclass &&
-                        c.library_item?.data?.tier === 'specialization'
-                      ) || (character.subclass_data && character.subclass_id ? { // Use subclass_data as fallback
-                          id: 'primary-subclass-specialization-fallback', // Unique ID for fallback card
-                          character_id: character.id,
-                          card_id: character.subclass_data.id,
-                          location: 'feature',
-                          state: {},
-                          library_item: character.subclass_data
-                      } : undefined)}
-                      tier="Specialization"
-                      isMulticlass={false}
-                    />
-                  )}
-
-                  {character.subclass_progression.mastery_obtained && (
-                    <SubclassFeatureCard
-                      card={character.character_cards?.find(c =>
-                        c.location === 'feature' &&
-                        !c.library_item?.data?.multiclass &&
-                        c.library_item?.data?.tier === 'mastery'
-                      ) || (character.subclass_data && character.subclass_id ? { // Use subclass_data as fallback
-                          id: 'primary-subclass-mastery-fallback', // Unique ID for fallback card
-                          character_id: character.id,
-                          card_id: character.subclass_data.id,
-                          location: 'feature',
-                          state: {},
-                          library_item: character.subclass_data
-                      } : undefined)}
-                      tier="Mastery"
-                      isMulticlass={false}
-                    />
-                  )}
-                </>
-              )}
-
-              {/* Multiclass Subclass Features */}
-              {character.multiclass_progression && (
-                <>
-                  {character.multiclass_progression.foundation_obtained && (
-                    <SubclassFeatureCard
-                      card={character.character_cards?.find(c =>
-                        c.location === 'feature' &&
-                        c.library_item?.data?.multiclass === true
-                      )}
-                      tier="Foundation"
-                      isMulticlass={true}
-                    />
-                  )}
-
-                  {character.multiclass_progression.specialization_obtained && (
-                    <SubclassFeatureCard
-                      card={character.character_cards?.find(c =>
-                        c.location === 'feature' &&
-                        c.library_item?.data?.multiclass === true &&
-                        c.library_item?.data?.tier === 'specialization'
-                      )}
-                      tier="Specialization"
-                      isMulticlass={true}
-                    />
-                  )}
-
-                  {character.multiclass_progression.mastery_obtained && (
-                    <SubclassFeatureCard
-                      card={character.character_cards?.find(c =>
-                        c.location === 'feature' &&
-                        c.library_item?.data?.multiclass === true &&
-                        c.library_item?.data?.tier === 'mastery'
-                      )}
-                      tier="Mastery"
-                      isMulticlass={true}
-                    />
-                  )}
-                </>
               )}
             </div>
           )}
