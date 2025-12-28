@@ -24,7 +24,7 @@ import React, { useState } from 'react';
 import { Heart, Zap, Shield, Eye } from 'lucide-react';
 import clsx from 'clsx';
 import ModifierSheet, { ModifierTab } from '@/components/modifier-sheet';
-import { getValueColor, getPanelBorder, MODIFIED_INDICATOR, PANEL } from '@/lib/styles';
+import { getValueColor, getPanelBorder, PANEL } from '@/lib/styles';
 
 // Props interface for VitalCard
 interface VitalCardProps {
@@ -179,13 +179,12 @@ const VitalCard = React.memo(function VitalCard({
         {trackType && max && max > 0 ? (
           renderTrack()
         ) : (
-          <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center relative">
+          <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center">
             <span className={isModified && !trackType ? getValueColor(true) : ""}>{current}</span>
             {max !== undefined && <span className="text-xs text-gray-500 font-sans font-normal">/{max}</span>}
             {isModified && expectedValue !== undefined && (
               <span className="text-[8px] text-gray-500 font-sans font-normal mt-0.5">Base: {expectedValue}</span>
             )}
-            {isModified && !trackType && <div className={MODIFIED_INDICATOR} />}
           </div>
         )}
 
