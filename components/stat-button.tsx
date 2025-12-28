@@ -12,7 +12,7 @@
  *    allowing the user to inspect the base value and apply temporary adjustments/modifiers.
  *
  * VISUAL FEEDBACK:
- * - Automatically highlights modified values in gold with an indicator dot to alert the user
+ * - Automatically highlights modified values in gold to alert the user
  *   that the current value differs from the base stat.
  *
  * PERFORMANCE:
@@ -25,7 +25,7 @@ import React, { useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import clsx from 'clsx';
 import ModifierSheet from '@/components/modifier-sheet';
-import { getValueColor, MODIFIED_INDICATOR } from '@/lib/styles';
+import { getValueColor } from '@/lib/styles';
 
 interface StatButtonProps {
   label: string;
@@ -69,12 +69,11 @@ const StatButton = React.memo(function StatButton({ label, value, baseValue, mod
             }
           }}
           className={clsx(
-            "p-3 min-w-[3rem] flex items-center justify-center font-bold text-xl border-l border-white/5 hover:bg-white/10 transition-colors relative",
+            "p-3 min-w-[3rem] flex items-center justify-center font-bold text-xl border-l border-white/5 hover:bg-white/10 transition-colors",
             getValueColor(isModified)
           )}
         >
           {value >= 0 ? `+${value}` : value}
-          {isModified && <div className={MODIFIED_INDICATOR} />}
         </button>
       </div>
 
