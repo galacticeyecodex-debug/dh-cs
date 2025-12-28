@@ -1,14 +1,14 @@
 /**
  * Domain Card Template
  * ----------------------------------------------------------------------------
- * Professional domain card rendering using daggerheartbrews-inspired assets
- * and styling. Supports custom artwork backgrounds and full card images.
+ * Professional domain card rendering using daggerheartbrews layout and assets.
+ * Matches the exact structure and styling of daggerheartbrews.com cards.
  */
 
 import React from 'react';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
-import { Zap, Sparkles, Swords } from 'lucide-react';
+import { Sparkles, Swords } from 'lucide-react';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { CardBanner } from './card-banner';
 import { CardDivider } from './card-divider';
@@ -64,133 +64,130 @@ export function DomainCard({
     );
   }
 
-  // Professional card with assets
+  // Professional card layout matching daggerheartbrews.com
+  // Fixed width: 340px for full, scaled proportionally for thumbnail
+  const cardWidth = isThumbnail ? 240 : 340;
+  const fontSize = isThumbnail ? 0.7 : 1; // Scale factor for text
+
   return (
     <div
-      className="relative rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-105 hover:shadow-2xl"
-      style={{
-        aspectRatio: '2/3',
-        backgroundColor: '#18181b',
-        border: `2px solid ${theme.primary}`,
-      }}
+      className="relative aspect-card overflow-hidden rounded-lg shadow-lg cursor-pointer hover:shadow-2xl transition-shadow bg-white text-black"
+      style={{ width: cardWidth }}
       onClick={onClick}
     >
-      {/* Custom Artwork Background */}
-      {customImageUrl && customImageType === 'artwork' && (
-        <div className="absolute inset-0 z-0">
+      {/* Banner - top left */}
+      <div className="absolute" style={{ left: isThumbnail ? '17px' : '24px', top: '-4px', zIndex: 40 }}>
+        <CardBanner domain={domain} level={tier} size={isThumbnail ? 'small' : 'large'} />
+      </div>
+
+      {/* Recall Cost Badge - top right */}
+      <div className="absolute" style={{ right: isThumbnail ? '17px' : '24px', top: isThumbnail ? '17px' : '24px', zIndex: 40 }}>
+        <div className="relative">
+          <Image
+            src="/assets/card/recall-cost-bg.webp"
+            alt=""
+            width={isThumbnail ? 24 : 32}
+            height={isThumbnail ? 24 : 32}
+          />
+          <div
+            className="absolute inset-0 flex items-center justify-center text-white font-bold"
+            style={{ fontSize: `${isThumbnail ? 10 : 14}px` }}
+          >
+            {recallCost}
+          </div>
+        </div>
+      </div>
+
+      {/* Mechanic Badges - top right below recall cost */}
+      {(hasPassiveModifiers || hasCombatAbility) && (
+        <div
+          className="absolute flex flex-col items-center gap-1"
+          style={{
+            right: isThumbnail ? '17px' : '24px',
+            top: isThumbnail ? '45px' : '60px',
+            zIndex: 40,
+          }}
+        >
+          {hasPassiveModifiers && (
+            <div
+              className="rounded-full px-1.5 py-0.5 flex items-center gap-0.5 border-2 shadow-lg"
+              style={{
+                backgroundColor: `${theme.primary}dd`,
+                borderColor: theme.accent,
+              }}
+              title="Has passive modifiers"
+            >
+              <Sparkles size={isThumbnail ? 10 : 14} className="text-white" />
+            </div>
+          )}
+          {hasCombatAbility && (
+            <div
+              className="rounded-full px-1.5 py-0.5 flex items-center gap-0.5 border-2 shadow-lg"
+              style={{
+                backgroundColor: `${theme.primary}dd`,
+                borderColor: theme.accent,
+              }}
+              title="Has combat ability"
+            >
+              <Swords size={isThumbnail ? 10 : 14} className="text-white" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Image area - optional custom artwork */}
+      {customImageUrl && customImageType === 'artwork' ? (
+        <div className="relative w-full overflow-hidden" style={{ height: isThumbnail ? '175px' : '250px' }}>
           <Image
             src={customImageUrl}
             alt={name}
             fill
-            className="object-cover"
-            sizes={isThumbnail ? "(max-width: 768px) 50vw, 33vw" : "400px"}
-          />
-          {/* Gradient overlay for readability */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `linear-gradient(to bottom, ${theme.primary}dd 0%, ${theme.secondary}aa 50%, ${theme.secondary}ee 100%)`,
-            }}
+            className="object-cover object-center-top"
+            sizes={isThumbnail ? "(max-width: 768px) 50vw, 240px" : "340px"}
           />
         </div>
-      )}
+      ) : null}
 
-      {/* Subtle gradient background when no custom image */}
-      {!customImageUrl && (
-        <div
-          className="absolute inset-0 z-0 opacity-20"
-          style={{
-            background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
-          }}
-        />
-      )}
-
-      {/* Card Content */}
-      <div className="relative z-10 h-full flex flex-col p-3">
-        {/* Top Section: Banner and Recall Cost */}
-        <div className="flex justify-between items-start mb-2">
-          {/* Level Banner */}
-          <CardBanner domain={domain} level={tier} size={isThumbnail ? 'small' : 'large'} />
-
-          {/* Recall Cost Badge */}
-          <div className="relative">
-            <Image
-              src="/assets/card/recall-cost-bg.webp"
-              alt=""
-              width={isThumbnail ? 32 : 48}
-              height={isThumbnail ? 32 : 48}
-              className="relative"
-            />
-            <div
-              className="absolute inset-0 flex items-center justify-center font-bold text-white"
-              style={{ fontSize: isThumbnail ? '10px' : '14px' }}
-            >
-              {recallCost}
-            </div>
-            <Zap
-              size={isThumbnail ? 10 : 14}
-              className="absolute text-yellow-400"
-              style={{ bottom: 2, right: 2 }}
-            />
-          </div>
+      {/* Content section at bottom with white background */}
+      <div
+        className="absolute bottom-0 flex flex-col items-center gap-1 bg-white w-full"
+        style={{
+          minHeight: customImageUrl ? (isThumbnail ? '120px' : '170px') : (isThumbnail ? '160px' : '230px'),
+          paddingBottom: isThumbnail ? '8px' : '12px',
+        }}
+      >
+        {/* Divider */}
+        <div className="relative w-full">
+          <CardDivider domain={domain} type={type} size={isThumbnail ? 'small' : 'large'} />
         </div>
-
-        {/* Domain Divider */}
-        <CardDivider domain={domain} type={type} size={isThumbnail ? 'small' : 'large'} />
 
         {/* Card Name */}
-        <div className="text-center mt-2 px-1">
-          <h3
-            className="font-serif font-bold text-white leading-tight drop-shadow-lg"
-            style={{ fontSize: isThumbnail ? '14px' : '20px' }}
-          >
-            {name}
-          </h3>
-        </div>
+        <p
+          className="font-serif font-bold text-center w-full z-20"
+          style={{
+            fontSize: `${16 * fontSize}px`,
+            paddingTop: `${16 * fontSize}px`,
+            paddingLeft: `${24 * fontSize}px`,
+            paddingRight: `${24 * fontSize}px`,
+          }}
+        >
+          {name}
+        </p>
 
         {/* Description */}
         <div
-          className="flex-1 mt-2 overflow-hidden text-white leading-snug text-center px-1"
-          style={{ fontSize: isThumbnail ? '9px' : '12px' }}
+          className="w-full z-20 leading-tight px-6 text-pretty overflow-hidden"
+          style={{
+            fontSize: `${12 * fontSize}px`,
+            maxHeight: customImageUrl ? (isThumbnail ? '60px' : '90px') : (isThumbnail ? '100px' : '150px'),
+          }}
         >
           {description ? (
-            <div className="prose prose-invert line-clamp-6 drop-shadow">
-              <ReactMarkdown>{description}</ReactMarkdown>
-            </div>
+            <ReactMarkdown>{description}</ReactMarkdown>
           ) : (
-            <p className="italic text-gray-400">No description.</p>
+            <p className="italic text-gray-500">No description.</p>
           )}
         </div>
-
-        {/* Mechanic Badges */}
-        {(hasPassiveModifiers || hasCombatAbility) && (
-          <div className="absolute top-20 right-2 flex flex-col items-center gap-1">
-            {hasPassiveModifiers && (
-              <div
-                className="rounded-full px-2 py-1 flex items-center gap-1 border-2 shadow-lg"
-                style={{
-                  backgroundColor: `${theme.primary}dd`,
-                  borderColor: theme.accent,
-                }}
-                title="Has passive modifiers"
-              >
-                <Sparkles size={isThumbnail ? 10 : 14} className="text-white" />
-              </div>
-            )}
-            {hasCombatAbility && (
-              <div
-                className="rounded-full px-2 py-1 flex items-center gap-1 border-2 shadow-lg"
-                style={{
-                  backgroundColor: `${theme.primary}dd`,
-                  borderColor: theme.accent,
-                }}
-                title="Has combat ability"
-              >
-                <Swords size={isThumbnail ? 10 : 14} className="text-white" />
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
