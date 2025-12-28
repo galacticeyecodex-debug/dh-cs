@@ -35,6 +35,8 @@ export interface LevelingSlice {
     level?: number;
     ancestry?: string;
     community?: string;
+    transformation?: string;
+    spellcast_trait?: string;
   }) => Promise<void>;
   updateMarkedTraits: (markedTraits: Record<string, boolean>) => Promise<void>;
 }
@@ -432,8 +434,8 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
     const characterId = state.character.id;
 
     // Handle de-leveling: rollback all advancement changes
-    let updatePayload: Record<string, any> = { ...updates };
-    let character = { ...state.character };
+    const updatePayload: Record<string, any> = { ...updates };
+    const character = { ...state.character };
 
     if (updates.level !== undefined && updates.level < state.character.level) {
       const advancement_history = { ...state.character.advancement_history_jsonb || {} };
@@ -441,7 +443,7 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
       const newLevel = updates.level;
 
       // Clone modifiers to work on
-      let updatedModifiers = { ...character.modifiers || {} };
+      const updatedModifiers = { ...character.modifiers || {} };
 
       // Reverse all advancement changes for levels being removed
       for (let level = newLevel + 1; level <= currentLevel; level++) {
