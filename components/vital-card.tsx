@@ -24,6 +24,7 @@ import React, { useState } from 'react';
 import { Heart, Zap, Shield, Eye } from 'lucide-react';
 import clsx from 'clsx';
 import ModifierSheet, { ModifierTab } from '@/components/modifier-sheet';
+import { getValueColor, getPanelBorder, PANEL } from '@/lib/styles';
 
 // Props interface for VitalCard
 interface VitalCardProps {
@@ -121,9 +122,10 @@ const VitalCard = React.memo(function VitalCard({
         <div
           onClick={handleCardClick}
           className={clsx(
-            "bg-dagger-panel border rounded-xl p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
+            PANEL.base,
+            "p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
             "w-full",
-            isModified ? "border-yellow-500/50 border-dashed" : "border-white/10",
+            getPanelBorder({ isModified }),
             onUpdateModifiers && "cursor-pointer hover:border-white/30",
             className
           )}>
@@ -160,11 +162,11 @@ const VitalCard = React.memo(function VitalCard({
       <div
         onClick={handleCardClick}
         className={clsx(
-          "bg-dagger-panel border rounded-xl p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
+          PANEL.base,
+          "p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
           "w-full",
-          // Critical condition overrides modified border
-          isCriticalCondition ? "border-red-500 ring-2 ring-red-500" :
-            isModified ? "border-yellow-500/50 border-dashed" : "border-white/10",
+          // Critical condition overrides modified border (handled by getPanelBorder)
+          getPanelBorder({ isCritical: isCriticalCondition, isModified }),
           onUpdateModifiers && "cursor-pointer hover:border-white/30",
           className
         )}>
@@ -177,13 +179,12 @@ const VitalCard = React.memo(function VitalCard({
         {trackType && max && max > 0 ? (
           renderTrack()
         ) : (
-          <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center relative">
-            <span className={isModified && !trackType ? "text-dagger-gold" : ""}>{current}</span>
+          <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center">
+            <span className={isModified && !trackType ? getValueColor(true) : ""}>{current}</span>
             {max !== undefined && <span className="text-xs text-gray-500 font-sans font-normal">/{max}</span>}
             {isModified && expectedValue !== undefined && (
               <span className="text-[8px] text-gray-500 font-sans font-normal mt-0.5">Base: {expectedValue}</span>
             )}
-            {isModified && !trackType && <div className="absolute top-0 right-0 w-1.5 h-1.5 bg-dagger-gold rounded-full" />}
           </div>
         )}
 
