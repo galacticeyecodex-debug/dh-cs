@@ -68,7 +68,12 @@ export interface CharacterCard {
   character_id: string;
   card_id: string;
   location: 'loadout' | 'vault' | 'feature';
-  state: { tokens?: number; exhausted?: boolean; custom_image_url?: string };
+  state: {
+    tokens?: number;
+    exhausted?: boolean;
+    custom_image_url?: string;
+    custom_image_type?: 'artwork' | 'full-card'; // How to display the custom image
+  };
   sort_order?: number;
   library_item?: LibraryItem; // Joined data for the card itself
 }
