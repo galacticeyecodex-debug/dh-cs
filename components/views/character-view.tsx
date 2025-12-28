@@ -32,9 +32,11 @@ import { uploadCharacterImage } from '@/lib/storage-service';
 import { toast } from 'sonner';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/error-boundary';
+import useContentAccess from '@/hooks/useContentAccess';
 
 export default function CharacterView() {
   const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice } = useCharacterStore();
+  const { includePlaytest } = useContentAccess();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
   const [isLevelUpLoading, setIsLevelUpLoading] = useState(false);
@@ -104,7 +106,7 @@ export default function CharacterView() {
   useEffect(() => {
     const fetchLibraryData = async () => {
       try {
-        const data = await dataService.library.getAll();
+        const data = await dataService.library.getAll({ includePlaytest });
 
         if (data) {
           // Parse cards
@@ -171,7 +173,7 @@ export default function CharacterView() {
     };
 
     fetchLibraryData();
-  }, [character?.ancestry, character?.community, character?.transformation]);
+  }, [character?.ancestry, character?.community, character?.transformation, includePlaytest]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !character || !user) return;
