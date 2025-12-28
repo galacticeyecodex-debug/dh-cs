@@ -13,9 +13,10 @@
  * - Allows toggling visibility of detailed proficiency modifiers.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
-import { Shield, Swords, Zap, Skull, Crosshair, Eye, EyeOff, Wand2, Sparkles } from 'lucide-react';
+import { Shield, Swords, Zap, Skull, Crosshair, Eye, EyeOff, Wand2, Sparkles, Moon } from 'lucide-react';
+import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
 import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers, calculateAttackModifier, calculateDamageModifier } from '@/lib/utils';
 import { getLoadoutCombatAbilities } from '@/lib/combat-spell-parser';
@@ -31,8 +32,36 @@ export default function CombatView() {
   const [showWeapons, setShowWeapons] = useState(true);
   const [showSpells, setShowSpells] = useState(true);
   const [showArmor, setShowArmor] = useState(true);
+  const [showTransformation, setShowTransformation] = useState(true);
   const [activeWeaponId, setActiveWeaponId] = useState<string | null>(null);
   const [activeAbilityId, setActiveAbilityId] = useState<string | null>(null);
+  const [transformationCard, setTransformationCard] = useState<any>(null);
+
+  // Fetch transformation data from library
+  useEffect(() => {
+    const fetchTransformation = async () => {
+      if (!character?.transformation) {
+        setTransformationCard(null);
+        return;
+      }
+      try {
+        const data = await dataService.library.getAll();
+        if (data) {
+          const transformation = data.find((lib: any) => lib.name === character.transformation && lib.type === 'transformation');
+          if (transformation) {
+            setTransformationCard({
+              name: transformation.name,
+              description: transformation.data?.description || '',
+              features: transformation.data?.features || [],
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load transformation data:', error);
+      }
+    };
+    fetchTransformation();
+  }, [character?.transformation]);
 
   if (!character) return null;
 
@@ -270,6 +299,127 @@ export default function CombatView() {
           </>
         )}
       </div>
+
+      {/* Transformation Abilities */}
+      {character.transformation && transformationCard && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
+              <Moon size={14} /> Transformation: {transformationCard.name}
+            </h3>
+            <button
+              onClick={() => setShowTransformation(!showTransformation)}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+            >
+              {showTransformation ? <EyeOff size={14} /> : <Eye size={14} />}
+              {showTransformation ? 'Hide' : 'Show'}
+            </button>
+          </div>
+
+          {showTransformation && (
+            <>
+              {transformationCard.features?.map((feature: any, index: number) => {
+                // Check if this is an attack feature
+                const isAttack = feature.type === 'attack' && feature.attack;
+
+                if (isAttack) {
+                  const attack = feature.attack;
+                  const trait = attack.trait || 'Strength';
+                  const traitKey = trait.toLowerCase();
+                  const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+
+                  // Get modifiers for this trait
+                  const systemTraitMods = getSystemModifiers(character, traitKey);
+                  const userTraitMods = character.modifiers?.[traitKey] || [];
+                  const allTraitMods = [...systemTraitMods, ...userTraitMods];
+                  const traitModifierSum = allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
+                  const totalTraitValue = baseTraitValue + traitModifierSum;
+
+                  const attackModifier = calculateAttackModifier(character);
+                  const damageModifier = calculateDamageModifier(character);
+                  const totalAttackBonus = totalTraitValue + attackModifier;
+
+                  const calculatedDamage = calculateWeaponDamage(attack.damage, totalProficiency);
+
+                  return (
+                    <div
+                      key={index}
+                      className="bg-dagger-panel border border-purple-500/30 rounded-xl overflow-hidden group cursor-pointer hover:border-purple-500/50 transition-colors"
+                    >
+                      <div className="p-4 flex justify-between items-start">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Sparkles size={18} className="text-purple-400" />
+                            <h4 className="font-serif font-bold text-purple-300 text-lg">{feature.name}</h4>
+                          </div>
+                          <div className="flex gap-2 text-xs text-gray-400 mt-1">
+                            <span className="uppercase bg-purple-500/20 px-1.5 py-0.5 rounded border border-purple-500/30">{trait}</span>
+                            <span className="uppercase bg-purple-500/20 px-1.5 py-0.5 rounded border border-purple-500/30">{attack.range}</span>
+                            <span className="text-purple-400">{attack.damage_type}</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xl font-bold text-purple-400">{calculatedDamage}</div>
+                          <div className="text-[10px] text-gray-500 uppercase">{attack.damage} × {totalProficiency}</div>
+                        </div>
+                      </div>
+
+                      {/* Action Bar */}
+                      <div className="bg-black/40 p-2 flex gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            prepareRoll(`${feature.name} Attack`, totalAttackBonus);
+                          }}
+                          className="flex-1 py-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors border border-purple-500/30"
+                        >
+                          <Zap size={16} className="text-purple-400" /> Attack (+{totalAttackBonus})
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const { dice, modifier } = parseDamageRoll(calculatedDamage);
+                            const totalDamageBonus = modifier + damageModifier;
+                            prepareRoll(`${feature.name} Damage`, totalDamageBonus, dice);
+                          }}
+                          className="flex-1 py-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors border border-purple-500/30"
+                        >
+                          <Skull size={16} className="text-red-400" /> Damage
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // Non-attack features (passive, transformation, reaction)
+                return (
+                  <div key={index} className="bg-dagger-panel border border-purple-500/30 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles size={16} className="text-purple-400" />
+                      <h4 className="font-serif font-bold text-purple-300">{feature.name}</h4>
+                      {feature.type && (
+                        <span className="text-xs text-gray-500 uppercase bg-purple-500/10 px-2 py-0.5 rounded">
+                          {feature.type}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-300 leading-relaxed">
+                      {feature.text?.split('**').map((part: string, j: number) =>
+                        j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
+                      )}
+                    </div>
+                    {feature.has_tokens && (
+                      <div className="mt-2 text-xs text-purple-300 bg-purple-500/10 p-2 rounded border border-purple-500/20">
+                        Token Tracker: 0 / {feature.max_tokens}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </>
+          )}
+        </div>
+      )}
 
       {/* Spells & Abilities */}
       {combatAbilities.length > 0 && (
