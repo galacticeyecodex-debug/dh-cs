@@ -56,8 +56,11 @@ export default function CharacterView() {
   const [isCompanionSheetOpen, setIsCompanionSheetOpen] = useState(false);
   const [ancestryCard, setAncestryCard] = useState<any>(null);
   const [communityCard, setCommunityCard] = useState<any>(null);
+  const [transformationCard, setTransformationCard] = useState<any>(null);
   const [showAncestryLore, setShowAncestryLore] = useState(false);
   const [showCommunityLore, setShowCommunityLore] = useState(false);
+  const [showTransformation, setShowTransformation] = useState(true);
+  const [showTransformationLore, setShowTransformationLore] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [savingField, setSavingField] = useState<string>('');
   const [savedField, setSavedField] = useState<string>('');
@@ -148,6 +151,19 @@ export default function CharacterView() {
               });
             }
           }
+
+          // Find transformation card
+          if (character?.transformation) {
+            const transformation = data.find((lib: any) => lib.name === character.transformation && lib.type === 'transformation');
+            if (transformation) {
+              setTransformationCard({
+                name: transformation.name,
+                description: transformation.data?.description || '',
+                features: transformation.data?.features || [],
+                questions: transformation.data?.questions || [],
+              });
+            }
+          }
         }
       } catch (error) {
         console.error('Failed to load library data:', error);
@@ -155,7 +171,7 @@ export default function CharacterView() {
     };
 
     fetchLibraryData();
-  }, [character?.ancestry, character?.community]);
+  }, [character?.ancestry, character?.community, character?.transformation]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !character || !user) return;
@@ -314,6 +330,12 @@ export default function CharacterView() {
                   <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm">
                     <User size={14} className="text-gray-400" />
                     {character.community}
+                  </div>
+                )}
+                {character.transformation && (
+                  <div className="flex items-center gap-1.5 bg-purple-500/20 px-2 py-1 rounded-md backdrop-blur-sm border border-purple-500/30">
+                    <Sparkles size={14} className="text-purple-400" />
+                    {character.transformation}
                   </div>
                 )}
               </div>
@@ -578,6 +600,68 @@ export default function CharacterView() {
                     ) : (
                       <div className="text-gray-400 italic text-sm">
                         {character.community} details not found.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Transformation Section */}
+            {character.transformation && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Transformation</h3>
+                  <button
+                    onClick={() => setShowTransformation(!showTransformation)}
+                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                  >
+                    {showTransformation ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showTransformation ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+
+                {showTransformation && (
+                  <div className="bg-dagger-panel border border-purple-500/30 rounded-xl p-4">
+                    {transformationCard ? (
+                      <>
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-serif font-bold text-purple-300">{transformationCard.name}</h4>
+                          <button
+                            onClick={() => setShowTransformationLore(!showTransformationLore)}
+                            className="p-1 hover:bg-white/10 rounded transition-colors"
+                            title={showTransformationLore ? "Hide lore" : "Show lore"}
+                          >
+                            <Info size={14} className="text-gray-400" />
+                          </button>
+                        </div>
+                        {showTransformationLore && (
+                          <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                            {transformationCard.description}
+                          </p>
+                        )}
+                        {transformationCard.features?.map((feature: any, i: number) => (
+                          <div key={i} className="mt-2 bg-purple-500/10 rounded p-3 border border-purple-500/20">
+                            <div className="text-xs font-bold text-purple-300 uppercase tracking-wider mb-1">
+                              {feature.name}
+                              {feature.type && <span className="ml-2 text-gray-500 font-normal">({feature.type})</span>}
+                            </div>
+                            <div className="text-sm text-gray-300 leading-relaxed">
+                              {feature.text?.split('**').map((part: string, j: number) =>
+                                j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
+                              )}
+                            </div>
+                            {feature.has_tokens && (
+                              <div className="mt-2 text-xs text-purple-300">
+                                Max tokens: {feature.max_tokens}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="text-gray-400 italic text-sm">
+                        {character.transformation} details not found.
                       </div>
                     )}
                   </div>
