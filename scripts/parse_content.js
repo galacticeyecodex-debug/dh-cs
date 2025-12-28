@@ -385,6 +385,22 @@ function processEnvironments(jsonDir, source) {
   });
 }
 
+function processTransformations(jsonDir, source) {
+  const filePath = path.join(jsonDir, 'transformations.json');
+  const items = readJsonFile(filePath);
+  if (!items) return;
+
+  items.forEach(item => {
+    const id = `transformation-${slugify(item.name)}`;
+    const data = {
+      description: item.description,
+      features: item.features || [],
+      questions: item.questions || []
+    };
+    sqlOutput.push(createInsert(id, 'transformation', item.name, null, null, source, data));
+  });
+}
+
 // Link subclasses to their parent classes
 function linkSubclassesToClasses(jsonDir) {
   const classFilePath = path.join(jsonDir, 'classes.json');
@@ -427,6 +443,7 @@ function processContentSource(sourceConfig) {
   processAdversaries(jsonDir, source);
   processItems(jsonDir, source);
   processEnvironments(jsonDir, source);
+  processTransformations(jsonDir, source);
 
   // Link subclasses after processing
   linkSubclassesToClasses(jsonDir);
