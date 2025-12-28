@@ -16,11 +16,12 @@
  */
 
 import React, { useState } from 'react';
-import { X, AlertCircle, Settings, Plus, Minus, Zap } from 'lucide-react';
+import { X, AlertCircle, Settings, Plus, Minus, Zap, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { PANEL_BORDERS } from '@/lib/styles';
+import useContentAccess from '@/hooks/useContentAccess';
 
 interface ManageCharacterModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ interface ManageCharacterModalProps {
   currentName: string;
   currentAncestry?: string;
   currentCommunity?: string;
+  currentTransformation?: string;
   currentSpellcastTrait?: string;
   advancementHistory?: Record<string, any>;
   onUpdate?: (updates: {
@@ -36,6 +38,7 @@ interface ManageCharacterModalProps {
     level?: number;
     ancestry?: string;
     community?: string;
+    transformation?: string;
     spellcast_trait?: string;
   }) => Promise<void>;
   isLoading?: boolean;
@@ -50,16 +53,19 @@ export default function ManageCharacterModal({
   currentName,
   currentAncestry = '',
   currentCommunity = '',
+  currentTransformation = '',
   currentSpellcastTrait = '',
   advancementHistory = {},
   onUpdate,
   isLoading = false,
   onLevelUp,
 }: ManageCharacterModalProps) {
+  const { includePlaytest } = useContentAccess();
   const [name, setName] = useState<string>(currentName);
   const [level, setLevel] = useState<number>(currentLevel);
   const [ancestry, setAncestry] = useState<string>(currentAncestry);
   const [community, setCommunity] = useState<string>(currentCommunity);
+  const [transformation, setTransformation] = useState<string>(currentTransformation);
   const [spellcastTrait, setSpellcastTrait] = useState<string>(currentSpellcastTrait);
   const [error, setError] = useState<string>('');
   const [confirmDeLevelOpen, setConfirmDeLevelOpen] = useState(false);
@@ -67,25 +73,28 @@ export default function ManageCharacterModal({
   // Dynamic lists
   const [availableAncestries, setAvailableAncestries] = useState<{ name: string }[]>([]);
   const [availableCommunities, setAvailableCommunities] = useState<{ name: string }[]>([]);
+  const [availableTransformations, setAvailableTransformations] = useState<{ name: string; source?: string }[]>([]);
 
   // Fetch dynamic options on mount
   React.useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [ancestries, communities] = await Promise.all([
+        const [ancestries, communities, transformations] = await Promise.all([
             dataService.library.getByType('ancestry'),
-            dataService.library.getByType('community')
+            dataService.library.getByType('community'),
+            dataService.library.getByType('transformation', { includePlaytest })
         ]);
 
         if (ancestries) setAvailableAncestries(ancestries);
         if (communities) setAvailableCommunities(communities);
+        if (transformations) setAvailableTransformations(transformations);
       } catch (e) {
           console.error("Failed to load options", e);
       }
     };
 
     if (isOpen) fetchOptions();
-  }, [isOpen]);
+  }, [isOpen, includePlaytest]);
 
   // Sync state with props when modal opens
   React.useEffect(() => {
@@ -94,14 +103,15 @@ export default function ManageCharacterModal({
       setLevel(currentLevel);
       setAncestry(currentAncestry || '');
       setCommunity(currentCommunity || '');
+      setTransformation(currentTransformation || '');
       setSpellcastTrait(currentSpellcastTrait || '');
     }
-  }, [isOpen, currentName, currentLevel, currentAncestry, currentCommunity, currentSpellcastTrait]);
+  }, [isOpen, currentName, currentLevel, currentAncestry, currentCommunity, currentTransformation, currentSpellcastTrait]);
 
   if (!isOpen) return null;
 
   const isDeLeveling = level < currentLevel;
-  const hasChanges = name !== currentName || level !== currentLevel || ancestry !== currentAncestry || community !== currentCommunity || spellcastTrait !== currentSpellcastTrait;
+  const hasChanges = name !== currentName || level !== currentLevel || ancestry !== currentAncestry || community !== currentCommunity || transformation !== currentTransformation || spellcastTrait !== currentSpellcastTrait;
 
   const getLeveledUpString = () => {
     const levels = Object.keys(advancementHistory)
@@ -146,6 +156,7 @@ export default function ManageCharacterModal({
           level: level !== currentLevel ? level : undefined,
           ancestry: ancestry !== currentAncestry ? ancestry : undefined,
           community: community !== currentCommunity ? community : undefined,
+          transformation: transformation !== currentTransformation ? transformation : undefined,
           spellcast_trait: spellcastTrait !== currentSpellcastTrait ? spellcastTrait : undefined,
         });
         onClose();
@@ -379,6 +390,32 @@ export default function ManageCharacterModal({
                   ))}
                 </select>
               </div>
+
+              {/* Transformation (Playtest) */}
+              {includePlaytest && availableTransformations.length > 0 && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-300 mb-2 flex items-center gap-2">
+                    <Sparkles size={14} className="text-purple-400" />
+                    Transformation
+                    <span className="text-xs text-purple-400 font-normal">(Playtest)</span>
+                  </label>
+                  <select
+                    value={transformation}
+                    onChange={(e) => setTransformation(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-black/50 border border-purple-500/30 text-white focus:border-purple-500 outline-none transition-colors"
+                  >
+                    <option value="">None (no transformation)</option>
+                    {availableTransformations.map((t) => (
+                      <option key={t.name} value={t.name}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Transformations are typically awarded by the GM during play.
+                  </p>
+                </div>
+              )}
 
               {/* Spellcast Trait */}
               <div>
