@@ -104,6 +104,7 @@ export interface Character {
   level: number;
   ancestry?: string;
   community?: string;
+  transformation?: string; // Optional transformation card (Vampire, Werewolf, etc.)
   class_id?: string;
   subclass_id?: string;
   multiclass_id?: string;

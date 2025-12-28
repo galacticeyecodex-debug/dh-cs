@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS public.characters (
   subclass_id TEXT,
   ancestry TEXT,
   community TEXT,
-  
+  transformation TEXT, -- Optional transformation card (Vampire, Werewolf, etc.)
+
   -- Core Stats (Traits)
   stats JSONB DEFAULT '{"agility": 0, "strength": 0, "finesse": 0, "instinct": 0, "presence": 0, "knowledge": 0}'::jsonb,
   
@@ -346,7 +347,7 @@ BEGIN
   
   -- 1. Insert Character
   INSERT INTO public.characters (
-    user_id, name, level, class_id, subclass_id, ancestry, community,
+    user_id, name, level, class_id, subclass_id, ancestry, community, transformation,
     stats, vitals, damage_thresholds, hope, fear, evasion, proficiency,
     experiences, domains, gold, image_url, modifiers,
     subclass_progression
@@ -358,6 +359,7 @@ BEGIN
     p_character->>'subclass_id',
     p_character->>'ancestry',
     p_character->>'community',
+    p_character->>'transformation',
     COALESCE(p_character->'stats', '{}'::jsonb),
     COALESCE(p_character->'vitals', '{}'::jsonb),
     COALESCE(p_character->'damage_thresholds', '{"minor": 1, "major": 1, "severe": 2}'::jsonb),
