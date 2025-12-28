@@ -18,6 +18,7 @@ import { X, Trash2, Check, Pencil, Plus } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Experience } from '@/types/modifiers';
+import { VALUE_COLORS } from '@/lib/styles';
 
 interface ExperienceSheetProps {
   isOpen: boolean;
@@ -113,7 +114,8 @@ export default function ExperienceSheet({
                 />
                 <div className="flex items-center bg-white/5 rounded border border-white/10">
                   <button onClick={() => setNewValue(v => v - 1)} className="px-2 py-1 hover:bg-white/10 text-white">-</button>
-                  <span className="w-8 text-center font-bold text-dagger-gold">+{newValue}</span>
+                  {/* Experience values are base values, use white */}
+                  <span className={clsx("w-8 text-center font-bold", VALUE_COLORS.default)}>+{newValue}</span>
                   <button onClick={() => setNewValue(v => v + 1)} className="px-2 py-1 hover:bg-white/10 text-white">+</button>
                 </div>
               </div>
@@ -146,7 +148,8 @@ export default function ExperienceSheet({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center bg-black/40 rounded border border-white/20">
                             <button onClick={() => setEditValue(v => v - 1)} className="px-2 py-0.5 hover:bg-white/10 text-white">-</button>
-                            <span className="w-8 text-center font-bold text-dagger-gold">+{editValue}</span>
+                            {/* Experience values are base values, use white */}
+                            <span className={clsx("w-8 text-center font-bold", VALUE_COLORS.default)}>+{editValue}</span>
                             <button onClick={() => setEditValue(v => v + 1)} className="px-2 py-0.5 hover:bg-white/10 text-white">+</button>
                           </div>
                           <div className="flex gap-2">
@@ -163,7 +166,8 @@ export default function ExperienceSheet({
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <div className="text-gray-400 font-medium">
+                          {/* Experience values are base values, use white */}
+                          <div className={clsx("font-medium", VALUE_COLORS.default)}>
                             +{exp.value}
                           </div>
                           <button onClick={() => handleDelete(index)} className="text-gray-500 hover:text-red-400 p-1">
