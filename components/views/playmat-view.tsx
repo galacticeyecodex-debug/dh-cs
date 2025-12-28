@@ -33,6 +33,7 @@ import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { uploadCharacterImage } from '@/lib/supabase/storage';
 import Image from 'next/image';
+import { DomainCard } from '@/components/card-templates/domain-card';
 
 export default function PlaymatView() {
   const { character, moveCard, addCardToCollection, updateCardImage, user } = useCharacterStore();
@@ -306,176 +307,26 @@ const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, act
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown Card', domain: '', tier: 0, type: '', data: {} };
   const recallCost = data?.recall || '0';
 
-  // Get domain theme colors
-  const theme = getDomainTheme(domain);
-
   // Check for mechanics
   const hasPassiveModifiers = character && parseCardPassiveModifiers(charCard, character).length > 0;
   const hasCombatAbility = parseCombatAbility(charCard) !== null;
 
-  // Get custom image settings
-  const customImageUrl = charCard.state?.custom_image_url;
-  const customImageType = charCard.state?.custom_image_type || 'artwork';
-  const isFullCard = customImageType === 'full-card';
-
-  // If it's a full custom card, show it edge-to-edge
-  if (customImageUrl && isFullCard) {
-    return (
-      <div className="group relative">
-        <div
-          className="aspect-[2/3] rounded-lg overflow-hidden hover:ring-2 hover:ring-dagger-gold transition-all cursor-pointer relative"
-          onClick={onClick}
-        >
-          <Image
-            src={customImageUrl}
-            alt={name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 50vw, 33vw"
-          />
-        </div>
-
-        {actionLabel && onAction && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onAction(); }}
-            className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-zinc-900 border border-white/20 text-[10px] font-bold text-gray-300 px-2 py-1 rounded-full hover:bg-zinc-700 hover:text-white whitespace-nowrap shadow-md z-30 flex items-center gap-1"
-          >
-            <ArrowRightLeft size={10} /> {actionLabel}
-          </button>
-        )}
-      </div>
-    );
-  }
-
-  // Standard card with optional artwork background
   return (
     <div className="group relative">
-      <div
-        className="aspect-[2/3] rounded-lg p-2 flex flex-col overflow-hidden hover:border-dagger-gold transition-colors cursor-pointer relative border-2"
-        style={{
-          borderColor: theme.primary,
-          backgroundColor: '#18181b',
-        }}
+      <DomainCard
+        name={name}
+        domain={domain}
+        tier={tier}
+        type={type}
+        description={data?.description || data?.text}
+        recallCost={recallCost}
+        customImageUrl={charCard.state?.custom_image_url}
+        customImageType={charCard.state?.custom_image_type}
+        hasPassiveModifiers={hasPassiveModifiers}
+        hasCombatAbility={hasCombatAbility}
         onClick={onClick}
-      >
-        {/* Custom Artwork Background */}
-        {customImageUrl && !isFullCard && (
-          <div className="absolute inset-0 z-0">
-            <Image
-              src={customImageUrl}
-              alt={name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 50vw, 33vw"
-            />
-            {/* Gradient overlay for text readability */}
-            <div
-              className="absolute inset-0"
-              style={{
-                background: `linear-gradient(to bottom, ${theme.primary}ee 0%, ${theme.secondary}cc 40%, ${theme.secondary}dd 100%)`
-              }}
-            />
-          </div>
-        )}
-
-        {/* Gradient background when no custom image */}
-        {!customImageUrl && (
-          <div
-            className="absolute inset-0 z-0 opacity-30"
-            style={{
-              background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`
-            }}
-          />
-        )}
-
-        {/* Top Header Section: Level & Recall Cost */}
-        <div className="absolute top-0 left-0 w-full flex justify-between items-start p-2 z-20 pointer-events-none">
-          {/* Top Left: Level */}
-          <div
-            className="relative w-8 h-10 flex items-center justify-center text-white font-bold text-sm shadow-md"
-            style={{
-              clipPath: 'polygon(0% 0%, 100% 0%, 100% 80%, 50% 100%, 0% 80%)',
-              backgroundColor: theme.primary
-            }}
-          >
-            {tier}
-          </div>
-
-          {/* Top Right: Recall Cost */}
-          <div
-            className="relative w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-md border-2"
-            style={{
-              backgroundColor: theme.secondary,
-              borderColor: theme.accent
-            }}
-          >
-            {recallCost}
-            <Zap size={8} className="absolute bottom-0.5 right-0.5 text-yellow-400" />
-          </div>
-        </div>
-
-        {/* Domain & Type Banner (Top Center) */}
-        <div className="mt-8 text-center z-10">
-          <span
-            className="uppercase font-bold text-[9px] text-white px-2 py-0.5 rounded-sm tracking-wider shadow-sm backdrop-blur-sm border"
-            style={{
-              backgroundColor: `${theme.primary}cc`,
-              borderColor: theme.accent
-            }}
-          >
-            {domain} {type}
-          </span>
-        </div>
-
-        {/* Card Name */}
-        <div className="text-center mt-1 px-1 z-10">
-          <div className="font-serif font-bold text-white leading-tight text-sm drop-shadow-lg">{name}</div>
-        </div>
-
-        {/* Full Description (Small Text) */}
-        <div className="flex-1 mt-2 overflow-hidden text-[9px] text-white leading-snug text-center px-1 z-10">
-          {data?.description || data?.text ? (
-            <div className="prose prose-invert prose-p:text-[9px] prose-p:leading-snug line-clamp-[8] drop-shadow">
-              <ReactMarkdown>
-                {data.description || data.text}
-              </ReactMarkdown>
-            </div>
-          ) : (
-            <p className="italic text-gray-300">No description.</p>
-          )}
-        </div>
-
-        {/* Mechanic Badges (Top right, below recall cost) */}
-        {(hasPassiveModifiers || hasCombatAbility) && (
-          <div className="absolute top-10 right-2 flex flex-col items-center gap-1 z-20">
-            {hasPassiveModifiers && (
-              <div
-                className="rounded-full px-1.5 py-0.5 flex items-center gap-0.5 border-2"
-                style={{
-                  backgroundColor: `${theme.primary}dd`,
-                  borderColor: theme.accent
-                }}
-                title="Has passive modifiers"
-              >
-                <Sparkles size={8} className="text-white" />
-              </div>
-            )}
-            {hasCombatAbility && (
-              <div
-                className="rounded-full px-1.5 py-0.5 flex items-center gap-0.5 border-2"
-                style={{
-                  backgroundColor: `${theme.primary}dd`,
-                  borderColor: theme.accent
-                }}
-                title="Has combat ability"
-              >
-                <Swords size={8} className="text-white" />
-              </div>
-            )}
-          </div>
-        )}
-
-      </div>
+        size="thumbnail"
+      />
 
       {actionLabel && onAction && (
         <button

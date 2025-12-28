@@ -1,7 +1,7 @@
 # Domain Cards Enhancement - Implementation Summary
 
 ## Overview
-Enhanced domain cards with professional styling and custom artwork capabilities inspired by daggerheartbrews.com.
+Enhanced domain cards with professional styling using actual daggerheartbrews.com assets and code patterns, plus custom artwork upload capabilities.
 
 ## Features Implemented
 
@@ -112,11 +112,24 @@ Added `updateCardImage()` function:
 - Clean, professional presentation
 - Perfect for pre-designed cards
 
+## Assets Downloaded
+Downloaded professional card assets from daggerheartbrews.com:
+- `public/assets/card/banner.webp` - Decorative banner frame
+- `public/assets/card/divider-domain.webp` - Domain divider decoration
+- `public/assets/card/level-bg.webp` - Level badge background
+- `public/assets/card/recall-cost-bg.webp` - Recall cost badge background
+
+## Files Created
+1. `lib/domain-colors.ts` - Domain color theme system
+2. `components/card-templates/card-banner.tsx` - Banner component with assets
+3. `components/card-templates/card-divider.tsx` - Divider component with assets
+4. `components/card-templates/domain-card.tsx` - Complete card template
+
 ## Files Modified
-1. `lib/domain-colors.ts` - NEW: Domain color system
-2. `types/character.ts` - Added custom_image_type field
-3. `store/slices/inventory-slice.ts` - Added updateCardImage function
-4. `components/views/playmat-view.tsx` - Enhanced cards + upload UI
+1. `types/character.ts` - Added custom_image_type field
+2. `store/slices/inventory-slice.ts` - Added updateCardImage function
+3. `components/views/playmat-view.tsx` - Uses new DomainCard component
+4. `app/globals.css` - Added custom clip-path utilities and aspect-card ratio
 5. `next.config.ts` - Already configured for Supabase (no changes needed)
 
 ## Dependencies Used

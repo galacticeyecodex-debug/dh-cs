@@ -130,3 +130,49 @@
     display: block;
   }
 }
+
+@layer utilities {
+  /* Card aspect ratio */
+  .aspect-card {
+    aspect-ratio: 2.5 / 3.5;
+  }
+
+  /* Banner clip paths */
+  .clip-card-banner-fg {
+    clip-path: polygon(
+      0% 16%,
+      12% 0%,
+      88% 0%,
+      100% 16%,
+      100% 84%,
+      88% 100%,
+      12% 100%,
+      0% 84%
+    );
+  }
+
+  .clip-card-banner-bg {
+    clip-path: polygon(
+      0% 18%,
+      10% 2%,
+      90% 2%,
+      100% 18%,
+      100% 82%,
+      90% 98%,
+      10% 98%,
+      0% 82%
+    );
+  }
+
+  /* Divider clip path */
+  .clip-card-divider {
+    clip-path: polygon(
+      2% 0%,
+      98% 0%,
+      100% 50%,
+      98% 100%,
+      2% 100%,
+      0% 50%
+    );
+  }
+}
