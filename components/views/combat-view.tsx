@@ -24,9 +24,11 @@ import CommonVitalsDisplay from '@/components/common-vitals-display'; // Import 
 import ModifierSheet from '@/components/modifier-sheet';
 import SubclassFeatureCard from '@/components/subclass-feature-card';
 import { ErrorBoundary } from '@/components/error-boundary';
+import useContentAccess from '@/hooks/useContentAccess';
 
 export default function CombatView() {
   const { character, prepareRoll, updateModifiers } = useCharacterStore();
+  const { includePlaytest } = useContentAccess();
   const [showProficiencyModifiers, setShowProficiencyModifiers] = useState(false);
   const [showVitals, setShowVitals] = useState(true);
   const [showWeapons, setShowWeapons] = useState(true);
@@ -47,7 +49,7 @@ export default function CombatView() {
         return;
       }
       try {
-        const data = await dataService.library.getAll();
+        const data = await dataService.library.getAll({ includePlaytest });
         if (data) {
           const transformation = data.find((lib: any) => lib.name === character.transformation && lib.type === 'transformation');
           if (transformation) {
@@ -63,7 +65,7 @@ export default function CombatView() {
       }
     };
     fetchTransformation();
-  }, [character?.transformation]);
+  }, [character?.transformation, includePlaytest]);
 
   if (!character) return null;
 
