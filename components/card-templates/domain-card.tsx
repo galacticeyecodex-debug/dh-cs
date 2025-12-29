@@ -152,12 +152,12 @@ export function DomainCard({
         </div>
       ) : null}
 
-      {/* Content section - positioned higher to leave room for interactive elements */}
+      {/* Content section - positioned right at image border */}
       <div
         className="absolute flex flex-col items-center gap-1 bg-white w-full"
         style={{
-          bottom: isThumbnail ? '25px' : '36px',  // Leave room for tokens/interactive elements
-          minHeight: customImageUrl ? (isThumbnail ? '100px' : '140px') : (isThumbnail ? '130px' : '185px'),
+          top: customImageUrl ? (isThumbnail ? '175px' : '250px') : (isThumbnail ? '140px' : '200px'),
+          bottom: 0,
         }}
       >
         {/* Divider */}
@@ -180,10 +180,9 @@ export function DomainCard({
 
         {/* Description */}
         <div
-          className="w-full z-20 leading-tight px-6 text-pretty overflow-hidden"
+          className="w-full z-20 leading-tight px-6 text-pretty overflow-hidden flex-1"
           style={{
             fontSize: `${12 * fontSize}px`,
-            maxHeight: customImageUrl ? (isThumbnail ? '50px' : '70px') : (isThumbnail ? '80px' : '120px'),
           }}
         >
           {description ? (
@@ -194,13 +193,6 @@ export function DomainCard({
         </div>
       </div>
 
-      {/* Interactive elements area - reserved space at bottom for tokens, etc. */}
-      <div
-        className="absolute bottom-0 w-full bg-white"
-        style={{
-          height: isThumbnail ? '25px' : '36px',
-        }}
-      />
     </div>
   );
 }
