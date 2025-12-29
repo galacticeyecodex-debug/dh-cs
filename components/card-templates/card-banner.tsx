@@ -142,7 +142,7 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
 
       {/* Level number - centered horizontally at top */}
       <div
-        className="absolute z-50 font-bold"
+        className="absolute z-50 font-eveleth font-bold"
         style={{
           top: dimensions.textTop,
           left: '50%',

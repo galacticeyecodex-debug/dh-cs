@@ -16,7 +16,7 @@ interface CardDividerProps {
 }
 
 // Symmetrical hexagonal clip-path for the divider
-const DIVIDER_CLIP_PATH = 'polygon(35% 0%, 65% 0%, 70% 50%, 65% 100%, 35% 100%, 30% 50%)';
+const DIVIDER_CLIP_PATH = 'polygon(40% 10%, 60% 10%, 75% 60%, 70% 90%, 40% 90%, 30% 50%)';
 
 export function CardDivider({ domain, subtype, size = 'small' }: CardDividerProps) {
   const theme = getDomainTheme(domain);
@@ -71,7 +71,7 @@ export function CardDivider({ domain, subtype, size = 'small' }: CardDividerProp
       {/* Type/subtype label text - only shows subtype */}
       {subtype && (
         <div
-          className="absolute z-30 font-bold uppercase text-center w-full flex items-center justify-center"
+          className="absolute z-30 font-eveleth font-bold uppercase text-center w-full flex items-center justify-center"
           style={{
             top: '50%',
             transform: 'translateY(-50%)',

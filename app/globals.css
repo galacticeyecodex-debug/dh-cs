@@ -42,6 +42,8 @@
   --color-dagger-dark: var(--dagger-dark);
   --color-dagger-gold: var(--dagger-gold);
   --color-dagger-panel: var(--dagger-panel);
+  --font-serif: var(--font-cinzel), serif;
+  --font-eveleth: var(--font-eveleth), sans-serif;
 }
 
 :root {
