@@ -81,21 +81,21 @@ export function DomainCard({
       </div>
 
       {/* Recall Cost Badge - top right with offset text per daggerheartbrews */}
-      <div className="absolute" style={{ right: isThumbnail ? '17px' : '24px', top: isThumbnail ? '17px' : '24px', zIndex: 40 }}>
+      <div className="absolute" style={{ right: isThumbnail ? '14px' : '24px', top: isThumbnail ? '14px' : '24px', zIndex: 40 }}>
         <Image
           src="/assets/card/recall-cost-bg.webp"
           alt=""
-          width={isThumbnail ? 24 : 32}
-          height={isThumbnail ? 24 : 32}
+          width={isThumbnail ? 28 : 32}
+          height={isThumbnail ? 28 : 32}
         />
       </div>
       {/* Recall cost text - offset from center to account for lightning bolt */}
       <div
         className="absolute text-white font-bold"
         style={{
-          right: isThumbnail ? '25px' : '40px',  // Offset left from badge center
-          top: isThumbnail ? '21px' : '29px',    // Offset down from badge top
-          fontSize: `${isThumbnail ? 10 : 14}px`,
+          right: isThumbnail ? '30px' : '40px',  // At badge center (badge_right + badge_width/2)
+          top: isThumbnail ? '19px' : '29px',    // 5px down from badge top
+          fontSize: `${isThumbnail ? 11 : 14}px`,
           zIndex: 41,
         }}
       >
@@ -107,8 +107,8 @@ export function DomainCard({
         <div
           className="absolute flex flex-col items-center gap-1"
           style={{
-            right: isThumbnail ? '17px' : '24px',
-            top: isThumbnail ? '45px' : '60px',
+            right: isThumbnail ? '14px' : '24px',
+            top: isThumbnail ? '46px' : '60px',
             zIndex: 40,
           }}
         >

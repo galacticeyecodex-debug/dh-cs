@@ -312,7 +312,7 @@ const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, act
   const hasCombatAbility = parseCombatAbility(charCard) !== null;
 
   return (
-    <div className="group relative">
+    <div className="group relative pb-6">
       <DomainCard
         name={name}
         domain={domain}
@@ -331,7 +331,7 @@ const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, act
       {actionLabel && onAction && (
         <button
           onClick={(e) => { e.stopPropagation(); onAction(); }}
-          className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-zinc-900 border border-white/20 text-[10px] font-bold text-gray-300 px-2 py-1 rounded-full hover:bg-zinc-700 hover:text-white whitespace-nowrap shadow-md z-30 flex items-center gap-1"
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-zinc-900 border border-white/20 text-[10px] font-bold text-gray-300 px-2 py-1 rounded-full hover:bg-zinc-700 hover:text-white whitespace-nowrap shadow-md z-30 flex items-center gap-1"
         >
           <ArrowRightLeft size={10} /> {actionLabel}
         </button>
