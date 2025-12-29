@@ -21,6 +21,7 @@ export interface InventorySlice {
   deleteItemFromInventory: (inventoryItemId: string) => Promise<void>;
   moveCard: (cardId: string, destination: 'loadout' | 'vault') => Promise<void>;
   addCardToCollection: (item: LibraryItem) => Promise<void>;
+  updateCardImage: (cardId: string, imageUrl: string | null, imageType?: 'artwork' | 'full-card') => Promise<void>;
   convertItemToHomebrew: (inventoryItemId: string, homebrewItemData: Omit<HomebrewItem, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>;
 }
 
@@ -86,6 +87,49 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
       }));
     } catch (error) {
       console.error('Error adding card:', error);
+    }
+  },
+
+  updateCardImage: async (cardId, imageUrl, imageType = 'artwork') => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const cards = [...(state.character.character_cards || [])];
+    const cardIndex = cards.findIndex((c: any) => c.id === cardId);
+    if (cardIndex === -1) return;
+
+    const previousState = cards[cardIndex].state;
+    const updatedState = {
+      ...previousState,
+      custom_image_url: imageUrl,
+      custom_image_type: imageUrl ? imageType : undefined,
+    };
+    const updatedCard = { ...cards[cardIndex], state: updatedState };
+    cards[cardIndex] = updatedCard;
+
+    const success = await withOptimisticUpdate(
+      () => {
+        set((s: any) => ({
+          character: s.character ? { ...s.character, character_cards: cards } : null,
+        }));
+
+        return () => {
+          const rollbackCards = [...((get() as any).character?.character_cards || [])];
+          const idx = rollbackCards.findIndex(c => c.id === cardId);
+          if (idx !== -1) {
+            rollbackCards[idx] = { ...rollbackCards[idx], state: previousState };
+          }
+          set((s: any) => ({
+            character: s.character ? { ...s.character, character_cards: rollbackCards } : null,
+          }));
+        };
+      },
+      async () => dataService.card.update(cardId, { state: updatedState }),
+      imageUrl ? 'Failed to update card image' : 'Failed to remove card image'
+    );
+
+    if (success) {
+      toast.success(imageUrl ? 'Card image updated!' : 'Card image removed');
     }
   },
 
