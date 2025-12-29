@@ -308,7 +308,7 @@ const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, act
   const recallCost = data?.recall || '0';
 
   // Check for mechanics
-  const hasPassiveModifiers = character && parseCardPassiveModifiers(charCard, character).length > 0;
+  const hasPassiveModifiers = !!(character && parseCardPassiveModifiers(charCard, character).length > 0);
   const hasCombatAbility = parseCombatAbility(charCard) !== null;
 
   return (
