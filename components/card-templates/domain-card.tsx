@@ -90,7 +90,7 @@ export function DomainCard({
       </div>
       {/* Recall cost text - offset from center to account for lightning bolt */}
       <div
-        className="absolute text-white font-bold"
+        className="absolute text-white font-eveleth font-bold"
         style={{
           right: isThumbnail ? '27px' : '40px',  // At badge center (badge_right + badge_width/2)
           top: isThumbnail ? '19px' : '29px',    // 5px down from badge top
@@ -140,7 +140,7 @@ export function DomainCard({
 
       {/* Image area - optional custom artwork */}
       {customImageUrl && customImageType === 'artwork' ? (
-        <div className="relative w-full overflow-hidden" style={{ height: isThumbnail ? '175px' : '250px' }}>
+        <div className="relative w-full overflow-hidden" style={{ height: isThumbnail ? '160px' : '230px' }}>
           <Image
             src={customImageUrl}
             alt={name}
@@ -155,7 +155,7 @@ export function DomainCard({
       <div
         className="absolute flex flex-col items-center gap-1 bg-white w-full"
         style={{
-          top: customImageUrl ? (isThumbnail ? '175px' : '250px') : (isThumbnail ? '140px' : '200px'),
+          top: customImageUrl ? (isThumbnail ? '140px' : '230px') : (isThumbnail ? '125px' : '180px'),
           bottom: 0,
         }}
       >
@@ -166,12 +166,12 @@ export function DomainCard({
 
         {/* Card Name */}
         <p
-          className="font-serif font-bold text-center w-full z-20 uppercase"
+          className="font-eveleth font-bold text-center w-full z-20 uppercase"
           style={{
             fontSize: `${16 * fontSize}px`,
-            paddingTop: `${12 * fontSize}px`,
-            paddingLeft: `${24 * fontSize}px`,
-            paddingRight: `${24 * fontSize}px`,
+            paddingTop: `${2 * fontSize}px`,
+            paddingLeft: `${16 * fontSize}px`,
+            paddingRight: `${16 * fontSize}px`,
           }}
         >
           {name}
@@ -179,7 +179,7 @@ export function DomainCard({
 
         {/* Description */}
         <div
-          className="w-full z-20 leading-tight px-6 text-pretty overflow-hidden flex-1"
+          className="w-full z-20 leading-tight px-4 text-pretty overflow-hidden flex-1"
           style={{
             fontSize: `${12 * fontSize}px`,
           }}

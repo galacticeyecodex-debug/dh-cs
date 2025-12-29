@@ -13,7 +13,8 @@
  */
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Cinzel } from "next/font/google";
+import localFont from "next/font/local";
 
 import "./globals.css";
 import { ToastProvider } from "@/components/providers/toast-provider";
@@ -26,6 +27,16 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const cinzel = Cinzel({
+  variable: "--font-cinzel",
+  subsets: ["latin"],
+});
+
+const eveleth = localFont({
+  src: "./fonts/Eveleth-Clean-Regular.woff2",
+  variable: "--font-eveleth",
 });
 
 export const metadata: Metadata = {
@@ -41,7 +52,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${eveleth.variable} antialiased`}
       >
         <ToastProvider />
         {children}
