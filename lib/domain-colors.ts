@@ -2,7 +2,7 @@
  * DOMAIN COLOR SYSTEM
  * ----------------------------------------------------------------------------
  * Provides color theming for domain cards based on the 9 core Daggerheart domains.
- * Inspired by daggerheartbrews.com approach with primary/secondary color pairs.
+ * Uses primary/secondary color pairs for card gradients and banners.
  */
 
 export interface DomainTheme {

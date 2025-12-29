@@ -1,8 +1,7 @@
 /**
  * Domain Card Template
  * ----------------------------------------------------------------------------
- * Professional domain card rendering using daggerheartbrews layout and assets.
- * Matches the exact structure and styling of daggerheartbrews.com cards.
+ * Domain card rendering using art assets layout and assets.
  */
 
 import React from 'react';
@@ -64,14 +63,14 @@ export function DomainCard({
     );
   }
 
-  // Professional card layout matching daggerheartbrews.com
   // Fixed width: 340px for full, scaled proportionally for thumbnail
   const cardWidth = isThumbnail ? 240 : 340;
   const fontSize = isThumbnail ? 0.7 : 1; // Scale factor for text
 
   return (
     <div
-      className="relative aspect-card overflow-hidden rounded-lg shadow-lg cursor-pointer hover:shadow-2xl transition-shadow bg-white text-black"
+      // A thin gold border around the domain cards
+      className="relative aspect-card overflow-hidden rounded-lg shadow-lg cursor-pointer hover:shadow-2xl transition-shadow bg-white text-black border border-dagger-gold"
       style={{ width: cardWidth }}
       onClick={onClick}
     >
@@ -80,7 +79,7 @@ export function DomainCard({
         <CardBanner domain={domain} level={tier} size={isThumbnail ? 'small' : 'large'} />
       </div>
 
-      {/* Recall Cost Badge - top right with offset text per daggerheartbrews */}
+      {/* Recall Cost Badge */}
       <div className="absolute" style={{ right: isThumbnail ? '14px' : '24px', top: isThumbnail ? '14px' : '24px', zIndex: 40 }}>
         <Image
           src="/assets/card/recall-cost-bg.webp"
@@ -93,7 +92,7 @@ export function DomainCard({
       <div
         className="absolute text-white font-bold"
         style={{
-          right: isThumbnail ? '30px' : '40px',  // At badge center (badge_right + badge_width/2)
+          right: isThumbnail ? '27px' : '40px',  // At badge center (badge_right + badge_width/2)
           top: isThumbnail ? '19px' : '29px',    // 5px down from badge top
           fontSize: `${isThumbnail ? 11 : 14}px`,
           zIndex: 41,
@@ -102,7 +101,7 @@ export function DomainCard({
         {recallCost}
       </div>
 
-      {/* Mechanic Badges - top right below recall cost */}
+      {/* Modifier and combat mechanic badge - top right below recall cost */}
       {(hasPassiveModifiers || hasCombatAbility) && (
         <div
           className="absolute flex flex-col items-center gap-1"
@@ -167,7 +166,7 @@ export function DomainCard({
 
         {/* Card Name */}
         <p
-          className="font-serif font-bold text-center w-full z-20"
+          className="font-serif font-bold text-center w-full z-20 uppercase"
           style={{
             fontSize: `${16 * fontSize}px`,
             paddingTop: `${12 * fontSize}px`,

@@ -592,7 +592,7 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
                     <div>
                       <div className="font-bold text-sm">Full Custom Card</div>
                       <div className="text-xs text-gray-400 mt-1">
-                        Upload a complete card image from the official site or daggerheartbrews.com
+                        Upload a complete card image from the official site or a custom source
                       </div>
                     </div>
                   </div>

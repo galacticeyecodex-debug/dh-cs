@@ -304,5 +304,6 @@ This application is provided "as-is" without warranty of any kind. While we stri
 
 - Built with the amazing [Daggerheart SRD](https://darringtonpress.com/daggerheart/)
 - SRD compilation by [seansbox](https://github.com/seansbox/daggerheart-srd/)
+- Card layout and design inspiration from [daggerheartbrews.com](https://daggerheartbrews.com)
 - Original authentication boilerplate from [shsfwork/supabase-auth-nextjs-google-boilerplate](https://github.com/shsfwork/supabase-auth-nextjs-google-boilerplate)
 - LLMs were used to generate a lot of the code for this project, so if you have objections to that, you may not want to use this project.
