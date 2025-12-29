@@ -1,9 +1,7 @@
 /**
  * Card Banner Component
  * ----------------------------------------------------------------------------
- * Renders a decorative banner for domain cards using the daggerheartbrews
- * asset styling approach. Creates a layered effect with WebP decoration,
- * clipped color backgrounds, and centered content with domain icon.
+ * Renders a decorative banner for domain cards.
  */
 
 import React from 'react';
@@ -56,42 +54,57 @@ interface CardBannerProps {
   size?: 'small' | 'large';
 }
 
+// Complex clip-path matching the banner.webp asset perfectly
+const BANNER_CLIP_PATH = `polygon(
+  2% 2%, 11% 2%, 11% 51%, 17% 55%, 18% 2%, 82% 2%,
+  83% 56%, 88% 52%, 88% 2%, 98% 2%, 98% 58%,
+  83% 69%, 82% 90%, 72% 90%, 63% 88%, 57% 85%,
+  49% 82%, 43% 85%, 34% 88%, 25% 90%, 18% 90%,
+  17% 68%, 2% 59%
+)`;
+
+const BANNER_BG_CLIP_PATH = `polygon(
+  91% 100%, 91% 0, 6% 0, 9% 100%, 29% 98%,
+  39% 95%, 45% 91%, 47% 86%, 46% 83%, 46% 79%,
+  53% 79%, 53% 84%, 53% 87%, 56% 91%, 60% 95%, 71% 98%
+)`;
+
 export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
   const theme = getDomainTheme(domain);
   const textColor = getContrastColor(theme.primary);
 
-  // Size configurations matching daggerheartbrews exactly
+  // Size configurations matching official dimensions
   // Full size (340px cards): banner 63x120px, clips 59x120px
   // Thumbnail (240px cards): scale by 240/340 = 0.706
   const dimensions = size === 'small'
     ? {
-        bannerWidth: 44,    // 63 * 0.706
-        bannerHeight: 85,   // 120 * 0.706
-        clipWidth: 42,      // 59 * 0.706
-        clipHeight: 85,     // 120 * 0.706
-        clipOffset: 1,      // 2 * 0.706
-        fontSize: '18px',   // 26 * 0.706
-        textTop: '11px',    // 16 * 0.706
-        iconTop: '38px',    // 54 * 0.706
-        iconSize: '22px',   // 32 * 0.706
-      }
+      bannerWidth: 44,    // 63 * 0.706
+      bannerHeight: 85,   // 120 * 0.706
+      clipWidth: 42,      // 59 * 0.706
+      clipHeight: 85,     // 120 * 0.706
+      clipOffset: 1,      // 2 * 0.706
+      fontSize: '18px',   // 26 * 0.706
+      textTop: '11px',    // 16 * 0.706
+      iconTop: '38px',    // 54 * 0.706
+      iconSize: '22px',   // 32 * 0.706
+    }
     : {
-        bannerWidth: 63,
-        bannerHeight: 120,
-        clipWidth: 59,
-        clipHeight: 120,
-        clipOffset: 2,
-        fontSize: '26px',
-        textTop: '16px',
-        iconTop: '54px',
-        iconSize: '32px',
-      };
+      bannerWidth: 63,
+      bannerHeight: 120,
+      clipWidth: 59,
+      clipHeight: 120,
+      clipOffset: 2,
+      fontSize: '26px',
+      textTop: '16px',
+      iconTop: '54px',
+      iconSize: '32px',
+    };
 
   const DomainIcon = getDomainIcon(domain);
 
   return (
     <div className="relative" style={{ width: dimensions.bannerWidth, height: dimensions.bannerHeight }}>
-      {/* Banner decoration image - z-40 per daggerheartbrews */}
+      {/* Banner decoration image */}
       <Image
         src="/assets/card/banner.webp"
         alt=""
@@ -103,29 +116,31 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
 
       {/* Foreground clip (primary color) - z-30, narrower and offset */}
       <div
-        className="clip-card-banner-fg absolute z-30"
+        className="absolute z-30"
         style={{
           top: 0,
           left: `${dimensions.clipOffset}px`,
           width: `${dimensions.clipWidth}px`,
           height: `${dimensions.clipHeight}px`,
           background: theme.primary,
+          clipPath: BANNER_CLIP_PATH,
         }}
       />
 
       {/* Background clip (secondary color) - z-20, narrower and offset */}
       <div
-        className="clip-card-banner-bg absolute z-20"
+        className="absolute z-20"
         style={{
           top: 0,
           left: `${dimensions.clipOffset}px`,
           width: `${dimensions.clipWidth}px`,
           height: `${dimensions.clipHeight}px`,
           background: theme.secondary,
+          clipPath: BANNER_BG_CLIP_PATH,
         }}
       />
 
-      {/* Level number - centered horizontally at top per daggerheartbrews */}
+      {/* Level number - centered horizontally at top */}
       <div
         className="absolute z-50 font-bold"
         style={{
@@ -139,7 +154,7 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
         {level}
       </div>
 
-      {/* Domain icon - centered below level number per daggerheartbrews */}
+      {/* Domain icon - centered below level number */}
       {DomainIcon && (
         <div
           className="absolute z-50"
