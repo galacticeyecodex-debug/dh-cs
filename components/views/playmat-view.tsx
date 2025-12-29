@@ -316,7 +316,7 @@ const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, act
       <DomainCard
         name={name}
         domain={domain}
-        tier={tier}
+        tier={tier ?? 0}
         type={type}
         description={data?.description || data?.text}
         recallCost={recallCost}
