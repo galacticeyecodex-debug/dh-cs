@@ -10,7 +10,7 @@ This document details the professional card layout and rendering approach used b
 ```
 ┌─────────────────────────────┐
 │ Banner (Level)      [Recall]│ ← Banner top-left, Recall badge top-right
-│ (Top Section)               │
+│ [Domain Icon]               │   (text offset for lightning bolt)
 │                             │
 │   ┌─────────────────────┐   │
 │   │                     │   │
@@ -19,7 +19,7 @@ This document details the professional card layout and rendering approach used b
 │   │                     │   │
 │   └─────────────────────┘   │
 │                             │
-├─────── Divider ─────────────┤ ← Domain divider with gradient
+├─────── Divider ─────────────┤ ← Domain divider with gradient (type only)
 │                             │
 │      Card Name              │ ← Centered, serif font
 │                             │
@@ -27,6 +27,8 @@ This document details the professional card layout and rendering approach used b
 │   Lorem ipsum dolor sit     │
 │   amet, consectetur...      │
 │                             │
+├─────────────────────────────┤
+│  Interactive Elements Area  │ ← Reserved for tokens, etc. (36px)
 └─────────────────────────────┘
 ```
 
@@ -40,15 +42,16 @@ This document details the professional card layout and rendering approach used b
 
 **Structure:**
 ```tsx
-<Banner decoration (z-50)>     // WebP image
+<Banner decoration (z-40)>     // WebP image
 <Foreground clip (z-30)>       // Domain primary color
 <Background clip (z-20)>       // Domain secondary color
-<Level number (z-50)>          // Centered text
+<Level number (z-50)>          // Centered at top: 16px
+<Domain icon (z-50)>           // Centered at top: 54px (32x32px)
 ```
 
 **Sizing:**
-- Full: 120px width × 63px height
-- Thumbnail: 80px width × 42px height
+- Full: 63px width × 120px height
+- Thumbnail: 44px width × 85px height
 
 **Colors:**
 - Primary color: Foreground clip-path
@@ -58,18 +61,22 @@ This document details the professional card layout and rendering approach used b
 ### 2. **Recall Cost Badge**
 
 **Positioning:**
-- Top-right at `right: 24px, top: 24px`
-- z-index: 40
+- Badge image: Top-right at `right: 24px, top: 24px`
+- Text: Offset at `right: 40px, top: 29px` (accounts for lightning bolt)
+- z-index: 40 (badge), 41 (text)
 
 **Structure:**
 ```tsx
-<Background image (stress-cost-bg.webp)>
-<Centered text>                // Recall cost number
+<Background image (recall-cost-bg.webp)>  // Badge image
+<Offset text>                              // Cost number, offset left from center
 ```
 
 **Sizing:**
 - Full: 32px × 32px
 - Thumbnail: 24px × 24px
+
+**Text Offset:**
+The recall cost text is positioned explicitly rather than centered because the badge has a lightning bolt graphic on the right side.
 
 ### 3. **Divider Component** (`card-divider.tsx`)
 
@@ -92,19 +99,36 @@ This document details the professional card layout and rendering approach used b
 ### 4. **Content Section**
 
 **Positioning:**
-- Absolute bottom positioning
+- Absolute positioned at `bottom: 36px` (full), `bottom: 25px` (thumbnail)
 - White background (`bg-white`)
 - z-index: 20
 
 **Heights:**
-- With image: 170px minimum (full), 120px (thumbnail)
-- Without image: 230px minimum (full), 160px (thumbnail)
+- With image: 140px minimum (full), 100px (thumbnail)
+- Without image: 185px minimum (full), 130px (thumbnail)
 
 **Typography:**
 - Name: Serif font, bold, 16px (full), ~11px (thumbnail)
 - Description: 12px (full), ~8px (thumbnail)
 - Leading: tight
 - Padding: 24px horizontal
+
+### 5. **Interactive Elements Area**
+
+**Positioning:**
+- Absolute bottom at `bottom: 0`
+- Full width, white background
+
+**Height:**
+- Full: 36px
+- Thumbnail: 25px
+
+**Purpose:**
+Reserved space at the bottom of the card for future interactive elements such as:
+- Token counters
+- Action buttons
+- Status indicators
+- Quick reference icons
 
 ## Data Model
 
@@ -163,16 +187,27 @@ getBrightness(hexColor) < 128 ? 'white' : 'black'
   aspect-ratio: 2.5 / 3.5;
 }
 
+/* Banner clip paths - complex shapes matching exact banner decoration */
 .clip-card-banner-fg {
-  clip-path: polygon(0% 16%, 12% 0%, 88% 0%, 100% 16%, 100% 84%, 88% 100%, 12% 100%, 0% 84%);
+  clip-path: polygon(
+    0 0, 11% 1%, 11% 51%, 17% 55%, 18% 0, 82% 0,
+    83% 56%, 88% 52%, 88% 0, 100% 1%, 100% 58%,
+    83% 69%, 82% 90%, 72% 90%, 63% 88%, 57% 85%,
+    49% 82%, 43% 85%, 34% 88%, 25% 90%, 18% 90%,
+    17% 68%, 0 59%
+  );
 }
 
 .clip-card-banner-bg {
-  clip-path: polygon(0% 18%, 10% 2%, 90% 2%, 100% 18%, 100% 82%, 90% 98%, 10% 98%, 0% 82%);
+  clip-path: polygon(
+    91% 100%, 91% 0, 6% 0, 9% 100%, 29% 98%,
+    39% 95%, 45% 91%, 47% 86%, 46% 83%, 46% 79%,
+    53% 79%, 53% 84%, 53% 87%, 56% 91%, 60% 95%, 71% 98%
+  );
 }
 
 .clip-card-divider {
-  clip-path: polygon(2% 0%, 98% 0%, 100% 50%, 98% 100%, 2% 100%, 0% 50%);
+  clip-path: polygon(67% 16%, 73% 49%, 66% 87%, 33% 81%, 27% 48%, 35% 16%);
 }
 ```
 
