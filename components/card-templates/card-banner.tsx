@@ -3,12 +3,52 @@
  * ----------------------------------------------------------------------------
  * Renders a decorative banner for domain cards using the daggerheartbrews
  * asset styling approach. Creates a layered effect with WebP decoration,
- * clipped color backgrounds, and centered content.
+ * clipped color backgrounds, and centered content with domain icon.
  */
 
 import React from 'react';
 import Image from 'next/image';
 import { getDomainTheme, getContrastColor } from '@/lib/domain-colors';
+import {
+  ArcanaDomainIcon,
+  BladeDomainIcon,
+  BoneDomainIcon,
+  CodexDomainIcon,
+  DreadDomainIcon,
+  GraceDomainIcon,
+  MidnightDomainIcon,
+  SageDomainIcon,
+  SplendorDomainIcon,
+  ValorDomainIcon,
+} from '@/components/icons';
+
+// Get the domain icon component for a given domain
+const getDomainIcon = (domain?: string) => {
+  switch (domain?.toLowerCase()) {
+    case 'arcana':
+      return ArcanaDomainIcon;
+    case 'blade':
+      return BladeDomainIcon;
+    case 'bone':
+      return BoneDomainIcon;
+    case 'codex':
+      return CodexDomainIcon;
+    case 'grace':
+      return GraceDomainIcon;
+    case 'midnight':
+      return MidnightDomainIcon;
+    case 'sage':
+      return SageDomainIcon;
+    case 'splendor':
+      return SplendorDomainIcon;
+    case 'valor':
+      return ValorDomainIcon;
+    case 'dread':
+      return DreadDomainIcon;
+    default:
+      return null;
+  }
+};
 
 interface CardBannerProps {
   domain?: string;
@@ -32,6 +72,8 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
         clipOffset: 1,      // 2 * 0.706
         fontSize: '18px',   // 26 * 0.706
         textTop: '11px',    // 16 * 0.706
+        iconTop: '38px',    // 54 * 0.706
+        iconSize: '22px',   // 32 * 0.706
       }
     : {
         bannerWidth: 63,
@@ -41,7 +83,11 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
         clipOffset: 2,
         fontSize: '26px',
         textTop: '16px',
+        iconTop: '54px',
+        iconSize: '32px',
       };
+
+  const DomainIcon = getDomainIcon(domain);
 
   return (
     <div className="relative" style={{ width: dimensions.bannerWidth, height: dimensions.bannerHeight }}>
@@ -92,6 +138,26 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
       >
         {level}
       </div>
+
+      {/* Domain icon - centered below level number per daggerheartbrews */}
+      {DomainIcon && (
+        <div
+          className="absolute z-50"
+          style={{
+            top: dimensions.iconTop,
+            left: '50%',
+            transform: 'translateX(-50%)',
+          }}
+        >
+          <DomainIcon
+            style={{
+              height: dimensions.iconSize,
+              width: dimensions.iconSize,
+              color: textColor,
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@
  * Card Divider Component
  * ----------------------------------------------------------------------------
  * Renders a decorative divider for domain cards with gradient background
- * and domain label text overlay.
+ * and type label text overlay (matching daggerheartbrews style).
  */
 
 import React from 'react';
@@ -11,11 +11,11 @@ import { getDomainTheme, getContrastColor } from '@/lib/domain-colors';
 
 interface CardDividerProps {
   domain?: string;
-  type?: string;
+  subtype?: string;  // The card subtype (e.g., "ABILITY", "SPELL", etc.)
   size?: 'small' | 'large';
 }
 
-export function CardDivider({ domain, type, size = 'small' }: CardDividerProps) {
+export function CardDivider({ domain, subtype, size = 'small' }: CardDividerProps) {
   const theme = getDomainTheme(domain);
   const textColor = getContrastColor(theme.primary);
 
@@ -64,8 +64,8 @@ export function CardDivider({ domain, type, size = 'small' }: CardDividerProps) 
         }}
       />
 
-      {/* Domain label text */}
-      {domain && (
+      {/* Type/subtype label text - only shows subtype per daggerheartbrews */}
+      {subtype && (
         <div
           className="absolute z-30 font-bold uppercase text-center w-full flex items-center justify-center"
           style={{
@@ -76,7 +76,7 @@ export function CardDivider({ domain, type, size = 'small' }: CardDividerProps) 
             letterSpacing: dimensions.letterSpacing,
           }}
         >
-          {domain} {type && `- ${type}`}
+          {subtype}
         </div>
       )}
     </div>

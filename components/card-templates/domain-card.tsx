@@ -158,7 +158,7 @@ export function DomainCard({
       >
         {/* Divider */}
         <div className="relative w-full">
-          <CardDivider domain={domain} type={type} size={isThumbnail ? 'small' : 'large'} />
+          <CardDivider domain={domain} subtype={type} size={isThumbnail ? 'small' : 'large'} />
         </div>
 
         {/* Card Name */}
