@@ -19,31 +19,49 @@ export function CardDivider({ domain, type, size = 'small' }: CardDividerProps) 
   const theme = getDomainTheme(domain);
   const textColor = getContrastColor(theme.primary);
 
-  // Size configurations
+  // Size configurations - image needs to be taller to show decorative frame
   const dimensions = size === 'small'
-    ? { height: 30, fontSize: '9px', letterSpacing: '1px', marginTop: 8 }
-    : { height: 40, fontSize: '12px', letterSpacing: '1.5px', marginTop: 12 };
+    ? {
+        containerHeight: 30,
+        imageHeight: 58, // Taller to show gold frame decorations
+        imageTop: -14,
+        fontSize: '9px',
+        letterSpacing: '1px',
+        marginTop: 8
+      }
+    : {
+        containerHeight: 40,
+        imageHeight: 75, // Taller to show gold frame decorations
+        imageTop: -18,
+        fontSize: '12px',
+        letterSpacing: '1.5px',
+        marginTop: 12
+      };
 
   return (
-    <div className="relative w-full" style={{ height: dimensions.height, marginTop: dimensions.marginTop }}>
+    <div className="relative w-full" style={{ height: dimensions.containerHeight, marginTop: dimensions.marginTop }}>
       {/* Gradient background with clip */}
       <div
         className="absolute w-full clip-card-divider z-10"
         style={{
-          height: dimensions.height,
+          height: dimensions.containerHeight,
           top: 0,
           background: `linear-gradient(to right, ${theme.primary}, ${theme.secondary})`,
         }}
       />
 
-      {/* Divider decoration image */}
+      {/* Divider decoration image - must be taller to show gold frame */}
       <Image
         src="/assets/card/divider-domain.webp"
         alt=""
         width={340}
-        height={dimensions.height}
-        className="absolute z-20 w-full object-cover"
-        style={{ top: '-14px', height: dimensions.height }}
+        height={dimensions.imageHeight}
+        className="absolute z-20 w-full"
+        style={{
+          top: `${dimensions.imageTop}px`,
+          height: `${dimensions.imageHeight}px`,
+          objectFit: 'contain' // Use contain instead of cover to preserve decorations
+        }}
       />
 
       {/* Domain label text */}
