@@ -20,52 +20,72 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
   const theme = getDomainTheme(domain);
   const textColor = getContrastColor(theme.primary);
 
-  // Size configurations
+  // Size configurations matching daggerheartbrews exactly
+  // Full size (340px cards): banner 63x120px, clips 59x120px
+  // Thumbnail (240px cards): scale by 240/340 = 0.706
   const dimensions = size === 'small'
-    ? { width: 120, height: 63, fontSize: '14px' }
-    : { width: 180, height: 95, fontSize: '24px' };
+    ? {
+        bannerWidth: 44,    // 63 * 0.706
+        bannerHeight: 85,   // 120 * 0.706
+        clipWidth: 42,      // 59 * 0.706
+        clipHeight: 85,     // 120 * 0.706
+        clipOffset: 1,      // 2 * 0.706
+        fontSize: '18px',   // 26 * 0.706
+        textTop: '11px',    // 16 * 0.706
+      }
+    : {
+        bannerWidth: 63,
+        bannerHeight: 120,
+        clipWidth: 59,
+        clipHeight: 120,
+        clipOffset: 2,
+        fontSize: '26px',
+        textTop: '16px',
+      };
 
   return (
-    <div className="relative" style={{ width: dimensions.width, height: dimensions.height }}>
-      {/* Banner decoration image */}
+    <div className="relative" style={{ width: dimensions.bannerWidth, height: dimensions.bannerHeight }}>
+      {/* Banner decoration image - z-40 per daggerheartbrews */}
       <Image
         src="/assets/card/banner.webp"
         alt=""
-        width={dimensions.width}
-        height={dimensions.height}
-        className="absolute z-50"
-        style={{ top: '-4px', left: 0 }}
+        width={dimensions.bannerWidth}
+        height={dimensions.bannerHeight}
+        className="absolute z-40"
+        style={{ top: 0, left: 0 }}
       />
 
-      {/* Colored background layers with clip paths */}
+      {/* Foreground clip (primary color) - z-30, narrower and offset */}
       <div
-        className="absolute clip-card-banner-fg z-20"
+        className="clip-card-banner-fg absolute z-30"
         style={{
-          width: dimensions.width,
-          height: dimensions.height - 4,
-          backgroundColor: theme.primary,
-          left: 0,
           top: 0,
-        }}
-      />
-      <div
-        className="absolute clip-card-banner-bg z-10"
-        style={{
-          width: dimensions.width,
-          height: dimensions.height - 4,
-          backgroundColor: theme.secondary,
-          left: 0,
-          top: 0,
+          left: `${dimensions.clipOffset}px`,
+          width: `${dimensions.clipWidth}px`,
+          height: `${dimensions.clipHeight}px`,
+          background: theme.primary,
         }}
       />
 
-      {/* Level number centered */}
+      {/* Background clip (secondary color) - z-20, narrower and offset */}
       <div
-        className="absolute z-50 font-bold flex items-center justify-center"
+        className="clip-card-banner-bg absolute z-20"
         style={{
+          top: 0,
+          left: `${dimensions.clipOffset}px`,
+          width: `${dimensions.clipWidth}px`,
+          height: `${dimensions.clipHeight}px`,
+          background: theme.secondary,
+        }}
+      />
+
+      {/* Level number - centered horizontally at top per daggerheartbrews */}
+      <div
+        className="absolute z-50 font-bold"
+        style={{
+          top: dimensions.textTop,
           left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
+          transform: 'translateX(-50%)',
           color: textColor,
           fontSize: dimensions.fontSize,
         }}
