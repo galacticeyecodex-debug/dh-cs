@@ -18,9 +18,9 @@
  * - Only re-renders cards when their location or data actually changes
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character-store';
-import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap, Shield, ShieldOff, Users, AlertCircle, Swords, Sparkles, Search } from 'lucide-react';
+import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap, Shield, ShieldOff, Users, AlertCircle, Swords, Sparkles, Search, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AddItemModal from '@/components/add-item-modal';
 import { dataService } from '@/lib/data-service';
@@ -30,9 +30,13 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { parseCardPassiveModifiers, type PassiveModifier, type ModifierCondition } from '@/lib/card-parser';
 import { parseCombatAbility, type CombatAbility } from '@/lib/combat-spell-parser';
 import { toast } from 'react-hot-toast';
+import { getDomainTheme } from '@/lib/domain-colors';
+import { uploadCharacterImage } from '@/lib/supabase/storage';
+import Image from 'next/image';
+import { DomainCard } from '@/components/card-templates/domain-card';
 
 export default function PlaymatView() {
-  const { character, moveCard, addCardToCollection } = useCharacterStore();
+  const { character, moveCard, addCardToCollection, updateCardImage, user } = useCharacterStore();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'loadout' | 'vault'>('loadout');
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
@@ -220,8 +224,8 @@ export default function PlaymatView() {
             );
           })()}
 
-          {/* Loadout Grid */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Loadout Cards - Single Column */}
+          <div className="flex flex-col items-center gap-4">
             {loadoutCards.length > 0 ? (
               loadoutCards.map((charCard) => (
                 <CardThumbnail
@@ -233,7 +237,7 @@ export default function PlaymatView() {
                 />
               ))
             ) : (
-              <div className="aspect-[2/3] border-2 border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center text-gray-600 col-span-2 p-4 text-center">
+              <div className="w-[240px] aspect-[2.5/3.5] border-2 border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center text-gray-600 p-4 text-center">
                 <LibraryBig size={24} className="mb-2" />
                 <span className="text-sm">
                   {searchTerm ? "No cards match your search." : "No cards in Loadout."}
@@ -246,7 +250,7 @@ export default function PlaymatView() {
 
             {/* Fill remaining slots up to 5 only if not searching */}
             {!searchTerm && Array.from({ length: Math.max(0, 5 - loadoutCards.length) }).map((_, i) => (
-              <div key={`empty-${i}`} className="aspect-[2/3] border-2 border-dashed border-white/5 rounded-lg flex items-center justify-center text-gray-600">
+              <div key={`empty-${i}`} className="w-[240px] aspect-[2.5/3.5] border-2 border-dashed border-white/5 rounded-lg flex items-center justify-center text-gray-600">
                 <span className="text-xs uppercase">Slot {loadoutCards.length + i + 1}</span>
               </div>
             ))}
@@ -258,7 +262,7 @@ export default function PlaymatView() {
       {viewMode === 'vault' && (
         <div className="space-y-4">
           {vaultCards.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="flex flex-col items-center gap-4">
               {vaultCards.map((charCard) => (
                 <CardThumbnail
                   key={charCard.id}
@@ -301,80 +305,33 @@ export default function PlaymatView() {
 const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, actionLabel, onAction }: { charCard: CharacterCard, onClick: () => void, actionLabel?: string, onAction?: () => void }) {
   const { character } = useCharacterStore();
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown Card', domain: '', tier: 0, type: '', data: {} };
-  // Ensure we check for recall in data, defaulting to '0' if not found or empty
   const recallCost = data?.recall || '0';
 
   // Check for mechanics
-  const hasPassiveModifiers = character && parseCardPassiveModifiers(charCard, character).length > 0;
+  const hasPassiveModifiers = !!(character && parseCardPassiveModifiers(charCard, character).length > 0);
   const hasCombatAbility = parseCombatAbility(charCard) !== null;
 
   return (
-    <div className="group relative">
-      <div
-        className="aspect-[2/3] bg-zinc-800 border border-white/10 rounded-lg p-2 flex flex-col overflow-hidden hover:border-dagger-gold transition-colors cursor-pointer relative"
+    <div className="group relative pb-6">
+      <DomainCard
+        name={name}
+        domain={domain}
+        tier={tier ?? 0}
+        type={type}
+        description={data?.description || data?.text}
+        recallCost={recallCost}
+        customImageUrl={charCard.state?.custom_image_url}
+        customImageType={charCard.state?.custom_image_type}
+        hasPassiveModifiers={hasPassiveModifiers}
+        hasCombatAbility={hasCombatAbility}
         onClick={onClick}
-      >
-        {/* Top Header Section: Level & Recall Cost */}
-        <div className="absolute top-0 left-0 w-full flex justify-between items-start p-2 z-20 pointer-events-none">
-          {/* Top Left: Level */}
-          <div className="relative w-8 h-10 flex items-center justify-center text-white font-bold text-sm shadow-md" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 80%, 50% 100%, 0% 80%)', backgroundColor: 'black' }}>
-            {tier}
-          </div>
-
-          {/* Top Right: Recall Cost */}
-          <div className="relative w-7 h-7 rounded-full bg-black/80 border border-white/20 flex items-center justify-center text-white font-bold text-xs shadow-md">
-            {recallCost}
-            <Zap size={8} className="absolute bottom-0.5 right-0.5 text-yellow-400" />
-          </div>
-        </div>
-
-        {/* Domain & Type Banner (Top Center) */}
-        <div className="mt-8 text-center z-10">
-          <span className="uppercase font-bold text-[9px] bg-black/60 border border-white/10 text-white px-2 py-0.5 rounded-sm tracking-wider shadow-sm backdrop-blur-sm">
-            {domain} {type}
-          </span>
-        </div>
-
-        {/* Card Name */}
-        <div className="text-center mt-1 px-1 z-10">
-          <div className="font-serif font-bold text-white leading-tight text-sm">{name}</div>
-        </div>
-
-        {/* Full Description (Small Text) */}
-        <div className="flex-1 mt-2 overflow-hidden text-[9px] text-gray-300 leading-snug text-center px-1">
-          {data?.description || data?.text ? (
-            <div className="prose prose-invert prose-p:text-[9px] prose-p:leading-snug line-clamp-[8]">
-              <ReactMarkdown>
-                {data.description || data.text}
-              </ReactMarkdown>
-            </div>
-          ) : (
-            <p className="italic text-gray-500">No description.</p>
-          )}
-        </div>
-
-        {/* Mechanic Badges (Top right, below recall cost) */}
-        {(hasPassiveModifiers || hasCombatAbility) && (
-          <div className="absolute top-10 right-2 flex flex-col items-center gap-1 z-20">
-            {hasPassiveModifiers && (
-              <div className="bg-purple-900/80 border border-purple-500/50 rounded-full px-1.5 py-0.5 flex items-center gap-0.5" title="Has passive modifiers">
-                <Sparkles size={8} className="text-purple-300" />
-              </div>
-            )}
-            {hasCombatAbility && (
-              <div className="bg-purple-900/80 border border-purple-500/50 rounded-full px-1.5 py-0.5 flex items-center gap-0.5" title="Has combat ability">
-                <Swords size={8} className="text-purple-300" />
-              </div>
-            )}
-          </div>
-        )}
-
-      </div>
+        size="thumbnail"
+      />
 
       {actionLabel && onAction && (
         <button
           onClick={(e) => { e.stopPropagation(); onAction(); }}
-          className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-zinc-900 border border-white/20 text-[10px] font-bold text-gray-300 px-2 py-1 rounded-full hover:bg-zinc-700 hover:text-white whitespace-nowrap shadow-md z-30 flex items-center gap-1"
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-zinc-900 border border-white/20 text-[10px] font-bold text-gray-300 px-2 py-1 rounded-full hover:bg-zinc-700 hover:text-white whitespace-nowrap shadow-md z-30 flex items-center gap-1"
         >
           <ArrowRightLeft size={10} /> {actionLabel}
         </button>
@@ -385,19 +342,70 @@ const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, act
   // Only re-render if card data changed
   return prevProps.charCard.id === nextProps.charCard.id &&
          prevProps.charCard.location === nextProps.charCard.location &&
+         prevProps.charCard.state?.custom_image_url === nextProps.charCard.state?.custom_image_url &&
+         prevProps.charCard.state?.custom_image_type === nextProps.charCard.state?.custom_image_type &&
          prevProps.actionLabel === nextProps.actionLabel &&
          prevProps.onClick === nextProps.onClick &&
          prevProps.onAction === nextProps.onAction;
 });
 
 function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClose: () => void }) {
-  const { character } = useCharacterStore();
+  const { character, updateCardImage, user } = useCharacterStore();
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown', domain: '', tier: 0, type: '', data: {} };
   const recallCost = data?.recall || '0';
+  const theme = getDomainTheme(domain);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showImageOptions, setShowImageOptions] = useState(false);
 
   // Parse card mechanics
   const passiveModifiers = character ? parseCardPassiveModifiers(charCard, character) : [];
   const combatAbility = parseCombatAbility(charCard);
+
+  // Handle image upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, imageType: 'artwork' | 'full-card') => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !character) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be smaller than 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const result = await uploadCharacterImage(user.id, file, character.id);
+
+      if (result.error || !result.url) {
+        toast.error(result.error || 'Failed to upload image');
+        return;
+      }
+
+      await updateCardImage(charCard.id, result.url, imageType);
+      setShowImageOptions(false);
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Handle image removal
+  const handleRemoveImage = async () => {
+    await updateCardImage(charCard.id, null);
+    setShowImageOptions(false);
+  };
 
   // Helper to get condition icon
   const getConditionIcon = (condition?: ModifierCondition) => {
@@ -437,17 +445,30 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
       <div
         className="bg-zinc-800 text-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh] relative"
+        style={{ borderTop: `4px solid ${theme.primary}` }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header Section */}
         <div className="absolute top-0 left-0 w-full flex justify-between items-center p-3 z-10">
           {/* Top Left: Level */}
-          <div className="relative w-12 h-16 flex items-center justify-center text-white font-bold text-xl" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 80%, 50% 100%, 0% 80%)', backgroundColor: 'black' }}>
+          <div
+            className="relative w-12 h-16 flex items-center justify-center text-white font-bold text-xl"
+            style={{
+              clipPath: 'polygon(0% 0%, 100% 0%, 100% 80%, 50% 100%, 0% 80%)',
+              backgroundColor: theme.primary
+            }}
+          >
             {tier}
           </div>
 
           {/* Top Right: Recall Cost */}
-          <div className="relative w-10 h-10 rounded-full bg-black/90 flex items-center justify-center text-white font-bold text-lg shadow-md">
+          <div
+            className="relative w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md border-2"
+            style={{
+              backgroundColor: theme.secondary,
+              borderColor: theme.accent
+            }}
+          >
             {recallCost}
             <Zap size={14} className="absolute bottom-1 right-1 text-yellow-400" />
           </div>
@@ -460,7 +481,13 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
 
         {/* Card Type Banner */}
         <div className="mt-16 pt-2 pb-1 text-center z-10">
-          <span className="uppercase font-bold text-xs bg-black/60 border border-white/10 text-white px-3 py-1 rounded-full tracking-wider shadow-sm">
+          <span
+            className="uppercase font-bold text-xs text-white px-3 py-1 rounded-full tracking-wider shadow-sm border"
+            style={{
+              backgroundColor: `${theme.primary}cc`,
+              borderColor: theme.accent
+            }}
+          >
             {domain} - {type}
           </span>
         </div>
@@ -481,6 +508,117 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
           ) : (
             <p className="italic text-gray-500 text-center">No description available.</p>
           )}
+
+          {/* Image Management Section */}
+          <div className="mt-6 pt-4 border-t border-white/10">
+            <h3
+              className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center justify-between"
+              style={{ color: theme.accent }}
+            >
+              <span className="flex items-center gap-2">
+                <ImageIcon size={14} /> Card Artwork
+              </span>
+              <button
+                onClick={() => setShowImageOptions(!showImageOptions)}
+                className="text-[10px] bg-white/10 hover:bg-white/20 px-2 py-1 rounded normal-case"
+              >
+                {charCard.state?.custom_image_url ? 'Change' : 'Add'}
+              </button>
+            </h3>
+
+            {/* Current Image Preview */}
+            {charCard.state?.custom_image_url && (
+              <div className="mb-3 relative group">
+                <div className="aspect-[2/3] relative rounded-lg overflow-hidden border-2" style={{ borderColor: theme.primary }}>
+                  <Image
+                    src={charCard.state.custom_image_url}
+                    alt={name}
+                    fill
+                    className="object-cover"
+                    sizes="400px"
+                  />
+                </div>
+                <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
+                  <span>
+                    Type: {charCard.state.custom_image_type === 'full-card' ? 'Full Card' : 'Artwork Only'}
+                  </span>
+                  <button
+                    onClick={handleRemoveImage}
+                    className="text-red-400 hover:text-red-300 flex items-center gap-1"
+                  >
+                    <Trash2 size={12} /> Remove
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Image Upload Options */}
+            {showImageOptions && (
+              <div className="space-y-2">
+                <p className="text-xs text-gray-400">Choose how to display your custom image:</p>
+
+                {/* Upload as Artwork */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="w-full bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg p-3 text-left transition-colors disabled:opacity-50"
+                  data-type="artwork"
+                >
+                  <div className="flex items-start gap-3">
+                    <Upload size={16} className="mt-0.5" style={{ color: theme.accent }} />
+                    <div>
+                      <div className="font-bold text-sm">Artwork Background</div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        Upload character art or scene. Text will display over the image with a gradient overlay.
+                      </div>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Upload as Full Card */}
+                <button
+                  onClick={() => {
+                    const input = fileInputRef.current;
+                    if (input) {
+                      input.dataset.type = 'full-card';
+                      input.click();
+                    }
+                  }}
+                  disabled={isUploading}
+                  className="w-full bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg p-3 text-left transition-colors disabled:opacity-50"
+                >
+                  <div className="flex items-start gap-3">
+                    <Upload size={16} className="mt-0.5" style={{ color: theme.accent }} />
+                    <div>
+                      <div className="font-bold text-sm">Full Custom Card</div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        Upload a complete card image from the official site or daggerheartbrews.com
+                      </div>
+                    </div>
+                  </div>
+                </button>
+
+                {isUploading && (
+                  <div className="text-center text-sm text-gray-400 py-2">
+                    Uploading...
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const type = (e.target.dataset.type || 'artwork') as 'artwork' | 'full-card';
+                handleImageUpload(e, type);
+              }}
+              data-type="artwork"
+            />
+          </div>
 
           {/* Passive Modifiers Section */}
           {passiveModifiers.length > 0 && (
