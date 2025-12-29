@@ -452,7 +452,7 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
         <div className="absolute top-0 left-0 w-full flex justify-between items-center p-3 z-10">
           {/* Top Left: Level */}
           <div
-            className="relative w-12 h-16 flex items-center justify-center text-white font-bold text-xl"
+            className="relative w-12 h-16 flex items-center justify-center text-white font-eveleth font-bold text-xl"
             style={{
               clipPath: 'polygon(0% 0%, 100% 0%, 100% 80%, 50% 100%, 0% 80%)',
               backgroundColor: theme.primary
@@ -463,7 +463,7 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
 
           {/* Top Right: Recall Cost */}
           <div
-            className="relative w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md border-2"
+            className="relative w-10 h-10 rounded-full flex items-center justify-center text-white font-eveleth font-bold text-lg shadow-md border-2"
             style={{
               backgroundColor: theme.secondary,
               borderColor: theme.accent
@@ -494,7 +494,7 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
 
         {/* Card Name */}
         <div className="text-center px-4 pt-2">
-          <h2 className="text-3xl font-bold font-serif text-white">{name}</h2>
+          <h2 className="text-3xl font-bold font-eveleth text-white">{name}</h2>
         </div>
 
         {/* Card Description */}
