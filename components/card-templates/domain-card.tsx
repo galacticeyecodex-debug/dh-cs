@@ -80,22 +80,26 @@ export function DomainCard({
         <CardBanner domain={domain} level={tier} size={isThumbnail ? 'small' : 'large'} />
       </div>
 
-      {/* Recall Cost Badge - top right */}
+      {/* Recall Cost Badge - top right with offset text per daggerheartbrews */}
       <div className="absolute" style={{ right: isThumbnail ? '17px' : '24px', top: isThumbnail ? '17px' : '24px', zIndex: 40 }}>
-        <div className="relative">
-          <Image
-            src="/assets/card/recall-cost-bg.webp"
-            alt=""
-            width={isThumbnail ? 24 : 32}
-            height={isThumbnail ? 24 : 32}
-          />
-          <div
-            className="absolute inset-0 flex items-center justify-center text-white font-bold"
-            style={{ fontSize: `${isThumbnail ? 10 : 14}px` }}
-          >
-            {recallCost}
-          </div>
-        </div>
+        <Image
+          src="/assets/card/recall-cost-bg.webp"
+          alt=""
+          width={isThumbnail ? 24 : 32}
+          height={isThumbnail ? 24 : 32}
+        />
+      </div>
+      {/* Recall cost text - offset from center to account for lightning bolt */}
+      <div
+        className="absolute text-white font-bold"
+        style={{
+          right: isThumbnail ? '25px' : '40px',  // Offset left from badge center
+          top: isThumbnail ? '21px' : '29px',    // Offset down from badge top
+          fontSize: `${isThumbnail ? 10 : 14}px`,
+          zIndex: 41,
+        }}
+      >
+        {recallCost}
       </div>
 
       {/* Mechanic Badges - top right below recall cost */}
@@ -148,12 +152,12 @@ export function DomainCard({
         </div>
       ) : null}
 
-      {/* Content section at bottom with white background */}
+      {/* Content section - positioned higher to leave room for interactive elements */}
       <div
-        className="absolute bottom-0 flex flex-col items-center gap-1 bg-white w-full"
+        className="absolute flex flex-col items-center gap-1 bg-white w-full"
         style={{
-          minHeight: customImageUrl ? (isThumbnail ? '120px' : '170px') : (isThumbnail ? '160px' : '230px'),
-          paddingBottom: isThumbnail ? '8px' : '12px',
+          bottom: isThumbnail ? '25px' : '36px',  // Leave room for tokens/interactive elements
+          minHeight: customImageUrl ? (isThumbnail ? '100px' : '140px') : (isThumbnail ? '130px' : '185px'),
         }}
       >
         {/* Divider */}
@@ -166,7 +170,7 @@ export function DomainCard({
           className="font-serif font-bold text-center w-full z-20"
           style={{
             fontSize: `${16 * fontSize}px`,
-            paddingTop: `${16 * fontSize}px`,
+            paddingTop: `${12 * fontSize}px`,
             paddingLeft: `${24 * fontSize}px`,
             paddingRight: `${24 * fontSize}px`,
           }}
@@ -179,7 +183,7 @@ export function DomainCard({
           className="w-full z-20 leading-tight px-6 text-pretty overflow-hidden"
           style={{
             fontSize: `${12 * fontSize}px`,
-            maxHeight: customImageUrl ? (isThumbnail ? '60px' : '90px') : (isThumbnail ? '100px' : '150px'),
+            maxHeight: customImageUrl ? (isThumbnail ? '50px' : '70px') : (isThumbnail ? '80px' : '120px'),
           }}
         >
           {description ? (
@@ -189,6 +193,14 @@ export function DomainCard({
           )}
         </div>
       </div>
+
+      {/* Interactive elements area - reserved space at bottom for tokens, etc. */}
+      <div
+        className="absolute bottom-0 w-full bg-white"
+        style={{
+          height: isThumbnail ? '25px' : '36px',
+        }}
+      />
     </div>
   );
 }
