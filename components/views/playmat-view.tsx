@@ -224,8 +224,8 @@ export default function PlaymatView() {
             );
           })()}
 
-          {/* Loadout Grid */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Loadout Cards - Single Column */}
+          <div className="flex flex-col items-center gap-4">
             {loadoutCards.length > 0 ? (
               loadoutCards.map((charCard) => (
                 <CardThumbnail
@@ -237,7 +237,7 @@ export default function PlaymatView() {
                 />
               ))
             ) : (
-              <div className="aspect-[2/3] border-2 border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center text-gray-600 col-span-2 p-4 text-center">
+              <div className="w-[240px] aspect-[2.5/3.5] border-2 border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center text-gray-600 p-4 text-center">
                 <LibraryBig size={24} className="mb-2" />
                 <span className="text-sm">
                   {searchTerm ? "No cards match your search." : "No cards in Loadout."}
@@ -250,7 +250,7 @@ export default function PlaymatView() {
 
             {/* Fill remaining slots up to 5 only if not searching */}
             {!searchTerm && Array.from({ length: Math.max(0, 5 - loadoutCards.length) }).map((_, i) => (
-              <div key={`empty-${i}`} className="aspect-[2/3] border-2 border-dashed border-white/5 rounded-lg flex items-center justify-center text-gray-600">
+              <div key={`empty-${i}`} className="w-[240px] aspect-[2.5/3.5] border-2 border-dashed border-white/5 rounded-lg flex items-center justify-center text-gray-600">
                 <span className="text-xs uppercase">Slot {loadoutCards.length + i + 1}</span>
               </div>
             ))}
@@ -262,7 +262,7 @@ export default function PlaymatView() {
       {viewMode === 'vault' && (
         <div className="space-y-4">
           {vaultCards.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="flex flex-col items-center gap-4">
               {vaultCards.map((charCard) => (
                 <CardThumbnail
                   key={charCard.id}
