@@ -1,7 +1,7 @@
 # Domain Cards Enhancement - Implementation Summary
 
 ## Overview
-Enhanced domain cards with professional styling using actual daggerheartbrews.com assets and code patterns, plus custom artwork upload capabilities.
+Enhanced domain cards with professional styling using high-quality assets and code patterns, plus custom artwork upload capabilities.
 
 ## Features Implemented
 
@@ -30,7 +30,7 @@ Enhanced domain cards with professional styling using actual daggerheartbrews.co
 - Maintains all card information visibility
 
 **B. Full Custom Card Mode:**
-- Upload pre-made cards from official site or daggerheartbrews.com
+- Upload pre-made cards from official site or custom sources
 - Displays edge-to-edge with no overlays
 - Perfect for professionally designed cards
 
@@ -113,7 +113,7 @@ Added `updateCardImage()` function:
 - Perfect for pre-designed cards
 
 ## Assets Downloaded
-Downloaded professional card assets from daggerheartbrews.com:
+Downloaded professional card assets:
 - `public/assets/card/banner.webp` - Decorative banner frame
 - `public/assets/card/divider-domain.webp` - Domain divider decoration
 - `public/assets/card/level-bg.webp` - Level badge background

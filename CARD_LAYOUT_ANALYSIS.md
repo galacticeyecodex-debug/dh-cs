@@ -1,7 +1,7 @@
-# Daggerheartbrews Card Layout Analysis
+# Professional Card Layout Analysis
 
 ## Overview
-This document details the professional card layout and rendering approach used by daggerheartbrews.com, which has been implemented in this project for domain cards.
+This document details the professional card layout and rendering approach, which has been implemented in this project for domain cards.
 
 ## Card Structure (340px width, 2.5:3.5 aspect ratio)
 
@@ -144,7 +144,7 @@ Reserved space at the bottom of the card for future interactive elements such as
 }
 ```
 
-### CardDetails (daggerheartbrews)
+### CardDetails (professional)
 ```typescript
 {
   name: string;
@@ -175,7 +175,7 @@ getBrightness(hexColor) < 128 ? 'white' : 'black'
 
 ## Asset Files
 
-### Downloaded from daggerheartbrews.com
+### Professional Card Assets
 1. `banner.webp` (39KB) - Octagonal banner decoration
 2. `divider-domain.webp` (4.3KB) - Domain divider decoration
 3. `level-bg.webp` (8.5KB) - Level badge background
@@ -214,7 +214,7 @@ getBrightness(hexColor) < 128 ? 'white' : 'black'
 ## Implementation Notes
 
 ### Key Differences from Original
-1. **Background**: White (matches daggerheartbrews) instead of dark theme
+1. **Background**: White (matches professional layout) instead of dark theme
 2. **Fixed Width**: 340px for full cards (responsive in grid)
 3. **Image Handling**: Optional custom artwork in middle section
 4. **Text Rendering**: ReactMarkdown instead of dangerouslySetInnerHTML
@@ -256,7 +256,7 @@ getBrightness(hexColor) < 128 ? 'white' : 'black'
 
 ## References
 
-- **Original repo**: https://github.com/kelvin-mai/daggerheartbrews.com
+- **Source reference**: Card Layout Inspiration
 - **Banner component**: `/src/components/card-creation/preview/template/core/banner.tsx`
 - **Divider component**: `/src/components/card-creation/preview/template/core/divider.tsx`
 - **Card preview**: `/src/components/card-creation/preview/index.tsx`
