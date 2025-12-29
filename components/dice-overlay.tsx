@@ -309,6 +309,12 @@ export default function DiceOverlay() {
 
   const totalModifierDisplay = (activeRoll?.modifier || 0) + tempModifier + experienceModifier;
 
+  // Clear result bubble and allow for new rolls
+  const clearResult = () => {
+    setLastRollResult(null);
+    setHasRolled(false);
+  };
+
   return (
     <>
       <div
@@ -498,10 +504,10 @@ export default function DiceOverlay() {
                     onTouchEnd={(e) => e.stopPropagation()}
                   >
                     <button
-                      onClick={closeDiceOverlay}
+                      onClick={clearResult}
                       onTouchEnd={(e) => {
                         e.preventDefault();
-                        closeDiceOverlay();
+                        clearResult();
                       }}
                       className="absolute top-3 right-3 p-3 bg-white/20 rounded-full text-white hover:bg-white/30 active:bg-white/40 transition-colors touch-manipulation"
                       aria-label="Close"
