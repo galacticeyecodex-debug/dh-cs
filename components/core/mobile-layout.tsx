@@ -16,7 +16,7 @@
 import React from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { User, Layers, Backpack, Dices, Swords, LogOut, ChevronDown } from 'lucide-react';
-import DiceOverlay from './dice-overlay';
+import DiceOverlay from '../dice/dice-overlay';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import useUser from '@/hooks/useUser';

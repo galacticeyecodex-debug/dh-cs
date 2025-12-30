@@ -14,7 +14,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import ModifierBuilder from '@/components/modifier-builder';
+import ModifierBuilder from '@/components/modifiers/modifier-builder';
 import { Modifier } from '@/types/modifiers';
 
 describe.skip('ModifierBuilder', () => {

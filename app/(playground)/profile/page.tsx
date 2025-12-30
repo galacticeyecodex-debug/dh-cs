@@ -13,8 +13,8 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import AuthButton from "@/components/auth-buttons";
-import ContentAccessSettings from "@/components/content-access-settings";
+import AuthButton from "@/components/auth/auth-buttons";
+import ContentAccessSettings from "@/components/modals/content-access-settings";
 import useUser from "@/hooks/useUser";
 
 export default function ProfilePage() {

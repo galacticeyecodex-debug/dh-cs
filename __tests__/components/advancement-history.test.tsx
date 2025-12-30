@@ -14,7 +14,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import AdvancementHistory from '@/components/advancement-history';
+import AdvancementHistory from '@/components/level-up/advancement-history';
 import { AdvancementRecord } from '@/store/character-store';
 
 describe('AdvancementHistory', () => {

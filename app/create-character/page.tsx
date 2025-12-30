@@ -23,7 +23,7 @@ import { dataService } from '@/lib/data-service';
 import useContentAccess from '@/hooks/useContentAccess';
 import clsx from 'clsx';
 import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins, Sword, X, Heart, Upload, PawPrint, FlaskConical } from 'lucide-react';
-import AddItemModal from '@/components/add-item-modal';
+import AddItemModal from '@/components/modals/add-item-modal';
 import { uploadCharacterAvatar } from '@/lib/storage-service';
 import { calculateDamageThresholds } from '@/lib/gameLogic';
 import { RangerCompanion } from '@/types/character';

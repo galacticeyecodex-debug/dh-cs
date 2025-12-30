@@ -19,9 +19,9 @@ import { Shield, Swords, Zap, Skull, Crosshair, Eye, EyeOff, Wand2, Moon, Dna } 
 import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
 import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers, calculateAttackModifier, calculateDamageModifier } from '@/lib/utils';
-import CommonVitalsDisplay from '@/components/common-vitals-display';
-import ModifierSheet from '@/components/modifier-sheet';
-import { ErrorBoundary } from '@/components/error-boundary';
+import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
+import ModifierSheet from '@/components/modifiers/modifier-sheet';
+import { ErrorBoundary } from '@/components/core/error-boundary';
 import useContentAccess from '@/hooks/useContentAccess';
 import { getValueColor } from '@/lib/styles';
 import { CombatSpellCard } from '@/components/combat';
