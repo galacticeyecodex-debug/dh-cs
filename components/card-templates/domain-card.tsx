@@ -78,7 +78,7 @@ export function DomainCard({
       onClick={onClick}
     >
       {/* Banner - top left */}
-      <div className="absolute" style={{ left: isThumbnail ? '17px' : '24px', top: '-4px', zIndex: 40 }}>
+      <div className="absolute" style={{ left: isThumbnail ? '5px' : '24px', top: '-4px', zIndex: 40 }}>
         <CardBanner domain={domain} level={tier} size={isThumbnail ? 'small' : 'large'} />
       </div>
 

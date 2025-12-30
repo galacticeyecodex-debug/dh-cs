@@ -101,7 +101,7 @@
     "specializations": [
       {
         "name": "Walk Between Worlds",
-        "text": "Make a **Spellcast Roll** (13) to step beyond the veil of death and converse with any nearby spirits. Place a number of tokens equal to your Spellcast trait on this card and remove one each time a spirit answers a question. You return to the mortal realm when the last token is removed."
+        "text": "Make a **Spellcast Roll (13)** to step beyond the veil of death and converse with any nearby spirits. Place a number of tokens equal to your Spellcast trait on this card and remove one each time a spirit answers a question. You return to the mortal realm when the last token is removed."
       },
       {
         "name": "Enhanced Hex",
@@ -163,7 +163,7 @@
       },
       {
         "name": "Eye for an Eye",
-        "text": "When you mark more than one Hit Point from an attack in Melee range, the attacker must make a **Reaction Roll** (13). On a failure, once per rest, they immediately mark the same number of Hit Points in return."
+        "text": "When you mark more than one Hit Point from an attack in Melee range, the attacker must make a **Reaction Roll (13)**. On a failure, once per rest, they immediately mark the same number of Hit Points in return."
       }
     ],
     "masteries": [

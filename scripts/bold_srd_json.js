@@ -38,7 +38,7 @@ const DAMAGE_ROLL_REGEX = /(?<!\*\*)(\b\d*d\d+(?:\s*[+-]\s*\d+)?s?\b)(?<!\*\*)/g
  * 3. ACTION ROLLS REGEX
  * Targets: Trait-specific rolls and their difficulties (e.g., Presence Roll, Strength Roll (15), Spellcast Roll, Action Roll, Reaction Roll)
  */
-const ACTION_ROLL_REGEX = /(?<!\*\*)(\b(?:Agility|Strength|Finesse|Instinct|Presence|Knowledge|Spellcast|Action|Reaction)\s+(?:Reaction\s+)?Rolls?(?:\s*\([dX]+\))?\b)(?<!\*\*)/gi;
+const ACTION_ROLL_REGEX = /(?<!\*\*)(\b(?:Agility|Strength|Finesse|Instinct|Presence|Knowledge|Spellcast|Action|Reaction)\s+(?:Reaction\s+)?Rolls?(?:\s*\([\d dX]+\))?)(?!\*\*)/gi;
 
 /**
  * Applies all bolding patterns to a string.
@@ -47,6 +47,11 @@ function boldPatterns(text) {
   if (typeof text !== 'string') return text;
   
   let newText = text;
+  
+  // First, unbold existing action rolls to handle cases where they were partially bolded
+  // (e.g., "**Spellcast Roll** (15)" -> "Spellcast Roll (15)")
+  newText = newText.replace(/\*\*((?:Agility|Strength|Finesse|Instinct|Presence|Knowledge|Spellcast|Action|Reaction)\s+(?:Reaction\s+)?Rolls?)\*\*/gi, '$1');
+
   newText = newText.replace(RESOURCE_REGEX, '**$1**');
   newText = newText.replace(DAMAGE_ROLL_REGEX, '**$1**');
   newText = newText.replace(ACTION_ROLL_REGEX, '**$1**');
