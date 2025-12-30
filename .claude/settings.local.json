@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(gh issue create:*)",
+      "Bash(npm run build:*)",
+      "Bash(cat:*)",
+      "Bash(node scripts/parse_json_srd.js:*)",
+      "Bash(gh issue view:*)",
+      "Bash(tree:*)",
+      "Bash(find:*)",
+      "Bash(python3:*)",
+      "Bash(gh issue list:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run test:run:*)",
+      "Bash(xargs:*)",
+      "Bash(gh issue close:*)",
+      "Bash(git checkout:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(git push:*)",
+      "Bash(git stash:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "Bash(pkill:*)",
+      "Bash(git pull:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(test:*)",
+      "Bash(npm run lint:nextjs:*)",
+      "Bash(npm run:*)",
+      "WebFetch(domain:daggerheart.org)",
+      "Bash(git log:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
