@@ -6,7 +6,13 @@
     "feats": [
       {
         "name": "Privilege",
-        "text": "You have advantage on rolls to consort with nobles, negotiate prices, or leverage your reputation to get what you want."
+        "text": "You have advantage on rolls to consort with nobles, negotiate prices, or leverage your reputation to get what you want.",
+        "action_type": "buff",
+        "timing": "free",
+        "frequency": "at_will",
+        "keywords": [
+          "buff"
+        ]
       }
     ]
   },
@@ -17,7 +23,13 @@
     "feats": [
       {
         "name": "Well-Read",
-        "text": "You have advantage on rolls that involve the history, culture, or politics of a prominent person or place."
+        "text": "You have advantage on rolls that involve the history, culture, or politics of a prominent person or place.",
+        "action_type": "buff",
+        "timing": "free",
+        "frequency": "at_will",
+        "keywords": [
+          "buff"
+        ]
       }
     ]
   },
@@ -28,7 +40,16 @@
     "feats": [
       {
         "name": "Dedicated",
-        "text": "Record three sayings or values your upbringing instilled in you. Once per rest, when you describe how you’re embodying one of these principles through your current action, you can roll a **d20** as your Hope Die."
+        "text": "Record three sayings or values your upbringing instilled in you. Once per rest, when you describe how you’re embodying one of these principles through your current action, you can roll a **d20** as your Hope Die.",
+        "action_type": "passive",
+        "timing": "free",
+        "frequency": "once_per_rest",
+        "keywords": [
+          "rest"
+        ],
+        "attack": {
+          "damage": "d20"
+        }
       }
     ]
   },
@@ -39,7 +60,13 @@
     "feats": [
       {
         "name": "Steady",
-        "text": "You have advantage on rolls to traverse dangerous cliffs and ledges, navigate harsh environments, and use your survival knowledge."
+        "text": "You have advantage on rolls to traverse dangerous cliffs and ledges, navigate harsh environments, and use your survival knowledge.",
+        "action_type": "buff",
+        "timing": "free",
+        "frequency": "at_will",
+        "keywords": [
+          "buff"
+        ]
       }
     ]
   },
@@ -50,7 +77,15 @@
     "feats": [
       {
         "name": "Know the Tide",
-        "text": "You can sense the ebb and flow of life. When you roll with Fear, place a token on your community card. You can hold a number of tokens equal to your level. Before you make an **action roll**, you can spend any number of these tokens to gain a +1 bonus to the roll for each token spent. At the end of each session, clear all unspent tokens."
+        "text": "You can sense the ebb and flow of life. When you roll with Fear, place a token on your community card. You can hold a number of tokens equal to your level. Before you make an **action roll**, you can spend any number of these tokens to gain a +1 bonus to the roll for each token spent. At the end of each session, clear all unspent tokens.",
+        "action_type": "reaction",
+        "timing": "reaction",
+        "frequency": "at_will",
+        "keywords": [
+          "tokens"
+        ],
+        "has_tokens": true,
+        "token_source": "level"
       }
     ]
   },
@@ -61,7 +96,13 @@
     "feats": [
       {
         "name": "Scoundrel",
-        "text": "You have advantage on rolls to negotiate with criminals, detect lies, or find a safe place to hide."
+        "text": "You have advantage on rolls to negotiate with criminals, detect lies, or find a safe place to hide.",
+        "action_type": "buff",
+        "timing": "free",
+        "frequency": "at_will",
+        "keywords": [
+          "buff"
+        ]
       }
     ]
   },
@@ -72,7 +113,13 @@
     "feats": [
       {
         "name": "Low-Light Living",
-        "text": "When you’re in an area with low light or heavy shadow, you have advantage on rolls to hide, investigate, or perceive details within that area."
+        "text": "When you’re in an area with low light or heavy shadow, you have advantage on rolls to hide, investigate, or perceive details within that area.",
+        "action_type": "buff",
+        "timing": "free",
+        "frequency": "at_will",
+        "keywords": [
+          "buff"
+        ]
       }
     ]
   },
@@ -83,7 +130,16 @@
     "feats": [
       {
         "name": "Nomadic Pack",
-        "text": "Add a Nomadic Pack to your inventory. Once per session, you can **spend a Hope** to reach into this pack and pull out a mundane item that’s useful to your situation. Work with the GM to figure out what item you take out."
+        "text": "Add a Nomadic Pack to your inventory. Once per session, you can **spend a Hope** to reach into this pack and pull out a mundane item that’s useful to your situation. Work with the GM to figure out what item you take out.",
+        "action_type": "passive",
+        "timing": "action",
+        "frequency": "once_per_session",
+        "costs": {
+          "hope": 1
+        },
+        "keywords": [
+          "hope_cost"
+        ]
       }
     ]
   },
@@ -94,7 +150,14 @@
     "feats": [
       {
         "name": "Lightfoot",
-        "text": "Your movement is naturally silent. You have advantage on rolls to move without being heard."
+        "text": "Your movement is naturally silent. You have advantage on rolls to move without being heard.",
+        "action_type": "buff",
+        "timing": "free",
+        "frequency": "at_will",
+        "keywords": [
+          "buff",
+          "movement"
+        ]
       }
     ]
   }

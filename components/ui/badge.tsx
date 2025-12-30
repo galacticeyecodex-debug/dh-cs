@@ -1,3 +1,17 @@
+/**
+ * Badge Component
+ * ----------------------------------------------------------------------------
+ * A reusable badge component that serves as a semantic status label or indicator.
+ *
+ * Capabilities:
+ * - Supports multiple visual variants: default, secondary, destructive, outline, warning
+ * - Can render icons alongside text (e.g. Playtest version indicator)
+ *
+ * Usage Examples:
+ * - Content Access: Labeling the SRD toggle as "Always On" (variant="secondary")
+ * - Versioning: Indicating the playtest version "The Void v1.5" (variant="outline")
+ */
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -27,7 +41,7 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+  VariantProps<typeof badgeVariants> { }
 
 function Badge({ className, variant, ...props }: BadgeProps) {
   return (
