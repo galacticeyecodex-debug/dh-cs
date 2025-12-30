@@ -181,7 +181,7 @@ export default function CombatView() {
                           {calculatedDamage}
                         </div>
                         <div className="text-[10px] text-gray-500 uppercase">
-                          {baseDamage} × {totalProficiency}
+                          {baseDamage.replace(/\*\*/g, '')} × {totalProficiency}
                         </div>
                       </div>
                     </div>
@@ -320,11 +320,9 @@ export default function CombatView() {
 
           {showTransformation && (
             <>
-              {transformationCard.features?.map((feature: any, index: number) => {
-                // Check if this is an attack feature
-                const isAttack = feature.type === 'attack' && feature.attack;
-
-                if (isAttack) {
+              {transformationCard.features
+                ?.filter((feature: any) => feature.type === 'attack' && feature.attack)
+                .map((feature: any, index: number) => {
                   const attack = feature.attack;
                   const trait = attack.trait || 'Strength';
                   const traitKey = trait.toLowerCase();
@@ -346,23 +344,20 @@ export default function CombatView() {
                   return (
                     <div
                       key={index}
-                      className="bg-dagger-panel border border-purple-500/30 rounded-xl overflow-hidden group cursor-pointer hover:border-purple-500/50 transition-colors"
+                      className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden group cursor-pointer hover:border-white/30 transition-colors"
                     >
                       <div className="p-4 flex justify-between items-start">
                         <div>
-                          <div className="flex items-center gap-2">
-                            <Sparkles size={18} className="text-purple-400" />
-                            <h4 className="font-serif font-bold text-purple-300 text-lg">{feature.name}</h4>
-                          </div>
+                          <h4 className="font-serif font-bold text-white text-lg">{feature.name}</h4>
                           <div className="flex gap-2 text-xs text-gray-400 mt-1">
-                            <span className="uppercase bg-purple-500/20 px-1.5 py-0.5 rounded border border-purple-500/30">{trait}</span>
-                            <span className="uppercase bg-purple-500/20 px-1.5 py-0.5 rounded border border-purple-500/30">{attack.range}</span>
-                            <span className="text-purple-400">{attack.damage_type}</span>
+                            <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{trait}</span>
+                            <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{attack.range}</span>
+                            <span className="text-gray-400">{attack.damage_type}</span>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-xl font-bold text-purple-400">{calculatedDamage}</div>
-                          <div className="text-[10px] text-gray-500 uppercase">{attack.damage} × {totalProficiency}</div>
+                          <div className={clsx("text-xl font-bold", getValueColor(damageModifier !== 0))}>{calculatedDamage}</div>
+                          <div className="text-[10px] text-gray-500 uppercase">{attack.damage?.replace(/\*\*/g, '')} × {totalProficiency}</div>
                         </div>
                       </div>
 
@@ -373,9 +368,12 @@ export default function CombatView() {
                             e.stopPropagation();
                             prepareRoll(`${feature.name} Attack`, totalAttackBonus);
                           }}
-                          className="flex-1 py-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors border border-purple-500/30"
+                          className={clsx(
+                            "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
+                            attackModifier !== 0 && "text-dagger-gold"
+                          )}
                         >
-                          <Zap size={16} className="text-purple-400" /> Attack (+{totalAttackBonus})
+                          <Zap size={16} className="text-yellow-400" /> Attack ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
                         </button>
                         <button
                           onClick={(e) => {
@@ -384,40 +382,17 @@ export default function CombatView() {
                             const totalDamageBonus = modifier + damageModifier;
                             prepareRoll(`${feature.name} Damage`, totalDamageBonus, dice);
                           }}
-                          className="flex-1 py-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors border border-purple-500/30"
+                          className={clsx(
+                            "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
+                            damageModifier !== 0 && "text-dagger-gold"
+                          )}
                         >
-                          <Skull size={16} className="text-red-400" /> Damage
+                          <Skull size={16} className="text-red-400" /> Damage {damageModifier !== 0 && `(${damageModifier >= 0 ? `+${damageModifier}` : damageModifier})`}
                         </button>
                       </div>
                     </div>
                   );
-                }
-
-                // Non-attack features (passive, transformation, reaction)
-                return (
-                  <div key={index} className="bg-dagger-panel border border-purple-500/30 rounded-xl p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles size={16} className="text-purple-400" />
-                      <h4 className="font-serif font-bold text-purple-300">{feature.name}</h4>
-                      {feature.type && (
-                        <span className="text-xs text-gray-500 uppercase bg-purple-500/10 px-2 py-0.5 rounded">
-                          {feature.type}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-sm text-gray-300 leading-relaxed">
-                      {feature.text?.split('**').map((part: string, j: number) =>
-                        j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
-                      )}
-                    </div>
-                    {feature.has_tokens && (
-                      <div className="mt-2 text-xs text-purple-300 bg-purple-500/10 p-2 rounded border border-purple-500/20">
-                        Token Tracker: 0 / {feature.max_tokens}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                })}
             </>
           )}
         </div>
@@ -562,7 +537,7 @@ export default function CombatView() {
                   )}
                   {ability.rollType === 'none' && !finalDamage && (
                     <div className="flex-1 py-2 text-center text-sm italic text-gray-500">
-                      {ability.description.substring(0, 100)}...
+                      {ability.description.replace(/\*\*/g, '').substring(0, 100)}...
                     </div>
                   )}
                 </div>
@@ -593,7 +568,12 @@ export default function CombatView() {
               {armor.library_item?.data && (
                 <div className="text-xs text-gray-400 mt-1">
                   {armor.library_item.data.feature?.name && (
-                    <p className="italic"><span className="font-bold not-italic text-gray-300">{armor.library_item.data.feature.name}:</span> {armor.library_item.data.feature.text}</p>
+                    <p className="italic">
+                      <span className="font-bold not-italic text-gray-300">{armor.library_item.data.feature.name}:</span>{' '}
+                      {armor.library_item.data.feature.text?.split('**').map((part: string, j: number) =>
+                        j % 2 === 1 ? <strong key={j} className="text-white not-italic">{part}</strong> : part
+                      )}
+                    </p>
                   )}
                   <p className="mt-1">Score: {armor.library_item.data.base_score}, Thresholds: {armor.library_item.data.base_thresholds}</p>
                 </div>

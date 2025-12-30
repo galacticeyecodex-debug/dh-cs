@@ -419,19 +419,36 @@ const ItemRow = React.memo(function ItemRow({
             {type === 'armor' && data ? (
               <>
                 {data.feature?.name && <span className="font-bold text-gray-300">{data.feature.name}: </span>}
-                {data.feature?.text && <span className="italic">{data.feature.text} </span>}
+                {data.feature?.text && (
+                  <span className="italic">
+                    {data.feature.text.split('**').map((part: string, j: number) =>
+                      j % 2 === 1 ? <strong key={j} className="text-white not-italic">{part}</strong> : part
+                    )}{' '}
+                  </span>
+                )}
                 <span className="block mt-0.5 text-gray-500">Score: {data.base_score}, Thresholds: {data.base_thresholds}</span>
               </>
             ) : type === 'weapon' && data ? (
               <>
                 <span className="block mb-0.5">
-                  {data.trait} • {data.range} • {data.damage} {data.type === 'Physical' ? 'Phy' : data.type === 'Magic' ? 'Mag' : data.type}
+                  {data.trait} • {data.range} • {data.damage?.replace(/\*\*/g, '')} {data.type === 'Physical' ? 'Phy' : data.type === 'Magic' ? 'Mag' : data.type}
                 </span>
                 {data.feature?.name && <span className="font-bold text-gray-300">{data.feature.name}: </span>}
-                {data.feature?.text && <span className="italic">{data.feature.text}</span>}
+                {data.feature?.text && (
+                  <span className="italic">
+                    {data.feature.text.split('**').map((part: string, j: number) =>
+                      j % 2 === 1 ? <strong key={j} className="text-white not-italic">{part}</strong> : part
+                    )}
+                  </span>
+                )}
               </>
             ) : (
-              item.description || data?.markdown || 'No description'
+              (() => {
+                const text = item.description || data?.markdown || 'No description';
+                return typeof text === 'string' ? text.split('**').map((part: string, j: number) =>
+                  j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
+                ) : text;
+              })()
             )}
           </div>
 
