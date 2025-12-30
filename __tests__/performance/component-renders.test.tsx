@@ -9,7 +9,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import React from 'react';
 import VitalCard from '@/components/vital-card';
-import StatButton from '@/components/stat-button';
+import StatButton from '@/components/trait-button';
 import { Heart, Shield } from 'lucide-react';
 
 describe('Performance: VitalCard Re-renders', () => {
