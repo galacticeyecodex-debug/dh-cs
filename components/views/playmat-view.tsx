@@ -31,7 +31,7 @@ import { parseCardPassiveModifiers, type PassiveModifier, type ModifierCondition
 import { parseCombatAbility, type CombatAbility } from '@/lib/combat-spell-parser';
 import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
-import { uploadCharacterImage } from '@/lib/supabase/storage';
+import { uploadCharacterImage } from '@/lib/storage-service';
 import Image from 'next/image';
 import { DomainCard } from '@/components/card-templates/domain-card';
 

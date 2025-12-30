@@ -45,7 +45,7 @@
     "domain": "Blood",
     "type": "Spell",
     "recall": "2",
-    "text": "Make a **Spellcast Roll** (12). On a success, mark a Hit Point as you conjure a bead of blood, which you lob at a point within Far range. A wave of heat fills the area within Very Close range of that point, igniting the internal vitals of those caught within. Each target within the area marks 1 Hit Point. On a success with Hope, each target within the area instead marks 2 Hit Points."
+    "text": "Make a **Spellcast Roll (12)**. On a success, mark a Hit Point as you conjure a bead of blood, which you lob at a point within Far range. A wave of heat fills the area within Very Close range of that point, igniting the internal vitals of those caught within. Each target within the area marks 1 Hit Point. On a success with Hope, each target within the area instead marks 2 Hit Points."
   },
   {
     "name": "Blood Puppet",
@@ -61,7 +61,7 @@
     "domain": "Blood",
     "type": "Spell",
     "recall": "1",
-    "text": "You launch a harpoon of blood at a location or creature within Far range. If the target is a location, make a **Spellcast Roll** (13). On a success, **mark a Stress** to pull yourself to a position within Melee range of it.\n\nIf the target is a creature, make a **Spellcast Roll** against it. On a success, **mark a Stress** to deal **3d8** magic damage to the target. You then pull the target straight toward yourself or pull yourself straight toward the target, ending within Melee range of each other."
+    "text": "You launch a harpoon of blood at a location or creature within Far range. If the target is a location, make a **Spellcast Roll (13)**. On a success, **mark a Stress** to pull yourself to a position within Melee range of it.\n\nIf the target is a creature, make a **Spellcast Roll** against it. On a success, **mark a Stress** to deal **3d8** magic damage to the target. You then pull the target straight toward yourself or pull yourself straight toward the target, ending within Melee range of each other."
   },
   {
     "name": "Weave the Flesh",
@@ -237,7 +237,7 @@
     "domain": "Dread",
     "type": "Spell",
     "recall": "2",
-    "text": "Make a **Spellcast Roll** against a target within Far range. On a success, **spend a Hope** to call forth an otherworldly creature to attack them and deal **d10** magic damage using your Proficiency. The target must succeed on a **Reaction Roll** (12) to steel themselves from the horror or **mark **1d4** Stress**. After making the attack, the creature dissipates."
+    "text": "Make a **Spellcast Roll** against a target within Far range. On a success, **spend a Hope** to call forth an otherworldly creature to attack them and deal **d10** magic damage using your Proficiency. The target must succeed on a **Reaction Roll (12)** to steel themselves from the horror or **mark **1d4** Stress**. After making the attack, the creature dissipates."
   },
   {
     "name": "Spectral Mist",
@@ -261,7 +261,7 @@
     "domain": "Dread",
     "type": "Spell",
     "recall": "2",
-    "text": "Make a **Spellcast Roll** against all adversaries within Close range. You can **spend a Hope** for any you succeed against, and they must make a **Reaction Roll** (14). On a failure, they take **d8+6** magic damage using your Proficiency as they are engulfed in dark fire. On a success, they take half damage."
+    "text": "Make a **Spellcast Roll** against all adversaries within Close range. You can **spend a Hope** for any you succeed against, and they must make a **Reaction Roll (14)**. On a failure, they take **d8+6** magic damage using your Proficiency as they are engulfed in dark fire. On a success, they take half damage."
   },
   {
     "name": "Jump Scare",
@@ -285,7 +285,7 @@
     "domain": "Dread",
     "type": "Spell",
     "recall": "2",
-    "text": "Succeed on a **Spellcast Roll** (13) to create a visible wall of writhing, necrotic energy in a line between two points within Far range that lasts until you mark a Hit Point or cast this spell again. Any creatures inside the wall when it appears or who try to pass through the wall must **mark 2 Stress**, then make a **Reaction Roll** (16). On a failure, they are temporarily Restrained by the wall."
+    "text": "Succeed on a **Spellcast Roll (13)** to create a visible wall of writhing, necrotic energy in a line between two points within Far range that lasts until you mark a Hit Point or cast this spell again. Any creatures inside the wall when it appears or who try to pass through the wall must **mark 2 Stress**, then make a **Reaction Roll (16)**. On a failure, they are temporarily Restrained by the wall."
   },
   {
     "name": "Dark Army",
@@ -293,7 +293,7 @@
     "domain": "Dread",
     "type": "Spell",
     "recall": "2",
-    "text": "Make a **Spellcast Roll** (14). Once per long rest, on a success you can summon a group of fiends that surround and move with you. Place 8 tokens on this card. When you deal damage to a target within Very Close range, you can spend a token to increase it by +**1d8**. Additionally, when you take damage, you can spend a token to reduce it by **1d8**. Each time you spend a token, a fiend acts on your behalf, then disappears. Remove all tokens from this card on your next rest."
+    "text": "Make a **Spellcast Roll (14)**. Once per long rest, on a success you can summon a group of fiends that surround and move with you. Place 8 tokens on this card. When you deal damage to a target within Very Close range, you can spend a token to increase it by +**1d8**. Additionally, when you take damage, you can spend a token to reduce it by **1d8**. Each time you spend a token, a fiend acts on your behalf, then disappears. Remove all tokens from this card on your next rest."
   },
   {
     "name": "Eldritch Flesh",

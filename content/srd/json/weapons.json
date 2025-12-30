@@ -691,7 +691,7 @@
     "damage": "**d8+6** mag",
     "burden": "Two-Handed",
     "feat_name": "Eruptive",
-    "feat_text": "On a successful attack against a target within Melee range, all other adversaries within Very Close range must succeed on a **reaction roll** (14) or take half damage."
+    "feat_text": "On a successful attack against a target within Melee range, all other adversaries within Very Close range must succeed on a **reaction roll (14)** or take half damage."
   },
   {
     "name": "Yutari Bloodbow",

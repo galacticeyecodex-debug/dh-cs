@@ -21,7 +21,7 @@
       },
       {
         "name": "Earth Eruption - Action",
-        "text": "**Mark a Stress** to have the Burrower burst out of the ground. All creatures within Very Close range must succeed on an **Agility **Reaction Roll**** or be knocked over, making them Vulnerable until they next act."
+        "text": "**Mark a Stress** to have the Burrower burst out of the ground. All creatures within Very Close range must succeed on an **Agility Reaction Roll** or be knocked over, making them Vulnerable until they next act."
       },
       {
         "name": "Spit Acid - Action",
@@ -152,7 +152,7 @@
     "feats": [
       {
         "name": "Mockery - Action",
-        "text": "**Mark a Stress** to say something mocking and force a target within Close range to make a **Presence **Reaction Roll**** (14) to see if they can save face. On a failure, the target must **mark 2 Stress** and is Vulnerable until the scene ends."
+        "text": "**Mark a Stress** to say something mocking and force a target within Close range to make a **Presence Reaction Roll** (14) to see if they can save face. On a failure, the target must **mark 2 Stress** and is Vulnerable until the scene ends."
       },
       {
         "name": "Scapegoat - Action",
@@ -290,7 +290,7 @@
       },
       {
         "name": "Venomous Stinger - Action",
-        "text": "Make an attack against a target within Very Close range. On a success, **spend a Fear** to deal **1d4+4** physical damage and Poison them until their next rest or they succeed on a **Knowledge Roll** (16). While Poisoned, the target must roll a **d6** before they make an **action roll**. On a result of 4 or lower, they must **mark a Stress**."
+        "text": "Make an attack against a target within Very Close range. On a success, **spend a Fear** to deal **1d4+4** physical damage and Poison them until their next rest or they succeed on a **Knowledge Roll (16)**. While Poisoned, the target must roll a **d6** before they make an **action roll**. On a result of 4 or lower, they must **mark a Stress**."
       },
       {
         "name": "Momentum - Reaction",
@@ -323,7 +323,7 @@
       },
       {
         "name": "Spitter - Action",
-        "text": "**Spend a Fear** to introduce a 6 Spitter Die. When the Snake is in the spotlight, roll this die. On a result of 5 or higher, all targets in front of the Snake within Far range must succeed on an **Agility **Reaction Roll**** or take **1d4** physical damage. The Snake can take the spotlight a second time this GM turn."
+        "text": "**Spend a Fear** to introduce a 6 Spitter Die. When the Snake is in the spotlight, roll this die. On a result of 5 or higher, all targets in front of the Snake within Far range must succeed on an **Agility Reaction Roll** or take **1d4** physical damage. The Snake can take the spotlight a second time this GM turn."
       }
     ]
   },
@@ -701,7 +701,7 @@
       },
       {
         "name": "Scorched Earth - Action",
-        "text": "**Mark a Stress** to choose a point within Far range. The ground within Very Close range of that point immediately bursts into flames. All creatures within this area must make an **Agility **Reaction Roll****. Targets who fail take **2d8** magic damage from the flames. Targets who succeed take half damage."
+        "text": "**Mark a Stress** to choose a point within Far range. The ground within Very Close range of that point immediately bursts into flames. All creatures within this area must make an **Agility Reaction Roll**. Targets who fail take **2d8** magic damage from the flames. Targets who succeed take half damage."
       },
       {
         "name": "Explosion - Action",
@@ -742,7 +742,7 @@
       },
       {
         "name": "Hellfire - Action",
-        "text": "**Spend a Fear** to rain down hellfire within Far range. All targets within the area must make an **Agility **Reaction Roll****. Targets who fail take **1d20+3** magic damage. Targets who succeed take half damage."
+        "text": "**Spend a Fear** to rain down hellfire within Far range. All targets within the area must make an **Agility Reaction Roll**. Targets who fail take **1d20+3** magic damage. Targets who succeed take half damage."
       },
       {
         "name": "Reaper - Reaction",
@@ -856,7 +856,7 @@
       },
       {
         "name": "Ignite - Action",
-        "text": "Make an attack against a target within Very Close range. On a success, the target takes **1d8** magic damage and is ignited until they’re extinguished with a successful **Finesse Roll** (14). While ignited, the target takes **1d4** magic damage when they make an **action roll**."
+        "text": "Make an attack against a target within Very Close range. On a success, the target takes **1d8** magic damage and is ignited until they’re extinguished with a successful **Finesse Roll (14)**. While ignited, the target takes **1d4** magic damage when they make an **action roll**."
       },
       {
         "name": "Split - Reaction",
@@ -941,7 +941,7 @@
       },
       {
         "name": "No Quarter - Action",
-        "text": "**Spend a Fear** to choose a target who has three or more Pirates within Melee range of them. The Captain leads the Pirates in hurling threats and promises of a watery grave. The target must make a **Presence **Reaction Roll****. On a failure, the target marks **1d4+1** Stress. On a success, they must **mark a Stress**."
+        "text": "**Spend a Fear** to choose a target who has three or more Pirates within Melee range of them. The Captain leads the Pirates in hurling threats and promises of a watery grave. The target must make a **Presence Reaction Roll**. On a failure, the target marks **1d4+1** Stress. On a success, they must **mark a Stress**."
       },
       {
         "name": "Momentum - Reaction",
@@ -1152,7 +1152,7 @@
       },
       {
         "name": "Suppressing Blast - Action",
-        "text": "**Mark a Stress** and target a group within Far range. All targets must succeed on an **Agility **Reaction Roll**** or take **1d8+2** magic damage. You gain a Fear for each target who marked HP from this attack."
+        "text": "**Mark a Stress** and target a group within Far range. All targets must succeed on an **Agility Reaction Roll** or take **1d8+2** magic damage. You gain a Fear for each target who marked HP from this attack."
       },
       {
         "name": "Move as Unit - Action",
@@ -1211,11 +1211,11 @@
       },
       {
         "name": "Forest Control - Action",
-        "text": "**Spend a Fear** to pull down a tree within Close range. A creature hit by the tree must succeed on an **Agility **Reaction Roll**** (15) or take **1d10** physical damage."
+        "text": "**Spend a Fear** to pull down a tree within Close range. A creature hit by the tree must succeed on an **Agility Reaction Roll** (15) or take **1d10** physical damage."
       },
       {
         "name": "Blend In - Reaction",
-        "text": "When the Soldier makes a successful attack, you can **mark a Stress** to become Hidden until the Soldier’s next attack or a PC succeeds on an **Instinct Roll** (14) to find them."
+        "text": "When the Soldier makes a successful attack, you can **mark a Stress** to become Hidden until the Soldier’s next attack or a PC succeeds on an **Instinct Roll (14)** to find them."
       }
     ]
   },
@@ -1397,7 +1397,7 @@
       },
       {
         "name": "Tormented Screams - Action",
-        "text": "**Mark a Stress** to cause all PCs within Far range to make a **Presence **Reaction Roll**** (13). Targets who fail lose a Hope and you gain a Fear for each. Targets who succeed must **mark a Stress**."
+        "text": "**Mark a Stress** to cause all PCs within Far range to make a **Presence Reaction Roll** (13). Targets who fail lose a Hope and you gain a Fear for each. Targets who succeed must **mark a Stress**."
       }
     ]
   },
@@ -1501,7 +1501,7 @@
       },
       {
         "name": "Suppressing Fire - Action",
-        "text": "**Mark a Stress** to target a point within Far range. Until the next roll with Fear, a creature who moves within Close range of that point must make an **Agility **Reaction Roll****. On a failure, they take **2d6+3** physical damage. On a success, they take half damage."
+        "text": "**Mark a Stress** to target a point within Far range. Until the next roll with Fear, a creature who moves within Close range of that point must make an **Agility Reaction Roll**. On a failure, they take **2d6+3** physical damage. On a success, they take half damage."
       }
     ]
   },
@@ -1617,7 +1617,7 @@
       },
       {
         "name": "Randomized Tactics - Action",
-        "text": "**Mark a Stress** and roll a **d6**. The Box uses the corresponding move: 1. Mana Beam: The Box fires a searing beam. Make an attack against a target within Far range. On a success, deal **2d10+2** magic damage. 2. Fire Jets: The Box shoots into the air, spinning and releasing jets of flame. Make an attack against all targets within Close range. Targets the Box succeeds against take **2d8** physical damage. 3. Trample: The Box rockets around erratically. Make an attack against all PCs within Close range. Targets the Box succeeds against take **1d6+5** physical damage and are Vulnerable until their next roll with Hope. 4. Shocking Gas: The Box sprays out a silver gas sparking with lightning. All targets within Close range must succeed on a **Finesse **Reaction Roll**** or **mark 3 Stress**. 5. Stunning Clap: The Box leaps and their sides clap, creating a concussive boom. All targets within Very Close range must succeed on a **Strength **Reaction Roll**** or become Vulnerable until the cube is defeated. 6. Psonic Whine: The Box releases a cluster of mechanical bees whose buzz rattles mortal minds. All targets within Close range must succeed on a **Presence **Reaction Roll**** or take **2d4+9** direct magic damage."
+        "text": "**Mark a Stress** and roll a **d6**. The Box uses the corresponding move: 1. Mana Beam: The Box fires a searing beam. Make an attack against a target within Far range. On a success, deal **2d10+2** magic damage. 2. Fire Jets: The Box shoots into the air, spinning and releasing jets of flame. Make an attack against all targets within Close range. Targets the Box succeeds against take **2d8** physical damage. 3. Trample: The Box rockets around erratically. Make an attack against all PCs within Close range. Targets the Box succeeds against take **1d6+5** physical damage and are Vulnerable until their next roll with Hope. 4. Shocking Gas: The Box sprays out a silver gas sparking with lightning. All targets within Close range must succeed on a **Finesse Reaction Roll** or **mark 3 Stress**. 5. Stunning Clap: The Box leaps and their sides clap, creating a concussive boom. All targets within Very Close range must succeed on a **Strength Reaction Roll** or become Vulnerable until the cube is defeated. 6. Psonic Whine: The Box releases a cluster of mechanical bees whose buzz rattles mortal minds. All targets within Close range must succeed on a **Presence Reaction Roll** or take **2d4+9** direct magic damage."
       },
       {
         "name": "Overcharge - Reaction",
@@ -1625,7 +1625,7 @@
       },
       {
         "name": "Death Quake - Reaction",
-        "text": "When the Box marks their last HP, the magic powering them ruptures in an explosion of force. All targets within Close range must succeed on an **Instinct **Reaction Roll**** or take **2d8+1** magic damage."
+        "text": "When the Box marks their last HP, the magic powering them ruptures in an explosion of force. All targets within Close range must succeed on an **Instinct Reaction Roll** or take **2d8+1** magic damage."
       }
     ]
   },
@@ -1764,7 +1764,7 @@
       },
       {
         "name": "Pick Off the Straggler - Action",
-        "text": "**Mark a Stress** to cause a target within Melee range to make an **Instinct **Reaction Roll****. On a failure, the target must **mark 2 Stress** and is teleported with the Fang to a shadow within Far range, making them temporarily Vulnerable. On a success, the target must **mark a Stress**."
+        "text": "**Mark a Stress** to cause a target within Melee range to make an **Instinct Reaction Roll**. On a failure, the target must **mark 2 Stress** and is teleported with the Fang to a shadow within Far range, making them temporarily Vulnerable. On a success, the target must **mark a Stress**."
       }
     ]
   },
@@ -1951,7 +1951,7 @@
     "feats": [
       {
         "name": "Battering Ram - Action",
-        "text": "**Mark a Stress** to have the Brawler charge at an inanimate object within Close range they could feasibly smash (such as a wall, cart, or market stand) and destroy it. All targets within Very Close range of the object must succeed on an **Agility **Reaction Roll**** or take **2d4+3** physical damage from the shrapnel."
+        "text": "**Mark a Stress** to have the Brawler charge at an inanimate object within Close range they could feasibly smash (such as a wall, cart, or market stand) and destroy it. All targets within Very Close range of the object must succeed on an **Agility Reaction Roll** or take **2d4+3** physical damage from the shrapnel."
       },
       {
         "name": "Bloody Reprisal - Reaction",
@@ -1988,7 +1988,7 @@
       },
       {
         "name": "Take Off - Action",
-        "text": "Make an attack against a target within Very Close range. On a success, deal **2d4+3** physical damage and the target must succeed on an **Agility **Reaction Roll**** or become temporarily Restrained within the Eagle’s massive talons. If the target is Restrained, the Eagle immediately lifts them to the air to Very Far range above the battlefield while holding them."
+        "text": "Make an attack against a target within Very Close range. On a success, deal **2d4+3** physical damage and the target must succeed on an **Agility Reaction Roll** or become temporarily Restrained within the Eagle’s massive talons. If the target is Restrained, the Eagle immediately lifts them to the air to Very Far range above the battlefield while holding them."
       },
       {
         "name": "Deadly Drop - Action",
@@ -2051,7 +2051,7 @@
       },
       {
         "name": "Petrifying Gaze - Reaction",
-        "text": "When the Gorgon takes damage from an attack within Close range, you can **spend a Fear** to force the attacker to make an **Instinct **Reaction Roll****. On a failure, they begin to turn to stone, marking a HP and starting a Petrification Countdown (4). This countdown ticks down when the Gorgon is attacked. When it triggers, the target must make a death move. If the Gorgon is defeated, all petrification countdowns end."
+        "text": "When the Gorgon takes damage from an attack within Close range, you can **spend a Fear** to force the attacker to make an **Instinct Reaction Roll**. On a failure, they begin to turn to stone, marking a HP and starting a Petrification Countdown (4). This countdown ticks down when the Gorgon is attacked. When it triggers, the target must make a death move. If the Gorgon is defeated, all petrification countdowns end."
       },
       {
         "name": "Death Glare - Reaction",
@@ -2084,11 +2084,11 @@
       },
       {
         "name": "Mind Dance - Action",
-        "text": "**Mark a Stress** to create a magically dazzling display that grapples the minds of nearby foes. All targets within Close range must make an **Instinct **Reaction Roll****. For each target who failed, you gain a Fear and the Flickerfly learns one of the target’s fears."
+        "text": "**Mark a Stress** to create a magically dazzling display that grapples the minds of nearby foes. All targets within Close range must make an **Instinct Reaction Roll**. For each target who failed, you gain a Fear and the Flickerfly learns one of the target’s fears."
       },
       {
         "name": "Hallucinatory Breath - Reaction: Countdown (Loop **1d6**)",
-        "text": "When the Flickerfly takes damage for the first time, activate the countdown. When it triggers, the Flickerfly breathes hallucinatory gas on all targets in front of them up to Far range. Targets must succeed on an **Instinct **Reaction Roll**** or be tormented by fearful hallucinations. Targets whose fears are known to the Flickerfly have disadvantage on this roll. Targets who fail must **mark a Stress** and lose a Hope."
+        "text": "When the Flickerfly takes damage for the first time, activate the countdown. When it triggers, the Flickerfly breathes hallucinatory gas on all targets in front of them up to Far range. Targets must succeed on an **Instinct Reaction Roll** or be tormented by fearful hallucinations. Targets whose fears are known to the Flickerfly have disadvantage on this roll. Targets who fail must **mark a Stress** and lose a Hope."
       }
     ]
   },
@@ -2148,7 +2148,7 @@
       },
       {
         "name": "Escape Plan - Action",
-        "text": "**Mark a Stress** to reveal a snare trap set anywhere on the battlefield by the Thief. All targets within Very Close range of the trap must succeed on an **Agility **Reaction Roll**** (13) or be pulled off their feet and suspended upside down. The target is Restrained and Vulnerable until they break free, ending both conditions, with a successful Finesse or **Strength Roll** (13)."
+        "text": "**Mark a Stress** to reveal a snare trap set anywhere on the battlefield by the Thief. All targets within Very Close range of the trap must succeed on an **Agility Reaction Roll** (13) or be pulled off their feet and suspended upside down. The target is Restrained and Vulnerable until they break free, ending both conditions, with a successful Finesse or **Strength Roll (13)**."
       }
     ]
   },
@@ -2170,7 +2170,7 @@
     "feats": [
       {
         "name": "Everyone Has a Price - Action",
-        "text": "**Spend a Fear** to offer a target a dangerous bargain for something they want or need. If used on a PC, they must make a **Presence **Reaction Roll**** (17). On a failure, they must **mark 2 Stress** or take the deal."
+        "text": "**Spend a Fear** to offer a target a dangerous bargain for something they want or need. If used on a PC, they must make a **Presence Reaction Roll** (17). On a failure, they must **mark 2 Stress** or take the deal."
       },
       {
         "name": "The Best Muscle Money Can Buy - Action",
@@ -2268,7 +2268,7 @@
       },
       {
         "name": "Scapegoat - Action",
-        "text": "**Spend a Fear** to convince a crowd or notable individual that one person or group is responsible for some problem facing the target. The target becomes hostile to the scapegoat until convinced of their innocence with a successful **Presence Roll** (17)."
+        "text": "**Spend a Fear** to convince a crowd or notable individual that one person or group is responsible for some problem facing the target. The target becomes hostile to the scapegoat until convinced of their innocence with a successful **Presence Roll (17)**."
       }
     ]
   },
@@ -2358,7 +2358,7 @@
       },
       {
         "name": "Enchanting Song - Action",
-        "text": "**Spend a Fear** to sing a song that affects all targets within Close range. Targets must succeed on an **Instinct **Reaction Roll**** or become Entranced until they **mark 2 Stress**. Other Sirens within Close range of the target can **mark a Stress** to each add a +1 bonus to the Difficulty of the **reaction roll**. While Entranced, a target can’t act and is Vulnerable."
+        "text": "**Spend a Fear** to sing a song that affects all targets within Close range. Targets must succeed on an **Instinct Reaction Roll** or become Entranced until they **mark 2 Stress**. Other Sirens within Close range of the target can **mark a Stress** to each add a +1 bonus to the Difficulty of the **reaction roll**. While Entranced, a target can’t act and is Vulnerable."
       }
     ]
   },
@@ -2496,11 +2496,11 @@
       },
       {
         "name": "Rocky Ambush - Action",
-        "text": "While Hidden, **mark a Stress** to leap into Melee range with a target within Very Close range. The target must succeed on an Agility or **Instinct **Reaction Roll**** (15) or take **2d8** physical damage and become temporarily Restrained."
+        "text": "While Hidden, **mark a Stress** to leap into Melee range with a target within Very Close range. The target must succeed on an Agility or **Instinct Reaction Roll** (15) or take **2d8** physical damage and become temporarily Restrained."
       },
       {
         "name": "Avalanche Roar - Action",
-        "text": "**Spend a Fear** to roar while within a cave and cause a cave-in. All targets within Close range must succeed on an **Agility **Reaction Roll**** (14) or take **2d10** physical damage. The rubble can be cleared with a Progress Countdown (8)."
+        "text": "**Spend a Fear** to roar while within a cave and cause a cave-in. All targets within Close range must succeed on an **Agility Reaction Roll** (14) or take **2d10** physical damage. The rubble can be cleared with a Progress Countdown (8)."
       },
       {
         "name": "Momentum - Reaction",
@@ -2534,11 +2534,11 @@
       },
       {
         "name": "Eruption - Action",
-        "text": "**Spend a Fear** and choose a point within Far range. A Very Close area around that point erupts into impassable terrain. All targets within that area must make an **Agility **Reaction Roll**** (14). Targets who fail take **2d10** physical damage and are thrown out of the area. Targets who succeed take half damage and aren’t moved."
+        "text": "**Spend a Fear** and choose a point within Far range. A Very Close area around that point erupts into impassable terrain. All targets within that area must make an **Agility Reaction Roll** (14). Targets who fail take **2d10** physical damage and are thrown out of the area. Targets who succeed take half damage and aren’t moved."
       },
       {
         "name": "Arcane Artillery - Action",
-        "text": "**Spend a Fear** to unleash a precise hail of magical blasts. All targets in the scene must make an **Agility **Reaction Roll****. Targets who fail take **2d12** magic damage. Targets who succeed take half damage."
+        "text": "**Spend a Fear** to unleash a precise hail of magical blasts. All targets in the scene must make an **Agility Reaction Roll**. Targets who fail take **2d12** magic damage. Targets who succeed take half damage."
       },
       {
         "name": "Warding Sphere - Reaction",
@@ -2579,11 +2579,11 @@
       },
       {
         "name": "Mind Dance - Action",
-        "text": "**Mark a Stress** to create a magically dazzling display that grapples the minds of nearby foes. All targets within Close range must make an **Instinct **Reaction Roll****. For each target who failed, you gain a Fear and the Flickerfly learns one of the target’s fears."
+        "text": "**Mark a Stress** to create a magically dazzling display that grapples the minds of nearby foes. All targets within Close range must make an **Instinct Reaction Roll**. For each target who failed, you gain a Fear and the Flickerfly learns one of the target’s fears."
       },
       {
         "name": "Hallucinatory Breath - Action: Countdown (Loop **1d6**)",
-        "text": "When the Flickerfly takes damage for the first time, activate the countdown. When it triggers, the Flickerfly breathes hallucinatory gas on all targets in front of them up to Far range. Targets must make an **Instinct **Reaction Roll**** or become overwhelmed by fearful hallucinations. Targets whose fears are known to the Flickerfly have disadvantage on this roll. Targets who fail lose 2 Hope and take **3d8+3** direct magic damage."
+        "text": "When the Flickerfly takes damage for the first time, activate the countdown. When it triggers, the Flickerfly breathes hallucinatory gas on all targets in front of them up to Far range. Targets must make an **Instinct Reaction Roll** or become overwhelmed by fearful hallucinations. Targets whose fears are known to the Flickerfly have disadvantage on this roll. Targets who fail lose 2 Hope and take **3d8+3** direct magic damage."
       },
       {
         "name": "Uncanny Reflexes - Reaction",
@@ -2723,7 +2723,7 @@
       },
       {
         "name": "What’s Yours Is Mine - Reaction",
-        "text": "When a PC takes severe damage within Very Close range of the Demon, you can **spend a Fear** to cause the target to make a **Finesse **Reaction Roll****. On a failure, the Demon seizes one item or consumable of their choice from the target’s inventory."
+        "text": "When a PC takes severe damage within Very Close range of the Demon, you can **spend a Fear** to cause the target to make a **Finesse Reaction Roll**. On a failure, the Demon seizes one item or consumable of their choice from the target’s inventory."
       }
     ]
   },
@@ -2875,7 +2875,7 @@
       },
       {
         "name": "Rockslide - Action",
-        "text": "**Mark a Stress** to create a rockslide that buries all the land in front of Elemental within Close range with rockfall. All targets in this area must make an **Agility **Reaction Roll**** (19). Targets who fail take **2d12+5** physical damage and become Vulnerable until their next roll with Hope. Targets who succeed take half damage."
+        "text": "**Mark a Stress** to create a rockslide that buries all the land in front of Elemental within Close range with rockfall. All targets in this area must make an **Agility Reaction Roll** (19). Targets who fail take **2d12+5** physical damage and become Vulnerable until their next roll with Hope. Targets who succeed take half damage."
       },
       {
         "name": "Momentum - Reaction",
@@ -3120,7 +3120,7 @@
       },
       {
         "name": "Look Into My Eyes - Passive",
-        "text": "A creature who moves into Melee range of the Vampire must make an **Instinct **Reaction Roll****. On a failure, you gain **1d4** Fear."
+        "text": "A creature who moves into Melee range of the Vampire must make an **Instinct Reaction Roll**. On a failure, you gain **1d4** Fear."
       },
       {
         "name": "Feed on Followers - Action",
@@ -3187,7 +3187,7 @@
       },
       {
         "name": "Mana Bolt - Action",
-        "text": "**Spend a Fear** to lob explosive magic at a point within Far range. All targets within Very Close range of that point must make an **Agility **Reaction Roll****. Targets who fail take **3d20** magic damage and are knocked back to Close range. Targets who succeed take half damage and aren’t knocked back."
+        "text": "**Spend a Fear** to lob explosive magic at a point within Far range. All targets within Very Close range of that point must make an **Agility Reaction Roll**. Targets who fail take **3d20** magic damage and are knocked back to Close range. Targets who succeed take half damage and aren’t knocked back."
       },
       {
         "name": "Momentum - Reaction",
@@ -3224,7 +3224,7 @@
       },
       {
         "name": "Detonation - Reaction",
-        "text": "When the Turret is destroyed, they explode. All targets within Close range must make an **Agility **Reaction Roll****. Targets who fail take **3d20** physical damage. Targets who succeed take half damage."
+        "text": "When the Turret is destroyed, they explode. All targets within Close range must make an **Agility Reaction Roll**. Targets who fail take **3d20** physical damage. Targets who succeed take half damage."
       }
     ]
   },
@@ -3249,7 +3249,7 @@
       },
       {
         "name": "Lock Up - Action",
-        "text": "**Mark a Stress** to make an attack against a target within Very Close range. On a success, the target is Restrained within the Gaoler until freed with a successful **Strength Roll** (18). While Restrained, the target can only attack the Gaoler."
+        "text": "**Mark a Stress** to make an attack against a target within Very Close range. On a success, the target is Restrained within the Gaoler until freed with a successful **Strength Roll (18)**. While Restrained, the target can only attack the Gaoler."
       }
     ]
   },
@@ -3283,11 +3283,11 @@
       },
       {
         "name": "Blizzard Breath - Action",
-        "text": "**Spend 2 Fear** to release an icy whirlwind in an area within Close range. All targets in this area must make an **Agility **Reaction Roll****. Targets who fail take **4d6+5** magic damage and are Restrained by ice until they break free with a successful **Strength Roll**. Targets who succeed must **mark 2 Stress** or take half damage."
+        "text": "**Spend 2 Fear** to release an icy whirlwind in an area within Close range. All targets in this area must make an **Agility Reaction Roll**. Targets who fail take **4d6+5** magic damage and are Restrained by ice until they break free with a successful **Strength Roll**. Targets who succeed must **mark 2 Stress** or take half damage."
       },
       {
         "name": "Avalanche - Action",
-        "text": "**Spend a Fear** to have the Dragon unleash a huge downfall of snow and ice, covering all other creatures within Far range. All targets within this area must succeed on an **Instinct **Reaction Roll**** or be buried in snow and rocks, becoming Vulnerable until they dig themselves out from the debris. For each PC that fails the **reaction roll**, you gain a Fear."
+        "text": "**Spend a Fear** to have the Dragon unleash a huge downfall of snow and ice, covering all other creatures within Far range. All targets within this area must succeed on an **Instinct Reaction Roll** or be buried in snow and rocks, becoming Vulnerable until they dig themselves out from the debris. For each PC that fails the **reaction roll**, you gain a Fear."
       },
       {
         "name": "Frozen Scales - Reaction",
@@ -3321,7 +3321,7 @@
       },
       {
         "name": "Beam of Decay - Action",
-        "text": "**Mark 2 Stress** to cause all targets within Far range to make a **Strength **Reaction Roll****. Targets who fail take **2d20+12** magic damage and you gain a Fear. Targets who succeed take half damage. A target who marks 2 or more HP must also **mark 2 Stress** and becomes Vulnerable until they roll with Hope."
+        "text": "**Mark 2 Stress** to cause all targets within Far range to make a **Strength Reaction Roll**. Targets who fail take **2d20+12** magic damage and you gain a Fear. Targets who succeed take half damage. A target who marks 2 or more HP must also **mark 2 Stress** and becomes Vulnerable until they roll with Hope."
       },
       {
         "name": "Open the Gates of Death - Action",
@@ -3430,7 +3430,7 @@
       },
       {
         "name": "All-Consuming Rage - Reaction",
-        "text": "Countdown (Decreasing 8). When the Realm-Breaker is in the spotlight for the first time, activate the countdown. When it triggers, create a torrent of incarnate rage that rends flesh from bone. All targets within Far range must make a **Presence **Reaction Roll****. Targets who fail take **2d6+10** direct magic damage. Targets who succeed take half damage. For each HP marked from this damage, summon a Fallen Shock Troop within Very Close range of the target who marked that HP. If the countdown ever decreases its maximum value to 0, the Realm-Breaker marks their remaining HP and all targets within Far range must mark all remaining HP and make a death move."
+        "text": "Countdown (Decreasing 8). When the Realm-Breaker is in the spotlight for the first time, activate the countdown. When it triggers, create a torrent of incarnate rage that rends flesh from bone. All targets within Far range must make a **Presence Reaction Roll**. Targets who fail take **2d6+10** direct magic damage. Targets who succeed take half damage. For each HP marked from this damage, summon a Fallen Shock Troop within Very Close range of the target who marked that HP. If the countdown ever decreases its maximum value to 0, the Realm-Breaker marks their remaining HP and all targets within Far range must mark all remaining HP and make a death move."
       },
       {
         "name": "Doombringer - Reaction",
@@ -3572,7 +3572,7 @@
       },
       {
         "name": "God Rays - Action",
-        "text": "**Mark a Stress** to reflect a sliver of divinity as a searing beam of light that hits up to twenty targets within Very Far range. Targets must make a **Presence **Reaction Roll****, with disadvantage if they are marked Guilty. Targets who fail take **4d6+12** magic damage. Targets who succeed take half damage."
+        "text": "**Mark a Stress** to reflect a sliver of divinity as a searing beam of light that hits up to twenty targets within Very Far range. Targets must make a **Presence Reaction Roll**, with disadvantage if they are marked Guilty. Targets who fail take **4d6+12** magic damage. Targets who succeed take half damage."
       },
       {
         "name": "We Are One - Action",
@@ -3610,7 +3610,7 @@
       },
       {
         "name": "Boiling Blast - Action",
-        "text": "**Spend a Fear** to spew a line of boiling water at any number of targets in a line up to Far range. All targets must succeed on an **Agility **Reaction Roll**** or take **4d6+9** physical damage. If a target marks an Armor Slot to reduce the damage, they must also **mark a Stress**."
+        "text": "**Spend a Fear** to spew a line of boiling water at any number of targets in a line up to Far range. All targets must succeed on an **Agility Reaction Roll** or take **4d6+9** physical damage. If a target marks an Armor Slot to reduce the damage, they must also **mark a Stress**."
       },
       {
         "name": "Momentum - Reaction",
@@ -3644,7 +3644,7 @@
       },
       {
         "name": "Pronounce Fate - Action",
-        "text": "**Spend a Fear** to present a target within Far range with a vision of their personal nightmare. The target must make a **Knowledge **Reaction Roll****. On a failure, they lose all Hope and take **2d10+4** direct magic damage. On a success, they take half damage and lose a Hope."
+        "text": "**Spend a Fear** to present a target within Far range with a vision of their personal nightmare. The target must make a **Knowledge Reaction Roll**. On a failure, they lose all Hope and take **2d10+4** direct magic damage. On a success, they take half damage and lose a Hope."
       },
       {
         "name": "Summon Tormentors - Action",
@@ -3681,11 +3681,11 @@
       },
       {
         "name": "Disorienting Presence - Passive",
-        "text": "When a target takes damage from the Abomination, they must make an **Instinct **Reaction Roll****. On a failure, they gain disadvantage on their next **action roll** and you gain a Fear."
+        "text": "When a target takes damage from the Abomination, they must make an **Instinct Reaction Roll**. On a failure, they gain disadvantage on their next **action roll** and you gain a Fear."
       },
       {
         "name": "Reality Quake - Action",
-        "text": "**Spend a Fear** to rattle the edges of reality within Far range of the Abomination. All targets within that area must succeed on a **Knowledge **Reaction Roll**** or become Unstuck from reality until the end of the scene. When an Unstuck target spends Hope or marks Armor Slots, HP, or Stress, they must double the amount spent or marked."
+        "text": "**Spend a Fear** to rattle the edges of reality within Far range of the Abomination. All targets within that area must succeed on a **Knowledge Reaction Roll** or become Unstuck from reality until the end of the scene. When an Unstuck target spends Hope or marks Armor Slots, HP, or Stress, they must double the amount spent or marked."
       },
       {
         "name": "Fungal Form - Reaction",
@@ -3714,7 +3714,7 @@
       },
       {
         "name": "Disgorge Reality Flotsam - Action",
-        "text": "**Mark a Stress** to spew partially digested portions of consumed realities at all targets within Close range. Targets must succeed on a **Knowledge **Reaction Roll**** or **mark 2 Stress**."
+        "text": "**Mark a Stress** to spew partially digested portions of consumed realities at all targets within Close range. Targets must succeed on a **Knowledge Reaction Roll** or **mark 2 Stress**."
       }
     ]
   },
@@ -3781,7 +3781,7 @@
       },
       {
         "name": "Apocalyptic Thrashing - Action",
-        "text": "Countdown (**1d12**). **Spend a Fear** to activate it. It ticks down when a PC rolls with Fear. When it reaches 0, the Ashen Tyrant thrashes about, causing environmental damage (such as an earthquake, avalanche, or collapsing walls). All targets within Far range must make a **Strength **Reaction Roll****. Targets who fail take **2d10+10** physical damage and are Restrained by the rubble until they break free with a successful **Strength Roll**. Targets who succeed take half damage. If the Ashen Tyrant is defeated while this countdown is active, trigger the countdown immediately as the destruction caused by their death throes."
+        "text": "Countdown (**1d12**). **Spend a Fear** to activate it. It ticks down when a PC rolls with Fear. When it reaches 0, the Ashen Tyrant thrashes about, causing environmental damage (such as an earthquake, avalanche, or collapsing walls). All targets within Far range must make a **Strength Reaction Roll**. Targets who fail take **2d10+10** physical damage and are Restrained by the rubble until they break free with a successful **Strength Roll**. Targets who succeed take half damage. If the Ashen Tyrant is defeated while this countdown is active, trigger the countdown immediately as the destruction caused by their death throes."
       }
     ]
   },
@@ -3815,11 +3815,11 @@
       },
       {
         "name": "Eruption - Action",
-        "text": "**Spend a Fear** to erupt lava from beneath the Scourge’s scales, filling area within Very Close range with lava. All targets must make **Agility **Reaction Roll**** or take **4d6+6** physical damage and be knocked back to Close range. The area remains lava (6 HP damage on entry or action)."
+        "text": "**Spend a Fear** to erupt lava from beneath the Scourge’s scales, filling area within Very Close range with lava. All targets must make **Agility Reaction Roll** or take **4d6+6** physical damage and be knocked back to Close range. The area remains lava (6 HP damage on entry or action)."
       },
       {
         "name": "Volcanic Breath - Reaction",
-        "text": "When the Scourge takes Major damage, roll **d10**. On 8+, erupt lava in Very Close range: **Agility **Reaction Roll**** or take **2d10+4** physical damage, **mark **1d4** Stress**, and are Vulnerable until clearing a Stress; success = half damage + **mark a Stress**.;Lava Splash - Reaction;When the Scourge takes Severe damage from attack within Very Close, molten blood deals **2d10+4** direct physical damage to attacker.;Ashen Vengeance (Phase Change) - Reaction;When the Scourge marks last HP, replace with Ashen Tyrant and immediately spotlight."
+        "text": "When the Scourge takes Major damage, roll **d10**. On 8+, erupt lava in Very Close range: **Agility Reaction Roll** or take **2d10+4** physical damage, **mark **1d4** Stress**, and are Vulnerable until clearing a Stress; success = half damage + **mark a Stress**.;Lava Splash - Reaction;When the Scourge takes Severe damage from attack within Very Close, molten blood deals **2d10+4** direct physical damage to attacker.;Ashen Vengeance (Phase Change) - Reaction;When the Scourge marks last HP, replace with Ashen Tyrant and immediately spotlight."
       }
     ]
   },
