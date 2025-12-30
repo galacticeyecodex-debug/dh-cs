@@ -67,6 +67,9 @@ export function DomainCard({
   const cardWidth = isThumbnail ? 240 : 340;
   const fontSize = isThumbnail ? 0.7 : 1; // Scale factor for text
 
+  // Dynamic font size for longer descriptions to prevent clipping
+  const descriptionBaseSize = (description?.length || 0) > 500 ? 12 : 14;
+
   return (
     <div
       // A thin gold border around the domain cards
@@ -92,10 +95,10 @@ export function DomainCard({
       <div
         className="absolute text-white font-eveleth font-bold"
         style={{
-          right: isThumbnail ? '27px' : '40px',  // At badge center (badge_right + badge_width/2)
-          top: isThumbnail ? '19px' : '29px',    // 5px down from badge top
+          right: isThumbnail ? '27px' : '40px',  // x-axis; left of center of badge
+          top: isThumbnail ? '19.5px' : '29px',    // y-axis; center
           fontSize: `${isThumbnail ? 11 : 14}px`,
-          zIndex: 41,
+          zIndex: 40,
         }}
       >
         {recallCost}
@@ -181,7 +184,7 @@ export function DomainCard({
         <div
           className="w-full z-20 leading-tight px-4 text-pretty overflow-hidden flex-1"
           style={{
-            fontSize: `${12 * fontSize}px`,
+            fontSize: `${descriptionBaseSize * fontSize}px`,
           }}
         >
           {description ? (
