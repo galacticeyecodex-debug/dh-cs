@@ -15,16 +15,16 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
-import { Shield, Swords, Zap, Skull, Crosshair, Eye, EyeOff, Wand2, Moon, Dna } from 'lucide-react';
+import { Shield, Swords, Crosshair, Eye, EyeOff, Wand2, Moon, Dna } from 'lucide-react';
 import { dataService } from '@/lib/data-service';
-import clsx from 'clsx';
+
 import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers, calculateAttackModifier, calculateDamageModifier } from '@/lib/utils';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
 import ModifierSheet from '@/components/modifiers/modifier-sheet';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import useContentAccess from '@/hooks/useContentAccess';
-import { getValueColor } from '@/lib/styles';
-import { CombatSpellCard } from '@/components/combat';
+
+import { AttackCard, CombatSpellCard } from '@/components/combat';
 import { hasCombatRelevance } from '@/lib/card-parser';
 import type { EnhancedAbilityCard, EnhancedAncestry, EnhancedCommunity, EnhancedFeature } from '@/types/cards';
 
@@ -305,62 +305,26 @@ export default function CombatView() {
                   const calculatedDamage = calculateWeaponDamage(baseDamage, totalProficiency);
 
                   return (
-                    <div
+                    <AttackCard
                       key={weapon.id}
-                      onClick={() => setActiveWeaponId(weapon.id)}
-                      className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden group cursor-pointer hover:border-white/30 transition-colors"
-                    >
-                      <div className="p-4 flex justify-between items-start">
-                        <div>
-                          <h4 className="font-serif font-bold text-white text-lg">{weapon.name}</h4>
-                          <div className="flex gap-2 text-xs text-gray-400 mt-1">
-                            <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{trait}</span>
-                            <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{range}</span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={clsx("text-xl font-bold", getValueColor(damageModifier !== 0))}>
-                            {calculatedDamage}
-                          </div>
-                          <div className="text-[10px] text-gray-500 uppercase">
-                            {baseDamage.replace(/\*\*/g, '')} × {totalProficiency}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Action Bar */}
-                      <div className="bg-black/40 p-2 flex gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            prepareRoll(`${weapon.name} Attack`, totalAttackBonus);
-                          }}
-                          className={clsx(
-                            "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                            attackModifier !== 0 && "text-dagger-gold"
-                          )}
-                        >
-                          <Zap size={16} className="text-yellow-400" /> Attack ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const { dice, modifier } = parseDamageRoll(calculatedDamage);
-                            const totalDamageBonus = modifier + damageModifier;
-                            prepareRoll(`${weapon.name} Damage`, totalDamageBonus, dice);
-                          }}
-                          className={clsx(
-                            "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                            damageModifier !== 0 && "text-dagger-gold"
-                          )}
-                        >
-                          {damageModifier !== 0 && (
-                            <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-dagger-gold rounded-full" />
-                          )}
-                          <Skull size={16} className="text-red-400" /> Damage {damageModifier !== 0 && `(${damageModifier >= 0 ? `+${damageModifier}` : damageModifier})`}
-                        </button>
-                      </div>
-                    </div>
+                      id={weapon.id}
+                      name={weapon.name}
+                      trait={trait}
+                      range={range}
+                      baseDamage={baseDamage}
+                      calculatedDamage={calculatedDamage}
+                      totalAttackBonus={totalAttackBonus}
+                      attackModifier={attackModifier}
+                      damageModifier={damageModifier}
+                      proficiency={totalProficiency}
+                      onAttackRoll={() => prepareRoll(`${weapon.name} Attack`, totalAttackBonus)}
+                      onDamageRoll={() => {
+                        const { dice, modifier } = parseDamageRoll(calculatedDamage);
+                        const totalDamageBonus = modifier + damageModifier;
+                        prepareRoll(`${weapon.name} Damage`, totalDamageBonus, dice);
+                      }}
+                      onManageModifiers={() => setActiveWeaponId(weapon.id)}
+                    />
                   );
                 })
               ) : (
@@ -370,74 +334,32 @@ export default function CombatView() {
               {/* Companion Attack */}
               {character.ranger_companion && (() => {
                 const companion = character.ranger_companion;
-                return (
-                  <div
-                    onClick={() => setActiveWeaponId(`companion-${companion.name}`)}
-                    className="bg-dagger-panel border border-dagger-gold/30 rounded-xl overflow-hidden group cursor-pointer hover:border-dagger-gold/50 transition-colors"
-                  >
-                    <div className="p-4 flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">🐾</span>
-                          <h4 className="font-serif font-bold text-white text-lg">
-                            {companion.name} - {companion.attack_name}
-                          </h4>
-                        </div>
-                        <div className="flex gap-2 text-xs text-gray-400 mt-1">
-                          <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">
-                            {companion.attack_type}
-                          </span>
-                          <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">
-                            {companion.attack_range?.replace('_', ' ')}
-                          </span>
-                          <span className="text-dagger-gold">Companion</span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        {/* Companion damage: white by default, gold if character has damage modifiers */}
-                        <div className={clsx("text-xl font-bold", getValueColor(calculateDamageModifier(character) !== 0))}>
-                          {calculateWeaponDamage(companion.damage_die, totalProficiency)}
-                        </div>
-                        <div className="text-[10px] text-gray-500 uppercase">
-                          {companion.damage_die} × {totalProficiency}
-                        </div>
-                      </div>
-                    </div>
+                const companionAttackMod = calculateAttackModifier(character);
+                const companionDamageMod = calculateDamageModifier(character);
+                const calculatedDamage = calculateWeaponDamage(companion.damage_die, totalProficiency);
 
-                    {/* Action Bar */}
-                    <div className="bg-black/40 p-2 flex gap-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Companion attack uses companion's experiences which are included in the dice roller
-                          const companionAttackMod = calculateAttackModifier(character);
-                          prepareRoll(`${companion.name} Attack`, companionAttackMod);
-                        }}
-                        className={clsx(
-                          "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                          calculateAttackModifier(character) !== 0 && "text-dagger-gold"
-                        )}
-                      >
-                        <Zap size={16} className="text-yellow-400" /> Attack
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const calculatedDamage = calculateWeaponDamage(companion.damage_die, totalProficiency);
-                          const { dice, modifier } = parseDamageRoll(calculatedDamage);
-                          const companionDamageMod = calculateDamageModifier(character);
-                          const totalDamageBonus = modifier + companionDamageMod;
-                          prepareRoll(`${companion.name} Damage`, totalDamageBonus, dice);
-                        }}
-                        className={clsx(
-                          "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                          calculateDamageModifier(character) !== 0 && "text-dagger-gold"
-                        )}
-                      >
-                        <Skull size={16} className="text-red-400" /> Damage
-                      </button>
-                    </div>
-                  </div>
+                return (
+                  <AttackCard
+                    id={`companion-${companion.name}`}
+                    name={`${companion.name} - ${companion.attack_name}`}
+                    trait={companion.attack_type || 'Instinct'}
+                    range={companion.attack_range?.replace('_', ' ') || 'Melee'}
+                    baseDamage={companion.damage_die}
+                    calculatedDamage={calculatedDamage}
+                    totalAttackBonus={companionAttackMod}
+                    attackModifier={companionAttackMod}
+                    damageModifier={companionDamageMod}
+                    proficiency={totalProficiency}
+                    onAttackRoll={() => prepareRoll(`${companion.name} Attack`, companionAttackMod)}
+                    onDamageRoll={() => {
+                      const { dice, modifier } = parseDamageRoll(calculatedDamage);
+                      const totalDamageBonus = modifier + companionDamageMod;
+                      prepareRoll(`${companion.name} Damage`, totalDamageBonus, dice);
+                    }}
+                    borderVariant="companion"
+                    icon={<span className="text-lg">🐾</span>}
+                    badges={[{ label: 'Companion', className: 'text-dagger-gold' }]}
+                  />
                 );
               })()}
             </>
@@ -483,55 +405,27 @@ export default function CombatView() {
                     const calculatedDamage = calculateWeaponDamage(attack.damage, totalProficiency);
 
                     return (
-                      <div
+                      <AttackCard
                         key={index}
-                        className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden group cursor-pointer hover:border-white/30 transition-colors"
-                      >
-                        <div className="p-4 flex justify-between items-start">
-                          <div>
-                            <h4 className="font-serif font-bold text-white text-lg">{feature.name}</h4>
-                            <div className="flex gap-2 text-xs text-gray-400 mt-1">
-                              <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{trait}</span>
-                              <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{attack.range}</span>
-                              <span className="text-gray-400">{attack.damage_type}</span>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className={clsx("text-xl font-bold", getValueColor(damageModifier !== 0))}>{calculatedDamage}</div>
-                            <div className="text-[10px] text-gray-500 uppercase">{attack.damage?.replace(/\*\*/g, '')} × {totalProficiency}</div>
-                          </div>
-                        </div>
-
-                        {/* Action Bar */}
-                        <div className="bg-black/40 p-2 flex gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              prepareRoll(`${feature.name} Attack`, totalAttackBonus);
-                            }}
-                            className={clsx(
-                              "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                              attackModifier !== 0 && "text-dagger-gold"
-                            )}
-                          >
-                            <Zap size={16} className="text-yellow-400" /> Attack ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const { dice, modifier } = parseDamageRoll(calculatedDamage);
-                              const totalDamageBonus = modifier + damageModifier;
-                              prepareRoll(`${feature.name} Damage`, totalDamageBonus, dice);
-                            }}
-                            className={clsx(
-                              "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                              damageModifier !== 0 && "text-dagger-gold"
-                            )}
-                          >
-                            <Skull size={16} className="text-red-400" /> Damage {damageModifier !== 0 && `(${damageModifier >= 0 ? `+${damageModifier}` : damageModifier})`}
-                          </button>
-                        </div>
-                      </div>
+                        id={`transformation-${index}`}
+                        name={feature.name}
+                        trait={trait}
+                        range={attack.range}
+                        baseDamage={attack.damage}
+                        calculatedDamage={calculatedDamage}
+                        totalAttackBonus={totalAttackBonus}
+                        attackModifier={attackModifier}
+                        damageModifier={damageModifier}
+                        proficiency={totalProficiency}
+                        damageType={attack.damage_type}
+                        onAttackRoll={() => prepareRoll(`${feature.name} Attack`, totalAttackBonus)}
+                        onDamageRoll={() => {
+                          const { dice, modifier } = parseDamageRoll(calculatedDamage);
+                          const totalDamageBonus = modifier + damageModifier;
+                          prepareRoll(`${feature.name} Damage`, totalDamageBonus, dice);
+                        }}
+                        onManageModifiers={() => setActiveWeaponId(`transformation-${index}`)}
+                      />
                     );
                   })}
               </>
@@ -573,124 +467,40 @@ export default function CombatView() {
               const totalAttackBonus = totalTraitValue + attackModifier;
 
               // Calculate damage with proficiency
-              const baseDamage = attack?.damage || 'd6';
-              const calculatedDamage = calculateWeaponDamage(baseDamage, totalProficiency);
+              const baseDamage = attack?.damage;
+              const calculatedDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
 
               return (
-                <div
+                <AttackCard
                   key={`${feature.source}-${feature.name}`}
-                  className={clsx(
-                    "bg-dagger-panel border rounded-xl overflow-hidden cursor-pointer hover:border-white/30 transition-colors",
-                    feature.sourceType === 'ancestry' ? "border-emerald-500/30" : "border-amber-500/30"
-                  )}
-                >
-                  <div className="p-4 flex justify-between items-start">
-                    <div>
-                      <h4 className="font-serif font-bold text-white text-lg">{feature.name}</h4>
-                      <div className="flex flex-wrap gap-2 text-xs text-gray-400 mt-1">
-                        <span className={clsx(
-                          "uppercase px-1.5 py-0.5 rounded",
-                          feature.sourceType === 'ancestry' ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"
-                        )}>
-                          {feature.source}
-                        </span>
-                        {attack?.trait && (
-                          <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{attack.trait}</span>
-                        )}
-                        {attack?.range && (
-                          <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{attack.range}</span>
-                        )}
-                        {feature.action_type && feature.action_type !== 'passive' && (
-                          <span className={clsx(
-                            "uppercase px-1.5 py-0.5 rounded",
-                            feature.action_type === 'reaction' ? "bg-orange-900/30 text-orange-400" : "bg-purple-900/30 text-purple-400"
-                          )}>
-                            {feature.action_type}
-                          </span>
-                        )}
-                      </div>
-                      {/* Show feature text */}
-                      <p className="text-xs text-gray-400 mt-2 line-clamp-2">
-                        {feature.text.split('**').map((part, i) =>
-                          i % 2 === 1 ? <strong key={i} className="text-white">{part}</strong> : part
-                        )}
-                      </p>
-                    </div>
-                    {attack?.damage && (
-                      <div className="text-right">
-                        <div className={clsx("text-xl font-bold", getValueColor(damageModifier !== 0))}>
-                          {calculatedDamage}
-                        </div>
-                        <div className="text-[10px] text-gray-500 uppercase">
-                          {baseDamage} × {totalProficiency}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action Bar - only show if has attack or costs */}
-                  {(attack || feature.costs) && (
-                    <div className="bg-black/40 p-2 flex flex-wrap gap-2">
-                      {/* Cost buttons */}
-                      {feature.costs?.stress && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Mark stress - this would need to be wired to the store
-                          }}
-                          className="px-3 py-2 bg-red-900/20 hover:bg-red-900/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors text-red-300"
-                        >
-                          <Zap size={14} /> +{feature.costs.stress} Stress
-                        </button>
-                      )}
-                      {feature.costs?.hope && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Spend hope - this would need to be wired to the store
-                          }}
-                          className="px-3 py-2 bg-blue-900/20 hover:bg-blue-900/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors text-blue-300"
-                        >
-                          <Zap size={14} /> -{feature.costs.hope} Hope
-                        </button>
-                      )}
-
-                      {/* Attack/Roll button */}
-                      {attack && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            prepareRoll(`${feature.name} (${attack.trait})`, totalAttackBonus);
-                          }}
-                          className={clsx(
-                            "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                            attackModifier !== 0 && "text-dagger-gold"
-                          )}
-                        >
-                          <Zap size={16} className="text-yellow-400" /> Roll ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
-                        </button>
-                      )}
-
-                      {/* Damage button */}
-                      {attack?.damage && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const { dice, modifier } = parseDamageRoll(calculatedDamage);
-                            const totalDamageBonus = modifier + damageModifier;
-                            prepareRoll(`${feature.name} Damage`, totalDamageBonus, dice);
-                          }}
-                          className={clsx(
-                            "flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                            damageModifier !== 0 && "text-dagger-gold"
-                          )}
-                        >
-                          <Skull size={16} className="text-red-400" /> Damage {damageModifier !== 0 && `(${damageModifier >= 0 ? `+${damageModifier}` : damageModifier})`}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                  id={`heritage-${feature.source}-${feature.name}`}
+                  name={feature.name}
+                  trait={trait}
+                  range={attack?.range || 'Self'}
+                  baseDamage={baseDamage}
+                  calculatedDamage={calculatedDamage}
+                  totalAttackBonus={totalAttackBonus}
+                  attackModifier={attackModifier}
+                  damageModifier={damageModifier}
+                  proficiency={totalProficiency}
+                  onAttackRoll={() => prepareRoll(`${feature.name} (${trait})`, totalAttackBonus)}
+                  onDamageRoll={baseDamage ? () => {
+                    const { dice, modifier } = parseDamageRoll(calculatedDamage!);
+                    const totalDamageBonus = modifier + damageModifier;
+                    prepareRoll(`${feature.name} Damage`, totalDamageBonus, dice);
+                  } : undefined}
+                  onManageModifiers={() => setActiveWeaponId(`heritage-${feature.source}-${feature.name}`)}
+                  borderVariant={feature.sourceType === 'ancestry' ? 'ancestry' : 'community'}
+                  description={feature.text}
+                  actionType={feature.action_type}
+                  costs={feature.costs}
+                  badges={[{
+                    label: feature.source,
+                    className: feature.sourceType === 'ancestry'
+                      ? 'bg-emerald-500/20 text-emerald-400'
+                      : 'bg-amber-500/20 text-amber-400'
+                  }]}
+                />
               );
             })}
           </div>
@@ -717,7 +527,7 @@ export default function CombatView() {
                 key={ability.name}
                 card={ability}
                 onPrepareRoll={prepareRoll}
-                onClick={() => setActiveAbilityId(ability.name)}
+                onManageModifiers={() => setActiveAbilityId(ability.name)}
               />
             ))}
           </div>
@@ -732,13 +542,49 @@ export default function CombatView() {
           onUpdateModifiers={(mods) => updateModifiers('proficiency', mods)}
         />
 
-        {/* Weapon Modifier Sheet */}
+        {/* Weapon/Attack Modifier Sheet */}
         {activeWeaponId && (() => {
+          // Check if it's a weapon or a transformation/companion/heritage attack
           const weapon = weapons.find(w => w.id === activeWeaponId);
-          if (!weapon) return null;
+          const isTransformation = activeWeaponId.startsWith('transformation-');
+          const isCompanion = activeWeaponId.startsWith('companion-');
+          const isHeritage = activeWeaponId.startsWith('heritage-');
 
-          const libData = weapon.library_item?.data;
-          const trait = libData?.trait || 'Strength';
+          // Get trait for the attack
+          let trait = 'Strength';
+          let attackName = 'Attack';
+
+          if (weapon) {
+            const libData = weapon.library_item?.data;
+            trait = libData?.trait || 'Strength';
+            attackName = weapon.name;
+          } else if (isTransformation && transformationCard) {
+            // Find the matching transformation feature
+            const index = parseInt(activeWeaponId.replace('transformation-', ''));
+            const features = transformationCard.features?.filter((f: any) => f.type === 'attack' && f.attack) || [];
+            const feature = features[index];
+            if (feature) {
+              trait = feature.attack?.trait || 'Strength';
+              attackName = feature.name;
+            }
+          } else if (isCompanion && character.ranger_companion) {
+            trait = character.ranger_companion.attack_type || 'Instinct';
+            attackName = character.ranger_companion.name;
+          } else if (isHeritage) {
+            // Find the matching heritage feature
+            const heritageKey = activeWeaponId.replace('heritage-', '');
+            const heritageFeature = combatHeritageFeatures.find(
+              f => `${f.source}-${f.name}` === heritageKey
+            );
+            if (heritageFeature) {
+              trait = heritageFeature.attack?.trait || 'Instinct';
+              attackName = heritageFeature.name;
+            }
+          }
+
+          // If we couldn't find a valid attack source, don't show the sheet
+          if (!weapon && !isTransformation && !isCompanion && !isHeritage) return null;
+
           const traitKey = trait.toLowerCase();
 
           // Calculate Base Trait Value
@@ -778,7 +624,7 @@ export default function CombatView() {
             <ModifierSheet
               isOpen={!!activeWeaponId}
               onClose={() => setActiveWeaponId(null)}
-              statLabel={`${weapon.name} Modifiers`}
+              statLabel={`${attackName} Modifiers`}
               baseValue={0}
               currentModifiers={[]}
               onUpdateModifiers={() => { }}
