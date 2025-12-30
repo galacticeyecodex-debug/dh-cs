@@ -13,7 +13,7 @@
  *
  * USAGE:
  * ```tsx
- * import DevErrorTriggers from '@/components/dev-error-triggers';
+ * import DevErrorTriggers from '@/components/core/dev-error-triggers';
  *
  * // Add to a page in development only
  * {process.env.NODE_ENV === 'development' && <DevErrorTriggers />}

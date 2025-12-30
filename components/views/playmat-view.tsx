@@ -22,18 +22,18 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character-store';
 import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap, Shield, ShieldOff, Users, AlertCircle, Swords, Sparkles, Search, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import AddItemModal from '@/components/add-item-modal';
+import AddItemModal from '@/components/modals/add-item-modal';
 import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
-import { ErrorBoundary } from '@/components/error-boundary';
+import { ErrorBoundary } from '@/components/core/error-boundary';
 import { parseCardPassiveModifiers, type PassiveModifier, type ModifierCondition } from '@/lib/card-parser';
 import { parseCombatAbility, type CombatAbility } from '@/lib/combat-spell-parser';
 import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { uploadCharacterImage } from '@/lib/storage-service';
 import Image from 'next/image';
-import { DomainCard } from '@/components/card-templates/domain-card';
+import { DomainCard } from '@/components/cards/domain-card';
 
 export default function PlaymatView() {
   const { character, moveCard, addCardToCollection, updateCardImage, user } = useCharacterStore();

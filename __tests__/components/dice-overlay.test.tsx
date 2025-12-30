@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
-import DiceOverlay from '@/components/dice-overlay';
+import DiceOverlay from '@/components/dice/dice-overlay';
 import { useCharacterStore } from '@/store/character-store';
 
 // --- Mocks ---

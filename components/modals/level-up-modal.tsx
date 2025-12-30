@@ -52,13 +52,13 @@ import { RangerCompanion } from '@/types/character';
 import { calculateTierAchievements, calculateNewDamageThresholds, getTier, getMaxCardLevelForDomain, getClassDomains } from '@/lib/level-up-helpers';
 import { validateNewLevel, validateAdvancementSelections } from '@/lib/level-up-validation';
 import { getCardLevel, getCardDescription, getCardType, isCardInDomain, isCardAvailableAtLevel } from '@/lib/card-helpers';
-import MulticlassSelection from './level-up-substeps/multiclass-selection';
-import DomainExchange from './level-up-substeps/domain-exchange';
-import TraitSelection from './level-up-substeps/trait-selection';
-import ExperienceSelection from './level-up-substeps/experience-selection';
-import VitalSlotSelection from './level-up-substeps/vital-slot-selection';
+import MulticlassSelection from '../level-up/substeps/multiclass-selection';
+import DomainExchange from '../level-up/substeps/domain-exchange';
+import TraitSelection from '../level-up/substeps/trait-selection';
+import ExperienceSelection from '../level-up/substeps/experience-selection';
+import VitalSlotSelection from '../level-up/substeps/vital-slot-selection';
 import { Character } from '@/store/character-store';
-import { ErrorBoundary } from '@/components/error-boundary';
+import { ErrorBoundary } from '@/components/core/error-boundary';
 
 interface LevelUpModalProps {
   isOpen: boolean;

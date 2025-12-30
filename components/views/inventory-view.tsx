@@ -24,10 +24,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useCharacterStore, CharacterInventoryItem, LibraryItem } from '@/store/character-store';
 import { Coins, Package, Sword, Shield, ArrowRightLeft, Plus, Heart, Gem, Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
-import AddItemModal from '@/components/add-item-modal';
-import CreateHomebrewItemModal, { HomebrewItemData } from '@/components/create-homebrew-item-modal';
+import AddItemModal from '@/components/modals/add-item-modal';
+import CreateHomebrewItemModal, { HomebrewItemData } from '@/components/modals/create-homebrew-item-modal';
 import { dataService } from '@/lib/data-service';
-import { ErrorBoundary } from '@/components/error-boundary';
+import { ErrorBoundary } from '@/components/core/error-boundary';
 
 export default function InventoryView() {
   const { 
