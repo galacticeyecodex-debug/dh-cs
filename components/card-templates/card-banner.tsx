@@ -6,7 +6,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { getDomainTheme, getContrastColor } from '@/lib/domain-colors';
+import { getDomainTheme } from '@/lib/domain-colors';
 import {
   ArcanaDomainIcon,
   BladeDomainIcon,
@@ -102,7 +102,7 @@ const BANNER_BG_CLIP_PATH = `polygon(
 
 export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
   const theme = getDomainTheme(domain);
-  const textColor = getContrastColor(theme.primary);
+  const textColor = theme.textColor;
 
   // Size configurations matching official dimensions
   // Full size (340px cards): banner 63x120px, clips 59x120px
@@ -153,7 +153,7 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
           left: `${dimensions.clipOffset}px`,
           width: `${dimensions.clipWidth}px`,
           height: `${dimensions.clipHeight}px`,
-          background: theme.primary,
+          background: `linear-gradient(to bottom, ${theme.primary} 10%, ${theme.secondary})`,
           clipPath: BANNER_CLIP_PATH,
         }}
       />
@@ -166,11 +166,10 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
           left: `${dimensions.clipOffset}px`,
           width: `${dimensions.clipWidth}px`,
           height: `${dimensions.clipHeight}px`,
-          background: theme.secondary,
+          background: `linear-gradient(to bottom, transparent 30%, rgba(0, 0, 0, 0.6) 60%, transparent 100%), ${theme.primary}`,
           clipPath: BANNER_BG_CLIP_PATH,
         }}
       />
-
       {/* Level number - centered horizontally at top */}
       <div
         className="absolute z-50 font-bold"

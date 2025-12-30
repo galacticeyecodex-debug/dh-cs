@@ -38,7 +38,7 @@
         "type": "transformation",
         "transformation": {
           "name": "Wolf Form",
-          "trigger": "**Mark Hit Points + mark a Stress**",
+          "trigger": "**Mark Hit Points + **mark a Stress****",
           "bonus": "+**d10** to attack and damage rolls",
           "drawback": "Hope gained becomes Stress instead"
         }

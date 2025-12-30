@@ -7,7 +7,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { getDomainTheme, getContrastColor } from '@/lib/domain-colors';
+import { getDomainTheme } from '@/lib/domain-colors';
 
 interface CardDividerProps {
   domain?: string;
@@ -20,7 +20,7 @@ const DIVIDER_CLIP_PATH = 'polygon(40% 10%, 60% 10%, 75% 60%, 70% 90%, 40% 90%, 
 
 export function CardDivider({ domain, subtype, size = 'small' }: CardDividerProps) {
   const theme = getDomainTheme(domain);
-  const textColor = getContrastColor(theme.primary);
+  const textColor = theme.textColor;
 
   // Size configurations - image needs to be taller to show decorative frame
   const dimensions = size === 'small'

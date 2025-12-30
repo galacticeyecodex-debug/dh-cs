@@ -14,7 +14,7 @@
       },
       {
         "name": "Barbed Vines - Action",
-        "text": "Pick a point within the grove. All targets within Very Close range of that point must succeed on an **Agility **Reaction Roll**** or take **1d8+3** physical damage and become Restrained by barbed vines. Restrained lasts until they’re freed with a successful Finesse or **Strength roll** or by dealing at least 6 damage to the vines."
+        "text": "Pick a point within the grove. All targets within Very Close range of that point must succeed on an **Agility Reaction Roll** or take **1d8+3** physical damage and become Restrained by barbed vines. Restrained lasts until they’re freed with a successful Finesse or **Strength roll** or by dealing at least 6 damage to the vines."
       },
       {
         "name": "You Are Not Welcome Here - Action",
@@ -191,7 +191,7 @@
       },
       {
         "name": "Undertow - Action",
-        "text": "**Spend a Fear** to catch a PC in the undertow. They must make an **Agility **Reaction Roll****. On a failure, they take **1d6+1** physical damage and are moved a Close distance down the river, becoming Vulnerable until they get out of the river. On a success, they must **mark a Stress**.\n\n  *What trinkets and baubles lie along the bottom of the riverbed? Do predators swim these rivers?*"
+        "text": "**Spend a Fear** to catch a PC in the undertow. They must make an **Agility Reaction Roll**. On a failure, they take **1d6+1** physical damage and are moved a Close distance down the river, becoming Vulnerable until they get out of the river. On a success, they must **mark a Stress**.\n\n  *What trinkets and baubles lie along the bottom of the riverbed? Do predators swim these rivers?*"
       },
       {
         "name": "Patient Hunter - Action",
@@ -295,7 +295,7 @@
       },
       {
         "name": "Avalanche - Action",
-        "text": "**Spend a Fear** to carve the mountain with an icy torrent, causing an avalanche. All PCs in its path must succeed on an Agility or **Strength **Reaction Roll**** or be bowled over and carried down the mountain. A PC using rope, pitons, or other climbing gear gains advantage on this roll. Targets who fail are knocked down the mountain to Far range, take **2d20** physical damage, and must **mark a Stress**. Targets who succeed must **mark a Stress**.\n\n  *How do the PCs try to weather the avalanche? What approach do they take to avoid being buried or hurtling down the mountainside?*"
+        "text": "**Spend a Fear** to carve the mountain with an icy torrent, causing an avalanche. All PCs in its path must succeed on an Agility or **Strength Reaction Roll** or be bowled over and carried down the mountain. A PC using rope, pitons, or other climbing gear gains advantage on this roll. Targets who fail are knocked down the mountain to Far range, take **2d20** physical damage, and must **mark a Stress**. Targets who succeed must **mark a Stress**.\n\n  *How do the PCs try to weather the avalanche? What approach do they take to avoid being buried or hurtling down the mountainside?*"
       },
       {
         "name": "Raptor Nest - Reaction",
@@ -303,7 +303,7 @@
       },
       {
         "name": "Icy Winds - Reaction",
-        "text": "Countdown (Loop 4). When the PCs enter the mountain pass, activate the countdown. When it triggers, all characters traveling through the pass must succeed on a **Strength **Reaction Roll**** or **mark a Stress**. A PC wearing clothes appropriate for extreme cold gains advantage on these rolls.\n\n  *What parts of the PCs’ bodies go numb first? How do they try to keep warm as they press forward?*"
+        "text": "Countdown (Loop 4). When the PCs enter the mountain pass, activate the countdown. When it triggers, all characters traveling through the pass must succeed on a **Strength Reaction Roll** or **mark a Stress**. A PC wearing clothes appropriate for extreme cold gains advantage on these rolls.\n\n  *What parts of the PCs’ bodies go numb first? How do they try to keep warm as they press forward?*"
       }
     ]
   },
@@ -326,15 +326,15 @@
       },
       {
         "name": "Grasping Vines - Action",
-        "text": "Animate vines bristling with thorns whip out from the underbrush to ensnare the PCs. A target must succeed on an **Agility **Reaction Roll**** or become Restrained and Vulnerable until they break free, clearing both conditions, with a successful Finesse or **Strength Roll** or by dealing 10 damage to the vines. When the target makes a roll to escape, they take **1d8+4** physical damage and lose a Hope.\n\n  *What painful memories do the vines bring to the surface as they pierce flesh?*"
+        "text": "Animate vines bristling with thorns whip out from the underbrush to ensnare the PCs. A target must succeed on an **Agility Reaction Roll** or become Restrained and Vulnerable until they break free, clearing both conditions, with a successful Finesse or **Strength Roll** or by dealing 10 damage to the vines. When the target makes a roll to escape, they take **1d8+4** physical damage and lose a Hope.\n\n  *What painful memories do the vines bring to the surface as they pierce flesh?*"
       },
       {
         "name": "Charcoal Constructs - Action",
-        "text": "Warped animals wreathed in indigo flame trample through a point of your choice. All targets within Close range of that point must make an **Agility **Reaction Roll****. Targets who fail take **3d12+3** physical damage. Targets who succeed take half damage instead.\n\n  *Are these real animals consumed by the flame or merely constructs of the corrupting magic?*"
+        "text": "Warped animals wreathed in indigo flame trample through a point of your choice. All targets within Close range of that point must make an **Agility Reaction Roll**. Targets who fail take **3d12+3** physical damage. Targets who succeed take half damage instead.\n\n  *Are these real animals consumed by the flame or merely constructs of the corrupting magic?*"
       },
       {
         "name": "Choking Ash - Reaction",
-        "text": "Countdown (Loop 6). When the PCs enter the Burning Heart of the Woods, activate the countdown. When it triggers, all characters must make a Strength or **Instinct **Reaction Roll****. Targets who fail take **4d6+5** direct physical damage. Targets who succeed take half damage. Protective masks or clothes give advantage on the **reaction roll**.\n\n  *What hallucinations does the ash induce? What incongruous taste does it possess?*"
+        "text": "Countdown (Loop 6). When the PCs enter the Burning Heart of the Woods, activate the countdown. When it triggers, all characters must make a Strength or **Instinct Reaction Roll**. Targets who fail take **4d6+5** direct physical damage. Targets who succeed take half damage. Protective masks or clothes give advantage on the **reaction roll**.\n\n  *What hallucinations does the ash induce? What incongruous taste does it possess?*"
       }
     ]
   },
@@ -361,7 +361,7 @@
       },
       {
         "name": "Collateral Damage - Reaction",
-        "text": "When an adversary is defeated, you can **spend a Fear** to have a stray attack from a siege weapon hit a point on the battlefield. All targets within Very Close range of that point must make an **Agility **Reaction Roll****.\n\n  - Targets who fail take **3d8+3** physical or magic damage and must **mark a Stress**.\n  - Targets who succeed must **mark a Stress**.\n\n  *What debris is scattered by the attack? What is broken by the strike that can’t be easily mended?*"
+        "text": "When an adversary is defeated, you can **spend a Fear** to have a stray attack from a siege weapon hit a point on the battlefield. All targets within Very Close range of that point must make an **Agility Reaction Roll**.\n\n  - Targets who fail take **3d8+3** physical or magic damage and must **mark a Stress**.\n  - Targets who succeed must **mark a Stress**.\n\n  *What debris is scattered by the attack? What is broken by the strike that can’t be easily mended?*"
       }
     ]
   },
@@ -384,7 +384,7 @@
       },
       {
         "name": "War Magic - Action",
-        "text": "**Spend a Fear** as a mage from one side uses large-scale destructive magic. Pick a point on the battlefield within Very Far range of the mage. All targets within Close range of that point must make an **Agility **Reaction Roll****. Targets who fail take **3d12+8** magic damage and must **mark a Stress**.\n\n  *What form does the attack take—fireball, raining acid, a storm of blades? What tactical objective is this attack meant to accomplish, and what comes next?*"
+        "text": "**Spend a Fear** as a mage from one side uses large-scale destructive magic. Pick a point on the battlefield within Very Far range of the mage. All targets within Close range of that point must make an **Agility Reaction Roll**. Targets who fail take **3d12+8** magic damage and must **mark a Stress**.\n\n  *What form does the attack take—fireball, raining acid, a storm of blades? What tactical objective is this attack meant to accomplish, and what comes next?*"
       },
       {
         "name": "Reinforcements - Action",
@@ -407,7 +407,7 @@
       },
       {
         "name": "Everything You Are This Place Will Take from You - Action",
-        "text": "Countdown (Loop 14). Activate the countdown. When it triggers, all PCs must succeed on a **Presence **Reaction Roll**** or their highest trait is temporarily reduced by **1d4** unless they **mark a number of Stress** equal to its value. Any lost trait points are regained if the PC critically succeeds or escapes the Chaos Realm.\n\n  *How does this place try to steal from you that which makes you legendary? What does it feel like to have this power taken from you?*"
+        "text": "Countdown (Loop 14). Activate the countdown. When it triggers, all PCs must succeed on a **Presence Reaction Roll** or their highest trait is temporarily reduced by **1d4** unless they **mark a number of Stress** equal to its value. Any lost trait points are regained if the PC critically succeeds or escapes the Chaos Realm.\n\n  *How does this place try to steal from you that which makes you legendary? What does it feel like to have this power taken from you?*"
       },
       {
         "name": "Unmake - Action",
@@ -477,7 +477,7 @@
       },
       {
         "name": "The Gravity of Empire - Action",
-        "text": "**Spend a Fear** to present a PC with a golden opportunity or offer to satisfy a major goal in exchange for obeying or supporting the empire. The target must make a **Presence **Reaction Roll****. On a failure, they must **mark all their Stress** or accept the offer. If they have already marked all their Stress, they must reduce their Stress track by **1d4**. On a success, they must **mark **1d4** Stress** as they’re taxed by temptation.\n\n  *What do the PCs want so desperately they might consider throwing in with this ruthless power? How did imperial agents learn the PC’s greatest desires?*"
+        "text": "**Spend a Fear** to present a PC with a golden opportunity or offer to satisfy a major goal in exchange for obeying or supporting the empire. The target must make a **Presence Reaction Roll**. On a failure, they must **mark all their Stress** or accept the offer. If they have already marked all their Stress, they must reduce their Stress track by **1d4**. On a success, they must **mark **1d4** Stress** as they’re taxed by temptation.\n\n  *What do the PCs want so desperately they might consider throwing in with this ruthless power? How did imperial agents learn the PC’s greatest desires?*"
       },
       {
         "name": "Imperial Decree - Action",
@@ -485,7 +485,7 @@
       },
       {
         "name": "Eyes Everywhere - Reaction",
-        "text": "On a result with Fear, you can **spend a Fear** to have someone loyal to the empire overhear seditious talk within the court. A PC must succeed on an **Instinct **Reaction Roll**** to notice that the group has been overheard so they can try to intercept the witness before the PCs are exposed.\n\n  *How has the empire compromised this witness? Why is their first impulse to protect the empire, even if doesn’t treat them well?*"
+        "text": "On a result with Fear, you can **spend a Fear** to have someone loyal to the empire overhear seditious talk within the court. A PC must succeed on an **Instinct Reaction Roll** to notice that the group has been overheard so they can try to intercept the witness before the PCs are exposed.\n\n  *How has the empire compromised this witness? Why is their first impulse to protect the empire, even if doesn’t treat them well?*"
       }
     ]
   },
@@ -508,7 +508,7 @@
       },
       {
         "name": "Skeletal Burst - Action",
-        "text": "All targets within Close range of a point you choose in this environment must succeed on an **Agility **Reaction Roll**** or take **4d8+8** physical damage from bone shrapnel as part of the ossuary detonates around them.\n\n  *What ancient skeletal architecture is destroyed? What bones stick in your armor?*"
+        "text": "All targets within Close range of a point you choose in this environment must succeed on an **Agility Reaction Roll** or take **4d8+8** physical damage from bone shrapnel as part of the ossuary detonates around them.\n\n  *What ancient skeletal architecture is destroyed? What bones stick in your armor?*"
       },
       {
         "name": "Aura of Death - Action",
