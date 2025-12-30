@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "name": "Broadsword",
     "primary_or_secondary": "Primary",
@@ -6,7 +6,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d8 phy",
+    "damage": "**d8** phy",
     "burden": "One-Handed",
     "feat_name": "Reliable",
     "feat_text": "+1 to attack rolls"
@@ -18,7 +18,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d10+3 phy",
+    "damage": "**d10+3** phy",
     "burden": "Two-Handed"
   },
   {
@@ -28,7 +28,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+3 phy",
+    "damage": "**d10+3** phy",
     "burden": "Two-Handed"
   },
   {
@@ -38,7 +38,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+3 phy",
+    "damage": "**d10+3** phy",
     "burden": "Two-Handed",
     "feat_name": "Massive",
     "feat_text": "-1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result."
@@ -50,7 +50,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d8+1 phy",
+    "damage": "**d8+1** phy",
     "burden": "One-Handed"
   },
   {
@@ -60,7 +60,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d12+3 phy",
+    "damage": "**d12+3** phy",
     "burden": "Two-Handed",
     "feat_name": "Heavy",
     "feat_text": "-1 to Evasion"
@@ -72,7 +72,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Melee",
-    "damage": "d8+1 phy",
+    "damage": "**d8+1** phy",
     "burden": "One-Handed"
   },
   {
@@ -82,7 +82,7 @@
     "physical_or_magical": "Physical",
     "trait": "Instinct",
     "range": "Melee",
-    "damage": "d10+3 phy",
+    "damage": "**d10+3** phy",
     "burden": "Two-Handed"
   },
   {
@@ -92,7 +92,7 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Melee",
-    "damage": "d8+1 phy",
+    "damage": "**d8+1** phy",
     "burden": "One-Handed"
   },
   {
@@ -102,10 +102,10 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Melee",
-    "damage": "d8 phy",
+    "damage": "**d8** phy",
     "burden": "One-Handed",
     "feat_name": "Quick",
-    "feat_text": "When you make an attack, you can mark a Stress to target another creature within range."
+    "feat_text": "When you make an attack, you can **mark a Stress** to target another creature within range."
   },
   {
     "name": "Halberd",
@@ -114,7 +114,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Very Close",
-    "damage": "d10+2 phy",
+    "damage": "**d10+2** phy",
     "burden": "Two-Handed",
     "feat_name": "Cumbersome",
     "feat_text": "-1 to Finesse"
@@ -126,7 +126,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Very Close",
-    "damage": "d8+3 phy",
+    "damage": "**d8+3** phy",
     "burden": "Two-Handed",
     "feat_text": "-1 to Finesse"
   },
@@ -137,7 +137,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Far",
-    "damage": "d6+3 phy",
+    "damage": "**d6+3** phy",
     "burden": "Two-Handed"
   },
   {
@@ -147,7 +147,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Far",
-    "damage": "d6+1 phy",
+    "damage": "**d6+1** phy",
     "burden": "One-Handed"
   },
   {
@@ -157,7 +157,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Very Far",
-    "damage": "d8+3 phy",
+    "damage": "**d8+3** phy",
     "burden": "Two-Handed",
     "feat_name": "Cumbersome",
     "feat_text": "-1 to Finesse"
@@ -169,7 +169,7 @@
     "physical_or_magical": "Magical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+3 mag",
+    "damage": "**d10+3** mag",
     "burden": "Two-Handed"
   },
   {
@@ -179,7 +179,7 @@
     "physical_or_magical": "Magical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d8+1 mag",
+    "damage": "**d8+1** mag",
     "burden": "One-Handed"
   },
   {
@@ -189,7 +189,7 @@
     "physical_or_magical": "Magical",
     "trait": "Agility",
     "range": "Very Close",
-    "damage": "d10+2 mag",
+    "damage": "**d10+2** mag",
     "burden": "Two-Handed"
   },
   {
@@ -199,7 +199,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Very Close",
-    "damage": "d10 mag",
+    "damage": "**d10** mag",
     "burden": "One-Handed"
   },
   {
@@ -209,7 +209,7 @@
     "physical_or_magical": "Magical",
     "trait": "Finesse",
     "range": "Close",
-    "damage": "d8 mag",
+    "damage": "**d8** mag",
     "burden": "One-Handed",
     "feat_name": "Returning",
     "feat_text": "When this weapon is thrown within its range, it appears in your hand immediately after the attack."
@@ -221,7 +221,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Close",
-    "damage": "d8+1 mag",
+    "damage": "**d8+1** mag",
     "burden": "One-Handed"
   },
   {
@@ -231,7 +231,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Far",
-    "damage": "d6+3 mag",
+    "damage": "**d6+3** mag",
     "burden": "Two-Handed"
   },
   {
@@ -241,10 +241,10 @@
     "physical_or_magical": "Magical",
     "trait": "Presence",
     "range": "Far",
-    "damage": "d6 mag",
+    "damage": "**d6** mag",
     "burden": "Two-Handed",
     "feat_name": "Versatile",
-    "feat_text": "This weapon can also be used with these statistics—Presence, Melee, d8."
+    "feat_text": "This weapon can also be used with these statistics—Presence, Melee, **d8**."
   },
   {
     "name": "Wand",
@@ -253,7 +253,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Far",
-    "damage": "d6+1 mag",
+    "damage": "**d6+1** mag",
     "burden": "One-Handed"
   },
   {
@@ -263,7 +263,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Very Far",
-    "damage": "d6 mag",
+    "damage": "**d6** mag",
     "burden": "Two-Handed",
     "feat_name": "Powerful",
     "feat_text": "On a successful attack, roll an additional damage die and discard the lowest result."
@@ -275,7 +275,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d8+3 phy",
+    "damage": "**d8+3** phy",
     "burden": "One-Handed",
     "feat_name": "Reliable",
     "feat_text": "+1 to attack rolls"
@@ -287,7 +287,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d10+6 phy",
+    "damage": "**d10+6** phy",
     "burden": "Two-Handed"
   },
   {
@@ -297,7 +297,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+6 phy",
+    "damage": "**d10+6** phy",
     "burden": "Two-Handed"
   },
   {
@@ -307,7 +307,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+6 phy",
+    "damage": "**d10+6** phy",
     "burden": "Two-Handed",
     "feat_name": "Massive",
     "feat_text": "-1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result."
@@ -319,7 +319,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d8+4 phy",
+    "damage": "**d8+4** phy",
     "burden": "One-Handed"
   },
   {
@@ -329,7 +329,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d12+6 phy",
+    "damage": "**d12+6** phy",
     "burden": "Two-Handed",
     "feat_name": "Heavy",
     "feat_text": "-1 to Evasion"
@@ -341,7 +341,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Melee",
-    "damage": "d8+4 phy",
+    "damage": "**d8+4** phy",
     "burden": "One-Handed"
   },
   {
@@ -351,7 +351,7 @@
     "physical_or_magical": "Physical",
     "trait": "Instinct",
     "range": "Melee",
-    "damage": "d10+6 phy",
+    "damage": "**d10+6** phy",
     "burden": "Two-Handed"
   },
   {
@@ -361,7 +361,7 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Melee",
-    "damage": "d8+4 phy",
+    "damage": "**d8+4** phy",
     "burden": "One-Handed"
   },
   {
@@ -371,10 +371,10 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Melee",
-    "damage": "d8+3 phy",
+    "damage": "**d8+3** phy",
     "burden": "One-Handed",
     "feat_name": "Quick",
-    "feat_text": "When you make an attack, you can mark a Stress to target another creature within range."
+    "feat_text": "When you make an attack, you can **mark a Stress** to target another creature within range."
   },
   {
     "name": "Improved Halberd",
@@ -383,7 +383,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Very Close",
-    "damage": "d10+5 phy",
+    "damage": "**d10+5** phy",
     "burden": "Two-Handed",
     "feat_name": "Cumbersome",
     "feat_text": "-1 to Finesse"
@@ -395,7 +395,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Very Close",
-    "damage": "d8+6 phy",
+    "damage": "**d8+6** phy",
     "burden": "Two-Handed",
     "feat_text": "-1 to Finesse"
   },
@@ -406,7 +406,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Far",
-    "damage": "d6+6 phy",
+    "damage": "**d6+6** phy",
     "burden": "Two-Handed"
   },
   {
@@ -416,7 +416,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Far",
-    "damage": "d6+4 phy",
+    "damage": "**d6+4** phy",
     "burden": "One-Handed"
   },
   {
@@ -426,7 +426,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Very Far",
-    "damage": "d8+6 phy",
+    "damage": "**d8+6** phy",
     "burden": "Two-Handed",
     "feat_name": "Cumbersome",
     "feat_text": "-1 to Finesse"
@@ -438,7 +438,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+4 phy",
+    "damage": "**d10+4** phy",
     "burden": "One-Handed",
     "feat_name": "Powerful",
     "feat_text": "On a successful attack, roll an additional damage die and discard the lowest result."
@@ -450,7 +450,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+6 phy",
+    "damage": "**d10+6** phy",
     "burden": "One-Handed",
     "feat_name": "Brutal",
     "feat_text": "When you roll the maximum value on a damage die, roll an additional damage die."
@@ -462,7 +462,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Melee",
-    "damage": "d8+3 phy",
+    "damage": "**d8+3** phy",
     "burden": "One-Handed",
     "feat_name": "Deadly",
     "feat_text": "When you deal Severe damage, the target must mark an additional HP."
@@ -474,10 +474,10 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Very Close",
-    "damage": "d8+3 phy",
+    "damage": "**d8+3** phy",
     "burden": "One-Handed",
     "feat_name": "Quick",
-    "feat_text": "When you make an attack, you can mark a Stress to target another creature within range."
+    "feat_text": "When you make an attack, you can **mark a Stress** to target another creature within range."
   },
   {
     "name": "Steelforged Halberd",
@@ -486,10 +486,10 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Very Close",
-    "damage": "d8+4 phy",
+    "damage": "**d8+4** phy",
     "burden": "Two-Handed",
     "feat_name": "Scary",
-    "feat_text": "On a successful attack, the target must mark a Stress."
+    "feat_text": "On a successful attack, the target must **mark a Stress**."
   },
   {
     "name": "War Scythe",
@@ -498,7 +498,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Very Close",
-    "damage": "d8+5 phy",
+    "damage": "**d8+5** phy",
     "burden": "Two-Handed",
     "feat_name": "Reliable",
     "feat_text": "+1 to attack rolls"
@@ -510,10 +510,10 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Close",
-    "damage": "d8+6 phy",
+    "damage": "**d8+6** phy",
     "burden": "Two-Handed",
     "feat_name": "Reloading",
-    "feat_text": "After you make an attack, roll a d6. On a result of 1, you must mark a Stress to reload this weapon before you can fire it again."
+    "feat_text": "After you make an attack, roll a **d6**. On a result of 1, you must **mark a Stress** to reload this weapon before you can fire it again."
   },
   {
     "name": "Greatbow",
@@ -522,7 +522,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Far",
-    "damage": "d6+6 phy",
+    "damage": "**d6+6** phy",
     "burden": "Two-Handed",
     "feat_name": "Powerful",
     "feat_text": "On a successful attack, roll an additional damage die and discard the lowest result."
@@ -534,7 +534,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Very Far",
-    "damage": "d6+5 phy",
+    "damage": "**d6+5** phy",
     "burden": "Two-Handed",
     "feat_name": "Reliable",
     "feat_text": "+1 to attack rolls"
@@ -546,7 +546,7 @@
     "physical_or_magical": "Magical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+6 mag",
+    "damage": "**d10+6** mag",
     "burden": "Two-Handed"
   },
   {
@@ -556,7 +556,7 @@
     "physical_or_magical": "Magical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d8+4 mag",
+    "damage": "**d8+4** mag",
     "burden": "One-Handed"
   },
   {
@@ -566,7 +566,7 @@
     "physical_or_magical": "Magical",
     "trait": "Agility",
     "range": "Very Close",
-    "damage": "d10+5 mag",
+    "damage": "**d10+5** mag",
     "burden": "Two-Handed"
   },
   {
@@ -576,7 +576,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Very Close",
-    "damage": "d10+3 mag",
+    "damage": "**d10+3** mag",
     "burden": "One-Handed"
   },
   {
@@ -586,7 +586,7 @@
     "physical_or_magical": "Magical",
     "trait": "Finesse",
     "range": "Close",
-    "damage": "d8+3 mag",
+    "damage": "**d8+3** mag",
     "burden": "One-Handed",
     "feat_name": "Returning",
     "feat_text": "When this weapon is thrown within its range, it appears in your hand immediately after the attack."
@@ -598,7 +598,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Close",
-    "damage": "d8+4 mag",
+    "damage": "**d8+4** mag",
     "burden": "One-Handed"
   },
   {
@@ -608,7 +608,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Far",
-    "damage": "d6+6 mag",
+    "damage": "**d6+6** mag",
     "burden": "Two-Handed"
   },
   {
@@ -618,10 +618,10 @@
     "physical_or_magical": "Magical",
     "trait": "Presence",
     "range": "Far",
-    "damage": "d6+3 mag",
+    "damage": "**d6+3** mag",
     "burden": "Two-Handed",
     "feat_name": "Versatile",
-    "feat_text": "This weapon can also be used with these statistics—Presence, Melee, d8+3."
+    "feat_text": "This weapon can also be used with these statistics—Presence, Melee, **d8+3**."
   },
   {
     "name": "Improved Wand",
@@ -630,7 +630,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Far",
-    "damage": "d6+4 mag",
+    "damage": "**d6+4** mag",
     "burden": "One-Handed"
   },
   {
@@ -640,7 +640,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Very Far",
-    "damage": "d6+3 mag",
+    "damage": "**d6+3** mag",
     "burden": "Two-Handed",
     "feat_name": "Powerful",
     "feat_text": "On a successful attack, roll an additional damage die and discard the lowest result."
@@ -652,7 +652,7 @@
     "physical_or_magical": "Magical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d12+4 mag",
+    "damage": "**d12+4** mag",
     "burden": "One-Handed",
     "feat_name": "Pompous",
     "feat_text": "You must have a Presence of 0 or lower to use this weapon."
@@ -664,10 +664,10 @@
     "physical_or_magical": "Magical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+4 mag",
+    "damage": "**d10+4** mag",
     "burden": "Two-Handed",
     "feat_name": "Versatile",
-    "feat_text": "This weapon can also be used with these statistics—Knowledge, Far, d6+3."
+    "feat_text": "This weapon can also be used with these statistics—Knowledge, Far, **d6+3**."
   },
   {
     "name": "Devouring Dagger",
@@ -676,10 +676,10 @@
     "physical_or_magical": "Magical",
     "trait": "Finesse",
     "range": "Melee",
-    "damage": "d8+4 mag",
+    "damage": "**d8+4** mag",
     "burden": "One-Handed",
     "feat_name": "Scary",
-    "feat_text": "On a successful attack, the target must mark a Stress."
+    "feat_text": "On a successful attack, the target must **mark a Stress**."
   },
   {
     "name": "Hammer of Exota",
@@ -688,10 +688,10 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Melee",
-    "damage": "d8+6 mag",
+    "damage": "**d8+6** mag",
     "burden": "Two-Handed",
     "feat_name": "Eruptive",
-    "feat_text": "On a successful attack against a target within Melee range, all other adversaries within Very Close range must succeed on a reaction roll (14) or take half damage."
+    "feat_text": "On a successful attack against a target within Melee range, all other adversaries within Very Close range must succeed on a **reaction roll** (14) or take half damage."
   },
   {
     "name": "Yutari Bloodbow",
@@ -700,7 +700,7 @@
     "physical_or_magical": "Magical",
     "trait": "Finesse",
     "range": "Far",
-    "damage": "d6+4 mag",
+    "damage": "**d6+4** mag",
     "burden": "Two-Handed",
     "feat_name": "Brutal",
     "feat_text": "When you roll the maximum value on a damage die, roll an additional damage die."
@@ -712,7 +712,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Far",
-    "damage": "d6+4 mag",
+    "damage": "**d6+4** mag",
     "burden": "Two-Handed",
     "feat_name": "Powerful",
     "feat_text": "On a successful attack, roll an additional damage die and discard the lowest result."
@@ -724,10 +724,10 @@
     "physical_or_magical": "Magical",
     "trait": "Presence",
     "range": "Far",
-    "damage": "d6+3 mag",
+    "damage": "**d6+3** mag",
     "burden": "One-Handed",
     "feat_name": "Invigorating",
-    "feat_text": "On a successful attack, roll a d4. On a result of 4, clear a Stress."
+    "feat_text": "On a successful attack, roll a **d4**. On a result of 4, clear a Stress."
   },
   {
     "name": "Wand of Enthrallment",
@@ -736,10 +736,10 @@
     "physical_or_magical": "Magical",
     "trait": "Presence",
     "range": "Far",
-    "damage": "d6+4 mag",
+    "damage": "**d6+4** mag",
     "burden": "One-Handed",
     "feat_name": "Persuasive",
-    "feat_text": "Before you make a Presence Roll, you can mark a Stress to gain a +2 bonus to the result."
+    "feat_text": "Before you make a **Presence Roll**, you can **mark a Stress** to gain a +2 bonus to the result."
   },
   {
     "name": "Keeper’s Staff",
@@ -748,7 +748,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Far",
-    "damage": "d6+4 mag",
+    "damage": "**d6+4** mag",
     "burden": "Two-Handed",
     "feat_name": "Reliable",
     "feat_text": "+1 to attack rolls"
@@ -760,7 +760,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d8+6 phy",
+    "damage": "**d8+6** phy",
     "burden": "One-Handed",
     "feat_name": "Reliable",
     "feat_text": "+1 to attack rolls"
@@ -772,7 +772,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d10+9 phy",
+    "damage": "**d10+9** phy",
     "burden": "Two-Handed"
   },
   {
@@ -782,7 +782,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+9 phy",
+    "damage": "**d10+9** phy",
     "burden": "Two-Handed"
   },
   {
@@ -792,7 +792,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+9 phy",
+    "damage": "**d10+9** phy",
     "burden": "Two-Handed",
     "feat_name": "Massive",
     "feat_text": "-1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result."
@@ -804,7 +804,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d8+7 phy",
+    "damage": "**d8+7** phy",
     "burden": "One-Handed"
   },
   {
@@ -814,7 +814,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d12+9 phy",
+    "damage": "**d12+9** phy",
     "burden": "Two-Handed",
     "feat_name": "Heavy",
     "feat_text": "-1 to Evasion"
@@ -826,7 +826,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Melee",
-    "damage": "d8+7 phy",
+    "damage": "**d8+7** phy",
     "burden": "One-Handed"
   },
   {
@@ -836,7 +836,7 @@
     "physical_or_magical": "Physical",
     "trait": "Instinct",
     "range": "Melee",
-    "damage": "d10+9 phy",
+    "damage": "**d10+9** phy",
     "burden": "Two-Handed"
   },
   {
@@ -846,7 +846,7 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Melee",
-    "damage": "d8+7 phy",
+    "damage": "**d8+7** phy",
     "burden": "One-Handed"
   },
   {
@@ -856,10 +856,10 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Melee",
-    "damage": "d8+6 phy",
+    "damage": "**d8+6** phy",
     "burden": "One-Handed",
     "feat_name": "Quick",
-    "feat_text": "When you make an attack, you can mark a Stress to target another creature within range."
+    "feat_text": "When you make an attack, you can **mark a Stress** to target another creature within range."
   },
   {
     "name": "Advanced Halberd",
@@ -868,7 +868,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Very Close",
-    "damage": "d10+8 phy",
+    "damage": "**d10+8** phy",
     "burden": "Two-Handed",
     "feat_name": "Cumbersome",
     "feat_text": "-1 to Finesse"
@@ -880,7 +880,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Very Close",
-    "damage": "d8+9 phy",
+    "damage": "**d8+9** phy",
     "burden": "Two-Handed",
     "feat_text": "-1 to Finesse"
   },
@@ -891,7 +891,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Far",
-    "damage": "d6+9 phy",
+    "damage": "**d6+9** phy",
     "burden": "Two-Handed"
   },
   {
@@ -901,7 +901,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Far",
-    "damage": "d6+7 phy",
+    "damage": "**d6+7** phy",
     "burden": "One-Handed"
   },
   {
@@ -911,7 +911,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Very Far",
-    "damage": "d8+9 phy",
+    "damage": "**d8+9** phy",
     "burden": "Two-Handed",
     "feat_name": "Cumbersome",
     "feat_text": "-1 to Finesse"
@@ -923,7 +923,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d8+5 phy",
+    "damage": "**d8+5** phy",
     "burden": "One-Handed",
     "feat_name": "Sharpening",
     "feat_text": "Gain a bonus to your damage rolls equal to your Agility."
@@ -935,7 +935,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d12+7 phy",
+    "damage": "**d12+7** phy",
     "burden": "Two-Handed",
     "feat_name": "Brave",
     "feat_text": "-1 to Evasion; +3 to Severe damage threshold"
@@ -947,10 +947,10 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+7 phy",
+    "damage": "**d10+7** phy",
     "burden": "Two-Handed",
     "feat_name": "Devastating",
-    "feat_text": "Before you make an attack roll, you can mark a Stress to use a d20 as your damage die."
+    "feat_text": "Before you make an attack roll, you can **mark a Stress** to use a **d20** as your damage die."
   },
   {
     "name": "Labrys Axe",
@@ -959,7 +959,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+7 phy",
+    "damage": "**d10+7** phy",
     "burden": "Two-Handed",
     "feat_name": "Protective",
     "feat_text": "+1 to Armor Score"
@@ -971,7 +971,7 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Melee",
-    "damage": "d10+5 phy",
+    "damage": "**d10+5** phy",
     "burden": "One-Handed",
     "feat_name": "Dueling",
     "feat_text": "When there are no other creatures within Close range of the target, gain advantage on your attack roll against them."
@@ -983,7 +983,7 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Melee",
-    "damage": "d10+7 phy",
+    "damage": "**d10+7** phy",
     "burden": "One-Handed",
     "feat_name": "Retractable",
     "feat_text": "The blade can be hidden in the hilt to avoid detection."
@@ -995,7 +995,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Very Close",
-    "damage": "d10+8 phy",
+    "damage": "**d10+8** phy",
     "burden": "Two-Handed",
     "feat_name": "Powerful",
     "feat_text": "On a successful attack, roll an additional damage die and discard the lowest result."
@@ -1007,7 +1007,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Close",
-    "damage": "d10+7 phy",
+    "damage": "**d10+7** phy",
     "burden": "Two-Handed",
     "feat_name": "Brutal",
     "feat_text": "When you roll the maximum value on a damage die, roll an additional damage die."
@@ -1019,10 +1019,10 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Far",
-    "damage": "d6+8 phy",
+    "damage": "**d6+8** phy",
     "burden": "One-Handed",
     "feat_name": "Reloading",
-    "feat_text": "After you make an attack, roll a d6. On a result of 1, you must mark a Stress to reload this weapon before you can fire it again."
+    "feat_text": "After you make an attack, roll a **d6**. On a result of 1, you must **mark a Stress** to reload this weapon before you can fire it again."
   },
   {
     "name": "Spiked Bow",
@@ -1031,10 +1031,10 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Very Far",
-    "damage": "d6+7 phy",
+    "damage": "**d6+7** phy",
     "burden": "Two-Handed",
     "feat_name": "Versatile",
-    "feat_text": "This weapon can also be used with these statistics—Agility, Melee, d10+5."
+    "feat_text": "This weapon can also be used with these statistics—Agility, Melee, **d10+5**."
   },
   {
     "name": "Advanced Arcane Gauntlets",
@@ -1043,7 +1043,7 @@
     "physical_or_magical": "Magical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+9 mag",
+    "damage": "**d10+9** mag",
     "burden": "Two-Handed"
   },
   {
@@ -1053,7 +1053,7 @@
     "physical_or_magical": "Magical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d8+7 mag",
+    "damage": "**d8+7** mag",
     "burden": "One-Handed"
   },
   {
@@ -1063,7 +1063,7 @@
     "physical_or_magical": "Magical",
     "trait": "Agility",
     "range": "Very Close",
-    "damage": "d10+8 mag",
+    "damage": "**d10+8** mag",
     "burden": "Two-Handed"
   },
   {
@@ -1073,7 +1073,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Very Close",
-    "damage": "d10+6 mag",
+    "damage": "**d10+6** mag",
     "burden": "One-Handed"
   },
   {
@@ -1083,7 +1083,7 @@
     "physical_or_magical": "Magical",
     "trait": "Finesse",
     "range": "Close",
-    "damage": "d8+6 mag",
+    "damage": "**d8+6** mag",
     "burden": "One-Handed",
     "feat_name": "Returning",
     "feat_text": "When this weapon is thrown within its range, it appears in your hand immediately after the attack."
@@ -1095,7 +1095,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Close",
-    "damage": "d8+7 mag",
+    "damage": "**d8+7** mag",
     "burden": "One-Handed"
   },
   {
@@ -1105,7 +1105,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Far",
-    "damage": "d6+9 mag",
+    "damage": "**d6+9** mag",
     "burden": "Two-Handed"
   },
   {
@@ -1115,10 +1115,10 @@
     "physical_or_magical": "Magical",
     "trait": "Presence",
     "range": "Far",
-    "damage": "d6+6 mag",
+    "damage": "**d6+6** mag",
     "burden": "Two-Handed",
     "feat_name": "Versatile",
-    "feat_text": "This weapon can also be used with these statistics—Presence, Melee, d8+4."
+    "feat_text": "This weapon can also be used with these statistics—Presence, Melee, **d8+4**."
   },
   {
     "name": "Advanced Wand",
@@ -1127,7 +1127,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Far",
-    "damage": "d6+7 mag",
+    "damage": "**d6+7** mag",
     "burden": "One-Handed"
   },
   {
@@ -1137,7 +1137,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Very Far",
-    "damage": "d6+6 mag",
+    "damage": "**d6+6** mag",
     "burden": "Two-Handed",
     "feat_name": "Powerful",
     "feat_text": "On a successful attack, roll an additional damage die and discard the lowest result."
@@ -1149,10 +1149,10 @@
     "physical_or_magical": "Magical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+8 mag",
+    "damage": "**d10+8** mag",
     "burden": "Two-Handed",
     "feat_name": "Lucky",
-    "feat_text": "On a failed attack, you can mark a Stress to reroll your attack."
+    "feat_text": "On a failed attack, you can **mark a Stress** to reroll your attack."
   },
   {
     "name": "Blessed Anlace",
@@ -1161,7 +1161,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Melee",
-    "damage": "d10+6 mag",
+    "damage": "**d10+6** mag",
     "burden": "One-Handed",
     "feat_name": "Healing",
     "feat_text": "During downtime, automatically clear a Hit Point."
@@ -1173,7 +1173,7 @@
     "physical_or_magical": "Physical or Magical",
     "trait": "Presence",
     "range": "Melee",
-    "damage": "d10+7 phy or mag",
+    "damage": "**d10+7** phy or mag",
     "burden": "One-Handed",
     "feat_name": "Otherworldly",
     "feat_text": "On a successful attack, you can deal physical or magic damage."
@@ -1185,10 +1185,10 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Very Close",
-    "damage": "d20+4 mag",
+    "damage": "**d20+4** mag",
     "burden": "One-Handed",
     "feat_name": "Painful",
-    "feat_text": "Each time you make a successful attack, you must mark a Stress."
+    "feat_text": "Each time you make a successful attack, you must **mark a Stress**."
   },
   {
     "name": "Widgast Pendant",
@@ -1197,7 +1197,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Close",
-    "damage": "d10+5 mag",
+    "damage": "**d10+5** mag",
     "burden": "One-Handed",
     "feat_name": "Timebending",
     "feat_text": "You choose the target of your attack after making your attack roll."
@@ -1209,7 +1209,7 @@
     "physical_or_magical": "Magical",
     "trait": "Finesse",
     "range": "Far",
-    "damage": "d6+7 mag",
+    "damage": "**d6+7** mag",
     "burden": "Two-Handed",
     "feat_name": "Self-Correcting",
     "feat_text": "When you roll a 1 on a damage die, it deals 6 damage instead."
@@ -1221,10 +1221,10 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Far",
-    "damage": "d6+7 mag",
+    "damage": "**d6+7** mag",
     "burden": "Two-Handed",
     "feat_name": "Burning",
-    "feat_text": "When you roll a 6 on a damage die, the target must mark a Stress."
+    "feat_text": "When you roll a 6 on a damage die, the target must **mark a Stress**."
   },
   {
     "name": "Mage Orb",
@@ -1233,7 +1233,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Far",
-    "damage": "d6+7 mag",
+    "damage": "**d6+7** mag",
     "burden": "One-Handed",
     "feat_name": "Powerful",
     "feat_text": "On a successful attack, roll an additional damage die and discard the lowest result."
@@ -1245,10 +1245,10 @@
     "physical_or_magical": "Magical",
     "trait": "Finesse",
     "range": "Very Far",
-    "damage": "d6+6 mag",
+    "damage": "**d6+6** mag",
     "burden": "One-Handed",
     "feat_name": "Reloading",
-    "feat_text": "After you make an attack, roll a d6. On a result of 1, you must mark a Stress to reload this weapon before you can fire it again."
+    "feat_text": "After you make an attack, roll a **d6**. On a result of 1, you must **mark a Stress** to reload this weapon before you can fire it again."
   },
   {
     "name": "Legendary Broadsword",
@@ -1257,7 +1257,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d8+9 phy",
+    "damage": "**d8+9** phy",
     "burden": "One-Handed",
     "feat_name": "Reliable",
     "feat_text": "+1 to attack rolls"
@@ -1269,7 +1269,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d10+12 phy",
+    "damage": "**d10+12** phy",
     "burden": "Two-Handed"
   },
   {
@@ -1279,7 +1279,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+12 phy",
+    "damage": "**d10+12** phy",
     "burden": "Two-Handed"
   },
   {
@@ -1289,7 +1289,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+12 phy",
+    "damage": "**d10+12** phy",
     "burden": "Two-Handed",
     "feat_name": "Massive",
     "feat_text": "-1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result."
@@ -1301,7 +1301,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d8+10 phy",
+    "damage": "**d8+10** phy",
     "burden": "One-Handed"
   },
   {
@@ -1311,7 +1311,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d12+12 phy",
+    "damage": "**d12+12** phy",
     "burden": "Two-Handed",
     "feat_name": "Heavy",
     "feat_text": "-1 to Evasion"
@@ -1323,7 +1323,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Melee",
-    "damage": "d8+10 phy",
+    "damage": "**d8+10** phy",
     "burden": "One-Handed"
   },
   {
@@ -1333,7 +1333,7 @@
     "physical_or_magical": "Physical",
     "trait": "Instinct",
     "range": "Melee",
-    "damage": "d10+12 phy",
+    "damage": "**d10+12** phy",
     "burden": "Two-Handed"
   },
   {
@@ -1343,7 +1343,7 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Melee",
-    "damage": "d8+10 phy",
+    "damage": "**d8+10** phy",
     "burden": "One-Handed"
   },
   {
@@ -1353,10 +1353,10 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Melee",
-    "damage": "d8+9 phy",
+    "damage": "**d8+9** phy",
     "burden": "One-Handed",
     "feat_name": "Quick",
-    "feat_text": "When you make an attack, you can mark a Stress to target another creature within range."
+    "feat_text": "When you make an attack, you can **mark a Stress** to target another creature within range."
   },
   {
     "name": "Legendary Halberd",
@@ -1365,7 +1365,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Very Close",
-    "damage": "d10+11 phy",
+    "damage": "**d10+11** phy",
     "burden": "Two-Handed",
     "feat_name": "Cumbersome",
     "feat_text": "-1 to Finesse"
@@ -1377,7 +1377,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Very Close",
-    "damage": "d8+12 phy",
+    "damage": "**d8+12** phy",
     "burden": "Two-Handed",
     "feat_text": "-1 to Finesse"
   },
@@ -1388,7 +1388,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Far",
-    "damage": "d6+12 phy",
+    "damage": "**d6+12** phy",
     "burden": "Two-Handed"
   },
   {
@@ -1398,7 +1398,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Far",
-    "damage": "d6+10 phy",
+    "damage": "**d6+10** phy",
     "burden": "One-Handed"
   },
   {
@@ -1408,7 +1408,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Very Far",
-    "damage": "d8+12 phy",
+    "damage": "**d8+12** phy",
     "burden": "Two-Handed",
     "feat_name": "Cumbersome",
     "feat_text": "-1 to Finesse"
@@ -1420,10 +1420,10 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d10+9 phy",
+    "damage": "**d10+9** phy",
     "burden": "Two-Handed",
     "feat_name": "Quick",
-    "feat_text": "When you make an attack, you can mark a Stress to target another creature within range."
+    "feat_text": "When you make an attack, you can **mark a Stress** to target another creature within range."
   },
   {
     "name": "Impact Gauntlet",
@@ -1432,10 +1432,10 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+11 phy",
+    "damage": "**d10+11** phy",
     "burden": "One-Handed",
     "feat_name": "Concussive",
-    "feat_text": "On a successful attack, you can spend a Hope to knock the target back to Far range."
+    "feat_text": "On a successful attack, you can **spend a Hope** to knock the target back to Far range."
   },
   {
     "name": "Sledge Axe",
@@ -1444,10 +1444,10 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d12+13 phy",
+    "damage": "**d12+13** phy",
     "burden": "Two-Handed",
     "feat_name": "Destructive",
-    "feat_text": "-1 to Agility; on a successful attack, all adversaries within Very Close range must mark a Stress."
+    "feat_text": "-1 to Agility; on a successful attack, all adversaries within Very Close range must **mark a Stress**."
   },
   {
     "name": "Curved Dagger",
@@ -1456,7 +1456,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Melee",
-    "damage": "d8+9 phy",
+    "damage": "**d8+9** phy",
     "burden": "One-Handed",
     "feat_name": "Serrated",
     "feat_text": "When you roll a 1 on a damage die, it deals 8 damage instead."
@@ -1468,7 +1468,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Very Close",
-    "damage": "d8+10 phy",
+    "damage": "**d8+10** phy",
     "burden": "Two-Handed",
     "feat_name": "Long",
     "feat_text": "This weapon’s attack targets all adversaries in a line within range."
@@ -1480,10 +1480,10 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Close",
-    "damage": "d8+9 phy",
+    "damage": "**d8+9** phy",
     "burden": "One-Handed",
     "feat_name": "Grappling",
-    "feat_text": "On a successful attack, you can spend a Hope to Restrain the target or pull them into Melee range with you."
+    "feat_text": "On a successful attack, you can **spend a Hope** to Restrain the target or pull them into Melee range with you."
   },
   {
     "name": "Ricochet Axes",
@@ -1492,10 +1492,10 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Far",
-    "damage": "d6+11 phy",
+    "damage": "**d6+11** phy",
     "burden": "Two-Handed",
     "feat_name": "Bouncing",
-    "feat_text": "Mark 1 or more Stress to hit that many targets in range of the attack."
+    "feat_text": "**Mark 1 or more Stress** to hit that many targets in range of the attack."
   },
   {
     "name": "Aantari Bow",
@@ -1504,7 +1504,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Far",
-    "damage": "d6+11 phy",
+    "damage": "**d6+11** phy",
     "burden": "Two-Handed",
     "feat_name": "Reliable",
     "feat_text": "+1 to attack rolls"
@@ -1516,10 +1516,10 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Very Far",
-    "damage": "d6+12 phy",
+    "damage": "**d6+12** phy",
     "burden": "One-Handed",
     "feat_name": "Reloading",
-    "feat_text": "After you make an attack, roll a d6. On a 1, you must mark a Stress to reload this weapon before you can fire it again."
+    "feat_text": "After you make an attack, roll a **d6**. On a 1, you must **mark a Stress** to reload this weapon before you can fire it again."
   },
   {
     "name": "Legendary Arcane Gauntlets",
@@ -1528,7 +1528,7 @@
     "physical_or_magical": "Magical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+12 mag",
+    "damage": "**d10+12** mag",
     "burden": "Two-Handed"
   },
   {
@@ -1538,7 +1538,7 @@
     "physical_or_magical": "Magical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d8+10 mag",
+    "damage": "**d8+10** mag",
     "burden": "One-Handed"
   },
   {
@@ -1548,7 +1548,7 @@
     "physical_or_magical": "Magical",
     "trait": "Agility",
     "range": "Very Close",
-    "damage": "d10+11 mag",
+    "damage": "**d10+11** mag",
     "burden": "One-Handed"
   },
   {
@@ -1558,7 +1558,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Very Close",
-    "damage": "d10+9 mag",
+    "damage": "**d10+9** mag",
     "burden": "One-Handed"
   },
   {
@@ -1568,7 +1568,7 @@
     "physical_or_magical": "Magical",
     "trait": "Finesse",
     "range": "Close",
-    "damage": "d8+9 mag",
+    "damage": "**d8+9** mag",
     "burden": "One-Handed",
     "feat_name": "Returning",
     "feat_text": "When this weapon is thrown within its range, it appears in your hand immediately after the attack."
@@ -1580,7 +1580,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Close",
-    "damage": "d8+10 mag",
+    "damage": "**d8+10** mag",
     "burden": "One-Handed"
   },
   {
@@ -1590,7 +1590,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Far",
-    "damage": "d8+12 mag",
+    "damage": "**d8+12** mag",
     "burden": "Two-Handed"
   },
   {
@@ -1600,10 +1600,10 @@
     "physical_or_magical": "Magical",
     "trait": "Presence",
     "range": "Far",
-    "damage": "d6+9 mag",
+    "damage": "**d6+9** mag",
     "burden": "Two-Handed",
     "feat_name": "Versatile",
-    "feat_text": "This weapon can also be used with these statistics—Presence, Melee, d8+6."
+    "feat_text": "This weapon can also be used with these statistics—Presence, Melee, **d8+6**."
   },
   {
     "name": "Legendary Wand",
@@ -1612,7 +1612,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Far",
-    "damage": "d6+10 mag",
+    "damage": "**d6+10** mag",
     "burden": "One-Handed"
   },
   {
@@ -1622,7 +1622,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Very Far",
-    "damage": "d6+9 mag",
+    "damage": "**d6+9** mag",
     "burden": "Two-Handed",
     "feat_name": "Powerful",
     "feat_text": "On a successful attack, roll an additional damage die and discard the lowest result."
@@ -1634,7 +1634,7 @@
     "physical_or_magical": "Magical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d10+11 mag",
+    "damage": "**d10+11** mag",
     "burden": "Two-Handed",
     "feat_name": "Hot",
     "feat_text": "This weapon cuts through solid material."
@@ -1646,10 +1646,10 @@
     "physical_or_magical": "Magical",
     "trait": "Presence",
     "range": "Melee",
-    "damage": "d10+9 mag",
+    "damage": "**d10+9** mag",
     "burden": "Two-Handed",
     "feat_name": "Lifestealing",
-    "feat_text": "On a successful attack, roll a d6. On a result of 6, clear a Hit Point or clear a Stress."
+    "feat_text": "On a successful attack, roll a **d6**. On a result of 6, clear a Hit Point or clear a Stress."
   },
   {
     "name": "Midas Scythe",
@@ -1658,7 +1658,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Melee",
-    "damage": "d10+9 mag",
+    "damage": "**d10+9** mag",
     "burden": "Two-Handed",
     "feat_name": "Greedy",
     "feat_text": "Spend a handful of gold to gain a +1 bonus to your Proficiency on a damage roll."
@@ -1670,7 +1670,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Close",
-    "damage": "d8+9 mag",
+    "damage": "**d8+9** mag",
     "burden": "One-Handed",
     "feat_name": "Powerful",
     "feat_text": "On a successful attack, roll an additional damage die and discard the lowest result."
@@ -1682,10 +1682,10 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Far",
-    "damage": "d20+7 mag",
+    "damage": "**d20+7** mag",
     "burden": "Two-Handed",
     "feat_name": "Painful",
-    "feat_text": "Each time you make a successful attack, you must mark a Stress."
+    "feat_text": "Each time you make a successful attack, you must **mark a Stress**."
   },
   {
     "name": "Thistlebow",
@@ -1694,7 +1694,7 @@
     "physical_or_magical": "Magical",
     "trait": "Instinct",
     "range": "Far",
-    "damage": "d6+13 mag",
+    "damage": "**d6+13** mag",
     "burden": "Two-Handed",
     "feat_name": "Reliable",
     "feat_text": "+1 to attack rolls"
@@ -1706,7 +1706,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Far",
-    "damage": "d8+13 mag",
+    "damage": "**d8+13** mag",
     "burden": "One-Handed",
     "feat_name": "Timebending",
     "feat_text": "You can choose the target of your attack after making your attack roll."
@@ -1718,10 +1718,10 @@
     "physical_or_magical": "Magical",
     "trait": "Finesse",
     "range": "Very Far",
-    "damage": "d6+13 mag",
+    "damage": "**d6+13** mag",
     "burden": "One-Handed",
     "feat_name": "Reloading",
-    "feat_text": "After you make an attack, roll a d6. On a result of 1, you must mark a Stress to reload this weapon before you can fire it again."
+    "feat_text": "After you make an attack, roll a **d6**. On a result of 1, you must **mark a Stress** to reload this weapon before you can fire it again."
   },
   {
     "name": "Fusion Gloves",
@@ -1730,7 +1730,7 @@
     "physical_or_magical": "Magical",
     "trait": "Knowledge",
     "range": "Very Far",
-    "damage": "d6+9 mag",
+    "damage": "**d6+9** mag",
     "burden": "Two-Handed",
     "feat_name": "Bonded",
     "feat_text": "Gain a bonus to your damage rolls equal to your level."
@@ -1742,7 +1742,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d8 phy",
+    "damage": "**d8** phy",
     "burden": "One-Handed",
     "feat_name": "Paired",
     "feat_text": "+2 to primary weapon damage to targets within Melee range"
@@ -1754,7 +1754,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d4 phy",
+    "damage": "**d4** phy",
     "burden": "One-Handed",
     "feat_name": "Protective",
     "feat_text": "+1 to Armor Score"
@@ -1766,7 +1766,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d6 phy",
+    "damage": "**d6** phy",
     "burden": "One-Handed",
     "feat_name": "Barrier",
     "feat_text": "+2 to Armor Score; -1 to Evasion"
@@ -1778,7 +1778,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Melee",
-    "damage": "d8 phy",
+    "damage": "**d8** phy",
     "burden": "One-Handed",
     "feat_name": "Paired",
     "feat_text": "+2 to primary weapon damage to targets within Melee range"
@@ -1790,10 +1790,10 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Very Close",
-    "damage": "d6 phy",
+    "damage": "**d6** phy",
     "burden": "One-Handed",
     "feat_name": "Startling",
-    "feat_text": "Mark a Stress to crack the whip and force all adversaries within Melee range back to Close range."
+    "feat_text": "**Mark a Stress** to crack the whip and force all adversaries within Melee range back to Close range."
   },
   {
     "name": "Grappler",
@@ -1802,7 +1802,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Close",
-    "damage": "d6 phy",
+    "damage": "**d6** phy",
     "burden": "One-Handed",
     "feat_name": "Hooked",
     "feat_text": "On a successful attack, you can pull the target into Melee range."
@@ -1814,7 +1814,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Far",
-    "damage": "d6+1 phy",
+    "damage": "**d6+1** phy",
     "burden": "One-Handed"
   },
   {
@@ -1824,7 +1824,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d8+2 phy",
+    "damage": "**d8+2** phy",
     "burden": "One-Handed",
     "feat_name": "Paired",
     "feat_text": "+3 to primary weapon damage to targets within Melee range"
@@ -1836,7 +1836,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d4+2 phy",
+    "damage": "**d4+2** phy",
     "burden": "One-Handed",
     "feat_name": "Protective",
     "feat_text": "+2 to Armor Score"
@@ -1848,7 +1848,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d6+2 phy",
+    "damage": "**d6+2** phy",
     "burden": "One-Handed",
     "feat_name": "Barrier",
     "feat_text": "+3 to Armor Score; -1 to Evasion"
@@ -1860,7 +1860,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Melee",
-    "damage": "d8+2 phy",
+    "damage": "**d8+2** phy",
     "burden": "One-Handed",
     "feat_name": "Paired",
     "feat_text": "+3 to primary weapon damage to targets within Melee range"
@@ -1872,10 +1872,10 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Very Close",
-    "damage": "d6+2 phy",
+    "damage": "**d6+2** phy",
     "burden": "One-Handed",
     "feat_name": "Startling",
-    "feat_text": "Mark a Stress to crack the whip and force all adversaries within Melee range back to Close range."
+    "feat_text": "**Mark a Stress** to crack the whip and force all adversaries within Melee range back to Close range."
   },
   {
     "name": "Improved Grappler",
@@ -1884,7 +1884,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Close",
-    "damage": "d6+2 phy",
+    "damage": "**d6+2** phy",
     "burden": "One-Handed",
     "feat_name": "Hooked",
     "feat_text": "On a successful attack, you can pull the target into Melee range."
@@ -1896,7 +1896,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Far",
-    "damage": "d6+3 phy",
+    "damage": "**d6+3** phy",
     "burden": "One-Handed"
   },
   {
@@ -1906,7 +1906,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d6+2 phy",
+    "damage": "**d6+2** phy",
     "burden": "One-Handed",
     "feat_name": "Double Duty",
     "feat_text": "+1 to Armor Score; +1 to primary weapon damage within Melee range"
@@ -1918,7 +1918,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Melee",
-    "damage": "d6+2 phy",
+    "damage": "**d6+2** phy",
     "burden": "One-Handed",
     "feat_name": "Parry",
     "feat_text": "When you are attacked, roll this weapon’s damage dice. If any of the attacker’s damage dice rolled the same value as your dice, the matching results are discarded from the attacker’s damage dice before the damage you take is totaled."
@@ -1930,7 +1930,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Close",
-    "damage": "d6+4 phy",
+    "damage": "**d6+4** phy",
     "burden": "One-Handed",
     "feat_name": "Returning",
     "feat_text": "When this weapon is thrown within its range, it appears in your hand immediately after the attack."
@@ -1942,7 +1942,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d8+4 phy",
+    "damage": "**d8+4** phy",
     "burden": "One-Handed",
     "feat_name": "Paired",
     "feat_text": "+4 to primary weapon damage to targets within Melee range"
@@ -1954,7 +1954,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d4+4 phy",
+    "damage": "**d4+4** phy",
     "burden": "One-Handed",
     "feat_name": "Protective",
     "feat_text": "+3 to Armor Score"
@@ -1966,7 +1966,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d6+4 phy",
+    "damage": "**d6+4** phy",
     "burden": "One-Handed",
     "feat_name": "Barrier",
     "feat_text": "+4 to Armor Score; –1 to Evasion"
@@ -1978,7 +1978,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Melee",
-    "damage": "d8+4 phy",
+    "damage": "**d8+4** phy",
     "burden": "One-Handed",
     "feat_name": "Paired",
     "feat_text": "+4 to primary weapon damage to targets within Melee range"
@@ -1990,10 +1990,10 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Very Close",
-    "damage": "d6+4 phy",
+    "damage": "**d6+4** phy",
     "burden": "One-Handed",
     "feat_name": "Startling",
-    "feat_text": "Mark a Stress to crack the whip and force all adversaries within Melee range back to Close range."
+    "feat_text": "**Mark a Stress** to crack the whip and force all adversaries within Melee range back to Close range."
   },
   {
     "name": "Advanced Grappler",
@@ -2002,7 +2002,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Close",
-    "damage": "d6+4 phy",
+    "damage": "**d6+4** phy",
     "burden": "One-Handed",
     "feat_name": "Hooked",
     "feat_text": "On a successful attack, you can pull the target into Melee range."
@@ -2014,7 +2014,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Far",
-    "damage": "d6+5 phy",
+    "damage": "**d6+5** phy",
     "burden": "One-Handed"
   },
   {
@@ -2024,7 +2024,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d4+4 phy",
+    "damage": "**d4+4** phy",
     "burden": "One-Handed",
     "feat_name": "Deflecting",
     "feat_text": "When you are attacked, you can mark an Armor Slot to gain a bonus to your Evasion equal to your available Armor Slots against the attack."
@@ -2036,10 +2036,10 @@
     "physical_or_magical": "Physical",
     "trait": "Knowledge",
     "range": "Close",
-    "damage": "d6+4 phy",
+    "damage": "**d6+4** phy",
     "burden": "One-Handed",
     "feat_name": "Charged",
-    "feat_text": "Mark a Stress to gain a +1 bonus to your Proficiency on a primary weapon attack."
+    "feat_text": "**Mark a Stress** to gain a +1 bonus to your Proficiency on a primary weapon attack."
   },
   {
     "name": "Hand Sling",
@@ -2048,10 +2048,10 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Very Close",
-    "damage": "d6+4 phy",
+    "damage": "**d6+4** phy",
     "burden": "One-Handed",
     "feat_name": "Versatile",
-    "feat_text": "This weapon can also be used with these statistics—Finesse, Close, d8+4."
+    "feat_text": "This weapon can also be used with these statistics—Finesse, Close, **d8+4**."
   },
   {
     "name": "Legendary Shortsword",
@@ -2060,7 +2060,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d8+6 phy",
+    "damage": "**d8+6** phy",
     "burden": "One-Handed",
     "feat_name": "Paired",
     "feat_text": "+5 to primary weapon damage to targets within Melee range"
@@ -2072,7 +2072,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d4+6 phy",
+    "damage": "**d4+6** phy",
     "burden": "One-Handed",
     "feat_name": "Protective",
     "feat_text": "+4 to Armor Score"
@@ -2084,7 +2084,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d6+6 phy",
+    "damage": "**d6+6** phy",
     "burden": "One-Handed",
     "feat_name": "Barrier",
     "feat_text": "+5 to Armor Score; –1 to Evasion."
@@ -2096,7 +2096,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Melee",
-    "damage": "d8+6 phy",
+    "damage": "**d8+6** phy",
     "burden": "One-Handed",
     "feat_name": "Paired",
     "feat_text": "+5 to primary weapon damage to targets within Melee range"
@@ -2108,10 +2108,10 @@
     "physical_or_magical": "Physical",
     "trait": "Presence",
     "range": "Very Close",
-    "damage": "d6+6 phy",
+    "damage": "**d6+6** phy",
     "burden": "One-Handed",
     "feat_name": "Startling",
-    "feat_text": "Mark a Stress to crack the whip and force all adversaries within Melee range back to Close range."
+    "feat_text": "**Mark a Stress** to crack the whip and force all adversaries within Melee range back to Close range."
   },
   {
     "name": "Legendary Grappler",
@@ -2120,7 +2120,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Close",
-    "damage": "d6+6 phy",
+    "damage": "**d6+6** phy",
     "burden": "One-Handed",
     "feat_name": "Hooked",
     "feat_text": "On a successful attack, you can pull the target into Melee range."
@@ -2132,7 +2132,7 @@
     "physical_or_magical": "Physical",
     "trait": "Finesse",
     "range": "Far",
-    "damage": "d6+7 phy",
+    "damage": "**d6+7** phy",
     "burden": "One-Handed"
   },
   {
@@ -2142,7 +2142,7 @@
     "physical_or_magical": "Physical",
     "trait": "Agility",
     "range": "Melee",
-    "damage": "d4+6 phy",
+    "damage": "**d4+6** phy",
     "burden": "One-Handed",
     "feat_name": "Sheltering",
     "feat_text": "When you mark an Armor Slot, it reduces damage for you and all allies within Melee range of you who took the same damage."
@@ -2154,7 +2154,7 @@
     "physical_or_magical": "Physical",
     "trait": "Strength",
     "range": "Melee",
-    "damage": "d6+8 phy",
+    "damage": "**d6+8** phy",
     "burden": "One-Handed",
     "feat_name": "Doubled Up",
     "feat_text": "When you make an attack with your primary weapon, you can deal damage to another target within Melee range."
@@ -2166,7 +2166,7 @@
     "physical_or_magical": "Physical",
     "trait": "Instinct",
     "range": "Very Close",
-    "damage": "d4 phy",
+    "damage": "**d4** phy",
     "burden": "One-Handed",
     "feat_name": "Locked On",
     "feat_text": "On a successful attack, your next attack against the same target with your primary weapon automatically succeeds."
