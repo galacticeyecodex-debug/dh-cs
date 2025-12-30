@@ -76,7 +76,7 @@ The hero section at the top of Character View:
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════════════╗
-║  [Background Image / Blur of Avatar]                      ⚙ [Manage Button]  ║
+║  [Background Image / Blur of Avatar]                      ⚙️ [Manage Button]  ║
 ║  bg-gray-900  h-48 md:h-64                                                    ║
 ║  ┌──────────────────────────────────────────────────────────────────────────┐ ║
 ║  │  Gradient overlay: bg-gradient-to-t from-dagger-dark                    │ ║
@@ -162,7 +162,7 @@ Sticky navigation tabs:
 ║  bg-dagger-panel  border border-white/10  rounded-xl  w-full                  ║
 ║                                                                               ║
 ║              ┌─────────────────────────────────────────────┐                  ║
-║              │  ❤ HIT POINTS                               │                  ║
+║              │  ❤ HIT POINTS                              │                  ║
 ║              │  text-[10px] font-bold uppercase            │                  ║
 ║              │  text-red-400 (color varies by type)        │                  ║
 ║              └─────────────────────────────────────────────┘                  ║
@@ -170,17 +170,17 @@ Sticky navigation tabs:
 ║     ┌─────────────────────────────────────────────────────────────────┐       ║
 ║     │  Track Display (icon-based):                                    │       ║
 ║     │                                                                 │       ║
-║     │    ❤  ❤  ❤  ❤  ❤  ❤  🤍  🤍  🤍  🤍                           │       ║
-║     │    ↑ filled (current)    ↑ empty (remaining capacity)          │       ║
+║     │    ❤  ❤  ❤  ❤  ❤  ❤  🤍  🤍  🤍  🤍                      │       ║
+║     │    ↑ filled (current)    ↑ empty (remaining capacity)           │       ║
 ║     │                                                                 │       ║
-║     │  - Filled: text-{color} scale-100 fill="currentColor"          │       ║
-║     │  - Empty: text-white/10 scale-90 fill="none"                   │       ║
-║     │  - Full Bad (all marked): text-red-500                         │       ║
+║     │  - Filled: text-{color} scale-100 fill="currentColor"           │       ║
+║     │  - Empty: text-white/10 scale-90 fill="none"                    │       ║
+║     │  - Full Bad (all marked): text-red-500                          │       ║
 ║     └─────────────────────────────────────────────────────────────────┘       ║
 ║                                                                               ║
 ║     ┌──────────────────────┐  ┌──────────────────────┐                        ║
 ║     │       CLEAR          │  │        MARK          │    (trackType=mark-bad)║
-║     │  text-[10px] uppercase│  │  text-[10px] uppercase│                       ║
+║     │ text-[10px] uppercase│  │ text-[10px] uppercase│                        ║
 ║     │  h-7  bg-white/5     │  │  h-7  bg-white/5     │                        ║
 ║     └──────────────────────┘  └──────────────────────┘                        ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
@@ -193,11 +193,11 @@ Sticky navigation tabs:
 ║  bg-dagger-panel  border border-white/10  rounded-xl          ║
 ║                                                               ║
 ║              ┌─────────────────────────────────┐              ║
-║              │  🛡 ARMOR                        │              ║
-║              │  text-blue-400                   │              ║
+║              │  🛡 ARMOR                       │              ║
+║              │  text-blue-400                  │              ║
 ║              └─────────────────────────────────┘              ║
 ║                                                               ║
-║            🛡  🛡  🛡  🔵  🔵  🔵  🔵  🔵                      ║
+║            🛡  🛡  🛡  🔵  🔵  🔵  🔵  🔵                   ║
 ║            ↑ marked (used)   ↑ available                      ║
 ║                                                               ║
 ║  ┌─────────────────────────────────────────────────────────┐  ║
@@ -221,8 +221,8 @@ Two-part interactive button for traits with icon action buttons:
 ║  hover:border-white/20                                        ║
 ║                                                               ║
 ║  ┌─────────────────────────────┬──────────────┐               ║
-║  │                      🎲     │     ⚙️  +2  │               ║
-║  │  Agility                    │              │               ║
+║  │                        🎲  │          ⚙️  │               ║
+║  │  Agility                    │   +2         │               ║
 ║  │  capitalize font-medium     │  font-bold   │               ║
 ║  │  text-gray-300              │  text-xl     │               ║
 ║  │                             │              │               ║
@@ -301,7 +301,7 @@ Two-part interactive button for traits with icon action buttons:
 ║  │  │  text-xs font-bold text-dagger-gold uppercase tracking-wider│    │      ║
 ║  │  ╰─────────────────────────────────────────────────────────────╯    │      ║
 ║  │                                                                     │      ║
-║  │  You are **Tiny** in size. You can fit through small spaces...     │      ║
+║  │  You are **Tiny** in size. You can fit through small spaces...      │      ║
 ║  │  text-sm text-gray-300                                              │      ║
 ║  │  (**bold** renders as <strong className="text-white">)              │      ║
 ║  └─────────────────────────────────────────────────────────────────────┘      ║
@@ -469,12 +469,12 @@ Two-part interactive button for traits with icon action buttons:
 ║                                                                               ║
 ║  ┌─────────────────────────────────────────────────────────────────────┐      ║
 ║  │  p-4                                                                │      ║
-║  │                                                                     │      ║
+║  │                                                                 ⚙️ │      ║
 ║  │  LONGSWORD                                              2d8+2       │      ║
 ║  │  font-serif font-bold text-white text-lg                text-xl     │      ║
 ║  │                                                         font-bold   │      ║
 ║  │  ┌──────────────┐ ┌──────────────┐                     (gold if    │      ║
-║  │  │  STRENGTH    │ │    MELEE     │                     modified)   │      ║
+║  │  │  STRENGTH  │ │    MELEE       │                     modified)   │      ║
 ║  │  │  uppercase   │ │  uppercase   │                                 │      ║
 ║  │  │  bg-white/10 │ │  bg-white/10 │                     1d8 × 2     │      ║
 ║  │  │  text-gray-  │ │  text-gray-  │                     text-[10px] │      ║
@@ -488,7 +488,7 @@ Two-part interactive button for traits with icon action buttons:
 ║  │  bg-black/40  p-2                              [Action Bar]         │      ║
 ║  │                                                                     │      ║
 ║  │  ┌────────────────────────────┐ ┌────────────────────────────┐      │      ║
-║  │  │  ⚡ Attack (+3)            │ │  💀 Damage (+2)            │      │      ║
+║  │  │  ⚡ Attack (+3)         🎲│ │  💀 Damage (+2)         🎲│      │      ║
 ║  │  │                            │ │                            │      │      ║
 ║  │  │  flex-1 py-2               │ │  flex-1 py-2               │      │      ║
 ║  │  │  bg-white/10               │ │  bg-white/10               │      │      ║
@@ -1015,66 +1015,66 @@ Combat-relevant features from ancestry and community displayed in Combat View:
 ║  │  border-top: 4px solid {domain.primary}                             │      ║
 ║  │                                                                     │      ║
 ║  │  ┌─────────────────────────────────────────────────────────────┐    │      ║
-║  │  │  [HEADER - absolute positioned]                              │    │      ║
-║  │  │                                                              │    │      ║
-║  │  │  ╔════╗                                    ⚡               [X]│    │      ║
-║  │  │  ║ 3  ║   <- tier banner                  (2)  <- recall      │    │      ║
-║  │  │  ╚════╝                                                       │    │      ║
-║  │  │  domain-colored                                               │    │      ║
-║  │  │  polygon shape                                                │    │      ║
+║  │  │  [HEADER - absolute positioned]                             │    │      ║
+║  │  │                                                             │    │      ║
+║  │  │  ╔════╗                                ⚡               [X]│    │      ║
+║  │  │  ║ 3  ║   <- tier banner                (2)  <- recall      │    │      ║
+║  │  │  ╚════╝                                                     │    │      ║
+║  │  │  domain-colored                                             │    │      ║
+║  │  │  polygon shape                                              │    │      ║
 ║  │  └─────────────────────────────────────────────────────────────┘    │      ║
 ║  │                                                                     │      ║
 ║  │  ┌─────────────────────────────────────────────────────────────┐    │      ║
-║  │  │  [TYPE BANNER]  mt-16 pt-2 pb-1 text-center                  │    │      ║
-║  │  │                                                              │    │      ║
-║  │  │           ┌──────────────────────────┐                       │    │      ║
-║  │  │           │  ARCANA - ABILITY        │                       │    │      ║
-║  │  │           │  uppercase font-bold     │                       │    │      ║
-║  │  │           │  text-xs px-3 py-1       │                       │    │      ║
-║  │  │           │  rounded-full            │                       │    │      ║
-║  │  │           │  bg-{domain.primary}cc   │                       │    │      ║
-║  │  │           │  border-{domain.accent}  │                       │    │      ║
-║  │  │           └──────────────────────────┘                       │    │      ║
+║  │  │  [TYPE BANNER]  mt-16 pt-2 pb-1 text-center                 │    │      ║
+║  │  │                                                             │    │      ║
+║  │  │           ┌──────────────────────────┐                      │    │      ║
+║  │  │           │  ARCANA - ABILITY        │                      │    │      ║
+║  │  │           │  uppercase font-bold     │                      │    │      ║
+║  │  │           │  text-xs px-3 py-1       │                      │    │      ║
+║  │  │           │  rounded-full            │                      │    │      ║
+║  │  │           │  bg-{domain.primary}cc   │                      │    │      ║
+║  │  │           │  border-{domain.accent}  │                      │    │      ║
+║  │  │           └──────────────────────────┘                      │    │      ║
 ║  │  └─────────────────────────────────────────────────────────────┘    │      ║
 ║  │                                                                     │      ║
 ║  │  ┌─────────────────────────────────────────────────────────────┐    │      ║
-║  │  │  [CARD NAME]  text-center px-4 pt-2                          │    │      ║
-║  │  │                                                              │    │      ║
-║  │  │              ARCANE ARROW                                    │    │      ║
-║  │  │         text-3xl font-bold font-eveleth                      │    │      ║
+║  │  │  [CARD NAME]  text-center px-4 pt-2                         │    │      ║
+║  │  │                                                             │    │      ║
+║  │  │              ARCANE ARROW                                   │    │      ║
+║  │  │         text-3xl font-bold font-eveleth                     │    │      ║
 ║  │  └─────────────────────────────────────────────────────────────┘    │      ║
 ║  │                                                                     │      ║
 ║  │  ┌─────────────────────────────────────────────────────────────┐    │      ║
 ║  │  │  [SCROLLABLE CONTENT]  flex-1 overflow-y-auto px-6 py-4     │    │      ║
-║  │  │                                                              │    │      ║
-║  │  │  prose prose-invert text-gray-300 text-center                │    │      ║
-║  │  │  <ReactMarkdown>{description}</ReactMarkdown>                │    │      ║
-║  │  │                                                              │    │      ║
-║  │  │  ─────────────────────────────────────────────               │    │      ║
-║  │  │                                                              │    │      ║
-║  │  │  🖼️ CARD ARTWORK                        [Add/Change]         │    │      ║
-║  │  │  text-xs font-bold uppercase text-{accent}                   │    │      ║
-║  │  │                                                              │    │      ║
-║  │  │  ┌─────────────────────────────────────────────────────┐     │    │      ║
-║  │  │  │  [Image Preview - if custom image exists]           │     │    │      ║
-║  │  │  │  aspect-[2/3] rounded-lg border-{domain.primary}    │     │    │      ║
-║  │  │  │                                                     │     │    │      ║
-║  │  │  │  Type: Artwork Only / Full Card                     │     │    │      ║
-║  │  │  │                              🗑️ Remove               │     │    │      ║
-║  │  │  └─────────────────────────────────────────────────────┘     │    │      ║
-║  │  │                                                              │    │      ║
-║  │  │  ┌─────────────────────────────────────────────────────┐     │    │      ║
-║  │  │  │  [Upload Options - if showImageOptions]             │     │    │      ║
-║  │  │  │                                                     │     │    │      ║
-║  │  │  │  ┌───────────────────────────────────────────────┐  │     │    │      ║
-║  │  │  │  │  📤 Artwork Background                        │  │     │    │      ║
-║  │  │  │  │  Upload character art or scene...             │  │     │    │      ║
-║  │  │  │  │  bg-white/5 hover:bg-white/10                 │  │     │    │      ║
-║  │  │  │  │  border border-white/20 rounded-lg p-3        │  │     │    │      ║
-║  │  │  │  └───────────────────────────────────────────────┘  │     │    │      ║
-║  │  │  │                                                     │     │    │      ║
-║  │  │  │  ┌───────────────────────────────────────────────┐  │     │    │      ║
-║  │  │  │  │  📤 Full Custom Card                          │  │     │    │      ║
+║  │  │                                                             │    │      ║
+║  │  │  prose prose-invert text-gray-300 text-center               │    │      ║
+║  │  │  <ReactMarkdown>{description}</ReactMarkdown>               │    │      ║
+║  │  │                                                             │    │      ║
+║  │  │  ─────────────────────────────────────────────              │    │      ║
+║  │  │                                                             │    │      ║
+║  │  │  🖼️ CARD ARTWORK                        [Add/Change]        │    │      ║
+║  │  │  text-xs font-bold uppercase text-{accent}                  │    │      ║
+║  │  │                                                             │    │      ║
+║  │  │  ┌─────────────────────────────────────────────────────┐    │    │      ║
+║  │  │  │  [Image Preview - if custom image exists]           │    │    │      ║
+║  │  │  │  aspect-[2/3] rounded-lg border-{domain.primary}    │    │    │      ║
+║  │  │  │                                                     │    │    │      ║
+║  │  │  │  Type: Artwork Only / Full Card                     │    │    │      ║
+║  │  │  │                              🗑️ Remove              │     │    │      ║
+║  │  │  └─────────────────────────────────────────────────────┘    │    │      ║
+║  │  │                                                             │    │      ║
+║  │  │  ┌─────────────────────────────────────────────────────┐    │    │      ║
+║  │  │  │  [Upload Options - if showImageOptions]             │    │    │      ║
+║  │  │  │                                                     │    │    │      ║
+║  │  │  │  ┌───────────────────────────────────────────────┐  │    │    │      ║
+║  │  │  │  │  📤 Artwork Background                        │  │    │    │      ║
+║  │  │  │  │  Upload character art or scene...             │  │    │    │      ║
+║  │  │  │  │  bg-white/5 hover:bg-white/10                 │  │    │    │      ║
+║  │  │  │  │  border border-white/20 rounded-lg p-3        │  │    │    │      ║
+║  │  │  │  └───────────────────────────────────────────────┘  │    │    │      ║
+║  │  │  │                                                     │    │    │      ║
+║  │  │  │  ┌───────────────────────────────────────────────┐  │    │    │      ║
+║  │  │  │  │  📤 Full Custom Card                          │  │    │    │      ║
 ║  │  │  │  │  Upload complete card image...                │  │     │    │      ║
 ║  │  │  │  └───────────────────────────────────────────────┘  │     │    │      ║
 ║  │  │  └─────────────────────────────────────────────────────┘     │    │      ║
