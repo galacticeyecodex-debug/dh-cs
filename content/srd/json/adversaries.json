@@ -152,7 +152,7 @@
     "feats": [
       {
         "name": "Mockery - Action",
-        "text": "**Mark a Stress** to say something mocking and force a target within Close range to make a **Presence Reaction Roll** (14) to see if they can save face. On a failure, the target must **mark 2 Stress** and is Vulnerable until the scene ends."
+        "text": "**Mark a Stress** to say something mocking and force a target within Close range to make a **Presence Reaction Roll (14)** to see if they can save face. On a failure, the target must **mark 2 Stress** and is Vulnerable until the scene ends."
       },
       {
         "name": "Scapegoat - Action",
@@ -1211,7 +1211,7 @@
       },
       {
         "name": "Forest Control - Action",
-        "text": "**Spend a Fear** to pull down a tree within Close range. A creature hit by the tree must succeed on an **Agility Reaction Roll** (15) or take **1d10** physical damage."
+        "text": "**Spend a Fear** to pull down a tree within Close range. A creature hit by the tree must succeed on an **Agility Reaction Roll (15)** or take **1d10** physical damage."
       },
       {
         "name": "Blend In - Reaction",
@@ -1397,7 +1397,7 @@
       },
       {
         "name": "Tormented Screams - Action",
-        "text": "**Mark a Stress** to cause all PCs within Far range to make a **Presence Reaction Roll** (13). Targets who fail lose a Hope and you gain a Fear for each. Targets who succeed must **mark a Stress**."
+        "text": "**Mark a Stress** to cause all PCs within Far range to make a **Presence Reaction Roll (13)**. Targets who fail lose a Hope and you gain a Fear for each. Targets who succeed must **mark a Stress**."
       }
     ]
   },
@@ -2148,7 +2148,7 @@
       },
       {
         "name": "Escape Plan - Action",
-        "text": "**Mark a Stress** to reveal a snare trap set anywhere on the battlefield by the Thief. All targets within Very Close range of the trap must succeed on an **Agility Reaction Roll** (13) or be pulled off their feet and suspended upside down. The target is Restrained and Vulnerable until they break free, ending both conditions, with a successful Finesse or **Strength Roll (13)**."
+        "text": "**Mark a Stress** to reveal a snare trap set anywhere on the battlefield by the Thief. All targets within Very Close range of the trap must succeed on an **Agility Reaction Roll (13)** or be pulled off their feet and suspended upside down. The target is Restrained and Vulnerable until they break free, ending both conditions, with a successful Finesse or **Strength Roll (13)**."
       }
     ]
   },
@@ -2170,7 +2170,7 @@
     "feats": [
       {
         "name": "Everyone Has a Price - Action",
-        "text": "**Spend a Fear** to offer a target a dangerous bargain for something they want or need. If used on a PC, they must make a **Presence Reaction Roll** (17). On a failure, they must **mark 2 Stress** or take the deal."
+        "text": "**Spend a Fear** to offer a target a dangerous bargain for something they want or need. If used on a PC, they must make a **Presence Reaction Roll (17)**. On a failure, they must **mark 2 Stress** or take the deal."
       },
       {
         "name": "The Best Muscle Money Can Buy - Action",
@@ -2496,11 +2496,11 @@
       },
       {
         "name": "Rocky Ambush - Action",
-        "text": "While Hidden, **mark a Stress** to leap into Melee range with a target within Very Close range. The target must succeed on an Agility or **Instinct Reaction Roll** (15) or take **2d8** physical damage and become temporarily Restrained."
+        "text": "While Hidden, **mark a Stress** to leap into Melee range with a target within Very Close range. The target must succeed on an Agility or **Instinct Reaction Roll (15)** or take **2d8** physical damage and become temporarily Restrained."
       },
       {
         "name": "Avalanche Roar - Action",
-        "text": "**Spend a Fear** to roar while within a cave and cause a cave-in. All targets within Close range must succeed on an **Agility Reaction Roll** (14) or take **2d10** physical damage. The rubble can be cleared with a Progress Countdown (8)."
+        "text": "**Spend a Fear** to roar while within a cave and cause a cave-in. All targets within Close range must succeed on an **Agility Reaction Roll (14)** or take **2d10** physical damage. The rubble can be cleared with a Progress Countdown (8)."
       },
       {
         "name": "Momentum - Reaction",
@@ -2534,7 +2534,7 @@
       },
       {
         "name": "Eruption - Action",
-        "text": "**Spend a Fear** and choose a point within Far range. A Very Close area around that point erupts into impassable terrain. All targets within that area must make an **Agility Reaction Roll** (14). Targets who fail take **2d10** physical damage and are thrown out of the area. Targets who succeed take half damage and aren’t moved."
+        "text": "**Spend a Fear** and choose a point within Far range. A Very Close area around that point erupts into impassable terrain. All targets within that area must make an **Agility Reaction Roll (14)**. Targets who fail take **2d10** physical damage and are thrown out of the area. Targets who succeed take half damage and aren’t moved."
       },
       {
         "name": "Arcane Artillery - Action",
@@ -2875,7 +2875,7 @@
       },
       {
         "name": "Rockslide - Action",
-        "text": "**Mark a Stress** to create a rockslide that buries all the land in front of Elemental within Close range with rockfall. All targets in this area must make an **Agility Reaction Roll** (19). Targets who fail take **2d12+5** physical damage and become Vulnerable until their next roll with Hope. Targets who succeed take half damage."
+        "text": "**Mark a Stress** to create a rockslide that buries all the land in front of Elemental within Close range with rockfall. All targets in this area must make an **Agility Reaction Roll (19)**. Targets who fail take **2d12+5** physical damage and become Vulnerable until their next roll with Hope. Targets who succeed take half damage."
       },
       {
         "name": "Momentum - Reaction",
