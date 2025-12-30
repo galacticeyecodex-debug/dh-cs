@@ -28,14 +28,14 @@ import type { EnhancedAbilityCard, Frequency } from '@/types/cards';
 interface CombatSpellCardProps {
   card: EnhancedAbilityCard;
   onPrepareRoll: (name: string, modifier: number, dice?: string) => void;
-  onClick?: () => void;
+  onManageModifiers?: () => void;
   className?: string;
 }
 
 export default function CombatSpellCard({
   card,
   onPrepareRoll,
-  onClick,
+  onManageModifiers,
   className,
 }: CombatSpellCardProps) {
   const { character, cardStates } = useCharacterStore();
@@ -120,16 +120,32 @@ export default function CombatSpellCard({
 
   return (
     <div
-      onClick={onClick}
       className={clsx(
-        'bg-dagger-panel border rounded-xl overflow-hidden cursor-pointer transition-colors',
+        'bg-dagger-panel border rounded-xl overflow-hidden transition-colors',
         borderColor,
         isUsed && 'opacity-50',
         className
       )}
     >
       {/* Header */}
-      <div className="p-4 flex justify-between items-start">
+      <div className="p-4 flex justify-between items-start relative">
+        {/* Gear button for modifiers - top right corner of header */}
+        {onManageModifiers && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onManageModifiers();
+            }}
+            className="absolute top-1 right-1 z-10 text-gray-500 hover:text-gray-300 transition-colors p-0.5 rounded hover:bg-white/10"
+            aria-label={`Manage ${card.name} modifiers`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        )}
         <div className="flex-1">
           <h4 className="font-serif font-bold text-white text-lg flex items-center gap-2 flex-wrap">
             {card.name}

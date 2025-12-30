@@ -4,6 +4,7 @@
  * Exports all combat-related components for easy importing.
  */
 
+export { default as AttackCard } from './attack-card';
 export { default as MarkStressButton } from './mark-stress-button';
 export { default as SpendHopeButton } from './spend-hope-button';
 export { default as FrequencyCheckbox } from './frequency-checkbox';
