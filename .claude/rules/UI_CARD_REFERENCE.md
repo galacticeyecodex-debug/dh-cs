@@ -213,7 +213,7 @@ Sticky navigation tabs:
 
 ### Stat Button (Trait Display)
 
-Two-part interactive button for traits:
+Two-part interactive button for traits with icon action buttons:
 
 ```
 ╔═══════════════════════════════════════════════════════════════╗
@@ -221,18 +221,15 @@ Two-part interactive button for traits:
 ║  hover:border-white/20                                        ║
 ║                                                               ║
 ║  ┌─────────────────────────────┬──────────────┐               ║
-║  │                             │              │               ║
-║  │  Agility                    │     +2       │               ║
+║  │                      🎲     │     ⚙️  +2  │               ║
+║  │  Agility                    │              │               ║
 ║  │  capitalize font-medium     │  font-bold   │               ║
 ║  │  text-gray-300              │  text-xl     │               ║
 ║  │                             │              │               ║
-║  │  [Click to Roll]            │ [Click to    │               ║
-║  │                             │  Modify]     │               ║
+║  │  [Click anywhere to Roll]   │  (Value      │               ║
+║  │                             │   Display)   │               ║
 ║  │                             │              │               ║
-║  │  hover:bg-white/5           │ hover:bg-    │               ║
-║  │                             │ white/10     │               ║
-║  │                             │              │               ║
-║  │                             │ text-dagger- │               ║
+║  │  hover:bg-white/5           │ text-dagger- │               ║
 ║  │                             │ gold (if     │               ║
 ║  │                             │ modified)    │               ║
 ║  └─────────────────────────────┴──────────────┘               ║
@@ -243,6 +240,18 @@ Two-part interactive button for traits:
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
 ```
+
+**Interactive Elements:**
+- **🎲 Dice icon (top-right of left section):** Click to trigger dice roll for this trait
+- **Left section (trait name):** Click anywhere to trigger dice roll for this trait
+- **⚙️ Gear icon (top-right of entire card):** Click to open modifier management sheet
+  - Only visible when modifiers are available (`onUpdateModifiers` prop provided)
+- **Right section (value):** Display only - shows current total value (base + modifiers)
+
+**Visual Feedback:**
+- Value turns gold (`text-dagger-gold`) when modified from base
+- Both button areas have subtle hover effects
+- Icons are gray (`text-gray-500`) and lighten on hover (`hover:text-gray-300`)
 
 ### Experience Row
 
