@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "name": "Highborne",
     "description": "Being part of a highborne community means you’re accustomed to a life of elegance, opulence, and prestige within the upper echelons of society. Traditionally, members of a highborne community possess incredible material wealth. While this can take a variety of forms depending on the community—including gold and other minerals, land, or controlling the means of production—this status always comes with power and influence. Highborne place great value on titles and possessions, and there is little social mobility within their ranks. Members of a highborne community often control the political and economic status of the areas in which they live due to their ability to influence people and the economy with their substantial wealth. The health and safety of less affluent people who live in those locations often hinges on the ability of this highborne ruling class to prioritize the well-being of their subjects over profit.",
@@ -50,7 +50,7 @@
     "feats": [
       {
         "name": "Know the Tide",
-        "text": "You can sense the ebb and flow of life. When you roll with Fear, place a token on your community card. You can hold a number of tokens equal to your level. Before you make an action roll, you can spend any number of these tokens to gain a +1 bonus to the roll for each token spent. At the end of each session, clear all unspent tokens."
+        "text": "You can sense the ebb and flow of life. When you roll with Fear, place a token on your community card. You can hold a number of tokens equal to your level. Before you make an **action roll**, you can spend any number of these tokens to gain a +1 bonus to the roll for each token spent. At the end of each session, clear all unspent tokens."
       }
     ]
   },
@@ -83,7 +83,7 @@
     "feats": [
       {
         "name": "Nomadic Pack",
-        "text": "Add a Nomadic Pack to your inventory. Once per session, you can spend a Hope to reach into this pack and pull out a mundane item that’s useful to your situation. Work with the GM to figure out what item you take out."
+        "text": "Add a Nomadic Pack to your inventory. Once per session, you can **spend a Hope** to reach into this pack and pull out a mundane item that’s useful to your situation. Work with the GM to figure out what item you take out."
       }
     ]
   },

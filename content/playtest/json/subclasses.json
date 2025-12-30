@@ -6,17 +6,17 @@
     "foundations": [
       {
         "name": "Chasing Death",
-        "text": "While you have 1–3 unmarked Hit Points, you can use your Crimson Rite feature without paying the Hit Point cost. If you have only 1 unmarked Hit Point, you roll d8s instead of d6s for the extra damage of your Crimson Rite."
+        "text": "While you have 1–3 unmarked Hit Points, you can use your Crimson Rite feature without paying the Hit Point cost. If you have only 1 unmarked Hit Point, you roll **d8s** instead of **d6s** for the extra damage of your Crimson Rite."
       },
       {
         "name": "Shadowed Grit",
-        "text": "When the GM gains a Fear from a Duality Dice roll, you can mark a Stress to gain a Hope."
+        "text": "When the GM gains a Fear from a Duality Dice roll, you can **mark a Stress** to gain a Hope."
       }
     ],
     "specializations": [
       {
         "name": "Veilwalker",
-        "text": "You can briefly slip into the realm between the living and the dead. Spend 2 Hope to disappear and then reappear next to a creature or a corpse within Far range. You then have advantage on the next attack roll you make in this scene."
+        "text": "You can briefly slip into the realm between the living and the dead. **Spend 2 Hope** to disappear and then reappear next to a creature or a corpse within Far range. You then have advantage on the next attack roll you make in this scene."
       }
     ],
     "masteries": [
@@ -33,13 +33,13 @@
     "foundations": [
       {
         "name": "Mutagens",
-        "text": "You employ mutagenic toxins created to enhance your abilities. When you finish a rest, you can drink one such toxin to gain its effects, which last until you finish your next rest. These effects include a +1 bonus to one trait of your choice, a −1 penalty to a different trait of your choice, and your choice of one of the following benefits:\n\n• Celerity: If you are Restrained or Vulnerable, you can mark a Stress to end the condition on yourself.\n• Durable: Your Armor Score increases by 2.\n• Hunter's Senses: You have advantage on any action roll you make to track a creature, and you can see in complete darkness."
+        "text": "You employ mutagenic toxins created to enhance your abilities. When you finish a rest, you can drink one such toxin to gain its effects, which last until you finish your next rest. These effects include a +1 bonus to one trait of your choice, a −1 penalty to a different trait of your choice, and your choice of one of the following benefits:\n\n• Celerity: If you are Restrained or Vulnerable, you can **mark a Stress** to end the condition on yourself.\n• Durable: Your Armor Score increases by 2.\n• Hunter's Senses: You have advantage on any **action roll** you make to track a creature, and you can see in complete darkness."
       }
     ],
     "specializations": [
       {
         "name": "Improved Mutagens",
-        "text": "When you choose a mutagen benefit, your options also include the following:\n\n• Nerves of Steel: Whenever you must mark a Stress, you can spend 2 Hope instead.\n• Rapidity: Your Evasion increases by 1.\n• Ironskin: Your Severe damage threshold increases by a number equal to your Proficiency."
+        "text": "When you choose a mutagen benefit, your options also include the following:\n\n• Nerves of Steel: Whenever you must **mark a Stress**, you can **spend 2 Hope** instead.\n• Rapidity: Your Evasion increases by 1.\n• Ironskin: Your Severe damage threshold increases by a number equal to your Proficiency."
       },
       {
         "name": "Volatile Toxins",
@@ -49,7 +49,7 @@
     "masteries": [
       {
         "name": "Mastered Mutagens",
-        "text": "The trait bonus and penalty you get from your Mutagens feature changes to +2 and −2, respectively. When you choose a mutagen benefit, your options also include the following:\n\n• Aetherblood: Within your line of sight, you can see creatures and objects that are invisible, and visual illusions appear transparent to you. If a creature or an object within your line of sight has been transformed by magic, you can see its true form.\n• Fury: When you make an attack roll, you can mark a Stress to gain a bonus to the roll equal to your Proficiency.\n• Steelflesh: Your Major damage threshold increases by a number equal to your Proficiency."
+        "text": "The trait bonus and penalty you get from your Mutagens feature changes to +2 and −2, respectively. When you choose a mutagen benefit, your options also include the following:\n\n• Aetherblood: Within your line of sight, you can see creatures and objects that are invisible, and visual illusions appear transparent to you. If a creature or an object within your line of sight has been transformed by magic, you can see its true form.\n• Fury: When you make an attack roll, you can **mark a Stress** to gain a bonus to the roll equal to your Proficiency.\n• Steelflesh: Your Major damage threshold increases by a number equal to your Proficiency."
       }
     ]
   },
@@ -64,7 +64,7 @@
       },
       {
         "name": "Control the Beast",
-        "text": "While in your Wolf Form, you can apply that form's bonus die to your Agility and Strength Action Rolls."
+        "text": "While in your Wolf Form, you can apply that form's bonus die to your Agility and Strength **Action Rolls**."
       }
     ],
     "specializations": [
@@ -74,13 +74,13 @@
       },
       {
         "name": "Lycan Regeneration",
-        "text": "While in your Wolf Form with all your Hit Points marked, you can mark a Stress to clear a Hit Point. You can do this while unconscious."
+        "text": "While in your Wolf Form with all your Hit Points marked, you can **mark a Stress** to clear a Hit Point. You can do this while unconscious."
       }
     ],
     "masteries": [
       {
         "name": "Master the Beast",
-        "text": "When you are in your Wolf Form and would mark your last Stress, you can instead put one of your Domain cards from your Loadout into your Vault; you can't Recall that Domain card until you finish a long rest.\n\nWhen you Frenzy from marking your last Stress while in Wolf Form, you gain 2 Hope."
+        "text": "When you are in your Wolf Form and would **mark your last Stress**, you can instead put one of your Domain cards from your Loadout into your Vault; you can't Recall that Domain card until you finish a long rest.\n\nWhen you Frenzy from marking your last Stress while in Wolf Form, you gain 2 Hope."
       }
     ]
   },
@@ -101,7 +101,7 @@
     "specializations": [
       {
         "name": "Walk Between Worlds",
-        "text": "Make a Spellcast Roll (13) to step beyond the veil of death and converse with any nearby spirits. Place a number of tokens equal to your Spellcast trait on this card and remove one each time a spirit answers a question. You return to the mortal realm when the last token is removed."
+        "text": "Make a **Spellcast Roll** (13) to step beyond the veil of death and converse with any nearby spirits. Place a number of tokens equal to your Spellcast trait on this card and remove one each time a spirit answers a question. You return to the mortal realm when the last token is removed."
       },
       {
         "name": "Enhanced Hex",
@@ -111,7 +111,7 @@
     "masteries": [
       {
         "name": "Circle of Power",
-        "text": "Once per rest, mark a circle on the ground around you up to Very Close range and place a number of tokens equal to your Spellcast Trait on this card. Each time you or any ally within the circle makes an action roll or is hit with an attack, remove a token. This spell lasts until the last token is removed or you step out of the circle. While within this circle, you and any allies:\n\n• Gain a +4 bonus to your damage thresholds.\n• Gain a +2 bonus to your attack rolls.\n• Gain a +1 bonus to your Evasion."
+        "text": "Once per rest, mark a circle on the ground around you up to Very Close range and place a number of tokens equal to your Spellcast Trait on this card. Each time you or any ally within the circle makes an **action roll** or is hit with an attack, remove a token. This spell lasts until the last token is removed or you step out of the circle. While within this circle, you and any allies:\n\n• Gain a +4 bonus to your damage thresholds.\n• Gain a +2 bonus to your attack rolls.\n• Gain a +1 bonus to your Evasion."
       }
     ]
   },
@@ -122,23 +122,23 @@
     "foundations": [
       {
         "name": "Night's Glamour",
-        "text": "Mark a Stress to Glamour yourself in a magical facade that lasts until you mark a Hit Point, make an attack, or take a rest. While Glamoured, you can:\n\n• Disguise yourself to look like any creature of your approximate size that you've seen.\n• Enhance your own appearance. You gain advantage on Presence Rolls that leverage this change."
+        "text": "**Mark a Stress** to Glamour yourself in a magical facade that lasts until you mark a Hit Point, make an attack, or take a rest. While Glamoured, you can:\n\n• Disguise yourself to look like any creature of your approximate size that you've seen.\n• Enhance your own appearance. You gain advantage on **Presence Rolls** that leverage this change."
       }
     ],
     "specializations": [
       {
         "name": "Moonbeam",
-        "text": "Once per session, you can conjure a column of moonlight that illuminates the area within Close range until the end of the scene. While bathed in this moonlight, you and any allies gain a +1 bonus to Spellcast Rolls and advantage on rolls to see through illusions."
+        "text": "Once per session, you can conjure a column of moonlight that illuminates the area within Close range until the end of the scene. While bathed in this moonlight, you and any allies gain a +1 bonus to **Spellcast Rolls** and advantage on rolls to see through illusions."
       },
       {
         "name": "Ire of Pale Light",
-        "text": "When a Hexed creature within Far range fails an attack roll, they must mark a Stress."
+        "text": "When a Hexed creature within Far range fails an attack roll, they must **mark a Stress**."
       }
     ],
     "masteries": [
       {
         "name": "Lunar Phases",
-        "text": "Your spirit ebbs and flows like the phases of the moon. At the beginning of each session, roll a d4 and gain the matching effect until the end of the session:\n\n• 1: New - You can always spend a Hope to reduce Minor damage to None.\n• 2: Waxing - Gain a +2 bonus to your damage rolls.\n• 3: Full - Gain a +2 bonus to your damage thresholds.\n• 4: Waning - Gain a +1 bonus to your Evasion."
+        "text": "Your spirit ebbs and flows like the phases of the moon. At the beginning of each session, roll a **d4** and gain the matching effect until the end of the session:\n\n• 1: New - You can always **spend a Hope** to reduce Minor damage to None.\n• 2: Waxing - Gain a +2 bonus to your damage rolls.\n• 3: Full - Gain a +2 bonus to your damage thresholds.\n• 4: Waning - Gain a +1 bonus to your Evasion."
       }
     ]
   },
@@ -149,11 +149,11 @@
     "foundations": [
       {
         "name": "Powerhouse",
-        "text": "Increase the d8 damage dice for your unarmed attack to d10s. Additionally, you can mark a Stress to target two creatures within Melee range with a single attack roll."
+        "text": "Increase the **d8** damage dice for your unarmed attack to **d10s**. Additionally, you can **mark a Stress** to target two creatures within Melee range with a single attack roll."
       },
       {
         "name": "Overwhelm",
-        "text": "On a successful attack, you can spend a Hope to force the target to mark a Stress or to throw them within Close range."
+        "text": "On a successful attack, you can **spend a Hope** to force the target to **mark a Stress** or to throw them within Close range."
       }
     ],
     "specializations": [
@@ -163,7 +163,7 @@
       },
       {
         "name": "Eye for an Eye",
-        "text": "When you mark more than one Hit Point from an attack in Melee range, the attacker must make a Reaction Roll (13). On a failure, once per rest, they immediately mark the same number of Hit Points in return."
+        "text": "When you mark more than one Hit Point from an attack in Melee range, the attacker must make a **Reaction Roll** (13). On a failure, once per rest, they immediately mark the same number of Hit Points in return."
       }
     ],
     "masteries": [
@@ -188,7 +188,7 @@
       },
       {
         "name": "Focus",
-        "text": "During a rest, roll a number of d6s equal to your Instinct and place a number of Focus tokens equal to the highest value rolled on this card. Spend a Focus to shift into a stance until you take Severe damage, the scene ends, you mark your last Hit Point, or you shift into another martial stance."
+        "text": "During a rest, roll a number of **d6s** equal to your Instinct and place a number of Focus tokens equal to the highest value rolled on this card. Spend a Focus to shift into a stance until you take Severe damage, the scene ends, you mark your last Hit Point, or you shift into another martial stance."
       }
     ],
     "specializations": [
@@ -198,7 +198,7 @@
       },
       {
         "name": "Spirit Blast",
-        "text": "Spend a Focus to make an Instinct Roll against an adversary within Close range. On a success, deal d20+3 magic damage using your Proficiency, and you can spend an additional Focus to make them temporarily Vulnerable."
+        "text": "Spend a Focus to make an **Instinct Roll** against an adversary within Close range. On a success, deal **d20+3** magic damage using your Proficiency, and you can spend an additional Focus to make them temporarily Vulnerable."
       }
     ],
     "masteries": [
@@ -207,6 +207,6 @@
         "text": "Once per rest, you can perform an unbelievable feat such as running across water, leaping between distant rooftops, or scaling the side of a building without needing to roll. When you do, gain a Hope and clear a Stress."
       }
     ],
-    "extras": "# MARTIAL FORM STANCES\n\nSpend a Focus to activate or shift into a different stance. It lasts until you mark your last Hit Point, you take Severe damage, the scene ends, or you shift into another martial stance.\n\n## TIER 1 STANCES\n\n**Brutal:** When you roll the maximum value on a damage die, roll an additional damage die.\n\n**Defensive:** Attack rolls against you have disadvantage unless the adversary marks a Stress.\n\n**Grappling:** On a successful attack, you can spend a Focus to make the target temporarily Restrained.\n\n**Steady:** Gain a -1 penalty to your Evasion. When you deal damage on a successful attack, roll an additional damage die and drop the lowest.\n\n**Precise:** Gain a +1 bonus to your attack rolls.\n\n**Quick:** When making an attack roll, spend a Focus to include an additional target within range.\n\n## TIER 2 STANCES\n\n**Deadly:** When you deal Severe damage, the target marks an additional HP.\n\n**Hindering:** On a successful attack, you can spend a Focus to make the target temporarily Hindered. While Hindered, their attack rolls have a -2 penalty.\n\n**Invigorating:** When you make a successful attack, roll a d4. On a 4, gain a Focus.\n\n**Immovable:** Gain a +2 bonus to your damage thresholds and you cannot be moved unwillingly.\n\n**Nimble:** When an adversary makes a successful attack roll against you, you can spend a number of Focus up to your Tier. Roll a number of d6s equal to 1 + the Focus spent. If any of the dice values match, you take no damage from the attack.\n\n**Otherworldly:** You can choose whether to do Physical or Magic damage.\n\n**Scary:** Successful attacks also force the target to mark a Stress.\n\n## TIER 3 STANCES\n\n**Deflecting:** When you are targeted by an attack, you can spend 2 Focus to gain a bonus to your Evasion equal to your Armor Score against the attack.\n\n**Devastating:** Spend a Focus before your attack roll to use d20s as your damage dice instead.\n\n**Dueling:** Gain advantage on attack rolls when there are no other adversaries or allies in Very Close range of you or your target.\n\n**Compounding:** When you roll the maximum value on a Combo Die, increase the size of the subsequent Combo Dice you roll for the attack (at a maximum of d12s).\n\n**Inexorable:** Attacks against you have disadvantage if you have more than two adversaries within Melee of you.\n\n**Favored:** Add the trait of your choice to your damage roll.\n\n**Sheltering:** When you mark an Armor Slot, it reduces damage for you and all allies within Melee range of you who took the same damage.\n\n## TIER 4 STANCES\n\n**Crushing:** When you roll a 1 on a damage die, it can be treated as the highest value on the die instead.\n\n**Infuriating:** On a successful attack, the target becomes Furious. While Furious, they are Vulnerable and have a -2 penalty to their attack rolls. They can only clear Furious by succeeding on an attack against you.\n\n**Sweeping:** Your attack targets all adversaries within Very Close range. Deal half damage to all targets you succeed against.\n\n**Discerning:** You may choose the target of your attack after making your attack roll. The GM will tell you who the attack would succeed against."
+    "extras": "# MARTIAL FORM STANCES\n\nSpend a Focus to activate or shift into a different stance. It lasts until you mark your last Hit Point, you take Severe damage, the scene ends, or you shift into another martial stance.\n\n## TIER 1 STANCES\n\n**Brutal:** When you roll the maximum value on a damage die, roll an additional damage die.\n\n**Defensive:** Attack rolls against you have disadvantage unless the adversary marks a Stress.\n\n**Grappling:** On a successful attack, you can spend a Focus to make the target temporarily Restrained.\n\n**Steady:** Gain a -1 penalty to your Evasion. When you deal damage on a successful attack, roll an additional damage die and drop the lowest.\n\n**Precise:** Gain a +1 bonus to your attack rolls.\n\n**Quick:** When making an attack roll, spend a Focus to include an additional target within range.\n\n## TIER 2 STANCES\n\n**Deadly:** When you deal Severe damage, the target marks an additional HP.\n\n**Hindering:** On a successful attack, you can spend a Focus to make the target temporarily Hindered. While Hindered, their attack rolls have a -2 penalty.\n\n**Invigorating:** When you make a successful attack, roll a **d4**. On a 4, gain a Focus.\n\n**Immovable:** Gain a +2 bonus to your damage thresholds and you cannot be moved unwillingly.\n\n**Nimble:** When an adversary makes a successful attack roll against you, you can spend a number of Focus up to your Tier. Roll a number of **d6s** equal to 1 + the Focus spent. If any of the dice values match, you take no damage from the attack.\n\n**Otherworldly:** You can choose whether to do Physical or Magic damage.\n\n**Scary:** Successful attacks also force the target to **mark a Stress**.\n\n## TIER 3 STANCES\n\n**Deflecting:** When you are targeted by an attack, you can spend 2 Focus to gain a bonus to your Evasion equal to your Armor Score against the attack.\n\n**Devastating:** Spend a Focus before your attack roll to use **d20s** as your damage dice instead.\n\n**Dueling:** Gain advantage on attack rolls when there are no other adversaries or allies in Very Close range of you or your target.\n\n**Compounding:** When you roll the maximum value on a Combo Die, increase the size of the subsequent Combo Dice you roll for the attack (at a maximum of **d12s**).\n\n**Inexorable:** Attacks against you have disadvantage if you have more than two adversaries within Melee of you.\n\n**Favored:** Add the trait of your choice to your damage roll.\n\n**Sheltering:** When you mark an Armor Slot, it reduces damage for you and all allies within Melee range of you who took the same damage.\n\n## TIER 4 STANCES\n\n**Crushing:** When you roll a 1 on a damage die, it can be treated as the highest value on the die instead.\n\n**Infuriating:** On a successful attack, the target becomes Furious. While Furious, they are Vulnerable and have a -2 penalty to their attack rolls. They can only clear Furious by succeeding on an attack against you.\n\n**Sweeping:** Your attack targets all adversaries within Very Close range. Deal half damage to all targets you succeed against.\n\n**Discerning:** You may choose the target of your attack after making your attack roll. The GM will tell you who the attack would succeed against."
   }
 ]

@@ -38,7 +38,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto'); // Native in Node 19+, check version or use fallback
 
-const JSON_DIR = path.join(__dirname, '../srd/json');
+const JSON_DIR = path.join(__dirname, '../content/srd/json');
 const OUTPUT_PATH = path.join(__dirname, '../supabase/seed_library.sql');
 
 // --- Modifier Parsing Logic ---
