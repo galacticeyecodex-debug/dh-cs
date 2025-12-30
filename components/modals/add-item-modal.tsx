@@ -19,7 +19,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { LibraryItem, HomebrewItem, useCharacterStore } from '@/store/character-store';
 import { Search, X, Sword, Shield, Heart, Gem, Package, ScrollText, Loader2, Plus, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
-import { ErrorBoundary } from '@/components/error-boundary';
+import { ErrorBoundary } from '@/components/core/error-boundary';
 import CreateHomebrewItemModal, { HomebrewItemData } from './create-homebrew-item-modal';
 
 interface AddItemModalProps {

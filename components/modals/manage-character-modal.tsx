@@ -19,7 +19,7 @@ import React, { useState } from 'react';
 import { X, AlertCircle, Settings, Plus, Minus, Zap, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dataService } from '@/lib/data-service';
-import { ErrorBoundary } from '@/components/error-boundary';
+import { ErrorBoundary } from '@/components/core/error-boundary';
 import { PANEL_BORDERS } from '@/lib/styles';
 import useContentAccess from '@/hooks/useContentAccess';
 

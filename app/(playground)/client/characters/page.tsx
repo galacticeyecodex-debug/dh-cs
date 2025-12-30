@@ -1,6 +1,6 @@
 'use client';
 
-import MobileLayout from '@/components/mobile-layout';
+import MobileLayout from '@/components/core/mobile-layout';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';

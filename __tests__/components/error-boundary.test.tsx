@@ -13,7 +13,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ErrorBoundary } from '@/components/error-boundary';
+import { ErrorBoundary } from '@/components/core/error-boundary';
 import * as errorLogging from '@/lib/error-logging';
 
 // Mock the error logger
@@ -191,7 +191,7 @@ describe('ErrorBoundary', () => {
 
   describe('Error Fallback Component', () => {
     it('should export ErrorFallback component', async () => {
-      const { ErrorFallback } = await import('@/components/error-boundary');
+      const { ErrorFallback } = await import('@/components/core/error-boundary');
       expect(ErrorFallback).toBeDefined();
     });
   });

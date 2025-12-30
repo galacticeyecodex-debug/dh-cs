@@ -25,7 +25,7 @@ import React, { useMemo, useCallback } from 'react';
 import { useCharacterStore, Character, CharacterInventoryItem } from '@/store/character-store';
 import { Shield, Zap, Heart, Eye } from 'lucide-react';
 import { getClassBaseStat, getSystemModifiers } from '@/lib/utils';
-import VitalCard from '@/components/vital-card';
+import VitalCard from '@/components/vitals/vital-card';
 
 // Define a type for the component props
 interface CommonVitalsDisplayProps {

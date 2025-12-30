@@ -27,7 +27,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-import AuthButton from "@/components/auth-buttons";
+import AuthButton from "@/components/auth/auth-buttons";
 
 interface MenuItem {
   title: string;
