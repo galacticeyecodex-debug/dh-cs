@@ -15,5 +15,6 @@ import { InventorySlice } from '@/store/slices/inventory-slice';
 import { UiSlice } from '@/store/slices/ui-slice';
 import { HomebrewSlice } from '@/store/slices/homebrew-slice';
 import { LevelingSlice } from '@/store/slices/leveling-slice';
+import { CardStateSlice } from '@/store/slices/card-state-slice';
 
-export type CharacterStore = AuthSlice & CharacterSlice & VitalsSlice & InventorySlice & UiSlice & HomebrewSlice & LevelingSlice;
+export type CharacterStore = AuthSlice & CharacterSlice & VitalsSlice & InventorySlice & UiSlice & HomebrewSlice & LevelingSlice & CardStateSlice;

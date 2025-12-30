@@ -119,6 +119,9 @@ CREATE TABLE IF NOT EXISTS public.characters (
   -- Seraph Prayer Dice
   seraph_prayer_dice JSONB, -- Stores prayer dice data for Seraph class
 
+  -- Card State tracking (tokens, frequency usage for domain cards)
+  card_states JSONB DEFAULT '{}'::jsonb, -- Keyed by card name, stores tokens/usage state
+
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

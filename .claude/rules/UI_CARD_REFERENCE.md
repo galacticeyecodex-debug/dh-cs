@@ -86,13 +86,22 @@ The hero section at the top of Character View:
 ║  │         │   CHARACTER NAME                                                 ║
 ║  │ AVATAR  │   text-3xl md:text-5xl font-serif font-bold                     ║
 ║  │  📷     │                                                                  ║
-║  │         │   ┌────────────────┐  ┌─────────┐  ┌───────────────┐            ║
-║  └─────────┘   │ LVL 5 │ BARD   │  │ Faerie  │  │ Ridgeback     │            ║
-║    w-24 h-24   └────────────────┘  └─────────┘  └───────────────┘            ║
-║    rotate-3    Level + Class       Ancestry     Community                     ║
-║    border-4    Badge               Badge        Badge                         ║
-║    border-     bg-dagger-gold      bg-black/20  bg-black/20                   ║
-║    dagger-gold text-black                                                     ║
+║  │         │   ┌────────────────┐                                             ║
+║  └─────────┘   │ LVL 5 │ BARD   │                                             ║
+║    w-24 h-24   └────────────────┘                                             ║
+║    rotate-3    Level + Class Badge                                            ║
+║    border-4    bg-dagger-gold  text-black                                     ║
+║    border-                                                                    ║
+║    dagger-gold                                                                ║
+║                                                                               ║
+║                ┌─────────┐  ┌───────────────┐  ┌───────────────┐             ║
+║                │ Faerie  │  │ Ridgeback     │  │ ✨ Werewolf  │             ║
+║                └─────────┘  └───────────────┘  └───────────────┘             ║
+║                Ancestry      Community          Transformation                ║
+║                Badge         Badge              Badge (Playtest)              ║
+║                bg-black/20   bg-black/20        bg-purple-500/20              ║
+║                                                 border-purple-500/30          ║
+║                (all inline with gap-2 md:gap-4)                               ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -598,6 +607,90 @@ Similar to weapon card but with gold border:
 ║  └─────────────────────────────────────────────────────────┘  ║
 ╚═══════════════════════════════════════════════════════════════╝
 ```
+
+### Heritage Feature Card (Ancestry/Community Combat)
+
+Combat-relevant features from ancestry and community displayed in Combat View:
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║  bg-dagger-panel  rounded-xl  overflow-hidden  cursor-pointer                 ║
+║  border border-emerald-500/30  (ancestry) OR border-amber-500/30 (community)  ║
+║  hover:border-white/30                                                        ║
+║                                                                               ║
+║  ┌─────────────────────────────────────────────────────────────────────┐      ║
+║  │  p-4  flex justify-between items-start                              │      ║
+║  │                                                                     │      ║
+║  │  LONG TONGUE                                                d12×2   │      ║
+║  │  font-serif font-bold text-white text-lg                   text-xl  │      ║
+║  │                                                            font-bold│      ║
+║  │  ┌────────────────┐ ┌──────────────┐ ┌──────────────┐               │      ║
+║  │  │    RIBBET      │ │   FINESSE    │ │    CLOSE     │      d12 × 2 │      ║
+║  │  │ bg-emerald-500/│ │  bg-white/10 │ │  bg-white/10 │   text-[10px]│      ║
+║  │  │ 20 text-       │ │              │ │              │   text-gray- │      ║
+║  │  │ emerald-400    │ │              │ │              │   500        │      ║
+║  │  │ (ancestry)     │ │              │ │              │   uppercase  │      ║
+║  │  │                │ │              │ │              │               │      ║
+║  │  │  -OR-          │ │              │ │              │               │      ║
+║  │  │                │ │              │ │              │               │      ║
+║  │  │ bg-amber-500/20│ │              │ │              │               │      ║
+║  │  │ text-amber-400 │ │              │ │              │               │      ║
+║  │  │ (community)    │ │              │ │              │               │      ║
+║  │  └────────────────┘ └──────────────┘ └──────────────┘               │      ║
+║  │                                                                     │      ║
+║  │  ┌─────────────────────────────────────────────────────────────┐    │      ║
+║  │  │  [Optional Action Type Badge - if not passive]              │    │      ║
+║  │  │  ┌──────────────┐                                           │    │      ║
+║  │  │  │   ATTACK     │  bg-purple-900/30 text-purple-400         │    │      ║
+║  │  │  │   REACTION   │  bg-orange-900/30 text-orange-400         │    │      ║
+║  │  │  └──────────────┘                                           │    │      ║
+║  │  └─────────────────────────────────────────────────────────────┘    │      ║
+║  │                                                                     │      ║
+║  │  You can use your long tongue to grab onto things within Close      │      ║
+║  │  range. **Mark a Stress** to use your tongue as a Finesse...        │      ║
+║  │  text-xs text-gray-400 mt-2 line-clamp-2                            │      ║
+║  │  (**bold** renders as <strong className="text-white">)              │      ║
+║  └─────────────────────────────────────────────────────────────────────┘      ║
+║                                                                               ║
+║  ┌─────────────────────────────────────────────────────────────────────┐      ║
+║  │  bg-black/40  p-2  flex flex-wrap gap-2                             │      ║
+║  │  [Action Bar - only shown if has attack or costs]                   │      ║
+║  │                                                                     │      ║
+║  │  ┌──────────────┐ ┌──────────────┐                                  │      ║
+║  │  │ ⚡ +1 Stress │ │ ⚡ -2 Hope   │  [Cost Buttons - if applicable]  │      ║
+║  │  │ bg-red-900/20│ │ bg-blue-900/ │                                  │      ║
+║  │  │ text-red-300 │ │ 20 text-blue-│                                  │      ║
+║  │  │ px-3 py-2    │ │ 300          │                                  │      ║
+║  │  └──────────────┘ └──────────────┘                                  │      ║
+║  │                                                                     │      ║
+║  │  ┌─────────────────────────────┐ ┌─────────────────────────────┐    │      ║
+║  │  │  ⚡ Roll (+2)               │ │  💀 Damage                  │    │      ║
+║  │  │  flex-1 py-2                │ │  flex-1 py-2                │    │      ║
+║  │  │  bg-white/10                │ │  bg-white/10                │    │      ║
+║  │  │  hover:bg-white/20          │ │  hover:bg-white/20          │    │      ║
+║  │  │  text-sm font-bold          │ │  text-sm font-bold          │    │      ║
+║  │  │                             │ │                             │    │      ║
+║  │  │  (text-dagger-gold if       │ │  (text-dagger-gold if       │    │      ║
+║  │  │   has attack modifier)      │ │   has damage modifier)      │    │      ║
+║  │  └─────────────────────────────┘ └─────────────────────────────┘    │      ║
+║  └─────────────────────────────────────────────────────────────────────┘      ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+```
+
+**Source Type Colors:**
+- **Ancestry**: `border-emerald-500/30`, badge `bg-emerald-500/20 text-emerald-400`
+- **Community**: `border-amber-500/30`, badge `bg-amber-500/20 text-amber-400`
+
+**Combat-Relevant Features Include:**
+- Drakona - Elemental Breath (d8 magic, Instinct, Very Close)
+- Faun - Kick (2d6 physical, on attack success)
+- Firbolg - Charge (1d12 physical, AoE Melee)
+- Katari - Retracting Claws (Agility, Melee, applies Vulnerable)
+- Orc - Tusks (1d6 physical, Melee)
+- Ribbet - Long Tongue (d12 physical, Finesse, Close)
+- Seaborne - Know the Tide (token mechanics)
+
+---
 
 ### Active Armor Panel
 
