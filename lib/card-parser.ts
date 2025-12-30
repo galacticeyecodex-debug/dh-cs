@@ -13,6 +13,18 @@
  */
 
 import type { Character, CharacterCard } from '@/types/character';
+import type {
+  ActionType,
+  CardAttack,
+  CardCosts,
+  CardRoll,
+  DamageType,
+  EnhancedAbilityCard,
+  Frequency,
+  Range,
+  TargetType,
+  Timing,
+} from '@/types/cards';
 
 /**
  * Represents a passive stat modifier from a domain card
@@ -339,4 +351,548 @@ export function getBareBonesBonuses(character: Character): PassiveModifier[] {
       source: 'Bare Bones'
     }
   ];
+}
+
+// ============================================================================
+// ENHANCED ABILITY CARD PARSING
+// ============================================================================
+// The following functions parse ability/spell card text to extract structured
+// metadata for interactive UI components (costs, tokens, attacks, etc.)
+
+/**
+ * Parse stress cost from card text
+ * Matches patterns like "mark a Stress", "mark 2 Stress", "**mark a Stress**"
+ */
+export function parseStressCost(text: string): number {
+  // Match "mark X Stress" or "mark a Stress"
+  const patterns = [
+    /\*\*mark (\d+) Stress\*\*/i,
+    /mark (\d+) Stress/i,
+    /\*\*mark a Stress\*\*/i,
+    /mark a Stress/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      // If we captured a number, use it; otherwise it's "a" = 1
+      return match[1] ? parseInt(match[1], 10) : 1;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * Parse hope cost from card text
+ * Matches patterns like "spend a Hope", "spend 3 Hope", "**spend 2 Hope**"
+ */
+export function parseHopeCost(text: string): number {
+  const patterns = [
+    /\*\*spend (\d+) Hope\*\*/i,
+    /spend (\d+) Hope/i,
+    /\*\*spend a Hope\*\*/i,
+    /spend a Hope/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return match[1] ? parseInt(match[1], 10) : 1;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * Parse hit point cost from card text
+ * Matches patterns like "mark a Hit Point", "mark 2 Hit Points"
+ */
+export function parseHitPointCost(text: string): number {
+  const patterns = [
+    /mark (\d+) Hit Points?/i,
+    /mark a Hit Point/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return match[1] ? parseInt(match[1], 10) : 1;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * Parse all costs from card text
+ */
+export function parseCosts(text: string): CardCosts | undefined {
+  const stress = parseStressCost(text);
+  const hope = parseHopeCost(text);
+  const hitPoints = parseHitPointCost(text);
+
+  if (stress === 0 && hope === 0 && hitPoints === 0) {
+    return undefined;
+  }
+
+  const costs: CardCosts = {};
+  if (stress > 0) costs.stress = stress;
+  if (hope > 0) costs.hope = hope;
+  if (hitPoints > 0) costs.hit_points = hitPoints;
+
+  return costs;
+}
+
+/**
+ * Parse frequency from card text
+ */
+export function parseFrequency(text: string): Frequency {
+  const lowerText = text.toLowerCase();
+
+  if (lowerText.includes('once per session')) {
+    return 'once_per_session';
+  }
+  if (lowerText.includes('once per long rest')) {
+    return 'once_per_long_rest';
+  }
+  if (lowerText.includes('once per rest')) {
+    return 'once_per_rest';
+  }
+
+  return 'at_will';
+}
+
+/**
+ * Parse range from card text
+ */
+export function parseCardRange(text: string): Range | undefined {
+  const rangePatterns: { pattern: RegExp; range: Range }[] = [
+    { pattern: /Very Far range/i, range: 'Very Far' },
+    { pattern: /Very Close range/i, range: 'Very Close' },
+    { pattern: /Far range/i, range: 'Far' },
+    { pattern: /Close range/i, range: 'Close' },
+    { pattern: /Melee range/i, range: 'Melee' },
+    { pattern: /within Melee/i, range: 'Melee' },
+    { pattern: /within Very Close/i, range: 'Very Close' },
+    { pattern: /within Close/i, range: 'Close' },
+    { pattern: /within Far/i, range: 'Far' },
+    { pattern: /within Very Far/i, range: 'Very Far' },
+  ];
+
+  for (const { pattern, range } of rangePatterns) {
+    if (pattern.test(text)) {
+      return range;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Parse the trait used for rolls from card text
+ */
+export function parseRollTrait(text: string): string | undefined {
+  const traitPattern = /\*\*(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct) Roll\*\*/i;
+  const match = text.match(traitPattern);
+  return match ? match[1] : undefined;
+}
+
+/**
+ * Parse roll difficulty (DC) from card text
+ */
+export function parseRollDifficulty(text: string): number | undefined {
+  // Match patterns like "Spellcast Roll (15)" or "Roll (12)"
+  const dcPattern = /Roll\s*\((\d+)\)/i;
+  const match = text.match(dcPattern);
+  return match ? parseInt(match[1], 10) : undefined;
+}
+
+/**
+ * Parse damage from card text
+ * Returns the first damage notation found
+ */
+export function parseCardDamage(text: string): string | undefined {
+  // Match patterns like "d8", "1d8", "2d8+4", "d10+3"
+  const damagePattern = /(\d*d\d+(?:\+\d+)?)/i;
+  const match = text.match(damagePattern);
+  return match ? match[1] : undefined;
+}
+
+/**
+ * Parse damage type from card text
+ */
+export function parseCardDamageType(text: string): DamageType | undefined {
+  const lowerText = text.toLowerCase();
+
+  if (lowerText.includes('magic damage')) {
+    return 'magic';
+  }
+  if (lowerText.includes('physical damage')) {
+    return 'physical';
+  }
+
+  return undefined;
+}
+
+/**
+ * Parse target type from card text
+ */
+export function parseTargetType(text: string): TargetType | undefined {
+  const lowerText = text.toLowerCase();
+
+  if (lowerText.includes('all targets') || lowerText.includes('all adversaries')) {
+    return 'all_in_range';
+  }
+  if (lowerText.includes('all allies')) {
+    return 'allies_in_range';
+  }
+  if (lowerText.includes('a target') || lowerText.includes('one target')) {
+    return 'single';
+  }
+  if (lowerText.includes('yourself')) {
+    return 'self';
+  }
+
+  return undefined;
+}
+
+/**
+ * Determine action type from card text and type
+ */
+export function parseActionType(text: string, cardType: string): ActionType {
+  const lowerText = text.toLowerCase();
+
+  // Check for reaction patterns
+  if (
+    lowerText.includes('reaction roll') ||
+    lowerText.includes('when you would take damage') ||
+    lowerText.includes('when an attack') ||
+    lowerText.includes('when you are targeted')
+  ) {
+    return 'reaction';
+  }
+
+  // Check for attack patterns
+  if (
+    lowerText.includes('make a') &&
+    (lowerText.includes('roll against') || lowerText.includes('attack'))
+  ) {
+    return 'attack';
+  }
+
+  // Check for downtime patterns
+  if (lowerText.includes('during a rest') || lowerText.includes('downtime')) {
+    return 'downtime';
+  }
+
+  // Check for buff patterns
+  if (
+    lowerText.includes('gain a bonus') ||
+    lowerText.includes('gain advantage') ||
+    lowerText.includes('clear a stress') ||
+    lowerText.includes('clear a hit point')
+  ) {
+    return 'buff';
+  }
+
+  // Default based on card type
+  if (cardType === 'Spell') {
+    return 'attack'; // Most spells are attacks
+  }
+
+  return 'passive';
+}
+
+/**
+ * Determine timing from action type and text
+ */
+export function parseTiming(text: string, actionType: ActionType): Timing {
+  if (actionType === 'reaction') {
+    return 'reaction';
+  }
+  if (actionType === 'downtime') {
+    return 'downtime';
+  }
+  if (actionType === 'passive') {
+    return 'free';
+  }
+  return 'action';
+}
+
+/**
+ * Check if card has token mechanics
+ */
+export function hasTokenMechanics(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  return (
+    (lowerText.includes('place') && lowerText.includes('token')) ||
+    (lowerText.includes('spend') && lowerText.includes('token')) ||
+    lowerText.includes('tokens on this card')
+  );
+}
+
+/**
+ * Parse max tokens from card text
+ * Returns null if tokens are dynamic (based on trait)
+ */
+export function parseMaxTokens(text: string): number | null {
+  // Check for fixed token count
+  const fixedPattern = /place (\d+) tokens?/i;
+  const fixedMatch = text.match(fixedPattern);
+  if (fixedMatch) {
+    return parseInt(fixedMatch[1], 10);
+  }
+
+  // Check for "tokens equal to" pattern (dynamic)
+  if (/tokens? equal to/i.test(text)) {
+    return null; // Dynamic based on trait
+  }
+
+  // Check for "number of tokens equal to" pattern
+  if (/number of tokens equal to/i.test(text)) {
+    return null;
+  }
+
+  return null;
+}
+
+/**
+ * Parse token source trait from card text
+ */
+export function parseTokenSource(text: string): string | undefined {
+  const traitPattern = /tokens? equal to (?:your )?(\w+)/i;
+  const match = text.match(traitPattern);
+  if (match) {
+    const trait = match[1].toLowerCase();
+    // Map common variations
+    const traitMap: Record<string, string> = {
+      'agility': 'agility',
+      'strength': 'strength',
+      'finesse': 'finesse',
+      'presence': 'presence',
+      'knowledge': 'knowledge',
+      'instinct': 'instinct',
+      'spellcast': 'spellcast',
+      'proficiency': 'proficiency',
+      'level': 'level',
+      'tier': 'tier',
+    };
+    return traitMap[trait] || trait;
+  }
+  return undefined;
+}
+
+/**
+ * Extract keywords from card text for filtering
+ */
+export function extractKeywords(text: string, cardType: string): string[] {
+  const keywords: string[] = [];
+  const lowerText = text.toLowerCase();
+
+  // Damage-related
+  if (lowerText.includes('damage')) keywords.push('damage');
+  if (lowerText.includes('magic damage')) keywords.push('magic');
+  if (lowerText.includes('physical damage')) keywords.push('physical');
+
+  // AoE
+  if (lowerText.includes('all targets') || lowerText.includes('all adversaries')) {
+    keywords.push('aoe');
+  }
+
+  // Healing/Support
+  if (lowerText.includes('clear') && lowerText.includes('hit point')) {
+    keywords.push('healing');
+  }
+  if (lowerText.includes('clear') && lowerText.includes('stress')) {
+    keywords.push('stress_relief');
+  }
+  if (lowerText.includes('gain') && lowerText.includes('hope')) {
+    keywords.push('hope_gain');
+  }
+
+  // Costs
+  if (lowerText.includes('mark') && lowerText.includes('stress')) {
+    keywords.push('stress_cost');
+  }
+  if (lowerText.includes('spend') && lowerText.includes('hope')) {
+    keywords.push('hope_cost');
+  }
+
+  // Control
+  if (lowerText.includes('vulnerable')) keywords.push('debuff');
+  if (lowerText.includes('restrained')) keywords.push('control');
+  if (lowerText.includes('advantage')) keywords.push('buff');
+  if (lowerText.includes('disadvantage')) keywords.push('debuff');
+
+  // Movement
+  if (lowerText.includes('teleport') || lowerText.includes('move')) {
+    keywords.push('movement');
+  }
+
+  // Tokens
+  if (hasTokenMechanics(text)) keywords.push('tokens');
+
+  // Card type
+  if (cardType === 'Spell') keywords.push('spell');
+  if (cardType === 'Ability') keywords.push('ability');
+
+  return keywords;
+}
+
+/**
+ * Parse roll information from card text
+ */
+export function parseRoll(text: string): CardRoll | undefined {
+  const trait = parseRollTrait(text);
+  if (!trait) return undefined;
+
+  const difficulty = parseRollDifficulty(text);
+  const hasTargetReaction = text.toLowerCase().includes('reaction roll');
+
+  return {
+    type: `${trait} Roll`,
+    trait,
+    difficulty,
+    target_reaction: hasTargetReaction,
+  };
+}
+
+/**
+ * Parse attack information from card text
+ */
+export function parseAttack(text: string): CardAttack | undefined {
+  const trait = parseRollTrait(text);
+  const range = parseCardRange(text);
+
+  // If no trait or range, probably not an attack
+  if (!trait && !range) return undefined;
+
+  const damage = parseCardDamage(text);
+  const damageType = parseCardDamageType(text);
+  const targets = parseTargetType(text);
+  const difficulty = parseRollDifficulty(text);
+
+  return {
+    trait: trait || 'Spellcast',
+    range: range || 'Close',
+    targets,
+    damage,
+    damage_type: damageType,
+    difficulty,
+  };
+}
+
+/**
+ * Enhance a basic ability card with parsed metadata
+ */
+export function enhanceAbilityCard(card: {
+  name: string;
+  level: string;
+  domain: string;
+  type: string;
+  recall: string;
+  text: string;
+}): EnhancedAbilityCard {
+  const text = card.text;
+  const cardType = card.type as 'Spell' | 'Ability';
+
+  const actionType = parseActionType(text, cardType);
+  const timing = parseTiming(text, actionType);
+  const frequency = parseFrequency(text);
+  const costs = parseCosts(text);
+  const hasTokens = hasTokenMechanics(text);
+  const keywords = extractKeywords(text, cardType);
+
+  const enhanced: EnhancedAbilityCard = {
+    name: card.name,
+    level: card.level,
+    domain: card.domain,
+    type: cardType,
+    recall: card.recall,
+    text: card.text,
+    action_type: actionType,
+    timing,
+    frequency,
+    costs,
+    keywords,
+  };
+
+  // Add token info if applicable
+  if (hasTokens) {
+    enhanced.has_tokens = true;
+    enhanced.max_tokens = parseMaxTokens(text);
+    enhanced.token_source = parseTokenSource(text);
+  }
+
+  // Add attack info if applicable
+  if (actionType === 'attack') {
+    enhanced.attack = parseAttack(text);
+  }
+
+  // Add roll info
+  const roll = parseRoll(text);
+  if (roll) {
+    enhanced.roll = roll;
+  }
+
+  return enhanced;
+}
+
+/**
+ * Check if a card or feature has combat relevance (should appear in combat view)
+ * Works with both EnhancedAbilityCard and EnhancedFeature types
+ */
+export function hasCombatRelevance(card: {
+  action_type?: ActionType;
+  attack?: CardAttack;
+  keywords?: string[];
+}): boolean {
+  if (card.action_type === 'attack') return true;
+  if (card.action_type === 'reaction') return true;
+  if (card.attack) return true;
+  if (card.keywords?.includes('damage')) return true;
+  if (card.keywords?.includes('healing')) return true;
+
+  return false;
+}
+
+/**
+ * Get display label for frequency
+ */
+export function getFrequencyLabel(frequency: Frequency): string {
+  switch (frequency) {
+    case 'once_per_session':
+      return 'Once/Session';
+    case 'once_per_long_rest':
+      return 'Once/Long Rest';
+    case 'once_per_rest':
+      return 'Once/Rest';
+    case 'at_will':
+    default:
+      return '';
+  }
+}
+
+/**
+ * Get display label for action type
+ */
+export function getActionTypeLabel(actionType: ActionType): string {
+  switch (actionType) {
+    case 'attack':
+      return 'Attack';
+    case 'reaction':
+      return 'Reaction';
+    case 'passive':
+      return 'Passive';
+    case 'downtime':
+      return 'Downtime';
+    case 'buff':
+      return 'Buff';
+    case 'utility':
+      return 'Utility';
+    default:
+      return '';
+  }
 }

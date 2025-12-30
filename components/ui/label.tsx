@@ -1,3 +1,14 @@
+/**
+ * Label Component
+ * ----------------------------------------------------------------------------
+ * An accessible label component based on Radix UI's Label primitive.
+ * Used to provide descriptive labels for form controls like inputs, checkboxes, and switches.
+ *
+ * Usage Example:
+ * <Label htmlFor="email">Email Address</Label>
+ * <Input id="email" type="email" />
+ */
+
 "use client"
 
 import * as React from "react"
@@ -13,7 +24,7 @@ const labelVariants = cva(
 const Label = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
-    VariantProps<typeof labelVariants>
+  VariantProps<typeof labelVariants>
 >(({ className, ...props }, ref) => (
   <LabelPrimitive.Root
     ref={ref}

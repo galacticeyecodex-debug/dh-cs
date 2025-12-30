@@ -186,6 +186,15 @@ export interface Character {
 
   // Seraph Prayer Dice
   seraph_prayer_dice?: SeraphPrayerDice;
+
+  // Card State tracking (tokens, frequency usage)
+  card_states?: Record<string, {
+    current_tokens: number;
+    used_this_rest: boolean;
+    used_this_long_rest: boolean;
+    used_this_session: boolean;
+    is_active: boolean;
+  }>;
 }
 
 export interface AdvancementRecord {
