@@ -54,20 +54,51 @@ interface CardBannerProps {
   size?: 'small' | 'large';
 }
 
-// Complex clip-path matching the banner.webp asset perfectly
+// Clip-path polygons for precise banner matching
 const BANNER_CLIP_PATH = `polygon(
-  2% 2%, 11% 2%, 11% 51%, 17% 55%, 18% 2%, 82% 2%,
-  83% 56%, 88% 52%, 88% 2%, 98% 2%, 98% 58%,
-  83% 69%, 82% 90%, 72% 90%, 63% 88%, 57% 85%,
-  49% 82%, 43% 85%, 34% 88%, 25% 90%, 18% 90%,
-  17% 68%, 2% 59%
-)`;
+  2% 2%,
+  11% 2%,
+  11% 51%,
+  17% 55%,
+  18% 2%,
+  82% 2%,
+  83% 56%,
+  88% 52%,
+  88% 2%,
+  98% 2%,
+  99% 58%,
+  81% 67%,
+  81% 90%,
+  69% 88%,
+  65% 86%,
+  57% 82%,
+  49% 80%,
+  41% 85%,
+  31% 87%,
+  25% 88%,
+  18% 90%,
+  18% 68%,
+  2% 57%
+)`; // Upper banner tails
 
 const BANNER_BG_CLIP_PATH = `polygon(
-  91% 100%, 91% 0, 6% 0, 9% 100%, 29% 98%,
-  39% 95%, 45% 91%, 47% 86%, 46% 83%, 46% 79%,
-  53% 79%, 53% 84%, 53% 87%, 56% 91%, 60% 95%, 71% 98%
-)`;
+  91% 98%,
+  91% 0,
+  8% 0%,
+  9% 98%,
+  29% 96%,
+  39% 93%,
+  45% 90%,
+  47% 80%,
+  46% 83%,
+  46% 79%,
+  53% 79%,
+  53% 84%,
+  53% 87%,
+  56% 91%,
+  60% 93%,
+  75% 97%
+)`; // Lower banner tails
 
 export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
   const theme = getDomainTheme(domain);
@@ -142,7 +173,7 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
 
       {/* Level number - centered horizontally at top */}
       <div
-        className="absolute z-50 font-eveleth font-bold"
+        className="absolute z-50 font-bold"
         style={{
           top: dimensions.textTop,
           left: '50%',
