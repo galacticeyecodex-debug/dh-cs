@@ -10,13 +10,13 @@
         "attack": {
           "trait": "Strength",
           "range": "Melee",
-          "damage": "d8",
+          "damage": "**d8**",
           "damage_type": "physical"
         }
       },
       {
         "name": "Feed",
-        "text": "On a successful Fangs attack against a living creature, you can also **mark a Stress** to Feed. Place a number of tokens on this card equal to the number of Hit Points your target marks. You can hold up to **5 tokens** at a time. Spend a token before an action roll to make your Fear Die a **d20** instead. When you take a Long Rest, remove a token. If there are no tokens on this card, all your action and reaction rolls are made with disadvantage.",
+        "text": "On a successful Fangs attack against a living creature, you can also **mark a Stress** to Feed. Place a number of tokens on this card equal to the number of Hit Points your target marks. You can hold up to **5 tokens** at a time. Spend a token before an **action roll** to make your Fear Die a **d20** instead. When you take a Long Rest, remove a token. If there are no tokens on this card, all your action and **reaction rolls** are made with disadvantage.",
         "type": "passive",
         "has_tokens": true,
         "max_tokens": 5
@@ -34,18 +34,18 @@
     "features": [
       {
         "name": "Wolf Form",
-        "text": "When you mark one or more Hit Points, you can also **mark a Stress** to enter your Wolf Form. While in this form, gain a **d10** Wolf Die that you add to all attack and damage rolls. When you would gain a Hope while in Wolf Form, you mark a Stress instead.",
+        "text": "When you mark one or more Hit Points, you can also **mark a Stress** to enter your Wolf Form. While in this form, gain a **d10** Wolf Die that you add to all attack and damage rolls. When you would gain a Hope while in Wolf Form, you **mark a Stress** instead.",
         "type": "transformation",
         "transformation": {
           "name": "Wolf Form",
-          "trigger": "Mark Hit Points + mark a Stress",
-          "bonus": "+d10 to attack and damage rolls",
+          "trigger": "**Mark Hit Points + mark a Stress**",
+          "bonus": "+**d10** to attack and damage rolls",
           "drawback": "Hope gained becomes Stress instead"
         }
       },
       {
         "name": "Frenzy",
-        "text": "When you mark your last Stress while in Wolf Form, you go into a Frenzy. Roll a number of **d20s** equal to your tier and automatically deal that much physical damage to all creatures within Very Close range. Then drop out of Wolf Form.",
+        "text": "When you **mark your last Stress** while in Wolf Form, you go into a Frenzy. Roll a number of **d20s** equal to your tier and automatically deal that much physical damage to all creatures within Very Close range. Then drop out of Wolf Form.",
         "type": "reaction"
       }
     ],
@@ -107,9 +107,9 @@
         "type": "transformation",
         "transformation": {
           "name": "Spirit Form",
-          "trigger": "Mark a Stress",
+          "trigger": "**Mark a Stress**",
           "bonus": "Move through objects, immune to physical damage",
-          "drawback": "Double magic damage, spend 2 Hope to attack/interact"
+          "drawback": "Double magic damage, **spend 2 Hope** to attack/interact"
         }
       },
       {
@@ -130,7 +130,7 @@
     "features": [
       {
         "name": "Ichor of the Gods",
-        "text": "Your advantage die is always a **d10** instead of a d6.",
+        "text": "Your advantage die is always a **d10** instead of a **d6**.",
         "type": "passive"
       },
       {

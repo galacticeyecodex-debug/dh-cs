@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "roll": "1",
     "name": "Premium Bedroll",
@@ -37,7 +37,7 @@
   {
     "roll": "8",
     "name": "Woven Net",
-    "description": "You can make a Finesse Roll using this net to trap a small creature. A trapped target can break free with a successful Attack Roll (16)."
+    "description": "You can make a **Finesse Roll** using this net to trap a small creature. A trapped target can break free with a successful Attack Roll (16)."
   },
   {
     "roll": "9",
@@ -52,7 +52,7 @@
   {
     "roll": "11",
     "name": "Glamour Stone",
-    "description": "Activate this pebble-sized stone to memorize the appearance of someone you can see. Spend a Hope to magically recreate this guise on yourself as an illusion."
+    "description": "Activate this pebble-sized stone to memorize the appearance of someone you can see. **Spend a Hope** to magically recreate this guise on yourself as an illusion."
   },
   {
     "roll": "12",
@@ -72,17 +72,17 @@
   {
     "roll": "15",
     "name": "Valorstone",
-    "description": "You can attach this stone to armor that doesn’t already have a feature. The armor gains the following feature. **Resilient:** Before you mark your last Armor Slot, roll a d6. On a result of 6, reduce the severity by one threshold without marking an Armor Slot."
+    "description": "You can attach this stone to armor that doesn’t already have a feature. The armor gains the following feature. **Resilient:** Before you mark your last Armor Slot, roll a **d6**. On a result of 6, reduce the severity by one threshold without marking an Armor Slot."
   },
   {
     "roll": "16",
     "name": "Skeleton Key",
-    "description": "When you use this key to open a locked door, you gain advantage on the Finesse Roll."
+    "description": "When you use this key to open a locked door, you gain advantage on the **Finesse Roll**."
   },
   {
     "roll": "17",
     "name": "Arcane Prism",
-    "description": "Position this prism in a location of your choosing and activate it. All allies within Close range of it gain a +1 bonus to their Spellcast Rolls. While activated, the prism can’t be moved. Once the prism is deactivated, it can’t be activated again until your next long rest."
+    "description": "Position this prism in a location of your choosing and activate it. All allies within Close range of it gain a +1 bonus to their **Spellcast Rolls**. While activated, the prism can’t be moved. Once the prism is deactivated, it can’t be activated again until your next long rest."
   },
   {
     "roll": "18",
@@ -112,12 +112,12 @@
   {
     "roll": "23",
     "name": "Lorekeeper",
-    "description": "You can store the name and details of up to three hostile creatures inside this book. You gain a +1 bonus to action rolls against those creatures."
+    "description": "You can store the name and details of up to three hostile creatures inside this book. You gain a +1 bonus to **action rolls** against those creatures."
   },
   {
     "roll": "24",
     "name": "Vial of Darksmoke Recipe",
-    "description": "As a downtime move, you can mark a Stress to craft a Vial of Darksmoke."
+    "description": "As a downtime move, you can **mark a Stress** to craft a Vial of Darksmoke."
   },
   {
     "roll": "25",
@@ -132,17 +132,17 @@
   {
     "roll": "27",
     "name": "Glider",
-    "description": "While falling, you can mark a Stress to deploy this small parachute and glide safely to the ground."
+    "description": "While falling, you can **mark a Stress** to deploy this small parachute and glide safely to the ground."
   },
   {
     "roll": "28",
     "name": "Ring of Silence",
-    "description": "Spend a Hope to activate this ring. Your footsteps are silent until your next rest."
+    "description": "**Spend a Hope** to activate this ring. Your footsteps are silent until your next rest."
   },
   {
     "roll": "29",
     "name": "Calming Pendant",
-    "description": "When you would mark your last Stress, roll a d6. On a result of 5 or higher, don’t mark it."
+    "description": "When you would **mark your last Stress**, roll a **d6**. On a result of 5 or higher, don’t mark it."
   },
   {
     "roll": "30",
@@ -152,7 +152,7 @@
   {
     "roll": "31",
     "name": "Bag of Ficklesand",
-    "description": "You can convince this small bag of sand to be much heavier or lighter with a successful Presence Roll (10). Additionally, on a successful Finesse Roll (10), you can blow a bit of sand into a target’s face to make them temporarily **Vulnerable**."
+    "description": "You can convince this small bag of sand to be much heavier or lighter with a successful **Presence Roll** (10). Additionally, on a successful **Finesse Roll** (10), you can blow a bit of sand into a target’s face to make them temporarily **Vulnerable**."
   },
   {
     "roll": "32",
@@ -167,7 +167,7 @@
   {
     "roll": "34",
     "name": "Box of Many Goods",
-    "description": "Once per long rest, you can open this small box and roll a d12. On a result of 1–6, it’s empty. On a result of 7–10, it contains one random common consumable. On a result of 11–12, it contains two random common consumables."
+    "description": "Once per long rest, you can open this small box and roll a **d12**. On a result of 1–6, it’s empty. On a result of 7–10, it contains one random common consumable. On a result of 11–12, it contains two random common consumables."
   },
   {
     "roll": "35",
@@ -182,7 +182,7 @@
   {
     "roll": "37",
     "name": "Paragon’s Chain",
-    "description": "As a downtime move, you can meditate on an ideal or principle you hold dear and focus your will into this chain. Once per long rest, you can spend a Hope to roll a d20 as your Hope Die for rolls that directly align with that principle."
+    "description": "As a downtime move, you can meditate on an ideal or principle you hold dear and focus your will into this chain. Once per long rest, you can **spend a Hope** to roll a **d20** as your Hope Die for rolls that directly align with that principle."
   },
   {
     "roll": "38",
@@ -192,7 +192,7 @@
   {
     "roll": "39",
     "name": "Hopekeeper Locket",
-    "description": "During a long rest, if you have 6 Hope, you can spend a Hope to imbue this locket with your bountiful resolve. When you have 0 Hope, you can use the locket to immediately gain a Hope. The locket must be re-imbued before it can be used this way again."
+    "description": "During a long rest, if you have 6 Hope, you can **spend a Hope** to imbue this locket with your bountiful resolve. When you have 0 Hope, you can use the locket to immediately gain a Hope. The locket must be re-imbued before it can be used this way again."
   },
   {
     "roll": "40",
@@ -257,7 +257,7 @@
   {
     "roll": "52",
     "name": "Shard of Memory",
-    "description": "Once per long rest, you can spend 2 Hope to recall a domain card from your vault instead of paying its Recall Cost."
+    "description": "Once per long rest, you can **spend 2 Hope** to recall a domain card from your vault instead of paying its Recall Cost."
   },
   {
     "roll": "53",
@@ -292,11 +292,11 @@
   {
     "roll": "59",
     "name": "Ring of Unbreakable Resolve",
-    "description": "Once per session, when the GM spends a Fear, you can spend 4 Hope to cancel the effects of that spent Fear."
+    "description": "Once per session, when the GM spends a Fear, you can **spend 4 Hope** to cancel the effects of that spent Fear."
   },
   {
     "roll": "60",
     "name": "Belt of Unity",
-    "description": "Once per session, you can spend 5 Hope to lead a Tag Team Roll with three PCs instead of two."
+    "description": "Once per session, you can **spend 5 Hope** to lead a Tag Team Roll with three PCs instead of two."
   }
 ]

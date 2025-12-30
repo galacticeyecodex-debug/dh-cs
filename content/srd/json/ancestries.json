@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "name": "Clank",
     "description": "Clanks are sentient mechanical beings built from a variety of materials, including metal, wood, and stone. They can resemble humanoids, animals, or even inanimate objects. Like organic beings, their bodies come in a wide array of sizes. Because of their bespoke construction, many clanks have highly specialized physical configurations. Examples include clawed hands for grasping, wheels for movement, or built-in weaponry.\n\nMany clanks embrace body modifications for style as well as function, and members of other ancestries often turn to clank artisans to construct customized mobility aids and physical adornments. Other ancestries can create clanks, even using their own physical characteristics as inspiration, but it’s also common for clanks to build one another. A clank’s lifespan extends as long as they’re able to acquire or craft new parts, making their physical form effectively immortal. That said, their minds are subject to the effects of time, and deteriorate as the magic that powers them loses potency.",
@@ -47,7 +47,7 @@
     "feats": [
       {
         "name": "Quick Reactions",
-        "text": "**Mark a Stress** to gain advantage on a reaction roll."
+        "text": "**Mark a Stress** to gain advantage on a **reaction roll**."
       },
       {
         "name": "Celestial Trance",
@@ -61,7 +61,7 @@
     "feats": [
       {
         "name": "Luckbender",
-        "text": "Once per session, after you or a willing ally within Close range makes an action roll, you can **spend 3 Hope** to reroll the Duality Dice."
+        "text": "Once per session, after you or a willing ally within Close range makes an **action roll**, you can **spend 3 Hope** to reroll the Duality Dice."
       },
       {
         "name": "Wings",
@@ -89,11 +89,11 @@
     "feats": [
       {
         "name": "Charge",
-        "text": "When you succeed on an Agility Roll to move from Far or Very Far range into Melee range with one or more targets, you can **mark a Stress** to deal **1d12** physical damage to all targets within Melee range."
+        "text": "When you succeed on an **Agility Roll** to move from Far or Very Far range into Melee range with one or more targets, you can **mark a Stress** to deal **1d12** physical damage to all targets within Melee range."
       },
       {
         "name": "Unshakable",
-        "text": "When you would mark a Stress, roll a **d6**. On a result of 6, don’t mark it."
+        "text": "When you would **mark a Stress**, roll a **d6**. On a result of 6, don’t mark it."
       }
     ]
   },
@@ -121,7 +121,7 @@
       },
       {
         "name": "Retract",
-        "text": "**Mark a Stress** to retract into your shell. While in your shell, you have resistance to physical damage, you have disadvantage on action rolls, and you can’t move."
+        "text": "**Mark a Stress** to retract into your shell. While in your shell, you have resistance to physical damage, you have disadvantage on **action rolls**, and you can’t move."
       }
     ]
   },
@@ -145,7 +145,7 @@
     "feats": [
       {
         "name": "Surefooted",
-        "text": "You ignore disadvantage on Agility Rolls."
+        "text": "You ignore disadvantage on **Agility Rolls**."
       },
       {
         "name": "Danger Sense",
@@ -177,7 +177,7 @@
       },
       {
         "name": "Adaptability",
-        "text": "When you fail a roll that utilized one of your Experiences, you can mark a Stress to reroll."
+        "text": "When you fail a roll that utilized one of your Experiences, you can **mark a Stress** to reroll."
       }
     ]
   },
@@ -201,7 +201,7 @@
     "feats": [
       {
         "name": "Feline Instincts",
-        "text": "When you make an Agility Roll, you can **spend 2 Hope** to reroll your Hope Die."
+        "text": "When you make an **Agility Roll**, you can **spend 2 Hope** to reroll your Hope Die."
       },
       {
         "name": "Retracting Claws",
@@ -243,7 +243,7 @@
     "feats": [
       {
         "name": "Natural Climber",
-        "text": "You have advantage on Agility Rolls that involve balancing and climbing."
+        "text": "You have advantage on **Agility Rolls** that involve balancing and climbing."
       },
       {
         "name": "Nimble",

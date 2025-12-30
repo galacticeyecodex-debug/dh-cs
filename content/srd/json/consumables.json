@@ -1,48 +1,48 @@
-﻿[
+[
   {
     "roll": "1",
     "name": "Stride Potion",
-    "description": "You gain a +1 bonus to your next Agility Roll."
+    "description": "You gain a +1 bonus to your next **Agility Roll**."
   },
   {
     "roll": "2",
     "name": "Bolster Potion",
-    "description": "You gain a +1 bonus to your next Strength Roll."
+    "description": "You gain a +1 bonus to your next **Strength Roll**."
   },
   {
     "roll": "3",
     "name": "Control Potion",
-    "description": "You gain a +1 bonus to your next Finesse Roll."
+    "description": "You gain a +1 bonus to your next **Finesse Roll**."
   },
   {
     "roll": "4",
     "name": "Attune Potion",
-    "description": "You gain a +1 bonus to your next Instinct Roll."
+    "description": "You gain a +1 bonus to your next **Instinct Roll**."
   },
   {
     "roll": "5",
     "name": "Charm Potion",
-    "description": "You gain a +1 bonus to your next Presence Roll."
+    "description": "You gain a +1 bonus to your next **Presence Roll**."
   },
   {
     "roll": "6",
     "name": "Enlighten Potion",
-    "description": "You gain a +1 bonus to your next Knowledge Roll."
+    "description": "You gain a +1 bonus to your next **Knowledge Roll**."
   },
   {
     "roll": "7",
     "name": "Minor Health Potion",
-    "description": "Clear 1d4 HP."
+    "description": "Clear **1d4** HP."
   },
   {
     "roll": "8",
     "name": "Minor Stamina Potion",
-    "description": "Clear 1d4 Stress."
+    "description": "Clear **1d4** Stress."
   },
   {
     "roll": "9",
     "name": "Grindeltooth Venom",
-    "description": "You can apply this venom to a weapon that deals physical damage to add a d6 to your next damage roll with that weapon."
+    "description": "You can apply this venom to a weapon that deals physical damage to add a **d6** to your next damage roll with that weapon."
   },
   {
     "roll": "10",
@@ -57,7 +57,7 @@
   {
     "roll": "12",
     "name": "Unstable Arcane Shard",
-    "description": "You can make a Finesse Roll to throw this shard at a group of adversaries within Far range. Targets you succeed against take 1d20 magic damage."
+    "description": "You can make a **Finesse Roll** to throw this shard at a group of adversaries within Far range. Targets you succeed against take **1d20** magic damage."
   },
   {
     "roll": "13",
@@ -67,17 +67,17 @@
   {
     "roll": "14",
     "name": "Improved Grindeltooth Venom",
-    "description": "You can apply this venom to a weapon that deals physical damage to add a d8 to your next damage roll with that weapon."
+    "description": "You can apply this venom to a weapon that deals physical damage to add a **d8** to your next damage roll with that weapon."
   },
   {
     "roll": "15",
     "name": "Morphing Clay",
-    "description": "You can spend 4 Hope to use this clay, altering your face enough to make you unrecognizable until your next rest."
+    "description": "You can **spend 4 Hope** to use this clay, altering your face enough to make you unrecognizable until your next rest."
   },
   {
     "roll": "16",
     "name": "Vial of Darksmoke",
-    "description": "When an adversary attacks you, use this vial and roll a number of d6 equal to your Agility. Add the highest result to your Evasion against the attack."
+    "description": "When an adversary attacks you, use this vial and roll a number of **d6** equal to your Agility. Add the highest result to your Evasion against the attack."
   },
   {
     "roll": "17",
@@ -87,22 +87,22 @@
   {
     "roll": "18",
     "name": "Snap Powder",
-    "description": "Mark a Stress and clear a HP."
+    "description": "**Mark a Stress** and clear a HP."
   },
   {
     "roll": "19",
     "name": "Health Potion",
-    "description": "Clear 1d4+1 HP."
+    "description": "Clear **1d4+1** HP."
   },
   {
     "roll": "20",
     "name": "Stamina Potion",
-    "description": "Clear 1d4+1 Stress."
+    "description": "Clear **1d4+1** Stress."
   },
   {
     "roll": "21",
     "name": "Armor Stitcher",
-    "description": "You can use this stitcher to spend any number of Hope and clear that many Armor Slots."
+    "description": "You can use this stitcher to **spend any number of Hope** and clear that many Armor Slots."
   },
   {
     "roll": "22",
@@ -117,7 +117,7 @@
   {
     "roll": "24",
     "name": "Improved Arcane Shard",
-    "description": "You can make a Finesse Roll to throw this shard at a group of adversaries within Far range. Targets you succeed against take 2d20 magic damage."
+    "description": "You can make a **Finesse Roll** to throw this shard at a group of adversaries within Far range. Targets you succeed against take **2d20** magic damage."
   },
   {
     "roll": "25",
@@ -162,7 +162,7 @@
   {
     "roll": "33",
     "name": "Redthorn Saliva",
-    "description": "You can apply this saliva to a weapon that deals physical damage to add a d12 to your next damage roll with that weapon."
+    "description": "You can apply this saliva to a weapon that deals physical damage to add a **d12** to your next damage roll with that weapon."
   },
   {
     "roll": "34",
@@ -172,7 +172,7 @@
   {
     "roll": "35",
     "name": "Mythic Dust",
-    "description": "You can apply this dust to a weapon that deals magic damage to add a d12 to your next damage roll with that weapon."
+    "description": "You can apply this dust to a weapon that deals magic damage to add a **d12** to your next damage roll with that weapon."
   },
   {
     "roll": "36",
@@ -182,12 +182,12 @@
   {
     "roll": "37",
     "name": "Hopehold Flare",
-    "description": "When you use this flare, allies within Close range roll a d6 when they spend a Hope. On a result of 6, they gain the effect of that Hope without spending it. The flare lasts until the end of the scene."
+    "description": "When you use this flare, allies within Close range roll a **d6** when they **spend a Hope**. On a result of 6, they gain the effect of that Hope without spending it. The flare lasts until the end of the scene."
   },
   {
     "roll": "38",
     "name": "Major Arcane Shard",
-    "description": "You can make a Finesse Roll to throw this shard at a group of adversaries within Far range. Targets you succeed against take 4d20 magic damage."
+    "description": "You can make a **Finesse Roll** to throw this shard at a group of adversaries within Far range. Targets you succeed against take **4d20** magic damage."
   },
   {
     "roll": "39",
@@ -197,27 +197,27 @@
   {
     "roll": "40",
     "name": "Circle of the Void",
-    "description": "Mark a Stress to create a void that extends up to Far range. No magic can be cast inside the void, and creatures within the void are immune to magic damage."
+    "description": "**Mark a Stress** to create a void that extends up to Far range. No magic can be cast inside the void, and creatures within the void are immune to magic damage."
   },
   {
     "roll": "41",
     "name": "Sun Tree Sap",
-    "description": "Consume this sap to roll a d6. On a result of 5–6, clear 2 HP. On a result of 2–4, clear 3 Stress. On a result of 1, see through the veil of death and return unscathed, gaining one scar."
+    "description": "Consume this sap to roll a **d6**. On a result of 5–6, clear 2 HP. On a result of 2–4, clear 3 Stress. On a result of 1, see through the veil of death and return unscathed, gaining one scar."
   },
   {
     "roll": "42",
     "name": "Dripfang Poison",
-    "description": "A creature who consumes this poison takes 2d10 direct magic damage."
+    "description": "A creature who consumes this poison takes **2d10** direct magic damage."
   },
   {
     "roll": "43",
     "name": "Major Health Potion",
-    "description": "Clear 1d4+2 HP."
+    "description": "Clear **1d4+2** HP."
   },
   {
     "roll": "44",
     "name": "Major Stamina Potion",
-    "description": "Clear 1d4+2 Stress."
+    "description": "Clear **1d4+2** Stress."
   },
   {
     "roll": "45",
@@ -232,12 +232,12 @@
   {
     "roll": "47",
     "name": "Jar of Lost Voices",
-    "description": "You can open this jar to release a deafening echo of voices for a number of minutes equal to your Instinct. Creatures within Far range unprepared for the sound take 6d8 magic damage."
+    "description": "You can open this jar to release a deafening echo of voices for a number of minutes equal to your Instinct. Creatures within Far range unprepared for the sound take **6d8** magic damage."
   },
   {
     "roll": "48",
     "name": "Dragonbloom Tea",
-    "description": "You can drink this tea to unleash a fiery breath attack. Make an Instinct Roll against all adversaries in front of you within Close range. Targets you succeed against take 2d20 physical damage using your Proficiency."
+    "description": "You can drink this tea to unleash a fiery breath attack. Make an **Instinct Roll** against all adversaries in front of you within Close range. Targets you succeed against take **2d20** physical damage using your Proficiency."
   },
   {
     "roll": "49",
@@ -252,7 +252,7 @@
   {
     "roll": "51",
     "name": "Feast of Xurla",
-    "description": "You can eat this meal to clear all HP and Stress and gain 1d4 Hope."
+    "description": "You can eat this meal to clear all HP and Stress and gain **1d4** Hope."
   },
   {
     "roll": "52",
@@ -277,7 +277,7 @@
   {
     "roll": "56",
     "name": "Sweet Moss",
-    "description": "You can consume this moss during a rest to clear 1d10 HP or 1d10 Stress."
+    "description": "You can consume this moss during a rest to clear **1d10** HP or **1d10** Stress."
   },
   {
     "roll": "57",
@@ -292,11 +292,11 @@
   {
     "roll": "59",
     "name": "Mirror of Marigold",
-    "description": "When you take damage, you can spend a Hope to negate that damage, after which the mirror shatters."
+    "description": "When you take damage, you can **spend a Hope** to negate that damage, after which the mirror shatters."
   },
   {
     "roll": "60",
     "name": "Stardrop",
-    "description": "You can use this stardrop to summon a hailstorm of comets that deals 8d20 physical damage to all targets within Very Far range."
+    "description": "You can use this stardrop to summon a hailstorm of comets that deals **8d20** physical damage to all targets within Very Far range."
   }
 ]
