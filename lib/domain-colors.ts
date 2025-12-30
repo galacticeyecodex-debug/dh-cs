@@ -10,62 +10,79 @@ export interface DomainTheme {
   secondary: string;
   accent: string;
   gradient: string;
+  textColor: string;
 }
 
 export const DOMAIN_COLORS: Record<string, DomainTheme> = {
   arcana: {
-    primary: '#8b5cf6', // Purple
-    secondary: '#6366f1', // Indigo
-    accent: '#a78bfa',
-    gradient: 'from-purple-600 to-indigo-600',
+    primary: '#664295', // Purple
+    secondary: '#4e3456',
+    accent: '#8b5cf6',
+    gradient: 'from-purple-800 to-indigo-900',
+    textColor: '#ffffff',
   },
   blade: {
-    primary: '#64748b', // Slate
-    secondary: '#475569', // Dark slate
-    accent: '#94a3b8',
-    gradient: 'from-slate-500 to-slate-600',
+    primary: '#b93035', // Red
+    secondary: '#af231c',
+    accent: '#dc2626',
+    gradient: 'from-red-700 to-red-800',
+    textColor: '#ffffff',
   },
   bone: {
-    primary: '#374151', // Gray
-    secondary: '#1f2937', // Dark gray
-    accent: '#6b7280',
-    gradient: 'from-gray-700 to-gray-800',
+    primary: '#c1c7cc', // Light Gray
+    secondary: '#a4a9a8',
+    accent: '#374151',
+    gradient: 'from-gray-300 to-gray-400',
+    textColor: '#000000',
   },
   codex: {
-    primary: '#0891b2', // Cyan
-    secondary: '#0e7490', // Dark cyan
-    accent: '#06b6d4',
-    gradient: 'from-cyan-600 to-cyan-700',
+    primary: '#3370ab', // Blue
+    secondary: '#24395d',
+    accent: '#0891b2',
+    gradient: 'from-blue-700 to-blue-800',
+    textColor: '#ffffff',
   },
   grace: {
-    primary: '#fbbf24', // Amber/Gold
-    secondary: '#f59e0b', // Orange
-    accent: '#fcd34d',
-    gradient: 'from-amber-400 to-orange-500',
+    primary: '#cb3b90', // Pink
+    secondary: '#8d3965',
+    accent: '#f472b6',
+    gradient: 'from-pink-600 to-pink-700',
+    textColor: '#ffffff',
   },
   midnight: {
-    primary: '#312e81', // Deep indigo
-    secondary: '#1e1b4b', // Very dark indigo
-    accent: '#4c1d95',
-    gradient: 'from-indigo-900 to-indigo-950',
+    primary: '#2c2c2c', // Black
+    secondary: '#1e201f',
+    accent: '#4b5563',
+    gradient: 'from-gray-800 to-black',
+    textColor: '#ffffff',
   },
   sage: {
-    primary: '#059669', // Emerald
-    secondary: '#047857', // Dark emerald
-    accent: '#10b981',
-    gradient: 'from-emerald-600 to-emerald-700',
+    primary: '#0e854d', // Green
+    secondary: '#244e30',
+    accent: '#059669',
+    gradient: 'from-green-700 to-green-800',
+    textColor: '#ffffff',
   },
   splendor: {
-    primary: '#dc2626', // Red
-    secondary: '#b91c1c', // Dark red
-    accent: '#ef4444',
-    gradient: 'from-red-600 to-red-700',
+    primary: '#d1b447', // Gold
+    secondary: '#b8a342',
+    accent: '#fbbf24',
+    gradient: 'from-yellow-600 to-yellow-700',
+    textColor: '#000000',
   },
   valor: {
-    primary: '#ea580c', // Orange-red
-    secondary: '#c2410c', // Dark orange
-    accent: '#f97316',
+    primary: '#dc7a27', // Orange
+    secondary: '#e2680e',
+    accent: '#ea580c',
     gradient: 'from-orange-600 to-orange-700',
+    textColor: '#ffffff',
+  },
+  dread: {
+    primary: '#362b6c', // Dark Purple/Void
+    secondary: '#2a2152',
+    accent: '#4c1d95',
+    gradient: 'from-indigo-900 to-purple-950',
+    textColor: '#ffffff',
   },
 };
 
@@ -79,28 +96,10 @@ export function getDomainTheme(domain?: string): DomainTheme {
       secondary: '#4b5563',
       accent: '#9ca3af',
       gradient: 'from-gray-500 to-gray-600',
+      textColor: '#ffffff',
     };
   }
 
   const normalizedDomain = domain.toLowerCase();
   return DOMAIN_COLORS[normalizedDomain] || DOMAIN_COLORS.arcana;
-}
-
-/**
- * Calculate brightness of a hex color (0-255)
- * Used to determine if white or black text should be used
- */
-export function getBrightness(hexColor: string): number {
-  const hex = hexColor.replace('#', '');
-  const r = parseInt(hex.substr(0, 2), 16);
-  const g = parseInt(hex.substr(2, 2), 16);
-  const b = parseInt(hex.substr(4, 2), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000;
-}
-
-/**
- * Get contrasting text color (white or black) for a background
- */
-export function getContrastColor(hexColor: string): string {
-  return getBrightness(hexColor) < 128 ? '#ffffff' : '#000000';
 }
