@@ -649,7 +649,6 @@ export default function CharacterView() {
                           <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
                             <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
                               {feature.name}
-                              {feature.type && <span className="ml-2 text-gray-500 font-normal">({feature.type})</span>}
                             </div>
                             <div className="text-sm text-gray-300 leading-relaxed">
                               {feature.text?.split('**').map((part: string, j: number) =>

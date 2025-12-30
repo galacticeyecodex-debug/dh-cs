@@ -24,8 +24,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function parseDamageRoll(input: string): { dice: string; modifier: number } {
-  // Remove text like "phy", "mag", "physical", "magic" (case insensitive) and whitespace
-  const cleanInput = input.replace(/(phy|mag|physical|magic)/gi, '').replace(/\s/g, '');
+  // Remove markdown bold syntax (**), text like "phy", "mag", "physical", "magic" (case insensitive) and whitespace
+  const cleanInput = input.replace(/\*\*/g, '').replace(/(phy|mag|physical|magic)/gi, '').replace(/\s/g, '');
 
   // Normalize subtraction to addition of negative numbers for easier splitting
   const normalized = cleanInput.replace(/-/g, '+-');
