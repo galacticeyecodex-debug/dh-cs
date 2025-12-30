@@ -63,6 +63,9 @@ export default function CharacterView() {
   const [showCommunityLore, setShowCommunityLore] = useState(false);
   const [showTransformation, setShowTransformation] = useState(true);
   const [showTransformationLore, setShowTransformationLore] = useState(false);
+  const [showClassLore, setShowClassLore] = useState(false);
+  const [showSubclassLore, setShowSubclassLore] = useState(false);
+  const [showMulticlassLore, setShowMulticlassLore] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [savingField, setSavingField] = useState<string>('');
   const [savedField, setSavedField] = useState<string>('');
@@ -624,11 +627,11 @@ export default function CharacterView() {
                 </div>
 
                 {showTransformation && (
-                  <div className="bg-dagger-panel border border-purple-500/30 rounded-xl p-4">
+                  <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
                     {transformationCard ? (
                       <>
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-serif font-bold text-purple-300">{transformationCard.name}</h4>
+                          <h4 className="font-serif font-bold text-white">{transformationCard.name}</h4>
                           <button
                             onClick={() => setShowTransformationLore(!showTransformationLore)}
                             className="p-1 hover:bg-white/10 rounded transition-colors"
@@ -638,13 +641,13 @@ export default function CharacterView() {
                           </button>
                         </div>
                         {showTransformationLore && (
-                          <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                          <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3 p-3 bg-white/5 rounded-lg border border-white/5">
                             {transformationCard.description}
                           </p>
                         )}
                         {transformationCard.features?.map((feature: any, i: number) => (
-                          <div key={i} className="mt-2 bg-purple-500/10 rounded p-3 border border-purple-500/20">
-                            <div className="text-xs font-bold text-purple-300 uppercase tracking-wider mb-1">
+                          <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
+                            <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
                               {feature.name}
                               {feature.type && <span className="ml-2 text-gray-500 font-normal">({feature.type})</span>}
                             </div>
@@ -654,7 +657,7 @@ export default function CharacterView() {
                               )}
                             </div>
                             {feature.has_tokens && (
-                              <div className="mt-2 text-xs text-purple-300">
+                              <div className="mt-2 text-xs text-dagger-gold">
                                 Max tokens: {feature.max_tokens}
                               </div>
                             )}
@@ -699,16 +702,38 @@ export default function CharacterView() {
                 </div>
 
                 {showClassFeatures && (
-                  <div className="space-y-3">
+                  <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                    {/* Class Header with Lore Toggle */}
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-serif font-bold text-white">{character.class_data.name}</h4>
+                      <button
+                        onClick={() => setShowClassLore(!showClassLore)}
+                        className="p-1 hover:bg-white/10 rounded transition-colors"
+                        title={showClassLore ? "Hide lore" : "Show lore"}
+                      >
+                        <Info size={14} className="text-gray-400" />
+                      </button>
+                    </div>
+
+                    {/* Collapsible Class Description */}
+                    {showClassLore && character.class_data.data.description && (
+                      <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                        {character.class_data.data.description}
+                      </p>
+                    )}
+
                     {/* Hope Feature */}
                     {character.class_data.data.hope_feature && (
-                      <div className="bg-dagger-panel border border-dagger-gold/30 rounded-xl p-4 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-dagger-gold"></div>
-                        <h4 className="font-serif font-bold text-dagger-gold mb-1 flex items-center gap-2">
-                          <Zap size={14} />
+                      <div className="mt-2 bg-white/5 rounded p-3 border border-white/5">
+                        <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1 flex items-center gap-1">
+                          <Zap size={12} />
                           {character.class_data.data.hope_feature.name}
-                        </h4>
-                        <p className="text-sm text-gray-300">{character.class_data.data.hope_feature.description}</p>
+                        </div>
+                        <div className="text-sm text-gray-300 leading-relaxed">
+                          {character.class_data.data.hope_feature.description?.split('**').map((part: string, j: number) =>
+                            j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
+                          )}
+                        </div>
                       </div>
                     )}
 
@@ -720,21 +745,28 @@ export default function CharacterView() {
                         const spellcastValue = character.stats[traitName as keyof typeof character.stats] || 0;
 
                         return (
-                          <PrayerDiceCard
-                            key={idx}
-                            prayerDice={character.seraph_prayer_dice}
-                            spellcastValue={spellcastValue}
-                            hasDevout={character.subclass_data?.name?.toLowerCase() === 'divine wielder' && character.subclass_progression?.specialization_obtained === true}
-                            onUpdatePrayerDice={updatePrayerDice}
-                          />
+                          <div key={idx} className="mt-2">
+                            <PrayerDiceCard
+                              prayerDice={character.seraph_prayer_dice}
+                              spellcastValue={spellcastValue}
+                              hasDevout={character.subclass_data?.name?.toLowerCase() === 'divine wielder' && character.subclass_progression?.specialization_obtained === true}
+                              onUpdatePrayerDice={updatePrayerDice}
+                            />
+                          </div>
                         );
                       }
 
                       // Standard class feature display
                       return (
-                        <div key={idx} className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-                          <h4 className="font-serif font-bold text-white mb-1">{feature.name}</h4>
-                          <p className="text-sm text-gray-300 whitespace-pre-wrap">{feature.text}</p>
+                        <div key={idx} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
+                          <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
+                            {feature.name}
+                          </div>
+                          <div className="text-sm text-gray-300 leading-relaxed">
+                            {feature.text?.split('**').map((part: string, j: number) =>
+                              j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -761,106 +793,41 @@ export default function CharacterView() {
 
                 {showSubclassFeatures && (
                   <div className="space-y-3">
-                    {/* Primary Subclass Features */}
+                    {/* Primary Subclass Features - Single unified card */}
                     {character.subclass_progression && (
-                      <>
-                        {character.subclass_progression.foundation_obtained && (
-                          <SubclassFeatureCard
-                            card={character.character_cards?.find(c =>
-                              c.location === 'feature' &&
-                              !c.library_item?.data?.multiclass &&
-                              (c.library_item?.data?.tier === 'foundation' || c.library_item?.type === 'subclass')
-                            ) || (character.subclass_data && character.subclass_id ? {
-                                id: 'primary-subclass-foundation-fallback',
-                                character_id: character.id,
-                                card_id: character.subclass_data.id,
-                                location: 'feature',
-                                state: {},
-                                library_item: character.subclass_data
-                            } : undefined)}
-                            tier="Foundation"
-                            isMulticlass={false}
-                          />
-                        )}
-
-                        {character.subclass_progression.specialization_obtained && (
-                          <SubclassFeatureCard
-                            card={character.character_cards?.find(c =>
-                              c.location === 'feature' &&
-                              !c.library_item?.data?.multiclass &&
-                              c.library_item?.data?.tier === 'specialization'
-                            ) || (character.subclass_data && character.subclass_id ? {
-                                id: 'primary-subclass-specialization-fallback',
-                                character_id: character.id,
-                                card_id: character.subclass_data.id,
-                                location: 'feature',
-                                state: {},
-                                library_item: character.subclass_data
-                            } : undefined)}
-                            tier="Specialization"
-                            isMulticlass={false}
-                          />
-                        )}
-
-                        {character.subclass_progression.mastery_obtained && (
-                          <SubclassFeatureCard
-                            card={character.character_cards?.find(c =>
-                              c.location === 'feature' &&
-                              !c.library_item?.data?.multiclass &&
-                              c.library_item?.data?.tier === 'mastery'
-                            ) || (character.subclass_data && character.subclass_id ? {
-                                id: 'primary-subclass-mastery-fallback',
-                                character_id: character.id,
-                                card_id: character.subclass_data.id,
-                                location: 'feature',
-                                state: {},
-                                library_item: character.subclass_data
-                            } : undefined)}
-                            tier="Mastery"
-                            isMulticlass={false}
-                          />
-                        )}
-                      </>
+                      <SubclassFeatureCard
+                        card={character.character_cards?.find(c =>
+                          c.location === 'feature' &&
+                          !c.library_item?.data?.multiclass &&
+                          c.library_item?.type === 'subclass'
+                        ) || (character.subclass_data && character.subclass_id ? {
+                            id: 'primary-subclass-fallback',
+                            character_id: character.id,
+                            card_id: character.subclass_data.id,
+                            location: 'feature',
+                            state: {},
+                            library_item: character.subclass_data
+                        } : undefined)}
+                        subclassProgression={character.subclass_progression}
+                        isMulticlass={false}
+                        showLore={showSubclassLore}
+                        onToggleLore={() => setShowSubclassLore(!showSubclassLore)}
+                      />
                     )}
 
-                    {/* Multiclass Subclass Features */}
-                    {character.multiclass_progression && (
-                      <>
-                        {character.multiclass_progression.foundation_obtained && (
-                          <SubclassFeatureCard
-                            card={character.character_cards?.find(c =>
-                              c.location === 'feature' &&
-                              c.library_item?.data?.multiclass === true
-                            )}
-                            tier="Foundation"
-                            isMulticlass={true}
-                          />
+                    {/* Multiclass Subclass Features - Single unified card */}
+                    {character.multiclass_progression && character.multiclass_progression.foundation_obtained && (
+                      <SubclassFeatureCard
+                        card={character.character_cards?.find(c =>
+                          c.location === 'feature' &&
+                          c.library_item?.data?.multiclass === true &&
+                          c.library_item?.type === 'subclass'
                         )}
-
-                        {character.multiclass_progression.specialization_obtained && (
-                          <SubclassFeatureCard
-                            card={character.character_cards?.find(c =>
-                              c.location === 'feature' &&
-                              c.library_item?.data?.multiclass === true &&
-                              c.library_item?.data?.tier === 'specialization'
-                            )}
-                            tier="Specialization"
-                            isMulticlass={true}
-                          />
-                        )}
-
-                        {character.multiclass_progression.mastery_obtained && (
-                          <SubclassFeatureCard
-                            card={character.character_cards?.find(c =>
-                              c.location === 'feature' &&
-                              c.library_item?.data?.multiclass === true &&
-                              c.library_item?.data?.tier === 'mastery'
-                            )}
-                            tier="Mastery"
-                            isMulticlass={true}
-                          />
-                        )}
-                      </>
+                        subclassProgression={character.multiclass_progression}
+                        isMulticlass={true}
+                        showLore={showMulticlassLore}
+                        onToggleLore={() => setShowMulticlassLore(!showMulticlassLore)}
+                      />
                     )}
                   </div>
                 )}
