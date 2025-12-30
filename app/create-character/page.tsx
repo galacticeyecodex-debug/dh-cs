@@ -4,66 +4,36 @@
  * This component handles the full wizard flow for creating a new character.
  * 
  * FUNCTIONALITY:
- * - Multi-step Form Wizard: Guides the user through 8 steps (Basic Info, Heritage, Class/Domain, 
- *   Cards, Traits, Experiences, Equipment, Finalize).
- * - SRD Integration: Fetches valid options for Ancestry, Community, Class, Weapons, etc., from the database.
- * - Rules Enforcement: Validates choices based on Daggerheart rules (e.g., max 2 domain cards, 
- *   specific starting trait values, class-specific equipment tiers).
- * - Dynamic Calculations: Computes starting Vitals, Evasion, and Loadout based on selections.
- * - Final Asset Generation: Handles image uploads and constructs the complete character payload
- *   to send to the `create_complete_character` RPC function in Supabase.
+ * - Multi-step Form Wizard: Guides the user through 8-9 steps.
+ * - SRD Integration: Fetches valid options from the database.
+ * - Rules Enforcement: Validates choices based on Daggerheart rules.
+ * - Dynamic Calculations: Computes starting Vitals, Evasion, and Loadout.
  */
 
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCharacterStore, Character, LibraryItem } from '@/store/character-store';
+import { useCharacterStore, Character } from '@/store/character-store';
 import { dataService } from '@/lib/data-service';
 import useContentAccess from '@/hooks/useContentAccess';
 import clsx from 'clsx';
-import { Sparkle, HandMetal, Shield, BookOpen, User as UserIcon, Coins, Sword, X, Heart, Upload, PawPrint, FlaskConical } from 'lucide-react';
-import AddItemModal from '@/components/modals/add-item-modal';
 import { uploadCharacterAvatar } from '@/lib/storage-service';
 import { calculateDamageThresholds } from '@/lib/gameLogic';
-import { RangerCompanion } from '@/types/character';
-
-// Define the shape of our form data
-interface CharacterFormData {
-  name: string;
-  image_url?: string;
-  ancestry_id: string; // will store library ID
-  community_id: string; // will store library ID
-  class_id: string; // will store library ID
-  subclass_id: string; // will store library ID
-  domains: [string, string]; // Store selected domain names
-  selectedCards: string[]; // Store selected card IDs (max 2)
-  stats: {
-    agility: number;
-    strength: number;
-    finesse: number;
-    instinct: number;
-    presence: number;
-    knowledge: number;
-  };
-  experiences: [string, string];
-  selectedPrimaryWeaponId: string | null;
-  selectedSecondaryWeaponId: string | null;
-  selectedArmorId: string | null;
-  selectedPotionType: 'health' | 'stamina' | null;
-  companion?: RangerCompanion; // For Beastbond Rangers
-}
-
-// Minimal Library Item type for dropdowns and lookup
-interface LibraryLookupItem {
-  id: string;
-  type: string;
-  name: string;
-  domain?: string;
-  tier?: number;
-  source?: 'srd' | 'playtest' | 'homebrew';
-  data: Record<string, any>; // Keep 'any' for now, as JSONB is highly variable and strict typing would be complex here.
-}
+import { 
+  BasicInfoStep, 
+  HeritageStep, 
+  ClassDomainsStep, 
+  DomainCardsStep, 
+  AssignTraitsStep, 
+  ExperiencesStep, 
+  CompanionStep, 
+  EquipmentStep, 
+  ConfirmCreateStep,
+  CharacterFormData,
+  LibraryData,
+  LibraryLookupItem
+} from '@/components/character-creation';
 
 export default function CreateCharacterPage() {
   const router = useRouter();
@@ -87,31 +57,12 @@ export default function CreateCharacterPage() {
     cards: [], weapons: [], armor: [], misc: [], gold: { handfuls: 0, bags: 0, chests: 0 }
   });
 
-
-  // State to hold all relevant lookup data from Supabase Library
-  const [libraryData, setLibraryData] = useState<{
-    ancestries: LibraryLookupItem[];
-    communities: LibraryLookupItem[];
-    classes: LibraryLookupItem[];
-    subclasses: LibraryLookupItem[];
-    domains: LibraryLookupItem[];
-    weapons: LibraryLookupItem[];
-    armor: LibraryLookupItem[];
-    consumables: LibraryLookupItem[];
-    abilities: LibraryLookupItem[];
-    spells: LibraryLookupItem[];
-    grimoires: LibraryLookupItem[];
-  }>({
+  const [libraryData, setLibraryData] = useState<LibraryData>({
     ancestries: [], communities: [], classes: [], subclasses: [], domains: [], weapons: [], armor: [], consumables: [], abilities: [], spells: [], grimoires: []
   });
-  // libraryLoading is used implicitly in JSX (libraryLoading ? ... : ...)
   const [libraryLoading, setLibraryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Equipment Selection Modal State
-  const [equipmentModalOpen, setEquipmentModalOpen] = useState(false);
-  const [equipmentModalContext, setEquipmentModalContext] = useState<'primary' | 'secondary' | 'armor' | null>(null);
 
   // Image Upload State
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
@@ -120,11 +71,9 @@ export default function CreateCharacterPage() {
 
   // Initial trait assignment values as per Daggerheart rules
   const TRAIT_ASSIGNMENT_POOL = useMemo(() => [2, 1, 1, 0, 0, -1], []);
-  // Display pool excludes zeros (user only assigns meaningful values)
   const DISPLAY_TRAIT_POOL = useMemo(() => [2, 1, 1, -1], []);
   const [selectedTraitIndex, setSelectedTraitIndex] = useState<number | null>(null);
 
-  // Helper to check if a display trait value is currently assigned
   const isTraitValueAssigned = useCallback((value: number): boolean => {
     const stats = formData.stats || {};
     const assignedValues = Object.values(stats);
@@ -133,38 +82,21 @@ export default function CreateCharacterPage() {
     return countInStats >= countInPool;
   }, [formData.stats, DISPLAY_TRAIT_POOL]);
 
-
   useEffect(() => {
     if (!user) {
       router.push('/auth/login');
       return;
     }
 
-    // Wait for content access settings to load before fetching library data
-    if (contentAccessLoading) {
-      return;
-    }
+    if (contentAccessLoading) return;
 
     const fetchAllLibraryData = async () => {
       setLibraryLoading(true);
       setError(null);
-
       const contentOptions = { includePlaytest };
 
       try {
-        const [
-          ancestriesData,
-          communitiesData,
-          classesData,
-          subclassesData,
-          domainsData,
-          weaponsData,
-          armorData,
-          consumablesData,
-          abilitiesData,
-          spellsData,
-          grimoiresData
-        ] = await Promise.all([
+        const [ancestries, communities, classes, subclasses, domains, weapons, armor, consumables, abilities, spells, grimoires] = await Promise.all([
           dataService.library.getByType('ancestry', contentOptions),
           dataService.library.getByType('community', contentOptions),
           dataService.library.getByType('class', contentOptions),
@@ -178,22 +110,9 @@ export default function CreateCharacterPage() {
           dataService.library.getByType('grimoire', contentOptions),
         ]);
 
-        setLibraryData({
-          ancestries: ancestriesData,
-          communities: communitiesData,
-          classes: classesData,
-          subclasses: subclassesData,
-          domains: domainsData,
-          weapons: weaponsData,
-          armor: armorData,
-          consumables: consumablesData,
-          abilities: abilitiesData,
-          spells: spellsData,
-          grimoires: grimoiresData,
-        });
-      } catch (error) {
-        setError("Failed to load SRD data: " + (error instanceof Error ? error.message : String(error)));
-        console.error(error);
+        setLibraryData({ ancestries, communities, classes, subclasses, domains, weapons, armor, consumables, abilities, spells, grimoires });
+      } catch (err) {
+        setError("Failed to load game data: " + (err instanceof Error ? err.message : String(err)));
       }
       setLibraryLoading(false);
     };
@@ -201,7 +120,6 @@ export default function CreateCharacterPage() {
     fetchAllLibraryData();
   }, [user, router, includePlaytest, contentAccessLoading]);
 
-  // Effect to calculate vitals and starting gear based on Class/Ancestry selection
   useEffect(() => {
     if (formData.class_id && libraryData.classes.length > 0) {
       const selectedClass = libraryData.classes.find(c => c.id === formData.class_id);
@@ -213,121 +131,39 @@ export default function CreateCharacterPage() {
           evasion: 10
         });
 
-        // Set default domains if not already set or if class changed (simple check: if domains don't match class defaults)
-        // Actually, simpler: if class changes, we should probably reset domains to defaults.
-        // But this effect runs on formData.class_id change.
         if (selectedClass.data.domains && selectedClass.data.domains.length >= 2) {
-          // Only update if current domains are empty (first load) or we want to force reset on class change.
-          // Given the UX, if I change class, I expect domains to reset.
-          // We can check if the current domains are valid for this class? No, we want to allow any.
-          // So we just set them to defaults whenever class_id changes.
-          // However, this effect also runs on libraryData change. We need to avoid infinite loops.
-          // We'll rely on the fact that setFormData won't trigger this effect unless class_id changes.
-          // But wait, setFormData updates formData, which is a dependency? No, only formData.class_id is.
-
-          // We need to be careful. If I manually change a domain, I don't want this to reset it.
-          // But this effect only runs when class_id changes.
-          // So it should be fine to reset domains here.
           setFormData(prev => {
-            // Avoid update if already set to these values to prevent re-renders if effect runs for other reasons
             if (prev.domains?.[0] === selectedClass.data.domains[0] && prev.domains?.[1] === selectedClass.data.domains[1]) {
               return prev;
             }
             return {
               ...prev,
               domains: [selectedClass.data.domains[0], selectedClass.data.domains[1]],
-              selectedCards: [] // Reset selected cards when class/domains change
+              selectedCards: []
             };
           });
         }
 
-        const initialWeapons: string[] = [];
-        const initialArmor: string[] = [];
         const initialMiscItems: string[] = [];
-        const initialGold = { handfuls: 0, bags: 0, chests: 0 };
-
-        // --- Determine Initial Gold from Class Items Raw ---
-        if (selectedClass.data.class_items_raw && selectedClass.data.class_items_raw.includes('handful of gold')) {
-          initialGold.handfuls = 1; // Default to 1 for now if mentioned
-        } else {
-          initialGold.handfuls = 1; // All classes seem to start with a handful of gold.
-        }
-
-        // --- Determine Initial Misc Items from Class Items Raw ---
         if (selectedClass.data.class_items_raw) {
-          if (selectedClass.data.class_items_raw.includes('Minor Health Potion')) {
-            initialMiscItems.push('consumable-minor-health-potion');
-          } else if (selectedClass.data.class_items_raw.includes('Minor Stamina Potion')) {
-            initialMiscItems.push('consumable-minor-stamina-potion');
-          }
-          // Add more specific logic for other class items based on parsing class_items_raw.
-          // For example, finding 'torch', '50 feet of rope', 'basic supplies'
-          const defaultItems = [
-            'torch', '50 feet of rope', 'basic supplies'
-          ];
-          defaultItems.forEach(itemName => {
-            // Basic check, could be improved with slug comparison or regex
+          if (selectedClass.data.class_items_raw.includes('Minor Health Potion')) initialMiscItems.push('consumable-minor-health-potion');
+          else if (selectedClass.data.class_items_raw.includes('Minor Stamina Potion')) initialMiscItems.push('consumable-minor-stamina-potion');
+          
+          ['torch', '50 feet of rope', 'basic supplies'].forEach(itemName => {
             if (selectedClass.data.class_items_raw.toLowerCase().includes(itemName)) {
-              // Not ideal, but for now we'll just push a generic item with the name
-              initialMiscItems.push(`misc-${itemName.toLowerCase().replace(/\s/g, '-')}`);
+              initialMiscItems.push(`misc-${itemName.replace(/\s/g, '-')}`);
             }
           });
         }
 
-        // --- Determine Initial Weapons and Armor based on Class ---
-        let defaultPrimaryWeaponId: string | undefined;
-        let defaultSecondaryWeaponId: string | undefined;
-        let defaultArmorId: string | undefined;
-
-        if (selectedClass.name === 'Warrior') {
-          defaultPrimaryWeaponId = libraryData.weapons.find(w => w.name === 'Longsword' && w.tier === 1)?.id;
-          defaultSecondaryWeaponId = libraryData.weapons.find(w => w.name === 'Handaxe' && w.tier === 1)?.id; // Example based on Warrior template
-          defaultArmorId = libraryData.armor.find(a => a.name === 'Medium Leather Armor' && a.tier === 1)?.id; // Example
-        } else if (selectedClass.name === 'Guardian') {
-          defaultPrimaryWeaponId = libraryData.weapons.find(w => w.name === 'Longsword' && w.tier === 1)?.id;
-          defaultSecondaryWeaponId = libraryData.weapons.find(w => w.name === 'Round Shield' && w.tier === 1)?.id;
-          defaultArmorId = libraryData.armor.find(a => a.name === 'Chainmail Armor' && a.tier === 1)?.id;
-        } else if (selectedClass.name === 'Ranger') {
-          defaultPrimaryWeaponId = libraryData.weapons.find(w => w.name === 'Longbow' && w.tier === 1)?.id;
-          defaultSecondaryWeaponId = libraryData.weapons.find(w => w.name === 'Hunting Knife' && w.tier === 1)?.id;
-          defaultArmorId = libraryData.armor.find(a => a.name === 'Padded Leather Armor' && a.tier === 0)?.id; // Assuming Padded is tier 0
-        } else if (selectedClass.name === 'Rogue') {
-          defaultPrimaryWeaponId = libraryData.weapons.find(w => w.name === 'Dual Daggers' && w.tier === 1)?.id;
-          defaultSecondaryWeaponId = libraryData.weapons.find(w => w.name === 'Hand Crossbow' && w.tier === 1)?.id;
-          defaultArmorId = libraryData.armor.find(a => a.name === 'Padded Leather Armor' && a.tier === 0)?.id;
-        } else if (selectedClass.name === 'Bard') {
-          defaultPrimaryWeaponId = libraryData.weapons.find(w => w.name === 'Curved Sword' && w.tier === 1)?.id;
-          defaultSecondaryWeaponId = libraryData.weapons.find(w => w.name === 'Shortbow' && w.tier === 1)?.id;
-          defaultArmorId = libraryData.armor.find(a => a.name === 'Light Leather Armor' && a.tier === 0)?.id;
-        } else if (selectedClass.name === 'Druid') {
-          defaultPrimaryWeaponId = libraryData.weapons.find(w => w.name === 'Wooden Staff' && w.tier === 0)?.id; // Assuming tier 0 for Wooden Staff
-          defaultSecondaryWeaponId = libraryData.weapons.find(w => w.name === 'Sling' && w.tier === 0)?.id;
-          defaultArmorId = libraryData.armor.find(a => a.name === 'Light Leather Armor' && a.tier === 0)?.id;
-        } else if (selectedClass.name === 'Seraph') {
-          defaultPrimaryWeaponId = libraryData.weapons.find(w => w.name === 'Hallowed Axe' && w.tier === 1)?.id;
-          defaultSecondaryWeaponId = libraryData.weapons.find(w => w.name === 'Round Shield' && w.tier === 1)?.id;
-          defaultArmorId = libraryData.armor.find(a => a.name === 'Chainmail Armor' && a.tier === 1)?.id;
-        } else if (selectedClass.name === 'Sorcerer') {
-          defaultPrimaryWeaponId = libraryData.weapons.find(w => w.name === 'Crystal Wand' && w.tier === 0)?.id;
-          defaultSecondaryWeaponId = libraryData.weapons.find(w => w.name === 'Dagger' && w.tier === 0)?.id;
-          defaultArmorId = libraryData.armor.find(a => a.name === 'Mystical Robes' && a.tier === 0)?.id;
-        } else if (selectedClass.name === 'Wizard') {
-          defaultPrimaryWeaponId = libraryData.weapons.find(w => w.name === 'Ornate Staff' && w.tier === 0)?.id;
-          defaultSecondaryWeaponId = libraryData.weapons.find(w => w.name === 'Arcane Dagger' && w.tier === 0)?.id;
-          defaultArmorId = libraryData.armor.find(a => a.name === 'Scholars Robes' && a.tier === 0)?.id;
-        }
-
-
-        // Cards are now selected manually in steps 4 and 5
-
         setStartingItemsAndCards({
-          cards: [], // Will be populated from formData.selectedCards on submit
+          cards: [],
           weapons: [],
           armor: [],
           misc: initialMiscItems,
-          gold: initialGold
+          gold: { handfuls: 1, bags: 0, chests: 0 }
         });
-        // Clear selected equipment when class changes, as previous selections might be invalid
+        
         setFormData(prev => ({
           ...prev,
           selectedPrimaryWeaponId: null,
@@ -335,23 +171,13 @@ export default function CreateCharacterPage() {
           selectedArmorId: null,
         }));
       }
-    } else {
-      setCalculatedVitals({ hp: 0, stress: 0, armor: 0, evasion: 10 });
-      setStartingItemsAndCards({ cards: [], weapons: [], armor: [], misc: [], gold: { handfuls: 0, bags: 0, chests: 0 } });
-      setFormData(prev => ({ // Also clear selected equipment if class is unselected
-        ...prev,
-        selectedPrimaryWeaponId: null,
-        selectedSecondaryWeaponId: null,
-        selectedArmorId: null,
-      }));
     }
-  }, [formData.class_id, formData.ancestry_id, libraryData]);
+  }, [formData.class_id, libraryData.classes]);
 
   const handleDomainChange = useCallback((index: number, value: string) => {
     setFormData(prev => {
       const newDomains = [...(prev.domains || ['', ''])] as [string, string];
       newDomains[index] = value;
-      // Reset selected cards if domains change, as previous selections might be invalid
       return { ...prev, domains: newDomains, selectedCards: [] };
     });
   }, []);
@@ -359,75 +185,41 @@ export default function CreateCharacterPage() {
   const handleCardSelection = useCallback((cardId: string) => {
     setFormData(prev => {
       const currentCards = prev.selectedCards || [];
-      const isSelected = currentCards.includes(cardId);
-
-      if (isSelected) {
-        // Deselect
+      if (currentCards.includes(cardId)) {
         return { ...prev, selectedCards: currentCards.filter(id => id !== cardId) };
-      } else {
-        // Select (enforce max 2)
-        if (currentCards.length >= 2) {
-          // Optional: Could replace the oldest selection or just do nothing. 
-          // For now, let's just do nothing or maybe replace the first one? 
-          // User requested "Once 2 cards have been selected the 'Next' button should highlight yellow."
-          // This implies we stop at 2. But user might want to change selection.
-          // Let's allow selecting a 3rd to replace the 1st? Or just block?
-          // "A user should be able to select and deselect a card by clicking on it."
-          // Let's just block adding more than 2, user must deselect first.
-          return prev;
-        }
+      } else if (currentCards.length < 2) {
         return { ...prev, selectedCards: [...currentCards, cardId] };
       }
+      return prev;
     });
   }, []);
-
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   }, []);
 
-  const handleStatChange = useCallback((statName: keyof CharacterFormData['stats'], value: number) => {
-    setFormData(prev => ({
-      ...prev,
-      stats: { ...prev.stats!, [statName]: value }
-    }));
-  }, []);
-
   const assignTraitValue = useCallback((statName: keyof CharacterFormData['stats'], value: number | '') => {
-    if (value === '') { // Clear assignment
+    if (value === '') {
       setFormData(prev => ({ ...prev, stats: { ...prev.stats!, [statName]: 0 } }));
       setSelectedTraitIndex(null);
-    } else { // Assign new value
+    } else {
       const val = value as number;
-
-      // Check if valid value
-      if (!TRAIT_ASSIGNMENT_POOL.includes(val)) {
-        setError(`Value ${val} is not a valid trait value.`);
-        return;
-      }
-
-      // Count how many times this value is already assigned
       const currentStats = { ...formData.stats! };
-      const assignedCount = Object.entries(currentStats)
-        .filter(([key, v]) => key !== statName && v === val)
-        .length;
-
-      // Count how many times this value appears in the pool
+      const assignedCount = Object.entries(currentStats).filter(([key, v]) => key !== statName && v === val).length;
       const poolCount = TRAIT_ASSIGNMENT_POOL.filter(v => v === val).length;
 
-      // Allow assignment if not exceeding pool count
-      if (assignedCount >= poolCount) {
-        setError(`All ${val >= 0 ? '+' : ''}${val} values have been assigned. Clear one first.`);
-        return;
+      if (assignedCount < poolCount) {
+        setFormData(prev => ({
+          ...prev,
+          stats: { ...prev.stats!, [statName]: val }
+        }));
+        setSelectedTraitIndex(null);
+      } else {
+        setError(`All ${val >= 0 ? '+' : ''}${val} values assigned. Clear one first.`);
       }
-
-      // Assign the value
-      handleStatChange(statName, val);
-      setSelectedTraitIndex(null);
     }
-  }, [formData.stats, handleStatChange, TRAIT_ASSIGNMENT_POOL]);
-
+  }, [formData.stats, TRAIT_ASSIGNMENT_POOL]);
 
   const handleExperienceChange = useCallback((index: number, value: string) => {
     setFormData(prev => {
@@ -440,1251 +232,201 @@ export default function CreateCharacterPage() {
   const handleImageFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError('Please select an image file');
-        return;
-      }
-      // Validate file size (max 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        setError('Image must be less than 2MB');
-        return;
-      }
+      if (!file.type.startsWith('image/')) return setError('Please select an image file');
+      if (file.size > 2 * 1024 * 1024) return setError('Image must be less than 2MB');
       setSelectedImageFile(file);
-      // Create preview
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
+      reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
       setError(null);
     }
   }, []);
 
-  const handleEquipmentSelect = useCallback((item: LibraryItem) => {
-    if (!equipmentModalContext) return;
-
-    if (equipmentModalContext === 'primary') {
-      setFormData(prev => ({ ...prev, selectedPrimaryWeaponId: item.id }));
-    } else if (equipmentModalContext === 'secondary') {
-      setFormData(prev => ({ ...prev, selectedSecondaryWeaponId: item.id }));
-    } else if (equipmentModalContext === 'armor') {
-      setFormData(prev => ({ ...prev, selectedArmorId: item.id }));
-    }
-    // AddItemModal usually calls onAddItem which we are handling here.
-    // The modal's internal logic handles calling onClose after onAddItem if we use it correctly.
-    // But we need to ensure state reflects that.
-    setEquipmentModalOpen(false);
-  }, [equipmentModalContext]);
-
   const validateStep = useCallback((step: number) => {
-    // Check if Beastbond Ranger
-    const isBeastboundRanger = formData.subclass_id &&
-      libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
-
+    const isBeastbond = formData.subclass_id && libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
     switch (step) {
-      case 1: // Basic Info
-        return !!formData.name;
-      case 2: // Heritage
-        return !!formData.ancestry_id && !!formData.community_id;
-      case 3: // Class & Domains
-        return !!formData.class_id && !!formData.subclass_id && !!formData.domains?.[0] && !!formData.domains?.[1];
-      case 4: // Domain Cards
-        return (formData.selectedCards?.length || 0) === 2;
-      case 5: // Assign Traits
-        const assignedStatValues = Object.values(formData.stats || {});
+      case 1: return !!formData.name;
+      case 2: return !!formData.ancestry_id && !!formData.community_id;
+      case 3: return !!formData.class_id && !!formData.subclass_id && !!formData.domains?.[0] && !!formData.domains?.[1];
+      case 4: return (formData.selectedCards?.length || 0) === 2;
+      case 5:
         const counts: { [key: number]: number } = {};
         TRAIT_ASSIGNMENT_POOL.forEach(val => counts[val] = (counts[val] || 0) + 1);
-        let allAssigned = true;
-        for (const val of assignedStatValues) {
-          if (counts[val] > 0) counts[val]--;
-          else { allAssigned = false; break; }
-        }
-        if (Object.values(counts).some(count => count > 0)) allAssigned = false;
-        return allAssigned;
-      case 6: // Experiences
-        return !!formData.experiences && formData.experiences.length === 2 && formData.experiences.every(e => e.trim().length > 0);
-      case 7: // Companion Creation (only for Beastbond Rangers)
-        if (!isBeastboundRanger) return true; // Skip if not Beastbond
-        return !!(formData.companion?.name && formData.companion?.animal_type && formData.companion?.attack_name &&
-                 formData.companion?.experiences?.length === 2 &&
-                 formData.companion?.experiences.every(e => e.name.trim().length > 0));
-      case 8: // Equipment
-        return !!formData.selectedPrimaryWeaponId && !!formData.selectedArmorId && !!formData.selectedPotionType;
-      default:
-        return true;
+        Object.values(formData.stats || {}).forEach(val => counts[val]--);
+        return Object.values(counts).every(c => c === 0);
+      case 6: return !!formData.experiences?.every(e => e.trim().length > 0);
+      case 7: return !isBeastbond || (!!formData.companion?.name && !!formData.companion?.animal_type && !!formData.companion?.attack_name && !!formData.companion?.experiences?.every(e => e.name.trim().length > 0));
+      case 8: return !!formData.selectedPrimaryWeaponId && !!formData.selectedArmorId && !!formData.selectedPotionType;
+      default: return true;
     }
   }, [formData, libraryData.subclasses, TRAIT_ASSIGNMENT_POOL]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || isSubmitting) return;
-
     setIsSubmitting(true);
     setError(null);
 
-    // Final validation
-    if (!formData.name || !formData.ancestry_id || !formData.community_id || !formData.class_id || !formData.subclass_id) {
-      setError("Please fill in all required fields.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!formData.domains?.[0] || !formData.domains?.[1]) {
-      setError("Please select two domains.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!formData.selectedCards || formData.selectedCards.length !== 2) {
-      setError("Please select exactly two starting domain cards.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!formData.experiences || formData.experiences.some(exp => !exp.trim())) {
-      setError("Please provide two starting experiences.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Ensure all trait points are assigned
-    const assignedStatValues = Object.values(formData.stats || {});
-    const counts: { [key: number]: number } = {};
-    TRAIT_ASSIGNMENT_POOL.forEach(val => counts[val] = (counts[val] || 0) + 1);
-
-    let allAssigned = true;
-    for (const val of assignedStatValues) {
-      if (counts[val] > 0) {
-        counts[val]--;
-      } else {
-        allAssigned = false;
-        break;
-      }
-    }
-    if (Object.values(counts).some(count => count > 0)) { // Check if any values from pool are unassigned
-      allAssigned = false;
-    }
-
-
-    if (!allAssigned) {
-      setError("Please assign all trait values from the pool.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Upload image if one was selected
     let uploadedImageUrl: string | null = null;
     if (selectedImageFile) {
       setUploadingImage(true);
       const uploadResult = await uploadCharacterAvatar(user.id, selectedImageFile);
       setUploadingImage(false);
-
       if (uploadResult.error || !uploadResult.url) {
-        setError("Failed to upload character image. Please try again.");
+        setError("Failed to upload character image.");
         setIsSubmitting(false);
         return;
       }
       uploadedImageUrl = uploadResult.url;
     }
 
-    // Check character limit
     try {
-      const count = await dataService.character.count(user.id);
+      const selectedAncestry = libraryData.ancestries.find(a => a.id === formData.ancestry_id);
+      const selectedCommunity = libraryData.communities.find(c => c.id === formData.community_id);
+      const selectedClass = libraryData.classes.find(cl => cl.id === formData.class_id);
+      const selectedSubclass = libraryData.subclasses.find(sc => sc.id === formData.subclass_id);
+      const finalPrimaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedPrimaryWeaponId);
+      const finalSecondaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedSecondaryWeaponId);
+      const finalArmor = libraryData.armor.find(a => a.id === formData.selectedArmorId);
 
-      if (count >= 25) {
-        setError("You have reached the maximum of 25 characters. Please delete an existing character to create a new one.");
-        setIsSubmitting(false);
-        return;
-      }
-    } catch (countError) {
-      setError("Error checking character limit: " + (countError instanceof Error ? countError.message : String(countError)));
-      console.error(countError);
-      setIsSubmitting(false);
-      return;
-    }
+      const actualArmorScore = finalArmor?.data.base_score || 0;
+      const damageThresholds = calculateDamageThresholds(1, finalArmor ? [{ library_item: finalArmor as any }] : [], []);
 
-    // Look up actual names for storage
-    const selectedAncestryName = libraryData.ancestries.find(a => a.id === formData.ancestry_id)?.name;
-    const selectedCommunityName = libraryData.communities.find(c => c.id === formData.community_id)?.name;
-    const selectedClassName = libraryData.classes.find(cl => cl.id === formData.class_id)?.name;
-    const selectedSubclassName = libraryData.subclasses.find(sc => sc.id === formData.subclass_id)?.name;
-
-    const finalPrimaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedPrimaryWeaponId);
-    const finalSecondaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedSecondaryWeaponId);
-    const finalArmor = libraryData.armor.find(a => a.id === formData.selectedArmorId);
-
-    // Calculate actual armor score based on equipped armor
-    const actualArmorScore = finalArmor?.data.base_score || 0;
-
-    // Calculate damage thresholds for level 1 character
-    const damageThresholds = calculateDamageThresholds(
-      1,
-      finalArmor
-        ? [
-          {
-            library_item: finalArmor,
+      const characterPayload = {
+        character: {
+          user_id: user.id,
+          name: formData.name!,
+          level: 1,
+          ancestry: selectedAncestry?.name,
+          community: selectedCommunity?.name,
+          class_id: selectedClass?.name,
+          subclass_id: selectedSubclass?.name,
+          domains: formData.domains as string[],
+          stats: formData.stats as Character['stats'],
+          vitals: {
+            hit_points_max: calculatedVitals.hp,
+            hit_points_current: calculatedVitals.hp,
+            stress_max: calculatedVitals.stress,
+            stress_current: 0,
+            armor_score: actualArmorScore,
+            armor_slots: actualArmorScore,
           },
+          damage_thresholds: damageThresholds,
+          hope: 2,
+          fear: 0,
+          evasion: calculatedVitals.evasion,
+          proficiency: 1,
+          experiences: formData.experiences!.map(name => ({ name, value: 2 })),
+          gold: startingItemsAndCards.gold,
+          image_url: uploadedImageUrl || formData.image_url,
+          subclass_progression: { foundation_obtained: true, specialization_obtained: false, mastery_obtained: false },
+          modifiers: {},
+          ...(formData.companion && { ranger_companion: formData.companion })
+        },
+        cards: [
+          ...formData.selectedCards!.map((id, i) => ({ card_id: id, location: 'loadout', sort_order: i })),
+          { card_id: formData.subclass_id!, location: 'feature', sort_order: 0 }
+        ],
+        inventory: [
+          ...(finalPrimaryWeapon ? [{ item_id: finalPrimaryWeapon.id, name: finalPrimaryWeapon.name, description: finalPrimaryWeapon.data.markdown || '', location: 'equipped_primary', quantity: 1 }] : []),
+          ...(finalSecondaryWeapon ? [{ item_id: finalSecondaryWeapon.id, name: finalSecondaryWeapon.name, description: finalSecondaryWeapon.data.markdown || '', location: 'equipped_secondary', quantity: 1 }] : []),
+          ...(finalArmor ? [{ item_id: finalArmor.id, name: finalArmor.name, description: finalArmor.data.markdown || '', location: 'equipped_armor', quantity: 1 }] : []),
+          { 
+            item_id: libraryData.consumables.find(c => c.name === (formData.selectedPotionType === 'health' ? 'Minor Health Potion' : 'Minor Stamina Potion'))?.id || null,
+            name: formData.selectedPotionType === 'health' ? 'Minor Health Potion' : 'Minor Stamina Potion',
+            description: '', location: 'backpack', quantity: 1 
+          },
+          ...['Torch', '50 Feet of Rope', 'Basic Supplies'].map(name => ({
+            item_id: libraryData.consumables.find(c => c.name === name)?.id || null,
+            name, description: '', location: 'backpack', quantity: 1
+          }))
         ]
-        : [],
-      []
-    );
+      };
 
-    const newCharacterData: Omit<Character, 'id' | 'character_cards' | 'character_inventory'> = {
-      user_id: user.id,
-      name: formData.name,
-      level: 1, // Always start at level 1
-      ancestry: selectedAncestryName,
-      community: selectedCommunityName,
-      class_id: selectedClassName,
-      subclass_id: selectedSubclassName,
-      domains: formData.domains as string[],
-      stats: formData.stats as Character['stats'],
-      vitals: { // Dynamically calculated vitals
-        hit_points_max: calculatedVitals.hp,
-        hit_points_current: calculatedVitals.hp, // Start healthy (no damage)
-        stress_max: calculatedVitals.stress,
-        stress_current: 0, // Start with no stress
-        armor_score: actualArmorScore,
-        armor_slots: actualArmorScore, // Start with all armor slots available (unmarked)
-      },
-      damage_thresholds: damageThresholds,
-      hope: 2, // Starting hope is always 2
-      fear: 0,
-      evasion: calculatedVitals.evasion,
-      proficiency: 1,
-      experiences: formData.experiences!.map(name => ({ name, value: 2 })),
-      gold: startingItemsAndCards.gold,
-      image_url: uploadedImageUrl || formData.image_url,
-      subclass_progression: {
-        foundation_obtained: true,
-        specialization_obtained: false,
-        mastery_obtained: false,
-      },
-    };
-
-    // Prepare Cards Payload
-    const cardsToInsert = formData.selectedCards!.map((card_id, index) => ({
-      card_id: card_id,
-      location: 'loadout', // Assume all starting cards go to loadout
-      sort_order: index,
-    }));
-
-    // Prepare Inventory Payload
-    const inventoryToInsert: { item_id: string | null, name: string, description: string, location: string, quantity: number }[] = [];
-
-    // Add primary weapon
-    if (formData.selectedPrimaryWeaponId) {
-      const item = libraryData.weapons.find(w => w.id === formData.selectedPrimaryWeaponId);
-      if (item) {
-        inventoryToInsert.push({
-          item_id: item.id,
-          name: item.name,
-          description: item.data.markdown || '',
-          location: 'equipped_primary',
-          quantity: 1,
-        });
-      }
-    }
-
-    // Add secondary weapon if selected
-    if (formData.selectedSecondaryWeaponId) {
-      const item = libraryData.weapons.find(w => w.id === formData.selectedSecondaryWeaponId);
-      if (item) {
-        inventoryToInsert.push({
-          item_id: item.id,
-          name: item.name,
-          description: item.data.markdown || '',
-          location: 'equipped_secondary',
-          quantity: 1,
-        });
-      }
-    }
-
-    // Add armor
-    if (formData.selectedArmorId) {
-      const item = libraryData.armor.find(a => a.id === formData.selectedArmorId);
-      if (item) {
-        inventoryToInsert.push({
-          item_id: item.id,
-          name: item.name,
-          description: item.data.markdown || '',
-          location: 'equipped_armor',
-          quantity: 1,
-        });
-      }
-    }
-
-    // Add selected starting potion
-    if (formData.selectedPotionType) {
-      const potionName = formData.selectedPotionType === 'health' ? 'Minor Health Potion' : 'Minor Stamina Potion';
-      const potionItem = libraryData.consumables.find(c => c.name === potionName);
-      if (potionItem) {
-        inventoryToInsert.push({
-          item_id: potionItem.id,
-          name: potionItem.name,
-          description: potionItem.data.markdown || '',
-          location: 'backpack',
-          quantity: 1,
-        });
-      }
-    }
-
-    // Add default starting items (torch, rope, basic supplies)
-    const defaultStartingItems = ['Torch', '50 Feet of Rope', 'Basic Supplies'];
-    for (const itemName of defaultStartingItems) {
-      const item = libraryData.consumables.find(c => c.name === itemName) || libraryData.weapons.find(w => w.name === itemName);
-      if (item) {
-        inventoryToInsert.push({
-          item_id: item.id,
-          name: item.name,
-          description: item.data?.markdown || '',
-          location: 'backpack',
-          quantity: 1,
-        });
-      }
-    }
-
-    for (const itemId of startingItemsAndCards.misc) {
-      const item = libraryData.consumables.find(c => c.id === itemId); // Assuming misc items are consumables
-      if (item) {
-        inventoryToInsert.push({
-          item_id: item.id,
-          name: item.name,
-          description: item.data.markdown || '',
-          location: 'backpack',
-          quantity: 1,
-        });
-      }
-    }
-    // Add default gold items as generic inventory items or handle separately
-    if (startingItemsAndCards.gold.handfuls > 0 || startingItemsAndCards.gold.bags > 0 || startingItemsAndCards.gold.chests > 0) {
-      inventoryToInsert.push({
-        item_id: null, // Custom item
-        name: 'Gold',
-        description: `Handfuls: ${startingItemsAndCards.gold.handfuls}, Bags: ${startingItemsAndCards.gold.bags}, Chests: ${startingItemsAndCards.gold.chests}`,
-        location: 'backpack',
-        quantity: 1 // Quantity 1 for the 'Gold' entry itself
-      });
-    }
-
-    // Add subclass foundation card if selected
-    // Note: Subclass features are often managed via subclass_data lookup, 
-    // but adding it as a card with location 'feature' aligns with multiclassing logic
-    if (formData.subclass_id) {
-      cardsToInsert.push({
-        card_id: formData.subclass_id,
-        location: 'feature',
-        sort_order: 0
-      });
-    }
-
-    // Prepare character creation payload
-    const characterPayload = {
-      character: {
-        ...newCharacterData,
-        experiences: newCharacterData.experiences,
-        stats: newCharacterData.stats,
-        vitals: newCharacterData.vitals,
-        gold: newCharacterData.gold,
-        modifiers: {},
-        // Add companion for Beastbond Rangers
-        ...(formData.companion && { ranger_companion: formData.companion })
-      },
-      cards: cardsToInsert.map(({ card_id, location, sort_order }) => ({
-        card_id,
-        location,
-        sort_order
-      })),
-      inventory: inventoryToInsert.map(({ item_id, name, description, location, quantity }) => ({
-        item_id,
-        name,
-        description,
-        location,
-        quantity
-      }))
-    };
-
-    try {
-      const characterId = await dataService.character.create(characterPayload);
-      console.log("Character created successfully:", characterId);
-    } catch (createError) {
-      setError("Error creating character: " + (createError instanceof Error ? createError.message : String(createError)));
-      console.error(createError);
+      await dataService.character.create(characterPayload);
+      await fetchCharacter(user.id);
+      router.push('/client/characters');
+    } catch (err) {
+      setError("Error creating character: " + (err instanceof Error ? err.message : String(err)));
       setIsSubmitting(false);
-      return;
     }
-
-    // After successful creation, refetch character for store and redirect
-    await fetchCharacter(user.id);
-    router.push('/client/characters');
   };
 
-  const renderStep = useCallback(() => { // Define renderStep using useCallback
-    const currentClassSummary = formData.class_id ? libraryData.classes.find(c => c.id === formData.class_id) : null;
-    const currentSubclassSummary = formData.subclass_id ? libraryData.subclasses.find(s => s.id === formData.subclass_id) : null;
-    const currentAncestrySummary = formData.ancestry_id ? libraryData.ancestries.find(a => a.id === formData.ancestry_id) : null;
-    const currentCommunitySummary = formData.community_id ? libraryData.communities.find(c => c.id === formData.community_id) : null;
+  const isBeastbond = formData.subclass_id && libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
+  const totalSteps = isBeastbond ? 9 : 8;
 
-    switch (currentStep) {
-      case 1: // Basic Info
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><BookOpen size={20} /> Step 1: Basic Info</h2>
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-400">Character Name</label>
-              <input type="text" id="name" name="name" value={formData.name || ''} onChange={handleInputChange}
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Character Image (Optional)</label>
-              <div className="flex flex-col gap-3">
-                {imagePreview && (
-                  <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-dagger-gold">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedImageFile(null);
-                        setImagePreview(null);
-                      }}
-                      className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 rounded-full text-white"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                )}
-                <label className="cursor-pointer">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg border border-white/10 transition-colors">
-                    <Upload size={16} />
-                    <span className="text-sm">{selectedImageFile ? 'Change Image' : 'Upload Image'}</span>
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageFileChange}
-                    className="hidden"
-                  />
-                </label>
-                <p className="text-xs text-gray-500">Max 2MB. PNG, JPG, or WEBP</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setCurrentStep(2)}
-              disabled={!validateStep(1)}
-              className={clsx(
-                "w-full px-4 py-2 font-bold rounded-full shadow-md transition-all",
-                validateStep(1)
-                  ? "bg-dagger-gold text-black hover:scale-[1.02]"
-                  : "bg-gray-600 text-gray-400 cursor-not-allowed"
-              )}
-            >
-              Next
-            </button>
-          </div>
-        );
-      case 2: // Heritage
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><UserIcon size={20} /> Step 2: Heritage</h2>
-            <div>
-              <label htmlFor="ancestry_id" className="block text-sm font-medium text-gray-400">Ancestry</label>
-              <select id="ancestry_id" name="ancestry_id" value={formData.ancestry_id || ''} onChange={handleInputChange}
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold" required>
-                <option value="">Select an Ancestry</option>
-                {libraryData.ancestries.map(anc => <option key={anc.id} value={anc.id}>{anc.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="community_id" className="block text-sm font-medium text-gray-400">Community</label>
-              <select id="community_id" name="community_id" value={formData.community_id || ''} onChange={handleInputChange}
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold" required>
-                <option value="">Select a Community</option>
-                {libraryData.communities.map(comm => <option key={comm.id} value={comm.id}>{comm.name}</option>)}
-              </select>
-            </div>
-            <div className="flex justify-between">
-              <button type="button" onClick={() => setCurrentStep(1)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
-              <button
-                type="button"
-                onClick={() => setCurrentStep(3)}
-                disabled={!validateStep(2)}
-                className={clsx(
-                  "px-4 py-2 font-bold rounded-full shadow-md transition-all",
-                  validateStep(2)
-                    ? "bg-dagger-gold text-black hover:scale-[1.02]"
-                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                )}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        );
-      case 3: // Class & Subclass & Domains
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Sparkle size={20} /> Step 3: Class & Domains</h2>
-            <div>
-              <label htmlFor="class_id" className="block text-sm font-medium text-gray-400">Class</label>
-              <select id="class_id" name="class_id" value={formData.class_id || ''} onChange={handleInputChange}
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold" required>
-                <option value="">Select a Class</option>
-                {libraryData.classes.map(cls => (
-                  <option key={cls.id} value={cls.id}>
-                    {cls.name}{cls.source === 'playtest' ? ' [Playtest]' : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {formData.class_id && (
-              <>
-                <div>
-                  <label htmlFor="subclass_id" className="block text-sm font-medium text-gray-400">Subclass</label>
-                  <select id="subclass_id" name="subclass_id" value={formData.subclass_id || ''} onChange={handleInputChange}
-                    className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold" required>
-                    <option value="">Select a Subclass</option>
-                    {libraryData.subclasses
-                      .filter(sc => sc.data.parent_class_id === formData.class_id)
-                      .map(sc => (
-                        <option key={sc.id} value={sc.id}>
-                          {sc.name}{sc.source === 'playtest' ? ' [Playtest]' : ''}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400">Domain 1</label>
-                    <select
-                      value={formData.domains?.[0] || ''}
-                      onChange={(e) => handleDomainChange(0, e.target.value)}
-                      className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
-                    >
-                      <option value="">Select Domain</option>
-                      {libraryData.domains.map(d => (
-                        <option key={d.name} value={d.name}>
-                          {d.name}{d.source === 'playtest' ? ' [Playtest]' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400">Domain 2</label>
-                    <select
-                      value={formData.domains?.[1] || ''}
-                      onChange={(e) => handleDomainChange(1, e.target.value)}
-                      className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
-                    >
-                      <option value="">Select Domain</option>
-                      {libraryData.domains.map(d => (
-                        <option key={d.name} value={d.name}>
-                          {d.name}{d.source === 'playtest' ? ' [Playtest]' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </>
-            )}
-            <div className="flex justify-between">
-              <button type="button" onClick={() => setCurrentStep(2)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
-              <button
-                type="button"
-                onClick={() => setCurrentStep(4)}
-                disabled={!validateStep(3)}
-                className={clsx(
-                  "px-4 py-2 font-bold rounded-full shadow-md transition-all",
-                  validateStep(3)
-                    ? "bg-dagger-gold text-black hover:scale-[1.02]"
-                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                )}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        );
-      case 4: // Choose Domain Cards (Consolidated)
-        const domain1 = formData.domains?.[0];
-        const domain2 = formData.domains?.[1];
-
-        const cardsDomain1 = [
-          ...(libraryData.abilities || []),
-          ...(libraryData.spells || []),
-          ...(libraryData.grimoires || []),
-        ].filter(card => card.domain === domain1 && card.data.level === 1);
-
-        const cardsDomain2 = [
-          ...(libraryData.abilities || []),
-          ...(libraryData.spells || []),
-          ...(libraryData.grimoires || []),
-        ].filter(card => card.domain === domain2 && card.data.level === 1);
-
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><BookOpen size={20} /> Step 4: Choose up to 2 Domain Cards</h2>
-            <p className="text-sm text-gray-400">Select exactly 2 starting cards from your chosen domains.</p>
-
-            {/* Domain 1 Section */}
-            <div>
-              <h3 className="text-lg font-serif text-dagger-gold mb-2">{domain1} Cards</h3>
-              <div className="grid grid-cols-1 gap-2 max-h-[30vh] overflow-y-auto pr-2">
-                {cardsDomain1.map(card => {
-                  const isSelected = formData.selectedCards?.includes(card.id);
-                  const isPlaytest = card.source === 'playtest';
-                  return (
-                    <div
-                      key={card.id}
-                      onClick={() => handleCardSelection(card.id)}
-                      className={clsx(
-                        "p-3 rounded border cursor-pointer transition-all",
-                        isSelected
-                          ? "bg-dagger-gold/20 border-dagger-gold ring-1 ring-dagger-gold"
-                          : "bg-black/20 border-white/10 hover:bg-white/5 opacity-80 hover:opacity-100"
-                      )}
-                    >
-                      <div className="font-bold text-dagger-gold flex justify-between items-center">
-                        <span className="flex items-center gap-1.5">
-                          {card.name}
-                          {isPlaytest && <FlaskConical size={14} className="text-purple-400" />}
-                        </span>
-                        {isSelected && <span className="text-xs bg-dagger-gold text-black px-2 py-0.5 rounded-full">Selected</span>}
-                      </div>
-                      <div className="text-xs text-gray-400 mb-1">{card.type} - Level {card.data.level}</div>
-                      <div className="text-sm text-gray-300 line-clamp-2">{card.data.description}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Domain 2 Section */}
-            <div>
-              <h3 className="text-lg font-serif text-dagger-gold mb-2">{domain2} Cards</h3>
-              <div className="grid grid-cols-1 gap-2 max-h-[30vh] overflow-y-auto pr-2">
-                {cardsDomain2.map(card => {
-                  const isSelected = formData.selectedCards?.includes(card.id);
-                  const isPlaytest = card.source === 'playtest';
-                  return (
-                    <div
-                      key={card.id}
-                      onClick={() => handleCardSelection(card.id)}
-                      className={clsx(
-                        "p-3 rounded border cursor-pointer transition-all",
-                        isSelected
-                          ? "bg-dagger-gold/20 border-dagger-gold ring-1 ring-dagger-gold"
-                          : "bg-black/20 border-white/10 hover:bg-white/5 opacity-80 hover:opacity-100"
-                      )}
-                    >
-                      <div className="font-bold text-dagger-gold flex justify-between items-center">
-                        <span className="flex items-center gap-1.5">
-                          {card.name}
-                          {isPlaytest && <FlaskConical size={14} className="text-purple-400" />}
-                        </span>
-                        {isSelected && <span className="text-xs bg-dagger-gold text-black px-2 py-0.5 rounded-full">Selected</span>}
-                      </div>
-                      <div className="text-xs text-gray-400 mb-1">{card.type} - Level {card.data.level}</div>
-                      <div className="text-sm text-gray-300 line-clamp-2">{card.data.description}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="flex justify-between pt-4">
-              <button type="button" onClick={() => setCurrentStep(3)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
-              <button
-                type="button"
-                onClick={() => setCurrentStep(5)}
-                disabled={!validateStep(4)}
-                className={clsx(
-                  "px-4 py-2 font-bold rounded-full shadow-md transition-all",
-                  validateStep(4)
-                    ? "bg-dagger-gold text-black hover:scale-[1.02]"
-                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                )}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        );
-      case 5: // Assign Traits
-        const availableTraits = Object.entries(formData.stats || {});
-        // Count how many non-zero values still need to be assigned
-        const assignedNonZeroCount = Object.values(formData.stats || {}).filter(v => v !== 0).length;
-        const remainingCount = DISPLAY_TRAIT_POOL.length - assignedNonZeroCount;
-
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><HandMetal size={20} /> Step 5: Assign Traits</h2>
-            <p className="text-sm text-gray-400">
-              <span className="hidden md:inline">Click a value to select, then click a stat to assign.</span>
-              <span className="md:hidden">Tap a value, then tap a stat to assign.</span>
-              {' '}Remaining: {remainingCount}
-            </p>
-            <div className="flex justify-center flex-wrap gap-2 mb-4">
-              {DISPLAY_TRAIT_POOL.map((val, index) => {
-                const isAssigned = isTraitValueAssigned(val);
-                const isSelected = selectedTraitIndex === index;
-
-                return (
-                  <button
-                    key={index}
-                    type="button"
-                    className={clsx(
-                      "px-4 py-2 rounded-full cursor-pointer transition-all",
-                      isSelected
-                        ? "bg-dagger-gold text-black ring-2 ring-dagger-gold ring-offset-2 ring-offset-dagger-dark scale-105 shadow-lg"
-                        : isAssigned
-                          ? "bg-gray-600 text-gray-400 hover:bg-gray-500"
-                          : "bg-blue-600 text-white hover:bg-blue-500 active:scale-95"
-                    )}
-                    onClick={() => setSelectedTraitIndex(index)}
-                  >
-                    {val >= 0 ? `+${val}` : val}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {availableTraits.map(([stat, value]) => {
-                const statValue = formData.stats![stat as keyof CharacterFormData['stats']];
-                const isAssigned = statValue !== 0 && TRAIT_ASSIGNMENT_POOL.includes(statValue);
-
-                return (
-                  <button
-                    type="button"
-                    key={stat}
-                    className={clsx(
-                      "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all",
-                      isAssigned
-                        ? "bg-dagger-gold/10 border-dagger-gold shadow-md shadow-dagger-gold/20"
-                        : "bg-black/20 border-white/5 hover:border-white/20",
-                      selectedTraitIndex !== null && "cursor-pointer hover:scale-105 active:scale-95"
-                    )}
-                    onClick={() => {
-                      if (selectedTraitIndex !== null) {
-                        const selectedValue = DISPLAY_TRAIT_POOL[selectedTraitIndex];
-                        assignTraitValue(stat as keyof CharacterFormData['stats'], selectedValue);
-                      }
-                    }}
-                  >
-                    <label className="capitalize text-sm text-gray-300 pointer-events-none">{stat}</label>
-                    <div className={clsx(
-                      "text-3xl font-bold mt-1 pointer-events-none",
-                      isAssigned ? "text-dagger-gold" : "text-gray-500"
-                    )}>
-                      {statValue >= 0 ? `+${statValue}` : statValue}
-                    </div>
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        assignTraitValue(stat as keyof CharacterFormData['stats'], '');
-                      }}
-                      className="mt-2 text-red-400 text-xs hover:underline cursor-pointer"
-                    >
-                      Clear
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="flex justify-between mt-4">
-              <button type="button" onClick={() => setCurrentStep(4)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
-              <button
-                type="button"
-                onClick={() => setCurrentStep(6)}
-                disabled={!validateStep(5)}
-                className={clsx(
-                  "px-4 py-2 font-bold rounded-full shadow-md transition-all",
-                  validateStep(5)
-                    ? "bg-dagger-gold text-black hover:scale-[1.02]"
-                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                )}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        );
-      case 6: // Experiences
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Sparkle size={20} /> Step 6: Experiences</h2>
-            <p className="text-sm text-gray-400">Create two experiences that reflect your character&apos;s background. E.g., &quot;Expert Tracker&quot;, &quot;Raised by Wolves&quot;, &quot;Disgraced Noble&quot;. (+2 bonus when relevant)</p>
-            <div>
-              <label className="block text-sm font-medium text-gray-400">Experience 1 (+2)</label>
-              <input
-                type="text"
-                value={formData.experiences?.[0] || ''}
-                onChange={(e) => handleExperienceChange(0, e.target.value)}
-                placeholder="e.g. Former Guard Captain"
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-400">Experience 2 (+2)</label>
-              <input
-                type="text"
-                value={formData.experiences?.[1] || ''}
-                onChange={(e) => handleExperienceChange(1, e.target.value)}
-                placeholder="e.g. Trust No One"
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
-              />
-            </div>
-            <div className="flex justify-between mt-4">
-              <button type="button" onClick={() => setCurrentStep(5)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
-              <button
-                type="button"
-                onClick={() => {
-                  // Skip companion step if not Beastbond
-                  const isBeastbound = formData.subclass_id &&
-                    libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
-                  setCurrentStep(isBeastbound ? 7 : 8);
-                }}
-                disabled={!validateStep(6)}
-                className={clsx(
-                  "px-4 py-2 font-bold rounded-full shadow-md transition-all",
-                  validateStep(6)
-                    ? "bg-dagger-gold text-black hover:scale-[1.02]"
-                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                )}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        );
-      case 7: // Companion Creation (only for Beastbond Rangers)
-        const isBeastbound = formData.subclass_id &&
-          libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
-
-        if (!isBeastbound) {
-          // Skip this step if not Beastbond
-          return null;
-        }
-
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold font-serif flex items-center gap-2">
-              <PawPrint size={20} className="text-dagger-gold" /> Step 7: Create Your Companion
-            </h2>
-            <p className="text-sm text-gray-400">
-              As a Beastbound Ranger, you have an animal companion. Give them a name and describe their background.
-            </p>
-            <div>
-              <label className="block text-sm font-medium text-gray-400">Companion Name</label>
-              <input
-                type="text"
-                value={formData.companion?.name || ''}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  companion: {
-                    ...prev.companion,
-                    name: e.target.value,
-                    animal_type: prev.companion?.animal_type || '',
-                    evasion: 10,
-                    stress_max: 3,
-                    stress_current: 0,
-                    armor_slot: false,
-                    armor_slot_used: false,
-                    hope_max: 1,
-                    hope_current: 0,
-                    attack_type: prev.companion?.attack_type || 'melee',
-                    attack_name: prev.companion?.attack_name || '',
-                    damage_die: 'd6',
-                    attack_range: prev.companion?.attack_range || 'melee',
-                    experiences: prev.companion?.experiences || [{ name: '', value: 2 }, { name: '', value: 2 }],
-                    level_up_options: {
-                      intelligent: 0,
-                      light_in_the_dark: false,
-                      creature_comfort: false,
-                      armored: false,
-                      vicious: 0,
-                      resilient: 0,
-                      bonded: false,
-                      aware: false,
-                    }
-                  } as RangerCompanion
-                }))}
-                placeholder="e.g., Shadow, Fang, Luna"
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-400">Animal Type</label>
-              <input
-                type="text"
-                value={formData.companion?.animal_type || ''}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  companion: {
-                    ...prev.companion!,
-                    animal_type: e.target.value
-                  } as RangerCompanion
-                }))}
-                placeholder="e.g., Wolf, Hawk, Bear"
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-400">Attack Name</label>
-              <input
-                type="text"
-                value={formData.companion?.attack_name || ''}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  companion: {
-                    ...prev.companion!,
-                    attack_name: e.target.value
-                  } as RangerCompanion
-                }))}
-                placeholder="e.g., Claw Swipe, Bite, Pounce"
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-400">Companion Experience 1 (+2)</label>
-              <input
-                type="text"
-                value={formData.companion?.experiences?.[0]?.name || ''}
-                onChange={(e) => {
-                  const newExperiences = [...(formData.companion?.experiences || [{ name: '', value: 2 }, { name: '', value: 2 }])];
-                  newExperiences[0] = { name: e.target.value, value: 2 };
-                  setFormData(prev => ({
-                    ...prev,
-                    companion: {
-                      ...prev.companion!,
-                      experiences: newExperiences
-                    } as RangerCompanion
-                  }));
-                }}
-                placeholder="e.g., Tracking, Hunting"
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-400">Companion Experience 2 (+2)</label>
-              <input
-                type="text"
-                value={formData.companion?.experiences?.[1]?.name || ''}
-                onChange={(e) => {
-                  const newExperiences = [...(formData.companion?.experiences || [{ name: '', value: 2 }, { name: '', value: 2 }])];
-                  newExperiences[1] = { name: e.target.value, value: 2 };
-                  setFormData(prev => ({
-                    ...prev,
-                    companion: {
-                      ...prev.companion!,
-                      experiences: newExperiences
-                    } as RangerCompanion
-                  }));
-                }}
-                placeholder="e.g., Loyal Guardian"
-                className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold"
-              />
-            </div>
-            <div className="flex justify-between mt-4">
-              <button type="button" onClick={() => setCurrentStep(6)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
-              <button
-                type="button"
-                onClick={() => setCurrentStep(8)}
-                disabled={!validateStep(7)}
-                className={clsx(
-                  "px-4 py-2 font-bold rounded-full shadow-md transition-all",
-                  validateStep(7)
-                    ? "bg-dagger-gold text-black hover:scale-[1.02]"
-                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                )}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        );
-      case 8: // Equipment Selection
-        // Filter Tier 1 weapons and armor
-        const tier1PrimaryWeapons = libraryData.weapons.filter(w => w.tier === 1 && (w.data.primary_or_secondary === 'Primary' || w.data.hand === 'Primary'));
-        const tier1SecondaryWeapons = libraryData.weapons.filter(w => w.tier === 1 && (w.data.primary_or_secondary === 'Secondary' || w.data.hand === 'Secondary'));
-        const tier1Armor = libraryData.armor.filter(a => a.tier === 1);
-
-        const selectedPrimaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedPrimaryWeaponId);
-        const selectedSecondaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedSecondaryWeaponId);
-        const selectedArmor = libraryData.armor.find(a => a.id === formData.selectedArmorId);
-
-        // Determine if secondary weapon selection should be enabled
-        const isSecondaryWeaponEnabled = selectedPrimaryWeapon?.data.burden !== 'Two-Handed';
-
-        // Helper for rendering equipment cards (Inventory-style)
-        const renderEquipmentCard = (
-          label: string,
-          item: LibraryLookupItem | undefined,
-          context: 'primary' | 'secondary' | 'armor',
-          enabled: boolean = true
-        ) => (
-          <div
-            className={clsx(
-              "flex flex-col gap-2 p-3 rounded-lg border transition-all",
-              item ? "bg-dagger-gold/10 border-dagger-gold/30" : "bg-white/5 border-white/5",
-              !enabled && "opacity-50"
-            )}
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-bold uppercase bg-white/10 text-gray-400 px-1.5 py-0.5 rounded">
-                    {label}
-                  </span>
-                  {item && (
-                    <span className="text-[10px] font-bold uppercase bg-dagger-gold text-black px-1.5 py-0.5 rounded">
-                      Selected
-                    </span>
-                  )}
-                </div>
-                {item ? (
-                  <>
-                    <div className="font-medium text-white">{item.name}</div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {context === 'armor' ? (
-                        <>
-                          {item.data.feature?.name && <span className="font-bold text-gray-300">{item.data.feature.name}: </span>}
-                          {item.data.feature?.text && <span className="italic">{item.data.feature.text} </span>}
-                          <span className="block mt-0.5 text-gray-500">
-                            Score: {item.data.base_score}, Thresholds: {item.data.base_thresholds}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="block mb-0.5">
-                            {item.data.trait} • {item.data.range} • {item.data.damage}
-                          </span>
-                          {item.data.feature?.name && <span className="font-bold text-gray-300">{item.data.feature.name}: </span>}
-                          {item.data.feature?.text && <span className="italic">{item.data.feature.text}</span>}
-                        </>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-white/50 italic text-sm">
-                    {enabled ? `Click to select ${label.toLowerCase()}...` : `${label} disabled (two-handed weapon equipped)`}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 mt-1">
-              {enabled && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEquipmentModalContext(context);
-                    setEquipmentModalOpen(true);
-                  }}
-                  className="text-[10px] font-bold uppercase px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white flex items-center gap-1"
-                >
-                  <Sword size={12} /> {item ? 'Change' : 'Select'}
-                </button>
-              )}
-              {item && enabled && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (context === 'primary') setFormData(prev => ({ ...prev, selectedPrimaryWeaponId: null }));
-                    else if (context === 'secondary') setFormData(prev => ({ ...prev, selectedSecondaryWeaponId: null }));
-                    else if (context === 'armor') setFormData(prev => ({ ...prev, selectedArmorId: null }));
-                  }}
-                  className="text-[10px] font-bold uppercase px-2 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded flex items-center gap-1 ml-auto"
-                >
-                  <X size={12} /> Remove
-                </button>
-              )}
-            </div>
-          </div>
-        );
-
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Shield size={20} /> Step 7: Starting Equipment</h2>
-            <p className="text-sm text-gray-400">
-              Choose from Tier 1 equipment: either a two-handed primary weapon OR a one-handed primary weapon and secondary weapon, plus one set of armor.
-            </p>
-
-            {/* Equipment Cards */}
-            <div className="space-y-2">
-              {renderEquipmentCard("Primary Weapon", selectedPrimaryWeapon, 'primary')}
-              {renderEquipmentCard("Secondary Weapon", selectedSecondaryWeapon, 'secondary', isSecondaryWeaponEnabled)}
-              {renderEquipmentCard("Armor", selectedArmor, 'armor')}
-            </div>
-
-            {/* Starting Potion Selection */}
-            <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 mt-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Starting Potion</h3>
-              <p className="text-xs text-gray-400 mb-3">Choose one starting potion (you&apos;ll also receive a torch, rope, and basic supplies)</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, selectedPotionType: 'health' }))}
-                  className={clsx(
-                    "p-3 rounded-lg border transition-all text-left",
-                    formData.selectedPotionType === 'health'
-                      ? "bg-dagger-gold/10 border-dagger-gold"
-                      : "bg-white/5 border-white/10 hover:border-white/20"
-                  )}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <Heart size={16} className="text-red-400" />
-                    <span className="font-bold text-white text-sm">Minor Health Potion</span>
-                  </div>
-                  <div className="text-xs text-gray-400">Clear 1d4 Hit Points</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, selectedPotionType: 'stamina' }))}
-                  className={clsx(
-                    "p-3 rounded-lg border transition-all text-left",
-                    formData.selectedPotionType === 'stamina'
-                      ? "bg-dagger-gold/10 border-dagger-gold"
-                      : "bg-white/5 border-white/10 hover:border-white/20"
-                  )}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <Sparkle size={16} className="text-blue-400" />
-                    <span className="font-bold text-white text-sm">Minor Stamina Potion</span>
-                  </div>
-                  <div className="text-xs text-gray-400">Clear 1d4 Stress</div>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex justify-between mt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  // Go back to companion step if Beastbond, otherwise experiences
-                  const isBeastbound = formData.subclass_id &&
-                    libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
-                  setCurrentStep(isBeastbound ? 7 : 6);
-                }}
-                className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentStep(9)}
-                disabled={!validateStep(8)}
-                className={clsx(
-                  "px-4 py-2 font-bold rounded-full shadow-md transition-all",
-                  validateStep(8)
-                    ? "bg-dagger-gold text-black hover:scale-[1.02]"
-                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                )}
-              >
-                Next
-              </button>
-            </div>
-
-            {/* Modal Rendering */}
-            {equipmentModalOpen && (
-              <AddItemModal
-                isOpen={equipmentModalOpen}
-                onClose={() => setEquipmentModalOpen(false)}
-                onAddItem={(item) => handleEquipmentSelect(item)}
-                libraryItems={
-                  equipmentModalContext === 'primary' ? tier1PrimaryWeapons as LibraryItem[] :
-                    equipmentModalContext === 'secondary' ? tier1SecondaryWeapons as LibraryItem[] :
-                      equipmentModalContext === 'armor' ? tier1Armor as LibraryItem[] : []
-                }
-                filterType="inventory"
-              />
-            )}
-          </div>
-        );
-      case 9: // Confirm & Create
-        const currentClassSummary = formData.class_id ? libraryData.classes.find(c => c.id === formData.class_id) : null;
-        const currentSubclassSummary = formData.subclass_id ? libraryData.subclasses.find(s => s.id === formData.subclass_id) : null;
-        const currentAncestrySummary = formData.ancestry_id ? libraryData.ancestries.find(a => a.id === formData.ancestry_id) : null;
-        const currentCommunitySummary = formData.community_id ? libraryData.communities.find(c => c.id === formData.community_id) : null;
-        const finalPrimaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedPrimaryWeaponId);
-        const finalSecondaryWeapon = libraryData.weapons.find(w => w.id === formData.selectedSecondaryWeaponId);
-        const finalArmor = libraryData.armor.find(a => a.id === formData.selectedArmorId);
-
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Shield size={20} /> Step 8: Confirm & Create</h2>
-            <div className="bg-black/20 p-4 rounded-lg border border-white/5 space-y-3">
-              <p><strong>Name:</strong> {formData.name}</p>
-              <p><strong>Ancestry:</strong> {currentAncestrySummary?.name || 'N/A'}</p>
-              <p><strong>Community:</strong> {currentCommunitySummary?.name || 'N/A'}</p>
-              <p><strong>Class:</strong> {currentClassSummary?.name || 'N/A'}</p>
-              <p><strong>Subclass:</strong> {currentSubclassSummary?.name || 'N/A'}</p>
-              <p><strong>Domains:</strong> {formData.domains?.join(', ')}</p>
-              <p><strong>Calculated Vitals:</strong> HP: {calculatedVitals.hp}, Stress: {calculatedVitals.stress}, Armor: {calculatedVitals.armor}</p>
-              <p><strong>Evasion:</strong> {calculatedVitals.evasion}</p>
-              <p><strong>Experiences:</strong> {formData.experiences?.join(', ')}</p>
-              <p className="flex items-center gap-1">
-                <Coins size={16} /> <strong>Starting Gold:</strong> {startingItemsAndCards.gold.handfuls}h, {startingItemsAndCards.gold.bags}b, {startingItemsAndCards.gold.chests}c
-              </p>
-              <p><strong>Primary Weapon:</strong> {finalPrimaryWeapon?.name || 'N/A'}</p>
-              {finalSecondaryWeapon && <p><strong>Secondary Weapon:</strong> {finalSecondaryWeapon.name}</p>}
-              <p><strong>Armor:</strong> {finalArmor?.name || 'N/A'}</p>
-              <p><strong>Starting Potion:</strong> {formData.selectedPotionType === 'health' ? 'Minor Health Potion' : formData.selectedPotionType === 'stamina' ? 'Minor Stamina Potion' : 'N/A'}</p>
-              <p className="text-xs text-gray-400"><em>Also includes: Torch, 50 Feet of Rope, Basic Supplies</em></p>
-              <p><strong>Starting Cards ({formData.selectedCards?.length}):</strong></p>
-              <ul className="list-disc pl-5">
-                {formData.selectedCards?.map(id => {
-                  const card = [...libraryData.abilities, ...libraryData.spells, ...libraryData.grimoires].find(c => c.id === id);
-                  return <li key={id}>{card?.name} ({card?.domain} {card?.type})</li>
-                })}
-              </ul>
-            </div>
-            <div className="flex justify-between mt-4">
-              <button type="button" onClick={() => setCurrentStep(8)} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
-              <button
-                type="submit"
-                disabled={isSubmitting || uploadingImage}
-                className="px-4 py-2 bg-green-600 text-white font-bold rounded-full shadow-md hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-              >
-                {uploadingImage ? 'Uploading Image...' : isSubmitting ? 'Creating...' : 'Create Character'}
-              </button>
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
-  }, [currentStep, formData, libraryData, calculatedVitals, startingItemsAndCards, TRAIT_ASSIGNMENT_POOL, DISPLAY_TRAIT_POOL, handleInputChange, assignTraitValue, handleExperienceChange, isSubmitting, selectedTraitIndex, isTraitValueAssigned, handleDomainChange, handleCardSelection, validateStep, equipmentModalContext, equipmentModalOpen, handleEquipmentSelect, imagePreview, selectedImageFile, handleImageFileChange, uploadingImage]);
-
-
-  // Check if current character is Beastbond Ranger
-  const isBeastboundRanger = formData.subclass_id &&
-    libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
-  const totalSteps = isBeastboundRanger ? 9 : 8;
+  if (libraryLoading) return <div className="min-h-screen bg-dagger-dark flex items-center justify-center text-white">Loading data...</div>;
 
   return (
     <div className="min-h-[100dvh] bg-dagger-dark text-white p-4 flex items-center justify-center">
       <div className="max-w-md w-full bg-dagger-panel border border-white/10 rounded-xl shadow-lg p-6 space-y-6">
         <h1 className="text-2xl font-serif font-bold text-center text-dagger-gold">New Character</h1>
-
         <div className="flex justify-center gap-2 mb-4">
           {Array.from({ length: totalSteps }).map((_, idx) => (
-            <div key={idx} className={clsx(
-              "w-6 h-2 rounded-full",
-              idx + 1 === currentStep ? "bg-dagger-gold" : "bg-gray-700"
-            )} />
+            <div key={idx} className={clsx("w-6 h-2 rounded-full", idx + 1 === currentStep ? "bg-dagger-gold" : "bg-gray-700")} />
           ))}
         </div>
-
         {error && <div className="p-3 bg-red-800/50 border border-red-500 rounded text-red-300 text-sm">{error}</div>}
-
         <form onSubmit={handleSubmit}>
-          {renderStep()}
+          {currentStep === 1 && (
+            <BasicInfoStep 
+              formData={formData} handleInputChange={handleInputChange} 
+              imagePreview={imagePreview} selectedImageFile={selectedImageFile}
+              handleImageFileChange={handleImageFileChange} setSelectedImageFile={setSelectedImageFile}
+              setImagePreview={setImagePreview} onNext={() => setCurrentStep(2)} isValid={validateStep(1)}
+            />
+          )}
+          {currentStep === 2 && (
+            <HeritageStep 
+              formData={formData} libraryData={libraryData} handleInputChange={handleInputChange}
+              onNext={() => setCurrentStep(3)} onBack={() => setCurrentStep(1)} isValid={validateStep(2)}
+            />
+          )}
+          {currentStep === 3 && (
+            <ClassDomainsStep 
+              formData={formData} libraryData={libraryData} handleInputChange={handleInputChange}
+              handleDomainChange={handleDomainChange} onNext={() => setCurrentStep(4)} onBack={() => setCurrentStep(2)} isValid={validateStep(3)}
+            />
+          )}
+          {currentStep === 4 && (
+            <DomainCardsStep 
+              formData={formData} libraryData={libraryData} handleCardSelection={handleCardSelection}
+              onNext={() => setCurrentStep(5)} onBack={() => setCurrentStep(3)} isValid={validateStep(4)}
+            />
+          )}
+          {currentStep === 5 && (
+            <AssignTraitsStep 
+              formData={formData} displayTraitPool={DISPLAY_TRAIT_POOL} traitAssignmentPool={TRAIT_ASSIGNMENT_POOL}
+              selectedTraitIndex={selectedTraitIndex} setSelectedTraitIndex={setSelectedTraitIndex}
+              assignTraitValue={assignTraitValue} isTraitValueAssigned={isTraitValueAssigned}
+              onNext={() => setCurrentStep(6)} onBack={() => setCurrentStep(4)} isValid={validateStep(5)}
+            />
+          )}
+          {currentStep === 6 && (
+            <ExperiencesStep 
+              formData={formData} handleExperienceChange={handleExperienceChange}
+              onNext={() => setCurrentStep(isBeastbond ? 7 : 8)} onBack={() => setCurrentStep(5)} isValid={validateStep(6)}
+            />
+          )}
+          {currentStep === 7 && isBeastbond && (
+            <CompanionStep 
+              formData={formData} setFormData={setFormData}
+              onNext={() => setCurrentStep(8)} onBack={() => setCurrentStep(6)} isValid={validateStep(7)}
+            />
+          )}
+          {currentStep === 8 && (
+            <EquipmentStep 
+              formData={formData} libraryData={libraryData} setFormData={setFormData}
+              onNext={() => setCurrentStep(9)} onBack={() => setCurrentStep(isBeastbond ? 7 : 6)} isValid={validateStep(8)}
+            />
+          )}
+          {currentStep === 9 && (
+            <ConfirmCreateStep 
+              formData={formData} libraryData={libraryData} calculatedVitals={calculatedVitals}
+              startingItemsAndCards={startingItemsAndCards} isSubmitting={isSubmitting}
+              uploadingImage={uploadingImage} onBack={() => setCurrentStep(8)}
+            />
+          )}
         </form>
       </div>
     </div>
