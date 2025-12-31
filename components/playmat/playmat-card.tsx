@@ -19,9 +19,9 @@
 import React from 'react';
 import { Box, ArrowRightLeft, Settings, Image as ImageIcon } from 'lucide-react';
 import clsx from 'clsx';
-import { DomainCard } from '@/components/cards/domain-card';
-import CardTokenTrack from '@/components/cards/mechanics/card-token-track';
-import FrequencyCheckbox from '@/components/cards/mechanics/frequency-checkbox';
+import { DomainCard } from '@/components/physical-cards/domain-card';
+import CardTokenTrack from '@/components/cards/interactive-elements/card-token-track';
+import FrequencyCheckbox from '@/components/cards/interactive-elements/frequency-checkbox';
 import { AttackCard, MarkStressButton, SpendHopeButton } from '@/components/combat';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { EnhancedAbilityCard } from '@/types/cards';
@@ -52,7 +52,7 @@ export default function PlaymatCard({
   // --- Attack / Roll Calculation Logic (Similar to CombatView) ---
   // If the card has an attack or roll, we prepare the data for AttackCard
   const hasAttack = enhancedData?.attack || enhancedData?.roll;
-  
+
   let attackCardNode = null;
 
   if (character && hasAttack && enhancedData) {
@@ -68,34 +68,34 @@ export default function PlaymatCard({
     let rollLabel = '';
 
     if (rollTrait) {
-        if (rollTrait.toLowerCase() === 'spellcast') {
-            const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
-            const rawTraitValue = spellcastTraitName 
-                ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0) 
-                : (character.spellcast || 0);
-            
-            // Add trait modifiers
-            let traitModSum = 0;
-            if (spellcastTraitName) {
-                const tKey = spellcastTraitName.toLowerCase();
-                const tSystem = getSystemModifiers(character, tKey);
-                const tUser = character.modifiers?.[tKey] || [];
-                traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
-            }
-            
-            const spellcastBase = rawTraitValue + traitModSum;
-            const spellcastMods = getSystemModifiers(character, 'spellcast');
-            const userSpellcastMods = character.modifiers?.['spellcast'] || [];
-            rollBonus = spellcastBase + [...spellcastMods, ...userSpellcastMods].reduce((acc, mod) => acc + mod.value, 0);
-            rollLabel = 'Spellcast';
-        } else {
-            const traitKey = rollTrait.toLowerCase();
-            const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-            const systemTraitMods = getSystemModifiers(character, traitKey);
-            const userTraitMods = character.modifiers?.[traitKey] || [];
-            rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
-            rollLabel = rollTrait;
+      if (rollTrait.toLowerCase() === 'spellcast') {
+        const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
+        const rawTraitValue = spellcastTraitName
+          ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0)
+          : (character.spellcast || 0);
+
+        // Add trait modifiers
+        let traitModSum = 0;
+        if (spellcastTraitName) {
+          const tKey = spellcastTraitName.toLowerCase();
+          const tSystem = getSystemModifiers(character, tKey);
+          const tUser = character.modifiers?.[tKey] || [];
+          traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
         }
+
+        const spellcastBase = rawTraitValue + traitModSum;
+        const spellcastMods = getSystemModifiers(character, 'spellcast');
+        const userSpellcastMods = character.modifiers?.['spellcast'] || [];
+        rollBonus = spellcastBase + [...spellcastMods, ...userSpellcastMods].reduce((acc, mod) => acc + mod.value, 0);
+        rollLabel = 'Spellcast';
+      } else {
+        const traitKey = rollTrait.toLowerCase();
+        const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+        const systemTraitMods = getSystemModifiers(character, traitKey);
+        const userTraitMods = character.modifiers?.[traitKey] || [];
+        rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
+        rollLabel = rollTrait;
+      }
     }
 
     // 3. Calculate Damage
@@ -104,30 +104,30 @@ export default function PlaymatCard({
 
     // 4. Render AttackCard (Mini Version)
     attackCardNode = (
-        <div className="mt-2">
-            <AttackCard
-                id={`playmat-${card.id}`}
-                name={enhancedData.name} // Usually we might want simpler name or just "Attack"
-                trait={rollLabel || 'Roll'}
-                range={enhancedData.attack?.range || ''}
-                baseDamage={baseDamage}
-                calculatedDamage={finalDamage}
-                totalAttackBonus={rollBonus}
-                attackModifier={0}
-                damageModifier={0}
-                proficiency={totalProficiency}
-                onAttackRoll={() => prepareRoll(`${enhancedData.name} ${rollLabel}`, rollBonus)}
-                onDamageRoll={finalDamage ? () => {
-                    const { dice, modifier } = parseDamageRoll(finalDamage);
-                    prepareRoll(`${enhancedData.name} Damage`, modifier, dice);
-                } : undefined}
-                borderVariant={enhancedData.action_type === 'reaction' ? 'reaction' : 'spell'}
-                // For playmat, we might want a simplified look? 
-                // AttackCard is already quite dense. Let's use it as is for consistency.
-                rollLabel={rollLabel || 'Roll'}
-                costs={enhancedData.costs}
-            />
-        </div>
+      <div className="mt-2">
+        <AttackCard
+          id={`playmat-${card.id}`}
+          name={enhancedData.name} // Usually we might want simpler name or just "Attack"
+          trait={rollLabel || 'Roll'}
+          range={enhancedData.attack?.range || ''}
+          baseDamage={baseDamage}
+          calculatedDamage={finalDamage}
+          totalAttackBonus={rollBonus}
+          attackModifier={0}
+          damageModifier={0}
+          proficiency={totalProficiency}
+          onAttackRoll={() => prepareRoll(`${enhancedData.name} ${rollLabel}`, rollBonus)}
+          onDamageRoll={finalDamage ? () => {
+            const { dice, modifier } = parseDamageRoll(finalDamage);
+            prepareRoll(`${enhancedData.name} Damage`, modifier, dice);
+          } : undefined}
+          borderVariant={enhancedData.action_type === 'reaction' ? 'reaction' : 'spell'}
+          // For playmat, we might want a simplified look? 
+          // AttackCard is already quite dense. Let's use it as is for consistency.
+          rollLabel={rollLabel || 'Roll'}
+          costs={enhancedData.costs}
+        />
+      </div>
     );
   }
 
@@ -139,7 +139,7 @@ export default function PlaymatCard({
   const isLoadout = card.location === 'loadout';
 
   return (
-    <div 
+    <div
       className="relative flex flex-col items-center gap-2 p-2 bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full transition-colors"
     >
       {/* Visual Domain Card */}
@@ -174,30 +174,30 @@ export default function PlaymatCard({
       )}
 
       {/* Mechanics Tray */}
-      <div 
+      <div
         className="bg-black/40 border border-white/10 rounded-lg p-2 space-y-2 w-full"
         onClick={(e) => {
-           // Allow clicking empty space in tray to trigger View (bubble up)
+          // Allow clicking empty space in tray to trigger View (bubble up)
         }}
       >
         {/* Token Track */}
         {showTokenTrack && (
-            <CardTokenTrack
-                cardName={libraryItem.name}
-                maxTokens={enhancedData?.max_tokens ?? null}
-                tokenSource={enhancedData?.token_source}
-            />
+          <CardTokenTrack
+            cardName={libraryItem.name}
+            maxTokens={enhancedData?.max_tokens ?? null}
+            tokenSource={enhancedData?.token_source}
+          />
         )}
 
         {/* Frequency */}
         {showFrequency && enhancedData?.frequency && (
-            <div className="flex justify-center">
-                <FrequencyCheckbox
-                    cardName={libraryItem.name}
-                    frequency={enhancedData.frequency}
-                    className="bg-white/5 px-3 py-1.5 w-full justify-center"
-                />
-            </div>
+          <div className="flex justify-center">
+            <FrequencyCheckbox
+              cardName={libraryItem.name}
+              frequency={enhancedData.frequency}
+              className="bg-white/5 px-3 py-1.5 w-full justify-center"
+            />
+          </div>
         )}
 
         {/* Embedded Attack Card */}
@@ -205,44 +205,44 @@ export default function PlaymatCard({
 
         {/* Actions Row */}
         <div className="pt-1 border-t border-white/5 flex gap-2">
-            {/* Change Art */}
-            <button
-                onClick={(e) => {
-                    e.stopPropagation();
-                    if (onEditArt) {
-                        onEditArt();
-                    } else {
-                        onView();
-                    }
-                }}
-                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-white/5 hover:bg-white/10 rounded-md text-[10px] font-medium text-gray-400 hover:text-white transition-colors"
-            >
-                <ImageIcon size={12} /> Change Art
-            </button>
+          {/* Change Art */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onEditArt) {
+                onEditArt();
+              } else {
+                onView();
+              }
+            }}
+            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-white/5 hover:bg-white/10 rounded-md text-[10px] font-medium text-gray-400 hover:text-white transition-colors"
+          >
+            <ImageIcon size={12} /> Change Art
+          </button>
 
-            {/* Move Toggle */}
-            <button
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onMoveLocation(isLoadout ? 'vault' : 'loadout');
-                }}
-                className={clsx(
-                    "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[10px] font-bold transition-colors border",
-                    isLoadout 
-                        ? "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10"
-                        : "bg-dagger-gold/10 border-dagger-gold/30 text-dagger-gold hover:bg-dagger-gold/20"
-                )}
-            >
-                {isLoadout ? (
-                    <>
-                        <Box size={12} /> To Vault
-                    </>
-                ) : (
-                    <>
-                        <ArrowRightLeft size={12} /> To Loadout
-                    </>
-                )}
-            </button>
+          {/* Move Toggle */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveLocation(isLoadout ? 'vault' : 'loadout');
+            }}
+            className={clsx(
+              "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[10px] font-bold transition-colors border",
+              isLoadout
+                ? "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10"
+                : "bg-dagger-gold/10 border-dagger-gold/30 text-dagger-gold hover:bg-dagger-gold/20"
+            )}
+          >
+            {isLoadout ? (
+              <>
+                <Box size={12} /> To Vault
+              </>
+            ) : (
+              <>
+                <ArrowRightLeft size={12} /> To Loadout
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
