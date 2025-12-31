@@ -24,12 +24,12 @@ import ModifierSheet from '@/components/modifiers/modifier-sheet';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import useContentAccess from '@/hooks/useContentAccess';
 
-import { AttackCard, CombatSpellCard, MarkStressButton, SpendHopeButton } from '@/components/combat';
+import { AttackCard, MarkStressButton, SpendHopeButton, FrequencyCheckbox, CardTokenTrack } from '@/components/combat';
 import { hasCombatRelevance } from '@/lib/card-parser';
-import type { EnhancedAbilityCard, EnhancedAncestry, EnhancedCommunity, EnhancedFeature } from '@/types/cards';
+import type { EnhancedAbilityCard, EnhancedAncestry, EnhancedCommunity, EnhancedFeature, Frequency } from '@/types/cards';
 
 export default function CombatView() {
-  const { character, prepareRoll, updateModifiers } = useCharacterStore();
+  const { character, prepareRoll, updateModifiers, cardStates } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const [showProficiencyModifiers, setShowProficiencyModifiers] = useState(false);
   const [showVitals, setShowVitals] = useState(true);
@@ -531,14 +531,139 @@ export default function CombatView() {
               </button>
             </div>
 
-            {showSpells && combatAbilities.map((ability) => (
-              <CombatSpellCard
-                key={ability.name}
-                card={ability}
-                onPrepareRoll={prepareRoll}
-                onManageModifiers={() => setActiveAbilityId(ability.name)}
-              />
-            ))}
+            {showSpells && combatAbilities.map((ability) => {
+              // Calculate spellcast modifier
+              const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
+              const rawTraitValue = spellcastTraitName
+                ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0)
+                : (character.spellcast || 0);
+
+              let traitModSum = 0;
+              if (spellcastTraitName) {
+                const tKey = spellcastTraitName.toLowerCase();
+                const tSystem = getSystemModifiers(character, tKey);
+                const tUser = character.modifiers?.[tKey] || [];
+                traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
+              }
+
+              const spellcastBase = rawTraitValue + traitModSum;
+              const spellcastMods = getSystemModifiers(character, 'spellcast');
+              const userSpellcastMods = character.modifiers?.['spellcast'] || [];
+              const totalSpellcast = spellcastBase + [...spellcastMods, ...userSpellcastMods].reduce((acc, mod) => acc + mod.value, 0);
+
+              // Determine roll trait and bonus
+              let rollBonus = 0;
+              let rollLabel = '';
+
+              if (ability.roll?.trait) {
+                const traitKey = ability.roll.trait.toLowerCase();
+                if (traitKey === 'spellcast') {
+                  rollBonus = totalSpellcast;
+                  rollLabel = 'Spellcast';
+                } else {
+                  const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+                  const systemTraitMods = getSystemModifiers(character, traitKey);
+                  const userTraitMods = character.modifiers?.[traitKey] || [];
+                  rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
+                  rollLabel = ability.roll.trait;
+                }
+              } else if (ability.attack?.trait) {
+                const traitKey = ability.attack.trait.toLowerCase();
+                if (traitKey === 'spellcast') {
+                  rollBonus = totalSpellcast;
+                  rollLabel = 'Spellcast';
+                } else {
+                  const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+                  const systemTraitMods = getSystemModifiers(character, traitKey);
+                  const userTraitMods = character.modifiers?.[traitKey] || [];
+                  rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
+                  rollLabel = ability.attack.trait;
+                }
+              }
+
+              // Calculate damage
+              const baseDamage = ability.attack?.damage;
+              const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
+
+              // Check if ability is used
+              const cardState = cardStates?.[ability.name];
+              const isUsed = getIsUsed(cardState, ability.frequency);
+
+              // Prepare custom badges
+              const badges = [];
+              if (ability.roll?.difficulty) {
+                badges.push({ label: `DC ${ability.roll.difficulty}` });
+              }
+
+              // Determine border variant
+              const borderVariant = ability.action_type === 'reaction' ? 'reaction' : 'spell';
+
+              // Prepare callbacks
+              const handleAttackRoll = rollLabel ? () => {
+                prepareRoll(`${ability.name} ${rollLabel} Roll`, rollBonus);
+              } : undefined;
+
+              const handleDamageRoll = finalDamage ? () => {
+                const { dice, modifier } = parseDamageRoll(finalDamage);
+                prepareRoll(`${ability.name} Damage`, modifier, dice);
+              } : undefined;
+
+              return (
+                <AttackCard
+                  key={ability.name}
+                  id={ability.name}
+                  name={ability.name}
+                  trait={rollLabel || 'No Roll'}
+                  range={ability.attack?.range || ''}
+                  baseDamage={baseDamage}
+                  calculatedDamage={finalDamage}
+                  totalAttackBonus={rollBonus}
+                  attackModifier={0}
+                  damageModifier={0}
+                  proficiency={totalProficiency}
+                  onAttackRoll={handleAttackRoll}
+                  onDamageRoll={handleDamageRoll}
+                  onManageModifiers={() => setActiveAbilityId(ability.name)}
+                  damageType={ability.attack?.damage_type}
+                  badges={badges}
+                  borderVariant={borderVariant}
+                  actionType={ability.action_type}
+                  rollLabel={rollLabel}
+                  isUsed={isUsed}
+                  tokenTrack={ability.has_tokens ? (
+                    <CardTokenTrack
+                      cardName={ability.name}
+                      maxTokens={ability.max_tokens ?? null}
+                      tokenSource={ability.token_source}
+                    />
+                  ) : undefined}
+                  frequency={ability.frequency && ability.frequency !== 'at_will' ? (
+                    <FrequencyCheckbox
+                      cardName={ability.name}
+                      frequency={ability.frequency}
+                    />
+                  ) : undefined}
+                  customActions={
+                    (ability.costs?.stress || ability.costs?.hope) ? (
+                      <>
+                        {ability.costs?.stress && (
+                          <MarkStressButton
+                            cost={ability.costs.stress}
+                            size="sm"
+                          />
+                        )}
+                        {ability.costs?.hope && (
+                          <SpendHopeButton
+                            cost={ability.costs.hope}
+                            size="sm"
+                          />
+                        )}
+                      </>
+                    ) : undefined
+                  }
+                />
+              );
+            })}
           </div>
         )}
 
@@ -725,3 +850,23 @@ export default function CombatView() {
   );
 }
 
+/**
+ * Helper to determine if card is used based on frequency type
+ */
+function getIsUsed(
+  cardState: { used_this_rest?: boolean; used_this_long_rest?: boolean; used_this_session?: boolean } | undefined,
+  frequency?: Frequency
+): boolean {
+  if (!cardState || !frequency || frequency === 'at_will') return false;
+
+  switch (frequency) {
+    case 'once_per_rest':
+      return cardState.used_this_rest ?? false;
+    case 'once_per_long_rest':
+      return cardState.used_this_long_rest ?? false;
+    case 'once_per_session':
+      return cardState.used_this_session ?? false;
+    default:
+      return false;
+  }
+}
