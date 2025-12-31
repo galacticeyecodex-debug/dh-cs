@@ -146,7 +146,7 @@ export default function PlaymatCard({
 
   return (
     <div 
-      className="flex flex-col w-[240px] rounded-lg shadow-lg hover:shadow-2xl transition-shadow border border-dagger-gold overflow-hidden bg-dagger-panel cursor-pointer group"
+      className="flex flex-col gap-2 p-2 bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-fit cursor-pointer group hover:border-white/20 transition-colors"
       onClick={onView}
     >
       {/* Visual Domain Card */}
@@ -159,19 +159,16 @@ export default function PlaymatCard({
         customImageUrl={card.state?.custom_image_url}
         customImageType={card.state?.custom_image_type}
         size="thumbnail"
-        variant="embedded"
+        // variant="default" is implied
         hasPassiveModifiers={!!(enhancedData?.modifiers && enhancedData.modifiers.length > 0)}
         hasCombatAbility={!!hasAttack}
       />
 
       {/* Mechanics Tray */}
       <div 
-        className="bg-black/40 p-2 space-y-2 border-t border-white/10 flex-1 flex flex-col justify-end"
+        className="bg-black/40 border border-white/10 rounded-lg p-2 space-y-2 w-full"
         onClick={(e) => {
-           // Allow clicking empty space in tray to trigger View (bubble up),
-           // but interactive elements stop propagation.
-           // However, if we want strict separation, we could stop propagation here.
-           // For now, let it bubble so the whole card is clickable.
+           // Allow clicking empty space in tray to trigger View (bubble up)
         }}
       >
         {/* Token Track */}
