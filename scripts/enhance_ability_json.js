@@ -21,6 +21,14 @@ const path = require('path');
 // ============================================================================
 
 /**
+ * Strip markdown formatting for cleaner text matching
+ */
+function stripMarkdown(text) {
+  if (!text) return '';
+  return text.replace(/\*\*|\*/g, '');
+}
+
+/**
  * Parse stress cost from card text
  */
 function parseStressCost(text) {
@@ -212,47 +220,48 @@ function parseTargetType(text) {
 }
 
 /**
- * Determine action type from card text and type
+ * Determine action type from card text and metadata
  */
-function parseActionType(text, cardType) {
-  const lowerText = text.toLowerCase();
+function parseActionType(text, cardType, attack, roll) {
+  const cleanText = stripMarkdown(text).toLowerCase();
+
+  // If we already parsed an attack, it's an attack
+  if (attack) return 'attack';
 
   // Check for reaction patterns
   if (
-    lowerText.includes('reaction roll') ||
-    lowerText.includes('when you would take damage') ||
-    lowerText.includes('when an attack') ||
-    lowerText.includes('when you are targeted')
+    cleanText.includes('reaction roll') ||
+    cleanText.includes('when you would take damage') ||
+    cleanText.includes('when an attack') ||
+    cleanText.includes('when you are targeted')
   ) {
     return 'reaction';
   }
 
-  // Check for attack patterns
-  if (
-    lowerText.includes('make a') &&
-    (lowerText.includes('roll against') || lowerText.includes('attack'))
-  ) {
+  // If it's a roll against something but didn't qualify as 'attack' (no damage/range)
+  // it might still be an attack action
+  if (cleanText.includes('make a') && (cleanText.includes('roll against') || cleanText.includes('attack'))) {
     return 'attack';
   }
 
   // Check for downtime patterns
-  if (lowerText.includes('during a rest') || lowerText.includes('downtime')) {
+  if (cleanText.includes('during a rest') || cleanText.includes('downtime')) {
     return 'downtime';
   }
 
   // Check for buff patterns
   if (
-    lowerText.includes('gain a bonus') ||
-    lowerText.includes('gain advantage') ||
-    lowerText.includes('clear a stress') ||
-    lowerText.includes('clear a hit point')
+    cleanText.includes('gain a bonus') ||
+    cleanText.includes('gain advantage') ||
+    cleanText.includes('clear a stress') ||
+    cleanText.includes('clear a hit point')
   ) {
     return 'buff';
   }
 
   // Default based on card type
   if (cardType === 'Spell') {
-    return 'attack';
+    return 'utility';
   }
 
   return 'passive';
@@ -396,24 +405,28 @@ function parseRoll(text) {
  * Parse attack information from card text
  */
 function parseAttack(text) {
+  const cleanText = stripMarkdown(text);
   const trait = parseRollTrait(text);
   const range = parseRange(text);
-
-  if (!trait && !range) return undefined;
-
   const damage = parseDamage(text);
-  const damageType = parseDamageType(text);
-  const targets = parseTargetType(text);
-  const difficulty = parseRollDifficulty(text);
+  const hasAgainst = cleanText.toLowerCase().includes('against');
+
+  // Stricter check: An attack needs damage OR a trait roll against a target
+  if (!damage && !(trait && hasAgainst)) return undefined;
 
   const attack = {
     trait: trait || 'Spellcast',
     range: range || 'Close',
   };
 
-  if (targets) attack.targets = targets;
   if (damage) attack.damage = damage;
+  const damageType = parseDamageType(text);
   if (damageType) attack.damage_type = damageType;
+
+  const targets = parseTargetType(text);
+  if (targets) attack.targets = targets;
+
+  const difficulty = parseRollDifficulty(text);
   if (difficulty) attack.difficulty = difficulty;
 
   return attack;
@@ -426,12 +439,17 @@ function enhanceAbilityCard(card) {
   const text = card.text;
   const cardType = card.type;
 
-  const actionType = parseActionType(text, cardType);
-  const timing = parseTiming(actionType);
-  const frequency = parseFrequency(text);
+  // 1. Parse structured data first
+  const attack = parseAttack(text);
+  const roll = parseRoll(text);
   const costs = parseCosts(text);
+  const frequency = parseFrequency(text);
   const hasTokens = hasTokenMechanics(text);
   const keywords = extractKeywords(text, cardType);
+
+  // 2. Determine action type based on parsed data
+  const actionType = parseActionType(text, cardType, attack, roll);
+  const timing = parseTiming(actionType);
 
   const enhanced = {
     ...card,
@@ -464,15 +482,11 @@ function enhanceAbilityCard(card) {
   }
 
   // Add attack info if applicable
-  if (actionType === 'attack') {
-    const attack = parseAttack(text);
-    if (attack) {
-      enhanced.attack = attack;
-    }
+  if (attack) {
+    enhanced.attack = attack;
   }
 
   // Add roll info
-  const roll = parseRoll(text);
   if (roll) {
     enhanced.roll = roll;
   }
@@ -500,10 +514,12 @@ function processAbilitiesFile(filePath) {
 
     // Print some stats
     const stats = {
+      total: enhanced.length,
       attacks: enhanced.filter(c => c.action_type === 'attack').length,
       reactions: enhanced.filter(c => c.action_type === 'reaction').length,
-      passives: enhanced.filter(c => c.action_type === 'passive').length,
       buffs: enhanced.filter(c => c.action_type === 'buff').length,
+      utility: enhanced.filter(c => c.action_type === 'utility').length,
+      passives: enhanced.filter(c => c.action_type === 'passive').length,
       downtime: enhanced.filter(c => c.action_type === 'downtime').length,
       withCosts: enhanced.filter(c => c.costs).length,
       withTokens: enhanced.filter(c => c.has_tokens).length,
