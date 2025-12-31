@@ -30,6 +30,7 @@ import PrayerDiceCard from '../character/class/prayer-dice-card';
 import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap, Info, Sparkles, PawPrint } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/storage-service';
+import { MAX_IMAGE_FILE_SIZE, MAX_IMAGE_FILE_SIZE_MB } from '@/lib/image-utils';
 import { toast } from 'sonner';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/core/error-boundary';
@@ -192,8 +193,8 @@ export default function CharacterView() {
 
     const file = e.target.files[0];
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
+    if (file.size > MAX_IMAGE_FILE_SIZE) {
+      toast.error(`File size must be less than ${MAX_IMAGE_FILE_SIZE_MB}`);
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
