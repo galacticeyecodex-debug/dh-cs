@@ -460,128 +460,47 @@ Two-part interactive button for traits with icon action buttons:
 
 ## Combat View Cards
 
-### Weapon Card
+### Unified AttackCard (Weapons, Spells, Features)
+
+All combat actions use the same base `AttackCard` component, which adapts its layout and features based on the source (Weapon, Spell, Heritage feature).
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════════════╗
-║  bg-dagger-panel  border border-white/10  rounded-xl  overflow-hidden         ║
-║  hover:border-white/30  cursor-pointer                                        ║
+║  bg-dagger-panel  border rounded-xl  overflow-hidden  transition-colors       ║
+║  (border color depends on variant - see Variants section below)               ║
+║  (opacity-50 if isUsed=true)                                                  ║
 ║                                                                               ║
 ║  ┌─────────────────────────────────────────────────────────────────────┐      ║
-║  │  p-4                                                                │      ║
+║  │  p-4  flex justify-between items-start relative                     │      ║
 ║  │                                                                 ⚙️ │      ║
-║  │  LONGSWORD                                              2d8+2       │      ║
+║  │  [ICON] NAME                                            2d8+2       │      ║
 ║  │  font-serif font-bold text-white text-lg                text-xl     │      ║
 ║  │                                                         font-bold   │      ║
-║  │  ┌──────────────┐ ┌──────────────┐                     (gold if    │      ║
-║  │  │  STRENGTH  │ │    MELEE       │                     modified)   │      ║
-║  │  │  uppercase   │ │  uppercase   │                                 │      ║
-║  │  │  bg-white/10 │ │  bg-white/10 │                     1d8 × 2     │      ║
-║  │  │  text-gray-  │ │  text-gray-  │                     text-[10px] │      ║
-║  │  │  400 px-1.5  │ │  400         │                     text-gray-  │      ║
-║  │  │  py-0.5      │ │              │                     500         │      ║
-║  │  │  rounded     │ │              │                     uppercase   │      ║
-║  │  └──────────────┘ └──────────────┘                                 │      ║
+║  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐    (gold if    │      ║
+║  │  │   BADGE 1    │ │    TRAIT     │ │    RANGE     │    modified)   │      ║
+║  │  │  uppercase   │ │  uppercase   │ │  uppercase   │                 │      ║
+║  │  │  bg-white/10 │ │  bg-white/10 │ │  bg-white/10 │     1d8 × 2     │      ║
+║  │  │  text-gray-  │ │  text-gray-  │ │  text-gray-  │     text-[10px] │      ║
+║  │  │  400         │ │  400         │ │  400         │     text-gray-  │      ║
+║  │  └──────────────┘ └──────────────┘ └──────────────┘     500         │      ║
+║  │                                                         uppercase   │      ║
+║  │  [Optional Description Text - line-clamp-2]                         │      ║
+║  │  text-xs text-gray-400 mt-2                                         │      ║
 ║  └─────────────────────────────────────────────────────────────────────┘      ║
 ║                                                                               ║
 ║  ┌─────────────────────────────────────────────────────────────────────┐      ║
-║  │  bg-black/40  p-2                              [Action Bar]         │      ║
-║  │                                                                     │      ║
-║  │  ┌────────────────────────────┐ ┌────────────────────────────┐      │      ║
-║  │  │  ⚡ Attack (+3)         🎲│ │  💀 Damage (+2)         🎲│      │      ║
-║  │  │                            │ │                            │      │      ║
-║  │  │  flex-1 py-2               │ │  flex-1 py-2               │      │      ║
-║  │  │  bg-white/10               │ │  bg-white/10               │      │      ║
-║  │  │  hover:bg-white/20         │ │  hover:bg-white/20         │      │      ║
-║  │  │  rounded-lg                │ │  rounded-lg                │      │      ║
-║  │  │  text-sm font-bold         │ │  text-sm font-bold         │      │      ║
-║  │  │                            │ │                            │      │      ║
-║  │  │  (text-dagger-gold if      │ │  (text-dagger-gold if      │      │      ║
-║  │  │   has attack modifier)     │ │   has damage modifier)     │      │      ║
-║  │  │                            │ │                            │      │      ║
-║  │  └────────────────────────────┘ └────────────────────────────┘      │      ║
-║  └─────────────────────────────────────────────────────────────────────┘      ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-```
-
-### Companion Attack Card
-
-Similar to weapon card but with gold border:
-
-```
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  bg-dagger-panel  border border-dagger-gold/30  rounded-xl                    ║
-║  hover:border-dagger-gold/50                                                  ║
-║                                                                               ║
-║  ┌─────────────────────────────────────────────────────────────────────┐      ║
-║  │  p-4                                                                │      ║
-║  │                                                                     │      ║
-║  │  🐾  SHADOW - BITE                                      1d6+1       │      ║
-║  │      font-serif font-bold text-white                                │      ║
-║  │                                                                     │      ║
-║  │  ┌──────────────┐ ┌──────────────┐ ┌────────────────┐               │      ║
-║  │  │    MELEE     │ │    MELEE     │ │   Companion    │               │      ║
-║  │  │  (attack     │ │   (range)    │ │ text-dagger-   │               │      ║
-║  │  │   type)      │ │              │ │ gold           │               │      ║
-║  │  └──────────────┘ └──────────────┘ └────────────────┘               │      ║
-║  └─────────────────────────────────────────────────────────────────────┘      ║
-║                                                                               ║
-║  ┌─────────────────────────────────────────────────────────────────────┐      ║
-║  │  bg-black/40  p-2  [Action Bar - same as weapon]                    │      ║
-║  └─────────────────────────────────────────────────────────────────────┘      ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-```
-
-### Combat Spell Card
-
-```
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  bg-dagger-panel  rounded-xl  overflow-hidden  cursor-pointer                 ║
-║  border border-purple-500/30  (or border-orange-500/30 for reactions)         ║
-║  hover:border-purple-500/50                                                   ║
-║                                                                               ║
-║  (opacity-50 if ability is used)                                              ║
-║                                                                               ║
-║  ┌─────────────────────────────────────────────────────────────────────┐      ║
-║  │  p-4                                                                │      ║
-║  │                                                                     │      ║
-║  │  FIREBALL                    ┌───────────┐              3d8+2       │      ║
-║  │  font-serif font-bold        │  ACTION   │              text-xl     │      ║
-║  │  text-white text-lg          │ bg-purple-│              font-bold   │      ║
-║  │                              │ 900/30    │              text-purple-│      ║
-║  │                              │ text-     │              300         │      ║
-║  │                              │ purple-400│                          │      ║
-║  │                              │ text-[10px│              1d8 × 3     │      ║
-║  │                              │ uppercase │              text-[10px] │      ║
-║  │                              └───────────┘              text-gray-  │      ║
-║  │                                                         500         │      ║
-║  │  ┌───────────────┐ ┌──────────────┐ ┌──────────────┐                │      ║
-║  │  │  SPELLCAST    │ │    CLOSE     │ │    FIRE      │                │      ║
-║  │  │ bg-purple-900/│ │  bg-white/10 │ │  bg-white/10 │                │      ║
-║  │  │ 20 border-    │ │              │ │              │                │      ║
-║  │  │ purple-500/30 │ │              │ │              │                │      ║
-║  │  └───────────────┘ └──────────────┘ └──────────────┘                │      ║
-║  └─────────────────────────────────────────────────────────────────────┘      ║
-║                                                                               ║
-║  ┌─────────────────────────────────────────────────────────────────────┐      ║
-║  │  [Token Track - if has_tokens]                                      │      ║
+║  │  [Token Track - if tokenTrack prop provided]                        │      ║
 ║  │  px-4 pb-2                                                          │      ║
-║  │                                                                     │      ║
 ║  │         ● ● ● ○ ○        3/5 Tokens                                │      ║
-║  │                                                                     │      ║
 ║  └─────────────────────────────────────────────────────────────────────┘      ║
 ║                                                                               ║
 ║  ┌─────────────────────────────────────────────────────────────────────┐      ║
-║  │  bg-black/40  p-2  flex flex-wrap gap-2                             │      ║
+║  │  bg-black/40  p-2  flex flex-wrap gap-2 items-center   [Action Bar] │      ║
 ║  │                                                                     │      ║
 ║  │  ┌──────────┐ ┌──────────┐ ┌─────────────────┐ ┌─────────────────┐  │      ║
-║  │  │ 😰 +1    │ │ 💛 -2    │ │ ⚡ Spellcast   │ │  💀 Damage      │  │      ║
-║  │  │ STRESS   │ │ HOPE     │ │    (+4)        │ │                 │  │      ║
-║  │  │ MarkStres│ │ SpendHope│ │                │ │                 │  │      ║
-║  │  │ sButton  │ │ Button   │ │ bg-purple-900/ │ │ bg-purple-900/  │  │      ║
-║  │  │          │ │          │ │ 20             │ │ 20              │  │      ║
-║  │  │ bg-red-  │ │ bg-blue- │ │ text-purple-300│ │ text-purple-300 │  │      ║
-║  │  │ 900/20   │ │ 900/20   │ │                │ │                 │  │      ║
+║  │  │ 😰 +1    │ │ 💛 -2    │ │ ⚡ Attack      │ │  💀 Damage      │  │      ║
+║  │  │ STRESS   │ │ HOPE     │ │    (+3)         │ │                 │  │      ║
+║  │  │ [Smart]  │ │ [Smart]  │ │                 │ │                 │  │      ║
 ║  │  └──────────┘ └──────────┘ └─────────────────┘ └─────────────────┘  │      ║
 ║  │                                                                     │      ║
 ║  │                                      ┌──────────────────────────┐   │      ║
@@ -592,116 +511,30 @@ Similar to weapon card but with gold border:
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 ```
 
-### Proficiency Display Row
+### AttackCard Variants
 
-```
-╔═══════════════════════════════════════════════════════════════╗
-║  bg-white/5  rounded-lg  px-3 py-2  border border-white/5     ║
-║                                                               ║
-║  ┌─────────────────────────────────────────────────────────┐  ║
-║  │                                                         │  ║
-║  │  Proficiency                              ┌──────────┐  │  ║
-║  │  text-sm font-medium                      │  🎯 2    │  │  ║
-║  │  text-gray-300                            │          │  │  ║
-║  │                                           │ bg-white/│  │  ║
-║  │                                           │ 10       │  │  ║
-║  │                                           │ rounded- │  │  ║
-║  │                                           │ full     │  │  │
-║  │                                           │          │  │  ║
-║  │                                           │ (bg-     │  │  ║
-║  │                                           │ dagger-  │  │  ║
-║  │                                           │ gold/10  │  │  ║
-║  │                                           │ if mod)  │  │  ║
-║  │                                           └──────────┘  │  ║
-║  └─────────────────────────────────────────────────────────┘  ║
-╚═══════════════════════════════════════════════════════════════╝
-```
+The `borderVariant` prop controls the theme of the card:
 
-### Heritage Feature Card (Ancestry/Community Combat)
+| Variant | Border Class | Background Class | Use Case |
+|---------|--------------|------------------|----------|
+| `default` | `border-white/10` | - | Standard Weapons |
+| `companion` | `border-dagger-gold/30` | - | Ranger Companions |
+| `ancestry` | `border-emerald-500/30`| - | Ancestry Features |
+| `community` | `border-amber-500/30` | - | Community Features |
+| `spell` | `border-purple-500/30` | `bg-purple-900/10` | Spells / Abilities |
+| `reaction` | `border-orange-500/30` | `bg-orange-900/10` | Reaction Spells |
 
-Combat-relevant features from ancestry and community displayed in Combat View:
+### AttackCard Modular Slots
 
-```
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  bg-dagger-panel  rounded-xl  overflow-hidden  cursor-pointer                 ║
-║  border border-emerald-500/30  (ancestry) OR border-amber-500/30 (community)  ║
-║  hover:border-white/30                                                        ║
-║                                                                               ║
-║  ┌─────────────────────────────────────────────────────────────────────┐      ║
-║  │  p-4  flex justify-between items-start                              │      ║
-║  │                                                                     │      ║
-║  │  LONG TONGUE                                                d12×2   │      ║
-║  │  font-serif font-bold text-white text-lg                   text-xl  │      ║
-║  │                                                            font-bold│      ║
-║  │  ┌────────────────┐ ┌──────────────┐ ┌──────────────┐               │      ║
-║  │  │    RIBBET      │ │   FINESSE    │ │    CLOSE     │      d12 × 2 │      ║
-║  │  │ bg-emerald-500/│ │  bg-white/10 │ │  bg-white/10 │   text-[10px]│      ║
-║  │  │ 20 text-       │ │              │ │              │   text-gray- │      ║
-║  │  │ emerald-400    │ │              │ │              │   500        │      ║
-║  │  │ (ancestry)     │ │              │ │              │   uppercase  │      ║
-║  │  │                │ │              │ │              │               │      ║
-║  │  │  -OR-          │ │              │ │              │               │      ║
-║  │  │                │ │              │ │              │               │      ║
-║  │  │ bg-amber-500/20│ │              │ │              │               │      ║
-║  │  │ text-amber-400 │ │              │ │              │               │      ║
-║  │  │ (community)    │ │              │ │              │               │      ║
-║  │  └────────────────┘ └──────────────┘ └──────────────┘               │      ║
-║  │                                                                     │      ║
-║  │  ┌─────────────────────────────────────────────────────────────┐    │      ║
-║  │  │  [Optional Action Type Badge - if not passive]              │    │      ║
-║  │  │  ┌──────────────┐                                           │    │      ║
-║  │  │  │   ATTACK     │  bg-purple-900/30 text-purple-400         │    │      ║
-║  │  │  │   REACTION   │  bg-orange-900/30 text-orange-400         │    │      ║
-║  │  │  └──────────────┘                                           │    │      ║
-║  │  └─────────────────────────────────────────────────────────────┘    │      ║
-║  │                                                                     │      ║
-║  │  You can use your long tongue to grab onto things within Close      │      ║
-║  │  range. **Mark a Stress** to use your tongue as a Finesse...        │      ║
-║  │  text-xs text-gray-400 mt-2 line-clamp-2                            │      ║
-║  │  (**bold** renders as <strong className="text-white">)              │      ║
-║  └─────────────────────────────────────────────────────────────────────┘      ║
-║                                                                               ║
-║  ┌─────────────────────────────────────────────────────────────────────┐      ║
-║  │  bg-black/40  p-2  flex flex-wrap gap-2                             │      ║
-║  │  [Action Bar - only shown if has attack or costs]                   │      ║
-║  │                                                                     │      ║
-║  │  ┌──────────────┐ ┌──────────────┐                                  │      ║
-║  │  │ ⚡ +1 Stress │ │ ⚡ -2 Hope   │  [Cost Buttons - if applicable]  │      ║
-║  │  │ bg-red-900/20│ │ bg-blue-900/ │                                  │      ║
-║  │  │ text-red-300 │ │ 20 text-blue-│                                  │      ║
-║  │  │ px-3 py-2    │ │ 300          │                                  │      ║
-║  │  └──────────────┘ └──────────────┘                                  │      ║
-║  │                                                                     │      ║
-║  │  ┌─────────────────────────────┐ ┌─────────────────────────────┐    │      ║
-║  │  │  ⚡ Roll (+2)               │ │  💀 Damage                  │    │      ║
-║  │  │  flex-1 py-2                │ │  flex-1 py-2                │    │      ║
-║  │  │  bg-white/10                │ │  bg-white/10                │    │      ║
-║  │  │  hover:bg-white/20          │ │  hover:bg-white/20          │    │      ║
-║  │  │  text-sm font-bold          │ │  text-sm font-bold          │    │      ║
-║  │  │                             │ │                             │    │      ║
-║  │  │  (text-dagger-gold if       │ │  (text-dagger-gold if       │    │      ║
-║  │  │   has attack modifier)      │ │   has damage modifier)      │    │      ║
-║  │  └─────────────────────────────┘ └─────────────────────────────┘    │      ║
-║  └─────────────────────────────────────────────────────────────────────┘      ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-```
-
-**Source Type Colors:**
-- **Ancestry**: `border-emerald-500/30`, badge `bg-emerald-500/20 text-emerald-400`
-- **Community**: `border-amber-500/30`, badge `bg-amber-500/20 text-amber-400`
-
-**Combat-Relevant Features Include:**
-- Drakona - Elemental Breath (d8 magic, Instinct, Very Close)
-- Faun - Kick (2d6 physical, on attack success)
-- Firbolg - Charge (1d12 physical, AoE Melee)
-- Katari - Retracting Claws (Agility, Melee, applies Vulnerable)
-- Orc - Tusks (1d6 physical, Melee)
-- Ribbet - Long Tongue (d12 physical, Finesse, Close)
-- Seaborne - Know the Tide (token mechanics)
+1.  **⚙️ Gear Button:** Shown if `onManageModifiers` is provided. Opens the modifier management sheet.
+2.  **Smart Cost Buttons:** Passed via `customActions`. These use `MarkStressButton` and `SpendHopeButton` which check affordability.
+3.  **Token Track:** Passed via `tokenTrack`. Displays interactive resource trackers (e.g., Flight tokens).
+4.  **Frequency:** Passed via `frequency`. Displays `FrequencyCheckbox` for once-per-rest/session abilities.
+5.  **Roll Buttons:** `Attack` and `Damage` buttons are relative flex-1 and include a small `🎲` dice icon in the top-right corner.
 
 ---
 
-### Active Armor Panel
+### Proficiency Display Row
 
 ```
 ╔═══════════════════════════════════════════════════════════════╗

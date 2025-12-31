@@ -24,7 +24,7 @@ import LevelUpModal from '../modals/level-up-modal';
 import ManageCharacterModal from '../modals/manage-character-modal';
 import AdvancementHistory from '../level-up/advancement-history';
 import SubclassFeatureCard from '../cards/subclass-feature-card';
-import CompanionSheet from '../character/companion-sheet';
+import CompanionSheet from '../character/subclass/beastbound-companion-sheet';
 import PrayerDiceCard from '../cards/prayer-dice-card';
 import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap, Info, Sparkles, PawPrint } from 'lucide-react';
 import clsx from 'clsx';
