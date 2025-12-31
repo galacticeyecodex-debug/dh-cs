@@ -238,7 +238,7 @@ export default function PlaymatView() {
 
             return (
               <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-                <h3 className="text-xs font-bold uppercase text-purple-400 tracking-wider mb-3 flex items-center gap-2">
+                <h3 className="text-xs font-bold uppercase text-dagger-gold tracking-wider mb-3 flex items-center gap-2">
                   <Sparkles size={14} /> Active Modifiers
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -246,7 +246,7 @@ export default function PlaymatView() {
                     const mods = modifiersByStat[stat];
                     const total = mods.reduce((sum, m) => sum + m.value, 0);
                     return (
-                      <div key={stat} className="bg-white/5 border border-purple-500/30 rounded-lg p-3">
+                      <div key={stat} className="bg-white/5 border border-dagger-gold/30 rounded-lg p-3">
                         <div className="text-[10px] text-gray-400 uppercase mb-1 capitalize">
                           {stat.replace(/_/g, ' ')}
                         </div>
