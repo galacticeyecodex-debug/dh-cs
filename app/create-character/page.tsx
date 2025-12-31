@@ -246,7 +246,11 @@ export default function CreateCharacterPage() {
     const isBeastbond = formData.subclass_id && libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
     switch (step) {
       case 1: return !!formData.name;
-      case 2: return !!formData.ancestry_id && !!formData.community_id;
+      case 2: 
+        if (formData.is_mixed_ancestry) {
+          return !!formData.ancestry_id && !!formData.ancestry_id_2 && !!formData.community_id;
+        }
+        return !!formData.ancestry_id && !!formData.community_id;
       case 3: return !!formData.class_id && !!formData.subclass_id && !!formData.domains?.[0] && !!formData.domains?.[1];
       case 4: return (formData.selectedCards?.length || 0) === 2;
       case 5:
@@ -282,6 +286,16 @@ export default function CreateCharacterPage() {
 
     try {
       const selectedAncestry = libraryData.ancestries.find(a => a.id === formData.ancestry_id);
+      const selectedAncestry2 = formData.is_mixed_ancestry ? libraryData.ancestries.find(a => a.id === formData.ancestry_id_2) : null;
+      
+      const ancestryName = formData.is_mixed_ancestry && selectedAncestry2
+        ? `${selectedAncestry?.name} / ${selectedAncestry2?.name}`
+        : selectedAncestry?.name;
+
+      const ancestryFeatures = formData.is_mixed_ancestry
+        ? [selectedAncestry?.data?.features?.[0], selectedAncestry2?.data?.features?.[1]]
+        : selectedAncestry?.data?.features;
+
       const selectedCommunity = libraryData.communities.find(c => c.id === formData.community_id);
       const selectedClass = libraryData.classes.find(cl => cl.id === formData.class_id);
       const selectedSubclass = libraryData.subclasses.find(sc => sc.id === formData.subclass_id);
@@ -297,7 +311,8 @@ export default function CreateCharacterPage() {
           user_id: user.id,
           name: formData.name!,
           level: 1,
-          ancestry: selectedAncestry?.name,
+          ancestry: ancestryName,
+          ancestry_features: ancestryFeatures,
           community: selectedCommunity?.name,
           class_id: selectedClass?.name,
           subclass_id: selectedSubclass?.name,
@@ -379,6 +394,7 @@ export default function CreateCharacterPage() {
           {currentStep === 2 && (
             <HeritageStep 
               formData={formData} libraryData={libraryData} handleInputChange={handleInputChange}
+              setFormData={setFormData}
               onNext={() => setCurrentStep(3)} onBack={() => setCurrentStep(1)} isValid={validateStep(2)}
             />
           )}
@@ -396,9 +412,9 @@ export default function CreateCharacterPage() {
           )}
           {currentStep === 5 && (
             <AssignTraitsStep 
-              formData={formData} displayTraitPool={DISPLAY_TRAIT_POOL} traitAssignmentPool={TRAIT_ASSIGNMENT_POOL}
-              selectedTraitIndex={selectedTraitIndex} setSelectedTraitIndex={setSelectedTraitIndex}
-              assignTraitValue={assignTraitValue} isTraitValueAssigned={isTraitValueAssigned}
+              formData={formData} traitAssignmentPool={TRAIT_ASSIGNMENT_POOL}
+              suggestedTraits={libraryData.classes.find(c => c.id === formData.class_id)?.data?.suggested_traits}
+              assignTraitValue={assignTraitValue} setFormData={setFormData}
               onNext={() => setCurrentStep(6)} onBack={() => setCurrentStep(4)} isValid={validateStep(5)}
             />
           )}
