@@ -10,6 +10,8 @@ This document provides ASCII diagrams of all UI card components used throughout 
 2. [Character View Cards](#character-view-cards)
 3. [Combat View Cards](#combat-view-cards)
 4. [Inventory View Cards](#inventory-view-cards)
+   - [Inventory Item Card with Art (Future Feature)](#inventory-item-card-with-art-future-feature)
+   - [Item Art Modal](#item-art-modal-reuses-carddetailmodal-pattern)
 5. [Playmat View Cards](#playmat-view-cards)
 6. [Shared Components](#shared-components)
 
@@ -787,6 +789,232 @@ Combat-relevant features from ancestry and community displayed in Combat View:
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 ```
 
+### Inventory Item Card with Art (Future Feature)
+
+Enhanced version of ItemRow with custom artwork support. Reuses the same art upload/positioning system as Domain Cards.
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║  p-3  rounded-lg  border                                                      ║
+║  Equipped: bg-dagger-gold/10  border-dagger-gold/30                           ║
+║  Unequipped: bg-white/5  border-white/5                                       ║
+║                                                                               ║
+║  ┌─────────────────────────────────────────────────────────────────────┐      ║
+║  │  flex justify-between items-start                                   │      ║
+║  │                                                                     │      ║
+║  │  LONGSWORD    ┌─────────┐ ┌────────┐              ┌────────────────┐│      ║
+║  │  font-medium  │ PRIMARY │ │ Custom │              │  x2            ││      ║
+║  │  text-white   │ text-   │ │ bg-    │              │  (quantity)    ││      ║
+║  │               │ [10px]  │ │ purple-│              │  px-2 py-1     ││      ║
+║  │               │ bg-     │ │ 500/20 │              │  bg-black/30   ││      ║
+║  │               │ dagger- │ │ text-  │              │  text-xs       ││      ║
+║  │               │ gold    │ │ purple-│              │  font-bold     ││      ║
+║  │               │ text-   │ │ 300    │              └────────────────┘│      ║
+║  │               │ black   │ │        │                               │      ║
+║  │               └─────────┘ └────────┘       ┌────┐  ┌────┐  ┌────┐  │      ║
+║  │                                            │ 🖼️ │  │ ✏️ │  │ 🗑️ │  │      ║
+║  │  Strength • Melee • 1d8 Phy               │Art │  │Edit│  │Del │  │      ║
+║  │  text-xs text-gray-400                    │p-  │  │p-  │  │p-  │  │      ║
+║  │                                            │1.5 │  │1.5 │  │1.5 │  │      ║
+║  │  Hardened: When you take damage...        │bg- │  │bg- │  │bg- │  │      ║
+║  │  font-bold text-gray-300 (feature name)   │wht/│  │wht/│  │wht/│  │      ║
+║  │  italic (feature text)                    │5   │  │5   │  │5   │  │      ║
+║  │                                            │hvr:│  │hvr:│  │hvr:│  │      ║
+║  │                                            │gold│  │wht │  │red │  │      ║
+║  │                                            └────┘  └────┘  └────┘  │      ║
+║  │                                                                     │      ║
+║  │  [MODIFIER TAGS - if item has modifiers]                           │      ║
+║  │  ┌──────────────────┐ ┌──────────────────┐                          │      ║
+║  │  │  +1 EVASION      │ │  -1 AGILITY      │                          │      ║
+║  │  └──────────────────┘ └──────────────────┘                          │      ║
+║  └─────────────────────────────────────────────────────────────────────┘      ║
+║                                                                               ║
+║  ┌─────────────────────────────────────────────────────────────────────┐      ║
+║  │  flex gap-2 mt-1  [Equip Controls]                                  │      ║
+║  │  ┌───────────────┐ ┌───────────────┐            ┌───────────────┐   │      ║
+║  │  │ ⚔️ Primary    │ │ ⚔️ Secondary  │            │ 🔄 Unequip    │   │      ║
+║  │  └───────────────┘ └───────────────┘            └───────────────┘   │      ║
+║  └─────────────────────────────────────────────────────────────────────┘      ║
+║                                                                               ║
+║  ┌─────────────────────────────────────────────────────────────────────┐      ║
+║  │  [ART THUMBNAIL - ONLY rendered if custom_image_url exists]         │      ║
+║  │  mt-2  pt-2  border-t border-white/5                                │      ║
+║  │                                                                     │      ║
+║  │  ┌───────────────┐   Item Artwork                                   │      ║
+║  │  │               │   text-xs text-gray-500                          │      ║
+║  │  │  [ITEM ART]   │                                                  │      ║
+║  │  │    64x64      │                                                  │      ║
+║  │  │  rounded-lg   │                                                  │      ║
+║  │  │  object-cover │                                                  │      ║
+║  │  │  border-2     │                                                  │      ║
+║  │  └───────────────┘                                                  │      ║
+║  └─────────────────────────────────────────────────────────────────────┘      ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+```
+
+**Component File:** `components/views/inventory/inventory-item-card.tsx`
+
+**Action Buttons (absolute top-right, inline):**
+Three buttons are positioned together in the absolute top-right corner:
+
+```
+┌──────────────────────────────────────┐
+│  ITEM NAME             ℹ️ 🖼️ ⚙️     │
+└──────────────────────────────────────┘
+```
+
+- **ℹ️ Info Button** (leftmost, conditional):
+  - Only shown if item has a description (`fullDescription`)
+  - Toggles collapsible description section
+  - Active state: `text-dagger-gold`, Inactive: `text-gray-500 hover:text-gray-300`
+  - Icon: `Info` from lucide-react (size 14)
+
+- **🖼️ Art Button** (middle):
+  - Opens ItemArtModal for uploading/editing artwork
+  - Style: `text-gray-500 hover:text-dagger-gold transition-colors p-1 rounded hover:bg-white/10`
+  - Icon: `ImageIcon` from lucide-react (size 14)
+  
+- **⚙️ Manage Button** (rightmost):
+  - Opens homebrew editing modal (delete option inside)
+  - Style: `text-gray-500 hover:text-gray-300 transition-colors p-1 rounded hover:bg-white/10`
+  - Icon: `Settings` from lucide-react (size 14)
+
+**Collapsible Description Section:**
+- Rendered when Info button is toggled on
+- Style: `mt-2 p-3 bg-white/5 rounded-lg border border-white/5 text-sm text-gray-300`
+- Supports **bold** text formatting (split on `**`)
+
+**Art Thumbnail Section (conditional):**
+- **Only rendered** when `item.state?.custom_image_url` exists
+- Size: 64x64 pixels (square)
+- Border: `border-white/10` (default), `border-dagger-gold/30` (if equipped)
+- Positioned below equip controls, separated by subtle border
+
+### Item Art Modal (Reuses CardDetailModal Pattern)
+
+Modal for managing item artwork. Reuses the same image upload, gallery selection, and positioning system as Domain Card art.
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║  fixed inset-0 bg-black/80 z-50                                               ║
+║  flex items-center justify-center                                             ║
+║  backdrop-blur-sm                                                             ║
+║                                                                               ║
+║  ┌─────────────────────────────────────────────────────────────────────┐      ║
+║  │  bg-zinc-800 text-white rounded-xl shadow-2xl                       │      ║
+║  │  w-full max-w-md max-h-[90vh] overflow-hidden                       │      ║
+║  │  border-top: 4px solid var(--item-type-color)                       │      ║
+║  │   - Weapon: dagger-gold                                             │      ║
+║  │   - Armor: blue-500                                                 │      ║
+║  │   - Consumable: red-400                                             │      ║
+║  │   - Item: purple-400                                                │      ║
+║  │                                                                     │      ║
+║  │  ┌─────────────────────────────────────────────────────────────┐    │      ║
+║  │  │  [HEADER]  flex justify-between items-center p-4            │    │      ║
+║  │  │                                                             │    │      ║
+║  │  │  🖼️ ITEM ARTWORK                                    [X]    │    │      ║
+║  │  │  text-lg font-bold font-eveleth text-white                  │    │      ║
+║  │  │                                                             │    │      ║
+║  │  │  "Longsword"                                                │    │      ║
+║  │  │  text-sm text-gray-400                                      │    │      ║
+║  │  └─────────────────────────────────────────────────────────────┘    │      ║
+║  │                                                                     │      ║
+║  │  ┌─────────────────────────────────────────────────────────────┐    │      ║
+║  │  │  [INTERACTIVE PREVIEW - if artwork exists]                   │    │      ║
+║  │  │  Drag the image to adjust position                           │    │      ║
+║  │  │                                                              │    │      ║
+║  │  │  ┌─────────────────────────────────────────────────────┐     │    │      ║
+║  │  │  │  aspect-square  rounded-lg  overflow-hidden         │     │    │      ║
+║  │  │  │  border-2  border-{item-type-color}                 │     │    │      ║
+║  │  │  │  cursor-move                                        │     │    │      ║
+║  │  │  │                                                     │     │    │      ║
+║  │  │  │           [Custom Image]                            │     │    │      ║
+║  │  │  │           object-cover                               │     │    │      ║
+║  │  │  │           objectPosition: x% y%                      │     │    │      ║
+║  │  │  │                                                     │     │    │      ║
+║  │  │  │           ┌─────────────────────────────┐           │     │    │      ║
+║  │  │  │           │  🖼️ Drag to reposition     │  (hover)  │     │    │      ║
+║  │  │  │           └─────────────────────────────┘           │     │    │      ║
+║  │  │  └─────────────────────────────────────────────────────┘     │    │      ║
+║  │  │                                                              │    │      ║
+║  │  │  Image Position                     🗑️ Remove               │    │      ║
+║  │  │  text-xs text-gray-400              text-red-400            │    │      ║
+║  │  └─────────────────────────────────────────────────────────────┘    │      ║
+║  │                                                                     │      ║
+║  │  ┌─────────────────────────────────────────────────────────────┐    │      ║
+║  │  │  [UPLOAD OPTIONS]  space-y-2                                 │    │      ║
+║  │  │  Choose an image for this item:                              │    │      ║
+║  │  │                                                              │    │      ║
+║  │  │  ┌───────────────────────────────────────────────────────┐   │    │      ║
+║  │  │  │  📤 Upload Image                                      │   │    │      ║
+║  │  │  │  Upload from device                                   │   │    │      ║
+║  │  │  │  bg-white/5 hover:bg-white/10                        │   │    │      ║
+║  │  │  │  border border-white/20 rounded-lg p-3               │   │    │      ║
+║  │  │  └───────────────────────────────────────────────────────┘   │    │      ║
+║  │  │                                                              │    │      ║
+║  │  │  ─────────────────────────────────────────────               │    │      ║
+║  │  │                                                              │    │      ║
+║  │  │  🖼️ CHOOSE FROM GALLERY                                     │    │      ║
+║  │  │  text-xs font-bold uppercase tracking-wider text-gray-400   │    │      ║
+║  │  │                                                              │    │      ║
+║  │  │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐      │    │      ║
+║  │  │  │      │ │      │ │      │ │      │ │      │ │      │      │    │      ║
+║  │  │  │ img1 │ │ img2 │ │ img3 │ │ img4 │ │ img5 │ │ img6 │      │    │      ║
+║  │  │  │      │ │      │ │      │ │      │ │      │ │      │      │    │      ║
+║  │  │  └──────┘ └──────┘ └──────┘ └──────┘ └──────┘ └──────┘      │    │      ║
+║  │  │  grid grid-cols-3 gap-2 max-h-48 overflow-y-auto            │    │      ║
+║  │  │                                                              │    │      ║
+║  │  │  [If no gallery images:]                                     │    │      ║
+║  │  │  ┌─────────────────────────────────────────────────────────┐ │    │      ║
+║  │  │  │  No gallery images yet.                                 │ │    │      ║
+║  │  │  │  Upload images in Character → Gallery to use them here. │ │    │      ║
+║  │  │  │  bg-white/5 border-dashed border-white/10              │ │    │      ║
+║  │  │  └─────────────────────────────────────────────────────────┘ │    │      ║
+║  │  └─────────────────────────────────────────────────────────────┘    │      ║
+║  │                                                                     │      ║
+║  └─────────────────────────────────────────────────────────────────────┘      ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+```
+
+**Implementation Notes:**
+
+1. **State Storage:** Item art uses the same pattern as domain cards:
+   - `custom_image_url`: URL of the uploaded image
+   - `custom_image_position_x`: X position (0-100%)
+   - `custom_image_position_y`: Y position (0-100%)
+   
+   Stored in `character_inventory.state` JSON column (added to `CharacterInventoryItem` type).
+
+2. **Store Methods** (in `inventory-slice.ts`):
+   - `updateInventoryItemImage(itemId, imageUrl, position?)` - Upload/remove item artwork
+   - `updateInventoryItemImagePosition(itemId, position)` - Adjust image position
+
+3. **Components:**
+   - `ItemArtModal` (`components/modals/item-art-modal.tsx`) - Dedicated modal for item art management
+   - `ItemRow` - Updated with art thumbnail section and `onEditArt` callback
+
+4. **Thumbnail Display Logic:**
+   ```tsx
+   if (item.state?.custom_image_url) {
+     return <Image with position styling>
+   } else {
+     return <ImageIcon fallback>
+   }
+   ```
+
+5. **Type Colors:**
+   | Type | Border/Accent Color |
+   |------|---------------------|
+   | Weapon | `dagger-gold` (#D4A84B) |
+   | Armor | `blue-500` (#3B82F6) |
+   | Consumable | `red-400` (#F87171) |
+   | Item | `purple-500` (#A855F7) |
+
+6. **Aspect Ratios:**
+   - Thumbnail in ItemRow: 64x64 (square)
+   - Preview in Modal: square (1:1)
+   - Unlike domain cards, items don't need the 2:3 card ratio
+
 ---
 
 ## Playmat View Cards
@@ -905,55 +1133,91 @@ Combat-relevant features from ancestry and community displayed in Combat View:
 
 ### Playmat Card Wrapper (Interactive)
 
-Wraps the visual Domain Card with interactive gameplay mechanics below it.
+Wraps the visual Domain Card with interactive gameplay mechanics in a panel wrapper. The outer wrapper provides a dagger-panel container with the domain card and mechanics tray inside.
 
 ```
-╔═════════════════════════════════════════════════════════════════╗
-║  flex flex-col gap-2  w-[240px]                                 ║
-║                                                                 ║
-║  [DOMAIN CARD COMPONENT]                                        ║
-║  (The visual card shown above)                                  ║
-║                                                                 ║
-║  ┌───────────────────────────────────────────────────────────┐  ║
-║  │  [MECHANICS TRAY]                                         │  ║
-║  │  bg-black/40  border border-white/10  rounded-lg          │  ║
-║  │  p-2 space-y-2                                            │  ║
-║  │                                                           │  ║
-║  │  ┌─────────────────────────────────────────────────────┐  │  ║
-║  │  │  [Token Track - Optional]                           │  │  ║
-║  │  │  ● ● ● ○ ○                                          │  │  ║
-║  │  │  text-xs text-gray-400  justify-center              │  │  ║
-║  │  └─────────────────────────────────────────────────────┘  │  ║
-║  │                                                           │  ║
-║  │  ┌─────────────────────────────────────────────────────┐  │  ║
-║  │  │  [Frequency Checkbox - Optional]                    │  │  ║
-║  │  │  ☐ Once Per Short Rest                              │  │  ║
-║  │  │  text-xs text-white  bg-white/5  p-1.5 rounded      │  │  ║
-║  │  └─────────────────────────────────────────────────────┘  │  ║
-║  │                                                           │  ║
-║  │  ┌─────────────────────────────────────────────────────┐  │  ║
-║  │  │  [Attack Button - Optional]                         │  │  ║
-║  │  │  ⚡ Attack (+3)                                     │  │  ║
-║  │  │  w-full py-1.5 bg-white/10 hover:bg-white/20        │  │  ║
-║  │  │  rounded text-xs font-bold                          │  │  ║
-║  │  └─────────────────────────────────────────────────────┘  │  ║
-║  │                                                           │  ║
-║  │  ┌─────────────────────────────────────────────────────┐  │  ║
-║  │  │  [Actions Row]                                      │  │  ║
-║  │  │  ┌───────────────────────────────────────────────┐  │  ║
-║  │  │  │ 🔄 MOVE TO VAULT  /  📦 MOVE TO LOADOUT       │  │  ║
-║  │  │  │ bg-dagger-gold/10  text-dagger-gold           │  │  ║
-║  │  │  │ border-dagger-gold/30  hover:bg-gold/20       │  │  ║
-║  │  │  └───────────────────────────────────────────────┘  │  ║
-║  │  │                                                     │  ║
-║  │  │  ┌──────────────┐  ┌──────────────┐                 │  │  ║
-║  │  │  │ 👁 View Card  │  │ ⚙️ Modifiers  │                 │  │  ║
-║  │  │  └──────────────┘  └──────────────┘                 │  │  ║
-║  │  │  text-[10px] text-gray-500 hover:text-white         │  │  ║
-║  │  └─────────────────────────────────────────────────────┘  │  ║
-║  └───────────────────────────────────────────────────────────┘  ║
-╚═════════════════════════════════════════════════════════════════╝
+╔═════════════════════════════════════════════════════════════════════════════════╗
+║  relative flex flex-col items-center gap-2 p-2                                  ║
+║  bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full            ║
+║                                                                                 ║
+║  ┌─────────────────────────────────────────────────────────────────────────┐    ║
+║  │  [SETTINGS BUTTON - absolute top-right overlay on domain card]          │    ║
+║  │  absolute top-2 right-2 z-40                                            │    ║
+║  │  p-1.5 bg-black/50 hover:bg-black/80 rounded-full                       │    ║
+║  │  border border-white/10 backdrop-blur-sm                                │    ║
+║  │  ⚙️ (Settings icon)                                                     │    ║
+║  └─────────────────────────────────────────────────────────────────────────┘    ║
+║                                                                                 ║
+║  ┌─────────────────────────────────────────────────────────────────────────┐    ║
+║  │  [DOMAIN CARD COMPONENT]                                                │    ║
+║  │  width: 240px, aspect-[2/3]                                             │    ║
+║  │  (See Domain Card diagram above)                                        │    ║
+║  │  - Custom artwork with position styling                                 │    ║
+║  │  - Passive/Combat indicator badges                                      │    ║
+║  │  - Domain-colored banner and divider                                    │    ║
+║  └─────────────────────────────────────────────────────────────────────────┘    ║
+║                                                                                 ║
+║  ┌─────────────────────────────────────────────────────────────────────────┐    ║
+║  │  [MECHANICS TRAY]                                                       │    ║
+║  │  bg-black/40  border border-white/10  rounded-lg                        │    ║
+║  │  p-2 space-y-2 w-full                                                   │    ║
+║  │                                                                         │    ║
+║  │  ┌───────────────────────────────────────────────────────────────────┐  │    ║
+║  │  │  [Token Track - Optional, if card has_tokens]                     │  │    ║
+║  │  │  ● ● ● ○ ○                                                        │  │    ║
+║  │  │  flex justify-center text-xs text-gray-400                        │  │    ║
+║  │  └───────────────────────────────────────────────────────────────────┘  │    ║
+║  │                                                                         │    ║
+║  │  ┌───────────────────────────────────────────────────────────────────┐  │    ║
+║  │  │  [Frequency Checkbox - Optional, if frequency !== 'at_will']      │  │    ║
+║  │  │  ☐ Once Per Short Rest                                            │  │    ║
+║  │  │  text-xs text-white  bg-white/5  px-3 py-1.5 w-full justify-center│  │    ║
+║  │  └───────────────────────────────────────────────────────────────────┘  │    ║
+║  │                                                                         │    ║
+║  │  ┌───────────────────────────────────────────────────────────────────┐  │    ║
+║  │  │  [Embedded Attack Card - Optional, if card has attack/roll]       │  │    ║
+║  │  │  (Full AttackCard component with spell/reaction variant styling)  │  │    ║
+║  │  │  Shows: Attack button (+bonus), Damage button, Cost buttons       │  │    ║
+║  │  │  borderVariant: 'spell' or 'reaction'                             │  │    ║
+║  │  └───────────────────────────────────────────────────────────────────┘  │    ║
+║  │                                                                         │    ║
+║  │  ┌───────────────────────────────────────────────────────────────────┐  │    ║
+║  │  │  [Actions Row]                                                    │  │    ║
+║  │  │  pt-1 border-t border-white/5 flex gap-2                          │  │    ║
+║  │  │                                                                   │  │    ║
+║  │  │  ┌───────────────────────┐   ┌───────────────────────┐            │  │    ║
+║  │  │  │ 🖼️ Change Art         │   │ 📦 To Vault           │            │  │    ║
+║  │  │  │ flex-1                │   │ flex-1                │            │  │    ║
+║  │  │  │ py-1.5 rounded-md     │   │ py-1.5 rounded-md     │            │  │    ║
+║  │  │  │ bg-white/5            │   │ bg-white/5            │            │  │    ║
+║  │  │  │ hover:bg-white/10     │   │ hover:bg-white/10     │            │  │    ║
+║  │  │  │ text-[10px] font-med  │   │ text-[10px] font-bold │            │  │    ║
+║  │  │  │ text-gray-400         │   │ text-gray-400         │            │  │    ║
+║  │  │  │ hover:text-white      │   │ hover:text-white      │            │  │    ║
+║  │  │  │                       │   │                       │            │  │    ║
+║  │  │  │  - OR (if in vault) - │   │  - OR (if in vault) - │            │  │    ║
+║  │  │  │                       │   │ ↔️ To Loadout          │            │  │    ║
+║  │  │  │                       │   │ bg-dagger-gold/10     │            │  │    ║
+║  │  │  │                       │   │ border-dagger-gold/30 │            │  │    ║
+║  │  │  │                       │   │ text-dagger-gold      │            │  │    ║
+║  │  │  └───────────────────────┘   └───────────────────────┘            │  │    ║
+║  │  └───────────────────────────────────────────────────────────────────┘  │    ║
+║  └─────────────────────────────────────────────────────────────────────────┘    ║
+╚═════════════════════════════════════════════════════════════════════════════════╝
 ```
+
+**Actions Row Behavior:**
+- **Change Art**: Opens the CardDetailModal in `art-only` mode for uploading/positioning custom artwork
+- **To Vault / To Loadout**: Toggle button that moves the card between loadout and vault
+  - In loadout: `bg-white/5 text-gray-400` - moves to vault
+  - In vault: `bg-dagger-gold/10 text-dagger-gold border-dagger-gold/30` - moves to loadout
+
+**Conditional Mechanics Tray Elements:**
+1. Token Track - Only if `enhancedData?.has_tokens` is true
+2. Frequency Checkbox - Only if `enhancedData?.frequency && frequency !== 'at_will'`
+3. Embedded AttackCard - Only if card has `attack` or `roll` data
+
+
 
 ### Empty Loadout Slot
 

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Shield, Sword, Heart, Sparkle, X } from 'lucide-react';
 import clsx from 'clsx';
 import { CharacterFormData, LibraryData, LibraryLookupItem } from './types';
-import AddItemModal from '@/components/modals/add-item-modal';
+import AddItemModal from '@/components/views/inventory/add-item-modal';
 import { LibraryItem } from '@/store/character-store';
 
 interface EquipmentStepProps {

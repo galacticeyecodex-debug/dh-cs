@@ -22,7 +22,7 @@ import clsx from 'clsx';
 import { DomainCard } from '@/components/physical-cards/domain-card';
 import CardTokenTrack from '@/components/cards/interactive-elements/card-token-track';
 import FrequencyCheckbox from '@/components/cards/interactive-elements/frequency-checkbox';
-import { AttackCard, MarkStressButton, SpendHopeButton } from '@/components/combat';
+import { AttackCard, MarkStressButton, SpendHopeButton } from '@/components/views/combat';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { EnhancedAbilityCard } from '@/types/cards';
 import { getSystemModifiers, calculateWeaponDamage, parseDamageRoll } from '@/lib/utils';
