@@ -6,6 +6,7 @@ export interface CharacterFormData {
   ancestry_id: string;
   is_mixed_ancestry?: boolean;
   ancestry_id_2?: string;
+  mixed_ancestry_name?: string;
   ancestry_feat_index_1?: number;
   ancestry_feat_index_2?: number;
   community_id: string;
