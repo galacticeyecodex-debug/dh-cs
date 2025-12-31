@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCharacterStore, Character } from '@/store/character-store';
 import { dataService } from '@/lib/data-service';
+import { Trash2 } from 'lucide-react';
 
 export default function CharacterSelectPage() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectingId, setSelectingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
 
   // Use refs to prevent stale closure issues and track intended selection
@@ -118,6 +120,24 @@ export default function CharacterSelectPage() {
     }
   };
 
+  const handleDeleteCharacter = async (e: React.MouseEvent, characterId: string, characterName: string) => {
+    e.stopPropagation();
+    if (selectingId !== null || deletingId !== null) return;
+
+    if (confirm(`Are you sure you want to delete ${characterName}? This action cannot be undone.`)) {
+      setDeletingId(characterId);
+      try {
+        await dataService.character.delete(characterId);
+        setCharacters(prev => prev.filter(c => c.id !== characterId));
+      } catch (error) {
+        console.error('Error deleting character:', error);
+        alert('Failed to delete character.');
+      } finally {
+        setDeletingId(null);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <MobileLayout>
@@ -162,11 +182,25 @@ export default function CharacterSelectPage() {
                   onClick={() => !isDisabled && handleSelectCharacter(char.id)}
                 >
                   <CardHeader>
-                    <CardTitle className="text-dagger-gold flex items-center gap-2">
-                      {char.name}
-                      {isSelecting && (
-                        <span className="inline-block w-4 h-4 border-2 border-dagger-gold border-t-transparent rounded-full animate-spin" />
-                      )}
+                    <CardTitle className="text-dagger-gold flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 truncate">
+                        {char.name}
+                        {isSelecting && (
+                          <span className="inline-block w-4 h-4 border-2 border-dagger-gold border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                        )}
+                      </div>
+                      <button
+                        onClick={(e) => handleDeleteCharacter(e, char.id, char.name)}
+                        disabled={isDisabled || deletingId !== null}
+                        className="text-red-400 hover:text-red-300 transition-colors p-1 disabled:opacity-50 flex-shrink-0"
+                        title="Delete character"
+                      >
+                        {deletingId === char.id ? (
+                           <span className="inline-block w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 size={18} />
+                        )}
+                      </button>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
