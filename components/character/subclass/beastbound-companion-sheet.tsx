@@ -340,7 +340,7 @@ export default function CompanionSheet({
                   <div>
                     <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Companion Name</label>
                     <input
-                      value={localCompanion.name}
+                      value={localCompanion.name || ''}
                       onChange={(e) => updateLocal({ name: e.target.value })}
                       placeholder="e.g., Shadow, Fang, Luna..."
                       className="w-full bg-black/30 border border-white/20 rounded-lg px-3 py-2 text-white focus:border-dagger-gold outline-none transition-colors"
@@ -351,7 +351,7 @@ export default function CompanionSheet({
                   <div>
                     <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Animal Type</label>
                     <input
-                      value={localCompanion.animal_type}
+                      value={localCompanion.animal_type || ''}
                       onChange={(e) => updateLocal({ animal_type: e.target.value })}
                       placeholder="e.g., Wolf, Hawk, Bear..."
                       className="w-full bg-black/30 border border-white/20 rounded-lg px-3 py-2 text-white focus:border-dagger-gold outline-none transition-colors"
@@ -362,7 +362,7 @@ export default function CompanionSheet({
                   <div>
                     <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Attack Name</label>
                     <input
-                      value={localCompanion.attack_name}
+                      value={localCompanion.attack_name || ''}
                       onChange={(e) => updateLocal({ attack_name: e.target.value })}
                       placeholder="e.g., Claw Swipe, Bite, Pounce..."
                       className="w-full bg-black/30 border border-white/20 rounded-lg px-3 py-2 text-white focus:border-dagger-gold outline-none transition-colors"
