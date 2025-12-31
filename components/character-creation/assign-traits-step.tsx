@@ -7,12 +7,10 @@ import { CharacterFormData } from './types';
 
 interface AssignTraitsStepProps {
   formData: Partial<CharacterFormData>;
-  displayTraitPool: number[];
   traitAssignmentPool: number[];
-  selectedTraitIndex: number | null;
-  setSelectedTraitIndex: (index: number | null) => void;
+  suggestedTraits?: string;
   assignTraitValue: (statName: keyof CharacterFormData['stats'], value: number | '') => void;
-  isTraitValueAssigned: (value: number) => boolean;
+  setFormData: React.Dispatch<React.SetStateAction<Partial<CharacterFormData>>>;
   onNext: () => void;
   onBack: () => void;
   isValid: boolean;
@@ -20,98 +18,101 @@ interface AssignTraitsStepProps {
 
 export default function AssignTraitsStep({
   formData,
-  displayTraitPool,
   traitAssignmentPool,
-  selectedTraitIndex,
-  setSelectedTraitIndex,
+  suggestedTraits,
   assignTraitValue,
-  isTraitValueAssigned,
+  setFormData,
   onNext,
   onBack,
   isValid
 }: AssignTraitsStepProps) {
-  const availableTraits = Object.entries(formData.stats || {});
-  // Count how many non-zero values still need to be assigned
-  const assignedNonZeroCount = Object.values(formData.stats || {}).filter(v => v !== 0).length;
-  const remainingCount = displayTraitPool.length - assignedNonZeroCount;
+  const stats = formData.stats || { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 };
+  const statKeys: (keyof CharacterFormData['stats'])[] = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+
+  const useSuggested = () => {
+    if (!suggestedTraits) return;
+    // suggestedTraits is "+1, 0, +1, +2, -1, 0"
+    const values = suggestedTraits.split(',').map(v => parseInt(v.trim()));
+    if (values.length === 6) {
+      setFormData(prev => ({
+        ...prev,
+        stats: {
+          agility: values[0],
+          strength: values[1],
+          finesse: values[2],
+          instinct: values[3],
+          presence: values[4],
+          knowledge: values[5]
+        }
+      }));
+    }
+  };
+
+  // Calculate remaining pool
+  const getAvailableValues = (currentStatKey: keyof CharacterFormData['stats']) => {
+    const assignedValues = Object.entries(stats)
+      .filter(([key]) => key !== currentStatKey)
+      .map(([_, val]) => val);
+    
+    const pool = [...traitAssignmentPool];
+    assignedValues.forEach(val => {
+      const index = pool.indexOf(val);
+      if (index !== -1) pool.splice(index, 1);
+    });
+
+    // Return unique values for the dropdown, but we need to know how many of each are left
+    return Array.from(new Set(pool)).sort((a, b) => b - a);
+  };
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold font-serif flex items-center gap-2"><HandMetal size={20} /> Step 5: Assign Traits</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold font-serif flex items-center gap-2"><HandMetal size={20} /> Step 5: Assign Traits</h2>
+        {suggestedTraits && (
+          <button 
+            type="button" 
+            onClick={useSuggested}
+            className="text-xs bg-dagger-gold/20 hover:bg-dagger-gold/30 text-dagger-gold border border-dagger-gold/30 px-3 py-1.5 rounded-full transition-all"
+          >
+            Use Suggested
+          </button>
+        )}
+      </div>
+      
       <p className="text-sm text-gray-400">
-        <span className="hidden md:inline">Click a value to select, then click a stat to assign.</span>
-        <span className="md:hidden">Tap a value, then tap a stat to assign.</span>
-        {' '}Remaining: {remainingCount}
+        Assign your traits using the values: {traitAssignmentPool.map(v => v >= 0 ? `+${v}` : v).join(', ')}
       </p>
-      <div className="flex justify-center flex-wrap gap-2 mb-4">
-        {displayTraitPool.map((val, index) => {
-          const isAssigned = isTraitValueAssigned(val);
-          const isSelected = selectedTraitIndex === index;
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        {statKeys.map((stat) => {
+          const value = stats[stat];
+          const availableOptions = getAvailableValues(stat);
+          
           return (
-            <button
-              key={index}
-              type="button"
-              className={clsx(
-                "px-4 py-2 rounded-full cursor-pointer transition-all",
-                isSelected
-                  ? "bg-dagger-gold text-black ring-2 ring-dagger-gold ring-offset-2 ring-offset-dagger-dark scale-105 shadow-lg"
-                  : isAssigned
-                    ? "bg-gray-600 text-gray-400 hover:bg-gray-500"
-                    : "bg-blue-600 text-white hover:bg-blue-500 active:scale-95"
-              )}
-              onClick={() => setSelectedTraitIndex(index)}
-            >
-              {val >= 0 ? `+${val}` : val}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        {availableTraits.map(([stat, value]) => {
-          const statValue = formData.stats![stat as keyof CharacterFormData['stats']];
-          const isAssigned = statValue !== 0 && traitAssignmentPool.includes(statValue);
-
-          return (
-            <button
-              type="button"
-              key={stat}
-              className={clsx(
-                "flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all",
-                isAssigned
-                  ? "bg-dagger-gold/10 border-dagger-gold shadow-md shadow-dagger-gold/20"
-                  : "bg-black/20 border-white/5 hover:border-white/20",
-                selectedTraitIndex !== null && "cursor-pointer hover:scale-105 active:scale-95"
-              )}
-              onClick={() => {
-                if (selectedTraitIndex !== null) {
-                  const selectedValue = displayTraitPool[selectedTraitIndex];
-                  assignTraitValue(stat as keyof CharacterFormData['stats'], selectedValue);
-                }
-              }}
-            >
-              <label className="capitalize text-sm text-gray-300 pointer-events-none">{stat}</label>
-              <div className={clsx(
-                "text-3xl font-bold mt-1 pointer-events-none",
-                isAssigned ? "text-dagger-gold" : "text-gray-500"
-              )}>
-                {statValue >= 0 ? `+${statValue}` : statValue}
-              </div>
-              <span
-                onClick={(e) => {
-                  e.stopPropagation();
-                  assignTraitValue(stat as keyof CharacterFormData['stats'], '');
-                }}
-                className="mt-2 text-red-400 text-xs hover:underline cursor-pointer"
+            <div key={stat} className="flex flex-col gap-1">
+              <label className="capitalize text-xs font-bold text-gray-500 tracking-wider ml-1">{stat}</label>
+              <select
+                value={value}
+                onChange={(e) => assignTraitValue(stat, parseInt(e.target.value))}
+                className={clsx(
+                  "w-full p-3 rounded-lg border-2 bg-black/20 text-xl font-bold transition-all focus:ring-dagger-gold focus:border-dagger-gold",
+                  value !== 0 || traitAssignmentPool.filter(v => v === 0).length > 0
+                    ? "border-dagger-gold/30 text-dagger-gold"
+                    : "border-white/5 text-gray-500"
+                )}
               >
-                Clear
-              </span>
-            </button>
+                {/* We must include the current value even if it's not in the 'available' list of other stats */}
+                <option value={value}>{value >= 0 ? `+${value}` : value}</option>
+                {availableOptions.filter(v => v !== value).map(opt => (
+                  <option key={opt} value={opt}>{opt >= 0 ? `+${opt}` : opt}</option>
+                ))}
+              </select>
+            </div>
           );
         })}
       </div>
-      <div className="flex justify-between mt-4">
+
+      <div className="flex justify-between mt-8">
         <button type="button" onClick={onBack} className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20">Back</button>
         <button
           type="button"

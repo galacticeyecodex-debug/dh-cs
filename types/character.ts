@@ -108,6 +108,7 @@ export interface Character {
   name: string;
   level: number;
   ancestry?: string;
+  ancestry_features?: any[];
   community?: string;
   transformation?: string; // Optional transformation card (Vampire, Werewolf, etc.)
   class_id?: string;

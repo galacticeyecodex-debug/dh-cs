@@ -140,7 +140,14 @@ export default function CharacterView() {
               setAncestryCard({
                 name: ancestry.name,
                 description: ancestry.data?.description || ancestry.data?.markdown || '',
-                features: ancestry.data?.features || [],
+                features: character.ancestry_features || ancestry.data?.features || [],
+              });
+            } else if (character.ancestry_features) {
+              // Mixed ancestry case or custom ancestry
+              setAncestryCard({
+                name: character.ancestry,
+                description: 'Mixed Ancestry',
+                features: character.ancestry_features,
               });
             }
           }
@@ -176,7 +183,7 @@ export default function CharacterView() {
     };
 
     fetchLibraryData();
-  }, [character?.ancestry, character?.community, character?.transformation, includePlaytest]);
+  }, [character?.ancestry, character?.ancestry_features, character?.community, character?.transformation, includePlaytest]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !character || !user) return;
