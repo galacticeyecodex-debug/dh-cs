@@ -17,7 +17,7 @@
 'use client';
 
 import React from 'react';
-import { Eye, Box, ArrowRightLeft, Settings } from 'lucide-react';
+import { Box, ArrowRightLeft, Settings, Image as ImageIcon } from 'lucide-react';
 import clsx from 'clsx';
 import { DomainCard } from '@/components/cards/domain-card';
 import CardTokenTrack from '@/components/cards/mechanics/card-token-track';
@@ -146,7 +146,7 @@ export default function PlaymatCard({
 
   return (
     <div 
-      className="flex flex-col gap-2 p-2 bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-fit cursor-pointer group hover:border-white/20 transition-colors"
+      className="relative flex flex-col gap-2 p-2 bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-fit cursor-pointer group hover:border-white/20 transition-colors"
       onClick={onView}
     >
       {/* Visual Domain Card */}
@@ -163,6 +163,20 @@ export default function PlaymatCard({
         hasPassiveModifiers={!!(enhancedData?.modifiers && enhancedData.modifiers.length > 0)}
         hasCombatAbility={!!hasAttack}
       />
+
+      {/* Modifiers Button (Top Right Overlay) */}
+      {onManageModifiers && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onManageModifiers();
+          }}
+          className="absolute top-2 right-2 z-50 p-1.5 bg-black/50 hover:bg-black/80 text-white/70 hover:text-white rounded-full transition-colors backdrop-blur-sm border border-white/10"
+          title="Manage Modifiers"
+        >
+          <Settings size={14} />
+        </button>
+      )}
 
       {/* Mechanics Tray */}
       <div 
@@ -195,7 +209,18 @@ export default function PlaymatCard({
         {attackCardNode}
 
         {/* Actions Row */}
-        <div className="pt-1 border-t border-white/5 space-y-2">
+        <div className="pt-1 border-t border-white/5 flex gap-2">
+            {/* Change Art */}
+            <button
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onView(); // Opens detail modal which has Art options
+                }}
+                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-white/5 hover:bg-white/10 rounded-md text-[10px] font-medium text-gray-400 hover:text-white transition-colors"
+            >
+                <ImageIcon size={12} /> Change Art
+            </button>
+
             {/* Move Toggle */}
             <button
                 onClick={(e) => {
@@ -203,7 +228,7 @@ export default function PlaymatCard({
                     onMoveLocation(isLoadout ? 'vault' : 'loadout');
                 }}
                 className={clsx(
-                    "w-full flex items-center justify-center gap-2 py-1.5 rounded-md text-xs font-bold transition-colors border",
+                    "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[10px] font-bold transition-colors border",
                     isLoadout 
                         ? "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10"
                         : "bg-dagger-gold/10 border-dagger-gold/30 text-dagger-gold hover:bg-dagger-gold/20"
@@ -211,38 +236,14 @@ export default function PlaymatCard({
             >
                 {isLoadout ? (
                     <>
-                        <Box size={14} /> To Vault
+                        <Box size={12} /> To Vault
                     </>
                 ) : (
                     <>
-                        <ArrowRightLeft size={14} /> To Loadout
+                        <ArrowRightLeft size={12} /> To Loadout
                     </>
                 )}
             </button>
-
-            {/* View / Modifiers */}
-            <div className="flex gap-2">
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onView();
-                    }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-white/5 hover:bg-white/10 rounded-md text-[10px] font-medium text-gray-400 hover:text-white transition-colors"
-                >
-                    <Eye size={12} /> View
-                </button>
-                {onManageModifiers && (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onManageModifiers();
-                        }}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-white/5 hover:bg-white/10 rounded-md text-[10px] font-medium text-gray-400 hover:text-white transition-colors"
-                    >
-                        <Settings size={12} /> Modifiers
-                    </button>
-                )}
-            </div>
         </div>
       </div>
     </div>
