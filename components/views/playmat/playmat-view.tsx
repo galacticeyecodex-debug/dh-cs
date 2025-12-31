@@ -713,6 +713,57 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
                     Uploading...
                   </div>
                 )}
+
+                {/* Choose from Gallery */}
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
+                    <ImageIcon size={12} /> Choose from Gallery
+                  </h4>
+                  {character?.gallery_images && character.gallery_images.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                      {character.gallery_images.map((galleryUrl, idx) => (
+                        <button
+                          key={idx}
+                          disabled={isUploading}
+                          onClick={async () => {
+                            setIsUploading(true);
+                            try {
+                              await updateCardImage(charCard.id, galleryUrl, 'artwork');
+                              setShowImageOptions(false);
+                              toast.success('Card art updated from gallery');
+                            } catch (error) {
+                              console.error('Failed to set gallery image:', error);
+                              toast.error('Failed to update card art');
+                            } finally {
+                              setIsUploading(false);
+                            }
+                          }}
+                          className="aspect-square relative rounded-lg overflow-hidden border-2 border-transparent hover:border-dagger-gold transition-colors group disabled:opacity-50"
+                        >
+                          <Image
+                            src={galleryUrl}
+                            alt={`Gallery image ${idx + 1}`}
+                            fill
+                            className="object-cover"
+                            sizes="100px"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                            <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                              Select
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 bg-white/5 rounded-lg border border-dashed border-white/10">
+                      <p className="text-sm text-gray-500 italic">No gallery images yet.</p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Upload images in <span className="text-dagger-gold">Character → Gallery</span> to use them here.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
