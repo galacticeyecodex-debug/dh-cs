@@ -18,6 +18,7 @@ import { useCharacterStore, Character } from '@/store/character-store';
 import { dataService } from '@/lib/data-service';
 import useContentAccess from '@/hooks/useContentAccess';
 import clsx from 'clsx';
+import { X } from 'lucide-react';
 import { uploadCharacterAvatar } from '@/lib/storage-service';
 import { calculateDamageThresholds } from '@/lib/gameLogic';
 import { 
@@ -373,8 +374,21 @@ export default function CreateCharacterPage() {
   if (libraryLoading) return <div className="min-h-screen bg-dagger-dark flex items-center justify-center text-white">Loading data...</div>;
 
   return (
-    <div className="min-h-[100dvh] bg-dagger-dark text-white p-4 flex items-center justify-center">
-      <div className="max-w-md w-full bg-dagger-panel border border-white/10 rounded-xl shadow-lg p-6 space-y-6">
+    <div className="min-h-[100dvh] bg-dagger-dark text-white p-4 flex items-center justify-center relative">
+      <div className="max-w-md w-full bg-dagger-panel border border-white/10 rounded-xl shadow-lg p-6 space-y-6 relative">
+        <button 
+          type="button"
+          onClick={() => {
+            if (confirm('Are you sure you want to abort character creation? All progress will be lost.')) {
+              router.push('/client/characters');
+            }
+          }}
+          className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors p-1"
+          title="Abort creation"
+        >
+          <X size={20} />
+        </button>
+
         <h1 className="text-2xl font-serif font-bold text-center text-dagger-gold">New Character</h1>
         <div className="flex justify-center gap-2 mb-4">
           {Array.from({ length: totalSteps }).map((_, idx) => (

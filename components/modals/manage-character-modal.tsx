@@ -16,7 +16,7 @@
  */
 
 import React, { useState } from 'react';
-import { X, AlertCircle, Settings, Plus, Minus, Zap, Sparkles } from 'lucide-react';
+import { X, AlertCircle, Settings, Plus, Minus, Zap, Sparkles, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/core/error-boundary';
@@ -41,6 +41,7 @@ interface ManageCharacterModalProps {
     transformation?: string;
     spellcast_trait?: string;
   }) => Promise<void>;
+  onDelete?: () => Promise<void>;
   isLoading?: boolean;
   onLevelUp?: () => void;
 }
@@ -57,6 +58,7 @@ export default function ManageCharacterModal({
   currentSpellcastTrait = '',
   advancementHistory = {},
   onUpdate,
+  onDelete,
   isLoading = false,
   onLevelUp,
 }: ManageCharacterModalProps) {
@@ -69,6 +71,7 @@ export default function ManageCharacterModal({
   const [spellcastTrait, setSpellcastTrait] = useState<string>(currentSpellcastTrait);
   const [error, setError] = useState<string>('');
   const [confirmDeLevelOpen, setConfirmDeLevelOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Dynamic lists
   const [availableAncestries, setAvailableAncestries] = useState<{ name: string }[]>([]);
@@ -146,6 +149,20 @@ export default function ManageCharacterModal({
     }
 
     await performUpdate();
+  };
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    if (confirm(`Are you sure you want to delete ${currentName}? This action is permanent and cannot be undone.`)) {
+      setIsDeleting(true);
+      try {
+        await onDelete();
+        onClose();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to delete character');
+        setIsDeleting(false);
+      }
+    }
   };
 
   const performUpdate = async () => {
@@ -444,20 +461,38 @@ export default function ManageCharacterModal({
             </div>
 
             {/* Footer */}
-            <div className="border-t border-white/10 px-6 py-4 flex gap-3 justify-end">
-              <button
-                onClick={onClose}
-                className="px-4 py-2 rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-white/30 transition-colors font-bold"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!hasChanges || isLoading}
-                className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isLoading ? 'Updating...' : 'Save Changes'}
-              </button>
+            <div className="border-t border-white/10 px-6 py-4 flex gap-3 justify-between items-center">
+              <div>
+                {onDelete && (
+                  <button
+                    onClick={handleDelete}
+                    disabled={isLoading || isDeleting}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-red-400 hover:bg-red-900/20 transition-colors text-sm font-bold disabled:opacity-50"
+                  >
+                    {isDeleting ? (
+                       <span className="inline-block w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Trash2 size={16} />
+                    )}
+                    Delete Character
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-white/30 transition-colors font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={!hasChanges || isLoading || isDeleting}
+                  className="px-4 py-2 rounded-lg bg-dagger-gold text-black font-bold hover:bg-dagger-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isLoading ? 'Updating...' : 'Save Changes'}
+                </button>
+              </div>
             </div>
           </motion.div>
           </>
