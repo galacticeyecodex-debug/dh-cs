@@ -146,8 +146,7 @@ export default function PlaymatCard({
 
   return (
     <div 
-      className="relative flex flex-col items-center gap-2 p-2 bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full cursor-pointer group hover:border-white/20 transition-colors"
-      onClick={onView}
+      className="relative flex flex-col items-center gap-2 p-2 bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full transition-colors"
     >
       {/* Visual Domain Card */}
       <DomainCard
