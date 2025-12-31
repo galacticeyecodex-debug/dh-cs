@@ -29,8 +29,8 @@ export const DOMAIN_COLORS: Record<string, DomainTheme> = {
     textColor: '#ffffff',
   },
   blood: {
-    primary: '#8a1c1c', // Dark Crimson
-    secondary: '#5c1212',
+    primary: '#981B1D', // Dark Crimson
+    secondary: '#580000',
     accent: '#ef4444',
     gradient: 'from-red-900 to-red-950',
     textColor: '#ffffff',
