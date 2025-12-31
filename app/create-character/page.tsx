@@ -44,7 +44,7 @@ export default function CreateCharacterPage() {
   const [formData, setFormData] = useState<Partial<CharacterFormData>>({
     name: '',
     image_url: '',
-    stats: { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 },
+    stats: undefined,
     experiences: ['', ''],
     domains: ['', ''],
     selectedCards: [],
@@ -170,32 +170,26 @@ export default function CreateCharacterPage() {
           selectedPrimaryWeaponId: null,
           selectedSecondaryWeaponId: null,
           selectedArmorId: null,
+          // Clear stats when class changes to force re-population
+          stats: undefined
         }));
 
-        // Automatically populate suggested traits if they exist and stats are currently default (all 0)
+        // Automatically populate suggested traits if they exist
         if (selectedClass.data.suggested_traits) {
-          setFormData(prev => {
-            const currentStats = prev.stats || { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 };
-            const isDefault = Object.values(currentStats).every(v => v === 0);
-            
-            if (isDefault) {
-              const values = selectedClass.data.suggested_traits.split(',').map((v: string) => parseInt(v.trim()));
-              if (values.length === 6) {
-                return {
-                  ...prev,
-                  stats: {
-                    agility: values[0],
-                    strength: values[1],
-                    finesse: values[2],
-                    instinct: values[3],
-                    presence: values[4],
-                    knowledge: values[5]
-                  }
-                };
+          const values = selectedClass.data.suggested_traits.split(',').map((v: string) => parseInt(v.trim()));
+          if (values.length === 6) {
+            setFormData(prev => ({
+              ...prev,
+              stats: {
+                agility: values[0],
+                strength: values[1],
+                finesse: values[2],
+                instinct: values[3],
+                presence: values[4],
+                knowledge: values[5]
               }
-            }
-            return prev;
-          });
+            }));
+          }
         }
       }
     }
@@ -228,18 +222,24 @@ export default function CreateCharacterPage() {
 
   const assignTraitValue = useCallback((statName: keyof CharacterFormData['stats'], value: number | '') => {
     if (value === '') {
-      setFormData(prev => ({ ...prev, stats: { ...prev.stats!, [statName]: 0 } }));
+      setFormData(prev => ({ 
+        ...prev, 
+        stats: prev.stats ? { ...prev.stats, [statName]: 0 } : { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0, [statName]: 0 }
+      }));
       setSelectedTraitIndex(null);
     } else {
       const val = value as number;
-      const currentStats = { ...formData.stats! };
+      const currentStats = formData.stats || { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 };
       const assignedCount = Object.entries(currentStats).filter(([key, v]) => key !== statName && v === val).length;
       const poolCount = TRAIT_ASSIGNMENT_POOL.filter(v => v === val).length;
 
       if (assignedCount < poolCount) {
         setFormData(prev => ({
           ...prev,
-          stats: { ...prev.stats!, [statName]: val }
+          stats: { 
+            ...(prev.stats || { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }), 
+            [statName]: val 
+          }
         }));
         setSelectedTraitIndex(null);
       } else {
