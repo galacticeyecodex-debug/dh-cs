@@ -71,7 +71,7 @@ export default function MarkStressButton({
       <Zap size={size === 'sm' ? 12 : 14} className={clsx(
         isDisabled ? 'text-gray-600' : 'text-yellow-400'
       )} />
-      <span>Mark Stress ({cost})</span>
+      <span>Mark Stress ({cost}) — {stressCurrent}/{stressMax}</span>
     </button>
   );
 }

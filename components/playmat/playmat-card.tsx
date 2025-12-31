@@ -32,6 +32,7 @@ interface PlaymatCardProps {
   enhancedData?: EnhancedAbilityCard;
   onMoveLocation: (location: 'loadout' | 'vault') => void;
   onView: () => void;
+  onEditArt?: () => void;
   onManageModifiers?: () => void;
 }
 
@@ -40,6 +41,7 @@ export default function PlaymatCard({
   enhancedData,
   onMoveLocation,
   onView,
+  onEditArt,
   onManageModifiers,
 }: PlaymatCardProps) {
   const { character, prepareRoll } = useCharacterStore();
@@ -123,15 +125,7 @@ export default function PlaymatCard({
                 // For playmat, we might want a simplified look? 
                 // AttackCard is already quite dense. Let's use it as is for consistency.
                 rollLabel={rollLabel || 'Roll'}
-                // Pass smart cost buttons if they exist
-                customActions={
-                    (enhancedData.costs?.stress || enhancedData.costs?.hope) ? (
-                        <>
-                            {enhancedData.costs?.stress && <MarkStressButton cost={enhancedData.costs.stress} size="sm" />}
-                            {enhancedData.costs?.hope && <SpendHopeButton cost={enhancedData.costs.hope} size="sm" />}
-                        </>
-                    ) : undefined
-                }
+                costs={enhancedData.costs}
             />
         </div>
     );
@@ -153,6 +147,7 @@ export default function PlaymatCard({
         name={libraryItem.name}
         domain={libraryItem.domain}
         tier={libraryItem.tier || 1}
+        type={libraryItem.type}
         description={libraryItem.data?.description}
         recallCost={libraryItem.data?.recall ?? 0}
         customImageUrl={card.state?.custom_image_url || '/assets/card/domain-placeholder.png'}
@@ -213,7 +208,11 @@ export default function PlaymatCard({
             <button
                 onClick={(e) => {
                     e.stopPropagation();
-                    onView(); // Opens detail modal which has Art options
+                    if (onEditArt) {
+                        onEditArt();
+                    } else {
+                        onView();
+                    }
                 }}
                 className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-white/5 hover:bg-white/10 rounded-md text-[10px] font-medium text-gray-400 hover:text-white transition-colors"
             >

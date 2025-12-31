@@ -30,6 +30,7 @@ export default function SpendHopeButton({
 
   // Calculate if enough hope is available
   const hopeCurrent = character?.hope ?? 0;
+  const hopeMax = 6; // Standard Daggerheart hope max
   const canAfford = hopeCurrent >= cost;
   const isDisabled = disabled || !canAfford || !character;
 
@@ -69,7 +70,7 @@ export default function SpendHopeButton({
       <Sparkles size={size === 'sm' ? 12 : 14} className={clsx(
         isDisabled ? 'text-gray-600' : 'text-dagger-gold'
       )} />
-      <span>Spend Hope ({cost})</span>
+      <span>Spend Hope ({cost}) — {hopeCurrent}/{hopeMax}</span>
     </button>
   );
 }
