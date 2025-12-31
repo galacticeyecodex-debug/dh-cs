@@ -180,7 +180,11 @@ const VitalCard = React.memo(function VitalCard({
           "p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
           "w-full",
           // Critical condition overrides modified border (handled by getPanelBorder)
-          getPanelBorder({ isCritical: isCriticalCondition, isModified }),
+          // Hide modified border for Evasion specifically
+          getPanelBorder({ 
+            isCritical: isCriticalCondition, 
+            isModified: label === 'Evasion' ? false : isModified 
+          }),
           className
         )}>
         <div className="flex items-center justify-between w-full">
@@ -212,9 +216,6 @@ const VitalCard = React.memo(function VitalCard({
           <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center">
             <span className={isModified && !trackType ? getValueColor(true) : ""}>{current}</span>
             {max !== undefined && <span className="text-xs text-gray-500 font-sans font-normal">/{max}</span>}
-            {isModified && expectedValue !== undefined && (
-              <span className="text-[8px] text-gray-500 font-sans font-normal mt-0.5">Base: {expectedValue}</span>
-            )}
           </div>
         )}
 
