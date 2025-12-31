@@ -30,6 +30,22 @@ export default function HeritageStep({
   const featIndex1 = formData.ancestry_feat_index_1 ?? 0;
   const featIndex2 = formData.ancestry_feat_index_2 ?? 1;
 
+  // Track previous ancestries to detect changes for auto-naming
+  const prevAncestryIds = React.useRef({ id1: formData.ancestry_id, id2: formData.ancestry_id_2 });
+
+  // Auto-suggest name for Mixed Ancestry
+  React.useEffect(() => {
+    const ancestryChanged = prevAncestryIds.current.id1 !== formData.ancestry_id || prevAncestryIds.current.id2 !== formData.ancestry_id_2;
+    
+    if (formData.is_mixed_ancestry && selectedAncestry1 && selectedAncestry2 && (ancestryChanged || !formData.mixed_ancestry_name)) {
+      setFormData(prev => ({
+        ...prev,
+        mixed_ancestry_name: `${selectedAncestry1.name}-${selectedAncestry2.name}`
+      }));
+      prevAncestryIds.current = { id1: formData.ancestry_id, id2: formData.ancestry_id_2 };
+    }
+  }, [formData.is_mixed_ancestry, selectedAncestry1, selectedAncestry2, formData.ancestry_id, formData.ancestry_id_2, formData.mixed_ancestry_name, setFormData]);
+
   const handleFeatSelect = (ancestryNum: 1 | 2, index: number) => {
     if (!formData.is_mixed_ancestry) return;
     setFormData(prev => ({
@@ -57,23 +73,41 @@ export default function HeritageStep({
     <div className="space-y-6">
       <h2 className="text-xl font-bold font-serif flex items-center gap-2"><UserIcon size={20} /> Step 2: Heritage</h2>
       
-      <div className="flex items-center gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
-        <input 
-          type="checkbox" 
-          id="is_mixed_ancestry" 
-          checked={formData.is_mixed_ancestry || false}
-          onChange={(e) => setFormData(prev => ({ 
-            ...prev, 
-            is_mixed_ancestry: e.target.checked,
-            ancestry_id_2: e.target.checked ? prev.ancestry_id_2 : undefined,
-            ancestry_feat_index_1: 0,
-            ancestry_feat_index_2: 1
-          }))}
-          className="w-4 h-4 rounded border-white/20 bg-black/20 text-dagger-gold focus:ring-dagger-gold"
-        />
-        <label htmlFor="is_mixed_ancestry" className="text-sm font-medium text-gray-200 cursor-pointer">
-          Mixed Ancestry (Hybrid)
-        </label>
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
+          <input 
+            type="checkbox" 
+            id="is_mixed_ancestry" 
+            checked={formData.is_mixed_ancestry || false}
+            onChange={(e) => setFormData(prev => ({ 
+              ...prev, 
+              is_mixed_ancestry: e.target.checked,
+              ancestry_id_2: e.target.checked ? prev.ancestry_id_2 : undefined,
+              mixed_ancestry_name: e.target.checked ? prev.mixed_ancestry_name : undefined,
+              ancestry_feat_index_1: 0,
+              ancestry_feat_index_2: 1
+            }))}
+            className="w-4 h-4 rounded border-white/20 bg-black/20 text-dagger-gold focus:ring-dagger-gold"
+          />
+          <label htmlFor="is_mixed_ancestry" className="text-sm font-medium text-gray-200 cursor-pointer">
+            Mixed Ancestry (Hybrid)
+          </label>
+        </div>
+
+        {formData.is_mixed_ancestry && (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+            <label htmlFor="mixed_ancestry_name" className="block text-sm font-medium text-gray-400">Custom Ancestry Name</label>
+            <input
+              type="text"
+              id="mixed_ancestry_name"
+              name="mixed_ancestry_name"
+              value={formData.mixed_ancestry_name || ''}
+              onChange={handleInputChange}
+              className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold text-white font-bold"
+              placeholder="e.g. Toothling"
+            />
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -99,13 +133,13 @@ export default function HeritageStep({
                 <>
                   <p className="text-[10px] text-gray-500 uppercase font-bold ml-1">Select one feature:</p>
                   {selectedAncestry1.data.features.map((feat: any, i: number) => (
-                    renderFeatCard(feat, featIndex1 === i, () => handleFeatSelect(1, i), "bg-emerald-900/30 border-emerald-500/40 text-emerald-400")
+                    renderFeatCard(feat, featIndex1 === i, () => handleFeatSelect(1, i), "bg-dagger-gold/20 border-dagger-gold/40 text-dagger-gold")
                   ))}
                 </>
               ) : (
                 selectedAncestry1.data.features.map((feat: any, i: number) => (
-                  <div key={i} className="p-2 bg-emerald-900/10 border border-emerald-500/10 rounded text-xs opacity-80">
-                    <span className="font-bold text-emerald-400 uppercase tracking-tight">{feat.name}</span>
+                  <div key={i} className="p-2 bg-dagger-gold/10 border border-dagger-gold/20 rounded text-xs opacity-80">
+                    <span className="font-bold text-dagger-gold uppercase tracking-tight">{feat.name}</span>
                     <p className="text-gray-400 mt-1">{feat.text?.replace(/\*\*/g, '')}</p>
                   </div>
                 ))
@@ -133,7 +167,7 @@ export default function HeritageStep({
               <div className="mt-2 grid grid-cols-1 gap-2">
                 <p className="text-[10px] text-gray-500 uppercase font-bold ml-1">Select one feature:</p>
                 {selectedAncestry2.data.features.map((feat: any, i: number) => (
-                  renderFeatCard(feat, featIndex2 === i, () => handleFeatSelect(2, i), "bg-blue-900/30 border-blue-500/40 text-blue-400")
+                  renderFeatCard(feat, featIndex2 === i, () => handleFeatSelect(2, i), "bg-dagger-gold/20 border-dagger-gold/40 text-dagger-gold")
                 ))}
               </div>
             )}
