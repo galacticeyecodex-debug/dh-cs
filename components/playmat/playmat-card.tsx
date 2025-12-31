@@ -152,6 +152,10 @@ export default function PlaymatCard({
         recallCost={libraryItem.data?.recall ?? 0}
         customImageUrl={card.state?.custom_image_url || '/assets/card/domain-placeholder.png'}
         customImageType={card.state?.custom_image_type || 'artwork'}
+        customImagePosition={{
+          x: card.state?.custom_image_position_x ?? 50,
+          y: card.state?.custom_image_position_y ?? 0,
+        }}
         size="thumbnail"
         // variant="default" is implied
         hasPassiveModifiers={!!(enhancedData?.modifiers && enhancedData.modifiers.length > 0)}
@@ -165,7 +169,7 @@ export default function PlaymatCard({
             e.stopPropagation();
             onEditArt();
           }}
-          className="absolute top-2 right-2 z-50 p-1.5 bg-black/50 hover:bg-black/80 text-white/70 hover:text-white rounded-full transition-colors backdrop-blur-sm border border-white/10"
+          className="absolute top-2 right-2 z-40 p-1.5 bg-black/50 hover:bg-black/80 text-white/70 hover:text-white rounded-full transition-colors backdrop-blur-sm border border-white/10"
           title="Change Card Art"
         >
           {/* Future: This button may be used to manage card-specific modifiers (TBD) */}
