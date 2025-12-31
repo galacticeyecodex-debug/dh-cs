@@ -17,10 +17,10 @@
  */
 
 import MobileLayout from '@/components/core/mobile-layout';
-import CharacterView from '@/components/views/character-view';
-import PlaymatView from '@/components/views/playmat-view';
-import InventoryView from '@/components/views/inventory-view';
-import CombatView from '@/components/views/combat-view';
+import CharacterView from '@/components/views/character/character-view';
+import PlaymatView from '@/components/views/playmat/playmat-view';
+import InventoryView from '@/components/views/inventory/inventory-view';
+import CombatView from '@/components/views/combat/combat-view';
 import { useCharacterStore } from '@/store/character-store';
 import AuthButton from '@/components/auth/auth-buttons';
 import { useEffect, useState } from 'react';
