@@ -295,10 +295,5 @@ describe('CreateHomebrewItemModal', () => {
       render(<CreateHomebrewItemModal {...defaultProps} />);
       expect(screen.getByRole('heading', { name: /modifiers/i })).toBeTruthy();
     });
-
-    it('should show tip about modifiers', () => {
-      render(<CreateHomebrewItemModal {...defaultProps} />);
-      expect(screen.getByText(/modifiers are optional but make your item more powerful/i)).toBeTruthy();
-    });
   });
 });

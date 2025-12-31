@@ -538,6 +538,115 @@ The `borderVariant` prop controls the theme of the card:
 
 ```
 ╔═══════════════════════════════════════════════════════════════╗
+║  bg-white/5  rounded-lg  px-3 py-2  border border-white/5     ║
+║                                                               ║
+║  ┌─────────────────────────────────────────────────────────┐  ║
+║  │                                                         │  ║
+║  │  Proficiency                              ┌──────────┐  │  ║
+║  │  text-sm font-medium                      │  🎯 2    │  │  ║
+║  │  text-gray-300                            │          │  │  ║
+║  │                                           │ bg-white/│  │  ║
+║  │                                           │ 10       │  │  ║
+║  │                                           │ rounded- │  │  ║
+║  │                                           │ full     │  │  │
+║  │                                           │          │  │  ║
+║  │                                           │ (bg-     │  │  ║
+║  │                                           │ dagger-  │  │  ║
+║  │                                           │ gold/10  │  │  ║
+║  │                                           │ if mod)  │  │  ║
+║  │                                           └──────────┘  │  ║
+║  └─────────────────────────────────────────────────────────┘  ║
+╚═══════════════════════════════════════════════════════════════╝
+```
+
+### Heritage Feature Card (Ancestry/Community Combat)
+
+Combat-relevant features from ancestry and community displayed in Combat View:
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║  bg-dagger-panel  rounded-xl  overflow-hidden  cursor-pointer                 ║
+║  border border-emerald-500/30  (ancestry) OR border-amber-500/30 (community)  ║
+║  hover:border-white/30                                                        ║
+║                                                                               ║
+║  ┌─────────────────────────────────────────────────────────────────────┐      ║
+║  │  p-4  flex justify-between items-start                              │      ║
+║  │                                                                     │      ║
+║  │  LONG TONGUE                                                d12×2   │      ║
+║  │  font-serif font-bold text-white text-lg                   text-xl  │      ║
+║  │                                                            font-bold│      ║
+║  │  ┌────────────────┐ ┌──────────────┐ ┌──────────────┐               │      ║
+║  │  │    RIBBET      │ │   FINESSE    │ │    CLOSE     │      d12 × 2 │      ║
+║  │  │ bg-emerald-500/│ │  bg-white/10 │ │  bg-white/10 │   text-[10px]│      ║
+║  │  │ 20 text-       │ │              │ │              │   text-gray- │      ║
+║  │  │ emerald-400    │ │              │ │              │   500        │      ║
+║  │  │ (ancestry)     │ │              │ │              │   uppercase  │      ║
+║  │  │                │ │              │ │              │               │      ║
+║  │  │  -OR-          │ │              │ │              │               │      ║
+║  │  │                │ │              │ │              │               │      ║
+║  │  │ bg-amber-500/20│ │              │ │              │               │      ║
+║  │  │ text-amber-400 │ │              │ │              │               │      ║
+║  │  │ (community)    │ │              │ │              │               │      ║
+║  │  └────────────────┘ └──────────────┘ └──────────────┘               │      ║
+║  │                                                                     │      ║
+║  │  ┌─────────────────────────────────────────────────────────────┐    │      ║
+║  │  │  [Optional Action Type Badge - if not passive]              │    │      ║
+║  │  │  ┌──────────────┐                                           │    │      ║
+║  │  │  │   ATTACK     │  bg-purple-900/30 text-purple-400         │    │      ║
+║  │  │  │   REACTION   │  bg-orange-900/30 text-orange-400         │    │      ║
+║  │  │  └──────────────┘                                           │    │      ║
+║  │  └─────────────────────────────────────────────────────────────┘    │      ║
+║  │                                                                     │      ║
+║  │  You can use your long tongue to grab onto things within Close      │      ║
+║  │  range. **Mark a Stress** to use your tongue as a Finesse...        │      ║
+║  │  text-xs text-gray-400 mt-2 line-clamp-2                            │      ║
+║  │  (**bold** renders as <strong className="text-white">)              │      ║
+║  └─────────────────────────────────────────────────────────────────────┘      ║
+║                                                                               ║
+║  ┌─────────────────────────────────────────────────────────────────────┐      ║
+║  │  bg-black/40  p-2  flex flex-wrap gap-2                             │      ║
+║  │  [Action Bar - only shown if has attack or costs]                   │      ║
+║  │                                                                     │      ║
+║  │  ┌──────────────┐ ┌──────────────┐                                  │      ║
+║  │  │ ⚡ +1 Stress │ │ ⚡ -2 Hope   │  [Cost Buttons - if applicable]  │      ║
+║  │  │ bg-red-900/20│ │ bg-blue-900/ │                                  │      ║
+║  │  │ text-red-300 │ │ 20 text-blue-│                                  │      ║
+║  │  │ px-3 py-2    │ │ 300          │                                  │      ║
+║  │  └──────────────┘ └──────────────┘                                  │      ║
+║  │                                                                     │      ║
+║  │  ┌─────────────────────────────┐ ┌─────────────────────────────┐    │      ║
+║  │  │  ⚡ Roll (+2)               │ │  💀 Damage                  │    │      ║
+║  │  │  flex-1 py-2                │ │  flex-1 py-2                │    │      ║
+║  │  │  bg-white/10                │ │  bg-white/10                │    │      ║
+║  │  │  hover:bg-white/20          │ │  hover:bg-white/20          │    │      ║
+║  │  │  text-sm font-bold          │ │  text-sm font-bold          │    │      ║
+║  │  │                             │ │                             │    │      ║
+║  │  │  (text-dagger-gold if       │ │  (text-dagger-gold if       │    │      ║
+║  │  │   has attack modifier)      │ │   has damage modifier)      │    │      ║
+║  │  └─────────────────────────────┘ └─────────────────────────────┘    │      ║
+║  └─────────────────────────────────────────────────────────────────────┘      ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+```
+
+**Source Type Colors:**
+- **Ancestry**: `border-emerald-500/30`, badge `bg-emerald-500/20 text-emerald-400`
+- **Community**: `border-amber-500/30`, badge `bg-amber-500/20 text-amber-400`
+
+**Combat-Relevant Features Include:**
+- Drakona - Elemental Breath (d8 magic, Instinct, Very Close)
+- Faun - Kick (2d6 physical, on attack success)
+- Firbolg - Charge (1d12 physical, AoE Melee)
+- Katari - Retracting Claws (Agility, Melee, applies Vulnerable)
+- Orc - Tusks (1d6 physical, Melee)
+- Ribbet - Long Tongue (d12 physical, Finesse, Close)
+- Seaborne - Know the Tide (token mechanics)
+
+---
+
+### Active Armor Panel
+
+```
+╔═══════════════════════════════════════════════════════════════╗
 ║  bg-dagger-panel  border border-white/10  rounded-xl  p-4     ║
 ║                                                               ║
 ║  CHAINMAIL                                                    ║
@@ -791,16 +900,56 @@ The `borderVariant` prop controls the theme of the card:
 ║  │  (ReactMarkdown rendered)                                 │  ║
 ║  │                                                           │  ║
 ║  └───────────────────────────────────────────────────────────┘  ║
+╚═════════════════════════════════════════════════════════════════╝
+```
+
+### Playmat Card Wrapper (Interactive)
+
+Wraps the visual Domain Card with interactive gameplay mechanics below it.
+
+```
+╔═════════════════════════════════════════════════════════════════╗
+║  flex flex-col gap-2  w-[240px]                                 ║
+║                                                                 ║
+║  [DOMAIN CARD COMPONENT]                                        ║
+║  (The visual card shown above)                                  ║
 ║                                                                 ║
 ║  ┌───────────────────────────────────────────────────────────┐  ║
-║  │              [Action Button - Below Card]                 │  ║
+║  │  [MECHANICS TRAY]                                         │  ║
+║  │  bg-black/40  border border-white/10  rounded-lg          │  ║
+║  │  p-2 space-y-2                                            │  ║
+║  │                                                           │  ║
 ║  │  ┌─────────────────────────────────────────────────────┐  │  ║
-║  │  │  🔄 To Vault / To Loadout                           │  │  ║
-║  │  │  bg-zinc-900  border border-white/20                │  │  ║
-║  │  │  text-[10px] font-bold text-gray-300                │  │  ║
-║  │  │  px-2 py-1 rounded-full                             │  │  ║
-║  │  │  hover:bg-zinc-700 hover:text-white                 │  │  ║
-║  │  │  absolute bottom-0 left-1/2 -translate-x-1/2        │  │  ║
+║  │  │  [Token Track - Optional]                           │  │  ║
+║  │  │  ● ● ● ○ ○                                          │  │  ║
+║  │  │  text-xs text-gray-400  justify-center              │  │  ║
+║  │  └─────────────────────────────────────────────────────┘  │  ║
+║  │                                                           │  ║
+║  │  ┌─────────────────────────────────────────────────────┐  │  ║
+║  │  │  [Frequency Checkbox - Optional]                    │  │  ║
+║  │  │  ☐ Once Per Short Rest                              │  │  ║
+║  │  │  text-xs text-white  bg-white/5  p-1.5 rounded      │  │  ║
+║  │  └─────────────────────────────────────────────────────┘  │  ║
+║  │                                                           │  ║
+║  │  ┌─────────────────────────────────────────────────────┐  │  ║
+║  │  │  [Attack Button - Optional]                         │  │  ║
+║  │  │  ⚡ Attack (+3)                                     │  │  ║
+║  │  │  w-full py-1.5 bg-white/10 hover:bg-white/20        │  │  ║
+║  │  │  rounded text-xs font-bold                          │  │  ║
+║  │  └─────────────────────────────────────────────────────┘  │  ║
+║  │                                                           │  ║
+║  │  ┌─────────────────────────────────────────────────────┐  │  ║
+║  │  │  [Actions Row]                                      │  │  ║
+║  │  │  ┌───────────────────────────────────────────────┐  │  ║
+║  │  │  │ 🔄 MOVE TO VAULT  /  📦 MOVE TO LOADOUT       │  │  ║
+║  │  │  │ bg-dagger-gold/10  text-dagger-gold           │  │  ║
+║  │  │  │ border-dagger-gold/30  hover:bg-gold/20       │  │  ║
+║  │  │  └───────────────────────────────────────────────┘  │  ║
+║  │  │                                                     │  ║
+║  │  │  ┌──────────────┐  ┌──────────────┐                 │  │  ║
+║  │  │  │ 👁 View Card  │  │ ⚙️ Modifiers  │                 │  │  ║
+║  │  │  └──────────────┘  └──────────────┘                 │  │  ║
+║  │  │  text-[10px] text-gray-500 hover:text-white         │  │  ║
 ║  │  └─────────────────────────────────────────────────────┘  │  ║
 ║  └───────────────────────────────────────────────────────────┘  ║
 ╚═════════════════════════════════════════════════════════════════╝
@@ -1048,7 +1197,7 @@ The `borderVariant` prop controls the theme of the card:
 ║  │  │                                                              │    │      ║
 ║  │  │  ADD ITEM                                         [X] Close │    │      ║
 ║  │  │  text-lg font-bold                                           │    │      ║
-║  │  └─────────────────────────────────────────────────────────────┘    │      ║
+║  └─────────────────────────────────────────────────────────────┘    │      ║
 ║  │                                                                     │      ║
 ║  │  ┌─────────────────────────────────────────────────────────────┐    │      ║
 ║  │  │  [Search & Filter]                                           │    │      ║
