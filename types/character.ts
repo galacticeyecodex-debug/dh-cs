@@ -100,6 +100,11 @@ export interface CharacterInventoryItem {
   description?: string;
   location: 'equipped_primary' | 'equipped_secondary' | 'armor' | 'equipped_armor' | 'backpack';
   quantity: number;
+  state?: {
+    custom_image_url?: string;
+    custom_image_position_x?: number; // 0-100 percentage for horizontal position
+    custom_image_position_y?: number; // 0-100 percentage for vertical position
+  };
   library_item?: LibraryItem; // Joined data for the item itself
   homebrew_item?: HomebrewItem; // Joined data for homebrew items
 }
