@@ -491,7 +491,7 @@ export default function CombatView() {
                   } : undefined}
                   onManageModifiers={() => setActiveWeaponId(`heritage-${feature.source}-${feature.name}`)}
                   borderVariant={feature.sourceType === 'ancestry' ? 'ancestry' : 'community'}
-                  description={feature.text}
+                  // description={feature.text} // descriptions make the 
                   actionType={feature.action_type}
                   costs={feature.costs}
                   badges={[{
