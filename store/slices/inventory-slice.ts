@@ -21,7 +21,8 @@ export interface InventorySlice {
   deleteItemFromInventory: (inventoryItemId: string) => Promise<void>;
   moveCard: (cardId: string, destination: 'loadout' | 'vault') => Promise<void>;
   addCardToCollection: (item: LibraryItem) => Promise<void>;
-  updateCardImage: (cardId: string, imageUrl: string | null, imageType?: 'artwork' | 'full-card') => Promise<void>;
+  updateCardImage: (cardId: string, imageUrl: string | null, imageType?: 'artwork' | 'full-card', position?: { x: number; y: number }) => Promise<void>;
+  updateCardImagePosition: (cardId: string, position: { x: number; y: number }) => Promise<void>;
   convertItemToHomebrew: (inventoryItemId: string, homebrewItemData: Omit<HomebrewItem, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>;
 }
 
@@ -90,7 +91,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
     }
   },
 
-  updateCardImage: async (cardId, imageUrl, imageType = 'artwork') => {
+  updateCardImage: async (cardId, imageUrl, imageType = 'artwork', position) => {
     const state = get() as any;
     if (!state.character) return;
 
@@ -103,7 +104,17 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
       ...previousState,
       custom_image_url: imageUrl,
       custom_image_type: imageUrl ? imageType : undefined,
+      // Set default position if not provided (center-top for portraits)
+      custom_image_position_x: position?.x ?? previousState?.custom_image_position_x ?? 50,
+      custom_image_position_y: position?.y ?? previousState?.custom_image_position_y ?? 0,
     };
+
+    // Clear position if removing image
+    if (!imageUrl) {
+      delete updatedState.custom_image_position_x;
+      delete updatedState.custom_image_position_y;
+    }
+
     const updatedCard = { ...cards[cardIndex], state: updatedState };
     cards[cardIndex] = updatedCard;
 
@@ -131,6 +142,45 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
     if (success) {
       toast.success(imageUrl ? 'Card image updated!' : 'Card image removed');
     }
+  },
+
+  updateCardImagePosition: async (cardId, position) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const cards = [...(state.character.character_cards || [])];
+    const cardIndex = cards.findIndex((c: any) => c.id === cardId);
+    if (cardIndex === -1) return;
+
+    const previousState = cards[cardIndex].state;
+    const updatedState = {
+      ...previousState,
+      custom_image_position_x: position.x,
+      custom_image_position_y: position.y,
+    };
+    const updatedCard = { ...cards[cardIndex], state: updatedState };
+    cards[cardIndex] = updatedCard;
+
+    await withOptimisticUpdate(
+      () => {
+        set((s: any) => ({
+          character: s.character ? { ...s.character, character_cards: cards } : null,
+        }));
+
+        return () => {
+          const rollbackCards = [...((get() as any).character?.character_cards || [])];
+          const idx = rollbackCards.findIndex(c => c.id === cardId);
+          if (idx !== -1) {
+            rollbackCards[idx] = { ...rollbackCards[idx], state: previousState };
+          }
+          set((s: any) => ({
+            character: s.character ? { ...s.character, character_cards: rollbackCards } : null,
+          }));
+        };
+      },
+      async () => dataService.card.update(cardId, { state: updatedState }),
+      'Failed to update image position'
+    );
   },
 
   addItemToInventory: async (item: LibraryItem) => {
@@ -226,10 +276,10 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
           }));
         };
       },
-          async () => {
-            // Send simple updates list to service, let it handle RPC details
-            return dataService.inventory.equip(updates.map(u => ({ id: u.id, location: u.location })));
-          },      'Failed to equip item'
+      async () => {
+        // Send simple updates list to service, let it handle RPC details
+        return dataService.inventory.equip(updates.map(u => ({ id: u.id, location: u.location })));
+      }, 'Failed to equip item'
     );
 
     // Only recalculate if DB update succeeded
@@ -260,7 +310,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
       async () => dataService.inventory.remove(inventoryItemId),
       'Failed to delete item from inventory'
     );
-    
+
     // Recalculate stats in case an equipped item was deleted
     if (state.recalculateDerivedStats) {
       await state.recalculateDerivedStats();
@@ -287,26 +337,26 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
 
     const tempHbId = `temp-hb-${Date.now()}`;
     const tempHbItem: HomebrewItem = {
-        id: tempHbId,
-        user_id: state.user.id,
-        ...homebrewItemData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+      id: tempHbId,
+      user_id: state.user.id,
+      ...homebrewItemData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     const updatedInventoryItem = {
-        ...previousInventory[itemIndex],
-        item_id: undefined,
-        homebrew_item_id: tempHbId,
-        name: tempHbItem.name,  // Update denormalized name field
-        description: tempHbItem.description,  // Update denormalized description field
-        homebrew_item: tempHbItem,
-        library_item: {
-             id: `homebrew-${tempHbId}`,
-             type: tempHbItem.type,
-             name: tempHbItem.name,
-             data: tempHbItem.data,
-        } as LibraryItem
+      ...previousInventory[itemIndex],
+      item_id: undefined,
+      homebrew_item_id: tempHbId,
+      name: tempHbItem.name,  // Update denormalized name field
+      description: tempHbItem.description,  // Update denormalized description field
+      homebrew_item: tempHbItem,
+      library_item: {
+        id: `homebrew-${tempHbId}`,
+        type: tempHbItem.type,
+        name: tempHbItem.name,
+        data: tempHbItem.data,
+      } as LibraryItem
     };
 
     const newInventory = [...previousInventory];
@@ -314,57 +364,57 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
 
     // Optimistic update
     set({
-        character: { ...state.character, character_inventory: newInventory },
-        homebrewItems: [tempHbItem, ...state.homebrewItems]
+      character: { ...state.character, character_inventory: newInventory },
+      homebrewItems: [tempHbItem, ...state.homebrewItems]
     });
 
     try {
-        // 1. Create homebrew item
-        const hbData = await dataService.homebrew.create({
-            user_id: state.user.id,
-            type: homebrewItemData.type,
-            name: homebrewItemData.name,
-            description: homebrewItemData.description,
-            data: homebrewItemData.data,
-        });
+      // 1. Create homebrew item
+      const hbData = await dataService.homebrew.create({
+        user_id: state.user.id,
+        type: homebrewItemData.type,
+        name: homebrewItemData.name,
+        description: homebrewItemData.description,
+        data: homebrewItemData.data,
+      });
 
-        // 2. Link inventory item to homebrew item and update denormalized fields
-        await dataService.inventory.update(inventoryItemId, {
-                item_id: null,
-                homebrew_item_id: hbData.id,
-                name: hbData.name,  // Update denormalized name
-                description: hbData.description  // Update denormalized description
-        });
+      // 2. Link inventory item to homebrew item and update denormalized fields
+      await dataService.inventory.update(inventoryItemId, {
+        item_id: null,
+        homebrew_item_id: hbData.id,
+        name: hbData.name,  // Update denormalized name
+        description: hbData.description  // Update denormalized description
+      });
 
-        // 3. Replace temp IDs with real ones
-        const realHbId = hbData.id;
-        const realHbItem = hbData;
+      // 3. Replace temp IDs with real ones
+      const realHbId = hbData.id;
+      const realHbItem = hbData;
 
-        set((s: any) => {
-            const currentInventory = [...(s.character?.character_inventory || [])];
-            const idx = currentInventory.findIndex((i: any) => i.id === inventoryItemId);
-            if (idx !== -1) {
-                currentInventory[idx] = {
-                    ...currentInventory[idx],
-                    homebrew_item_id: realHbId,
-                    homebrew_item: realHbItem,
-                    library_item: { ...currentInventory[idx].library_item, id: `homebrew-${realHbId}` }
-                };
-            }
-            return {
-                character: s.character ? { ...s.character, character_inventory: currentInventory } : null,
-                homebrewItems: s.homebrewItems.map((h: any) => h.id === tempHbId ? realHbItem : h)
-            };
-        });
+      set((s: any) => {
+        const currentInventory = [...(s.character?.character_inventory || [])];
+        const idx = currentInventory.findIndex((i: any) => i.id === inventoryItemId);
+        if (idx !== -1) {
+          currentInventory[idx] = {
+            ...currentInventory[idx],
+            homebrew_item_id: realHbId,
+            homebrew_item: realHbItem,
+            library_item: { ...currentInventory[idx].library_item, id: `homebrew-${realHbId}` }
+          };
+        }
+        return {
+          character: s.character ? { ...s.character, character_inventory: currentInventory } : null,
+          homebrewItems: s.homebrewItems.map((h: any) => h.id === tempHbId ? realHbItem : h)
+        };
+      });
 
     } catch (error) {
-        console.error("Conversion failed:", error);
-        toast.error("Conversion failed");
-        // Rollback
-        set({
-            character: { ...state.character, character_inventory: previousInventory },
-            homebrewItems: previousHomebrewItems
-        });
+      console.error("Conversion failed:", error);
+      toast.error("Conversion failed");
+      // Rollback
+      set({
+        character: { ...state.character, character_inventory: previousInventory },
+        homebrewItems: previousHomebrewItems
+      });
     }
   },
 });
