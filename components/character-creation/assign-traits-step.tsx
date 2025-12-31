@@ -29,25 +29,6 @@ export default function AssignTraitsStep({
   const stats = formData.stats || { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 };
   const statKeys: (keyof CharacterFormData['stats'])[] = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
 
-  const useSuggested = () => {
-    if (!suggestedTraits) return;
-    // suggestedTraits is "+1, 0, +1, +2, -1, 0"
-    const values = suggestedTraits.split(',').map(v => parseInt(v.trim()));
-    if (values.length === 6) {
-      setFormData(prev => ({
-        ...prev,
-        stats: {
-          agility: values[0],
-          strength: values[1],
-          finesse: values[2],
-          instinct: values[3],
-          presence: values[4],
-          knowledge: values[5]
-        }
-      }));
-    }
-  };
-
   // Calculate remaining pool
   const getAvailableValues = (currentStatKey: keyof CharacterFormData['stats']) => {
     const assignedValues = Object.entries(stats)
@@ -60,7 +41,7 @@ export default function AssignTraitsStep({
       if (index !== -1) pool.splice(index, 1);
     });
 
-    // Return unique values for the dropdown, but we need to know how many of each are left
+    // Return unique values for the dropdown
     return Array.from(new Set(pool)).sort((a, b) => b - a);
   };
 
@@ -68,20 +49,12 @@ export default function AssignTraitsStep({
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold font-serif flex items-center gap-2"><HandMetal size={20} /> Step 5: Assign Traits</h2>
-        {suggestedTraits && (
-          <button 
-            type="button" 
-            onClick={useSuggested}
-            className="text-xs bg-dagger-gold/20 hover:bg-dagger-gold/30 text-dagger-gold border border-dagger-gold/30 px-3 py-1.5 rounded-full transition-all"
-          >
-            Use Suggested
-          </button>
-        )}
       </div>
       
-      <p className="text-sm text-gray-400">
-        Assign your traits using the values: {traitAssignmentPool.map(v => v >= 0 ? `+${v}` : v).join(', ')}
-      </p>
+      <div className="p-3 bg-dagger-gold/10 border border-dagger-gold/20 rounded-lg text-xs text-dagger-gold/90 leading-relaxed">
+        <span className="font-bold">Note:</span> We&apos;ve pre-populated these traits with the suggestions for your class. 
+        Feel free to adjust them if you want a different assignment!
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         {statKeys.map((stat) => {
@@ -95,10 +68,10 @@ export default function AssignTraitsStep({
                 value={value}
                 onChange={(e) => assignTraitValue(stat, parseInt(e.target.value))}
                 className={clsx(
-                  "w-full p-3 rounded-lg border-2 bg-black/20 text-xl font-bold transition-all focus:ring-dagger-gold focus:border-dagger-gold",
+                  "w-full p-3 rounded-lg border-2 bg-black/40 text-xl font-bold transition-all focus:ring-dagger-gold focus:border-dagger-gold text-white",
                   value !== 0 || traitAssignmentPool.filter(v => v === 0).length > 0
-                    ? "border-dagger-gold/30 text-dagger-gold"
-                    : "border-white/5 text-gray-500"
+                    ? "border-dagger-gold/30"
+                    : "border-white/5"
                 )}
               >
                 {/* We must include the current value even if it's not in the 'available' list of other stats */}
