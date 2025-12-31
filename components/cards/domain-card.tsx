@@ -25,7 +25,6 @@ export interface DomainCardProps {
   hasCombatAbility?: boolean;
   onClick?: () => void;
   size?: 'thumbnail' | 'full';
-  variant?: 'default' | 'embedded';
 }
 
 export function DomainCard({
@@ -41,12 +40,10 @@ export function DomainCard({
   hasCombatAbility,
   onClick,
   size = 'thumbnail',
-  variant = 'default',
 }: DomainCardProps) {
   const theme = getDomainTheme(domain);
   const isFullCard = customImageUrl && customImageType === 'full-card';
   const isThumbnail = size === 'thumbnail';
-  const isEmbedded = variant === 'embedded';
 
   // If it's a full custom card, just show the image
   if (isFullCard) {
@@ -76,12 +73,8 @@ export function DomainCard({
   return (
     <div
       // A thin gold border around the domain cards
-      className={`relative aspect-card overflow-hidden transition-shadow bg-white text-black ${
-        isEmbedded 
-          ? 'w-full rounded-t-lg' 
-          : 'rounded-lg shadow-lg cursor-pointer hover:shadow-2xl border border-dagger-gold'
-      }`}
-      style={isEmbedded ? {} : { width: cardWidth }}
+      className="relative aspect-card overflow-hidden rounded-lg shadow-lg cursor-pointer hover:shadow-2xl transition-shadow bg-white text-black border border-dagger-gold"
+      style={{ width: cardWidth }}
       onClick={onClick}
     >
       {/* Banner - top left */}
