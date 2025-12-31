@@ -24,8 +24,8 @@ import { Target, Zap, MapPin, Skull } from 'lucide-react';
 import clsx from 'clsx';
 import MarkStressButton from './mark-stress-button';
 import SpendHopeButton from './spend-hope-button';
-import FrequencyCheckbox from '@/components/cards/mechanics/frequency-checkbox';
-import CardTokenTrack from '@/components/cards/mechanics/card-token-track';
+import FrequencyCheckbox from '@/components/cards/interactive-elements/frequency-checkbox';
+import CardTokenTrack from '@/components/cards/interactive-elements/card-token-track';
 import { useCharacterStore } from '@/store/character-store';
 import { getSystemModifiers, parseDamageRoll, calculateWeaponDamage } from '@/lib/utils';
 import { getActionTypeLabel, getFrequencyLabel } from '@/lib/card-parser';
@@ -122,12 +122,12 @@ export default function CardEnhancementPanel({
   const targetLabel = card.attack?.targets === 'all_in_range'
     ? 'All in Range'
     : card.attack?.targets === 'allies_in_range'
-    ? 'All Allies'
-    : card.attack?.targets === 'single'
-    ? 'Single Target'
-    : card.attack?.targets === 'self'
-    ? 'Self'
-    : undefined;
+      ? 'All Allies'
+      : card.attack?.targets === 'single'
+        ? 'Single Target'
+        : card.attack?.targets === 'self'
+          ? 'Self'
+          : undefined;
 
   return (
     <div className={clsx('border-t border-white/10 pt-4 space-y-3', className)}>
