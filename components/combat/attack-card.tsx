@@ -47,8 +47,8 @@ export interface AttackCardProps {
     damageModifier: number;
     /** Character's proficiency value */
     proficiency: number;
-    /** Callback when Attack button is clicked */
-    onAttackRoll: () => void;
+    /** Callback when Attack button is clicked - optional if no attack roll */
+    onAttackRoll?: () => void;
     /** Callback when Damage button is clicked - optional if no damage */
     onDamageRoll?: () => void;
     /** Optional callback for gear button - if provided, gear button is shown */
@@ -65,7 +65,7 @@ export interface AttackCardProps {
         className?: string;
     }>;
     /** Border variant for different card types */
-    borderVariant?: 'default' | 'companion' | 'ancestry' | 'community';
+    borderVariant?: 'default' | 'companion' | 'ancestry' | 'community' | 'spell' | 'reaction';
     /** Optional action type (reaction, action, etc.) */
     actionType?: string;
     /** Optional costs for using this ability */
@@ -73,6 +73,16 @@ export interface AttackCardProps {
     /** Optional callbacks for cost buttons */
     onMarkStress?: () => void;
     onSpendHope?: () => void;
+    /** Optional token track component */
+    tokenTrack?: React.ReactNode;
+    /** Optional frequency checkbox component */
+    frequency?: React.ReactNode;
+    /** Optional custom actions to render in the action bar (replaces default cost buttons) */
+    customActions?: React.ReactNode;
+    /** Label for the main roll button (default: "Attack" or "Roll") */
+    rollLabel?: string;
+    /** Whether the card is currently used/exhausted */
+    isUsed?: boolean;
 }
 
 const AttackCard = React.memo(function AttackCard({
@@ -98,23 +108,44 @@ const AttackCard = React.memo(function AttackCard({
     costs,
     onMarkStress,
     onSpendHope,
+    tokenTrack,
+    frequency,
+    customActions,
+    rollLabel,
+    isUsed = false,
 }: AttackCardProps) {
-    // Determine border classes based on variant
+    // Determine styles based on variant
     const borderClasses = {
         default: 'border-white/10 hover:border-white/30',
         companion: 'border-dagger-gold/30 hover:border-dagger-gold/50',
         ancestry: 'border-emerald-500/30 hover:border-white/30',
         community: 'border-amber-500/30 hover:border-white/30',
+        spell: 'border-purple-500/30 hover:border-purple-500/50',
+        reaction: 'border-orange-500/30 hover:border-orange-500/50',
+    };
+
+    const bgClasses = {
+        default: '',
+        companion: '',
+        ancestry: '',
+        community: '',
+        spell: 'bg-purple-900/10',
+        reaction: 'bg-orange-900/10',
     };
 
     // Check if we have damage to display
     const hasDamage = baseDamage && calculatedDamage;
 
+    // Determine default roll label
+    const finalRollLabel = rollLabel || (hasDamage ? 'Attack' : 'Roll');
+
     return (
         <div
             className={clsx(
                 'bg-dagger-panel border rounded-xl overflow-hidden transition-colors',
-                borderClasses[borderVariant]
+                borderClasses[borderVariant],
+                bgClasses[borderVariant],
+                isUsed && 'opacity-50'
             )}
         >
             {/* Header Section */}
@@ -138,7 +169,7 @@ const AttackCard = React.memo(function AttackCard({
                 )}
 
                 {/* Name and Badges */}
-                <div>
+                <div className="flex-1 mr-4">
                     <div className="flex items-center gap-2">
                         {icon}
                         <h4 className="font-serif font-bold text-white text-lg">{name}</h4>
@@ -155,9 +186,11 @@ const AttackCard = React.memo(function AttackCard({
                         ))}
                         {/* Standard trait and range badges */}
                         <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{trait}</span>
-                        <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{range}</span>
+                        {range && (
+                            <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{range}</span>
+                        )}
                         {damageType && (
-                            <span className="text-gray-400">{damageType}</span>
+                            <span className="text-gray-400 uppercase">{damageType}</span>
                         )}
                         {/* Action type badge */}
                         {actionType && actionType !== 'passive' && (
@@ -192,10 +225,20 @@ const AttackCard = React.memo(function AttackCard({
                 )}
             </div>
 
+            {/* Token Track */}
+            {tokenTrack && (
+                <div className="px-4 pb-2">
+                    {tokenTrack}
+                </div>
+            )}
+
             {/* Action Bar */}
-            <div className="bg-black/40 p-2 flex flex-wrap gap-2">
-                {/* Cost buttons */}
-                {costs?.stress && (
+            <div className="bg-black/40 p-2 flex flex-wrap gap-2 items-center">
+                {/* Custom Actions (Smart Buttons) */}
+                {customActions}
+
+                {/* Legacy Cost buttons (if not using customActions) */}
+                {!customActions && costs?.stress && (
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
@@ -206,7 +249,7 @@ const AttackCard = React.memo(function AttackCard({
                         <Zap size={14} /> +{costs.stress} Stress
                     </button>
                 )}
-                {costs?.hope && (
+                {!customActions && costs?.hope && (
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
@@ -219,26 +262,30 @@ const AttackCard = React.memo(function AttackCard({
                 )}
 
                 {/* Attack Button */}
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onAttackRoll();
-                    }}
-                    className={clsx(
-                        'relative flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors',
-                        attackModifier !== 0 && 'text-dagger-gold'
-                    )}
-                >
-                    {/* Dice icon for roll action */}
-                    <div
-                        className="absolute top-1 right-1 text-gray-500 transition-colors pointer-events-none"
-                        aria-hidden="true"
+                {onAttackRoll && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onAttackRoll();
+                        }}
+                        disabled={isUsed}
+                        className={clsx(
+                            'relative flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors',
+                            attackModifier !== 0 && 'text-dagger-gold',
+                            isUsed ? 'opacity-50 cursor-not-allowed' : 'hover:bg-opacity-60'
+                        )}
                     >
-                        <Dices size={12} />
-                    </div>
-                    <Zap size={16} className="text-yellow-400" />
-                    {hasDamage ? 'Attack' : 'Roll'} ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
-                </button>
+                        {/* Dice icon for roll action */}
+                        <div
+                            className="absolute top-1 right-1 text-gray-500 transition-colors pointer-events-none"
+                            aria-hidden="true"
+                        >
+                            <Dices size={12} />
+                        </div>
+                        <Zap size={16} className="text-yellow-400" />
+                        {finalRollLabel} ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
+                    </button>
+                )}
 
                 {/* Damage Button - only show if we have damage */}
                 {hasDamage && onDamageRoll && (
@@ -247,9 +294,11 @@ const AttackCard = React.memo(function AttackCard({
                             e.stopPropagation();
                             onDamageRoll();
                         }}
+                        disabled={isUsed}
                         className={clsx(
                             'relative flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors',
-                            damageModifier !== 0 && 'text-dagger-gold'
+                            damageModifier !== 0 && 'text-dagger-gold',
+                            isUsed ? 'opacity-50 cursor-not-allowed' : 'hover:bg-opacity-60'
                         )}
                     >
                         {/* Dice icon for roll action */}
@@ -263,6 +312,9 @@ const AttackCard = React.memo(function AttackCard({
                         Damage {damageModifier !== 0 && `(${damageModifier >= 0 ? `+${damageModifier}` : damageModifier})`}
                     </button>
                 )}
+
+                {/* Frequency Checkbox */}
+                {frequency}
             </div>
         </div>
     );
