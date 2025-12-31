@@ -159,15 +159,16 @@ export default function PlaymatCard({
       />
 
       {/* Modifiers Button (Top Right Overlay) */}
-      {onManageModifiers && (
+      {onEditArt && (
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onManageModifiers();
+            onEditArt();
           }}
           className="absolute top-2 right-2 z-50 p-1.5 bg-black/50 hover:bg-black/80 text-white/70 hover:text-white rounded-full transition-colors backdrop-blur-sm border border-white/10"
-          title="Manage Modifiers"
+          title="Change Card Art"
         >
+          {/* Future: This button may be used to manage card-specific modifiers (TBD) */}
           <Settings size={14} />
         </button>
       )}
