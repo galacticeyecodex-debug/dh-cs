@@ -30,21 +30,7 @@ export default function HeritageStep({
   const featIndex1 = formData.ancestry_feat_index_1 ?? 0;
   const featIndex2 = formData.ancestry_feat_index_2 ?? 1;
 
-  // Track previous ancestries to detect changes for auto-naming
-  const prevAncestryIds = React.useRef({ id1: formData.ancestry_id, id2: formData.ancestry_id_2 });
-
-  // Auto-suggest name for Mixed Ancestry
-  React.useEffect(() => {
-    const ancestryChanged = prevAncestryIds.current.id1 !== formData.ancestry_id || prevAncestryIds.current.id2 !== formData.ancestry_id_2;
-    
-    if (formData.is_mixed_ancestry && selectedAncestry1 && selectedAncestry2 && (ancestryChanged || !formData.mixed_ancestry_name)) {
-      setFormData(prev => ({
-        ...prev,
-        mixed_ancestry_name: `${selectedAncestry1.name}-${selectedAncestry2.name}`
-      }));
-      prevAncestryIds.current = { id1: formData.ancestry_id, id2: formData.ancestry_id_2 };
-    }
-  }, [formData.is_mixed_ancestry, selectedAncestry1, selectedAncestry2, formData.ancestry_id, formData.ancestry_id_2, formData.mixed_ancestry_name, setFormData]);
+  const suggestedName = selectedAncestry1 && selectedAncestry2 ? `${selectedAncestry1.name}-${selectedAncestry2.name}` : '';
 
   const handleFeatSelect = (ancestryNum: 1 | 2, index: number) => {
     if (!formData.is_mixed_ancestry) return;
@@ -104,7 +90,7 @@ export default function HeritageStep({
               value={formData.mixed_ancestry_name || ''}
               onChange={handleInputChange}
               className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold text-white font-bold"
-              placeholder="e.g. Toothling"
+              placeholder={suggestedName || "e.g. Toothling"}
             />
           </div>
         )}
