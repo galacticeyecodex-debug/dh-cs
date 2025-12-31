@@ -6,7 +6,7 @@
  * CAPABILITIES:
  * - Avatar Uploads: Handles character portrait storage in 'character-avatars'.
  * - Gallery Uploads: Handles auxiliary character images in 'character-gallery'.
- * - Validation: Includes file type and size checks (5MB limit).
+ * - Validation: Includes file type and size checks (see MAX_IMAGE_FILE_SIZE in image-utils).
  * 
  * NOTE: This file is excluded from sync to dh-cs-native.
  */

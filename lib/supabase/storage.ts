@@ -1,4 +1,5 @@
 import createClient from './client';
+import { downsampleImage, MAX_IMAGE_FILE_SIZE, MAX_IMAGE_FILE_SIZE_MB } from '@/lib/image-utils';
 
 /**
  * Uploads a character avatar image to Supabase Storage
@@ -36,15 +37,30 @@ async function uploadFile(
     return { url: null, error: 'File must be an image' };
   }
 
-  // Validate file size (max 5MB)
-  const maxSize = 5 * 1024 * 1024; // 5MB
-  if (file.size > maxSize) {
-    return { url: null, error: 'File size must be less than 5MB' };
+  // Validate file size
+  if (file.size > MAX_IMAGE_FILE_SIZE) {
+    return { url: null, error: `File size must be less than ${MAX_IMAGE_FILE_SIZE_MB}` };
+  }
+
+  // Downsample image before upload
+  let uploadData: File | Blob = file;
+  let fileExt = file.name.split('.').pop();
+
+  try {
+    uploadData = await downsampleImage(file, {
+      maxWidth: 1200,
+      maxHeight: 1200,
+      quality: 0.8,
+      format: 'image/jpeg'
+    });
+    fileExt = 'jpg';
+  } catch (err) {
+    console.warn('Image downsampling failed, uploading original:', err);
+    // Fallback to original file if downsampling fails
   }
 
   // Create a unique filename
   const timestamp = Date.now();
-  const fileExt = file.name.split('.').pop();
   const fileName = characterId
     ? `${userId}/${characterId}_${timestamp}.${fileExt}`
     : `${userId}/${timestamp}.${fileExt}`;
@@ -52,9 +68,10 @@ async function uploadFile(
   // Upload the file
   const { data, error } = await supabase.storage
     .from(bucket)
-    .upload(fileName, file, {
+    .upload(fileName, uploadData, {
       cacheControl: '3600',
       upsert: false,
+      contentType: 'image/jpeg'
     });
 
   if (error) {
