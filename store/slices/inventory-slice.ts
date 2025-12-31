@@ -23,6 +23,8 @@ export interface InventorySlice {
   addCardToCollection: (item: LibraryItem) => Promise<void>;
   updateCardImage: (cardId: string, imageUrl: string | null, imageType?: 'artwork' | 'full-card', position?: { x: number; y: number }) => Promise<void>;
   updateCardImagePosition: (cardId: string, position: { x: number; y: number }) => Promise<void>;
+  updateInventoryItemImage: (itemId: string, imageUrl: string | null, position?: { x: number; y: number }) => Promise<void>;
+  updateInventoryItemImagePosition: (itemId: string, position: { x: number; y: number }) => Promise<void>;
   convertItemToHomebrew: (inventoryItemId: string, homebrewItemData: Omit<HomebrewItem, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>;
 }
 
@@ -315,6 +317,98 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
     if (state.recalculateDerivedStats) {
       await state.recalculateDerivedStats();
     }
+  },
+
+  updateInventoryItemImage: async (itemId, imageUrl, position) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const inventory = [...(state.character.character_inventory || [])];
+    const itemIndex = inventory.findIndex((i: any) => i.id === itemId);
+    if (itemIndex === -1) return;
+
+    const previousState = inventory[itemIndex].state;
+    const updatedState = {
+      ...previousState,
+      custom_image_url: imageUrl,
+      // Set default position if not provided (center-top for portraits)
+      custom_image_position_x: position?.x ?? previousState?.custom_image_position_x ?? 50,
+      custom_image_position_y: position?.y ?? previousState?.custom_image_position_y ?? 50,
+    };
+
+    // Clear position if removing image
+    if (!imageUrl) {
+      delete updatedState.custom_image_url;
+      delete updatedState.custom_image_position_x;
+      delete updatedState.custom_image_position_y;
+    }
+
+    const updatedItem = { ...inventory[itemIndex], state: updatedState };
+    inventory[itemIndex] = updatedItem;
+
+    const success = await withOptimisticUpdate(
+      () => {
+        set((s: any) => ({
+          character: s.character ? { ...s.character, character_inventory: inventory } : null,
+        }));
+
+        return () => {
+          const rollbackInventory = [...((get() as any).character?.character_inventory || [])];
+          const idx = rollbackInventory.findIndex((i: any) => i.id === itemId);
+          if (idx !== -1) {
+            rollbackInventory[idx] = { ...rollbackInventory[idx], state: previousState };
+          }
+          set((s: any) => ({
+            character: s.character ? { ...s.character, character_inventory: rollbackInventory } : null,
+          }));
+        };
+      },
+      async () => dataService.inventory.update(itemId, { state: updatedState }),
+      imageUrl ? 'Failed to update item image' : 'Failed to remove item image'
+    );
+
+    if (success) {
+      toast.success(imageUrl ? 'Item image updated!' : 'Item image removed');
+    }
+  },
+
+  updateInventoryItemImagePosition: async (itemId, position) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const inventory = [...(state.character.character_inventory || [])];
+    const itemIndex = inventory.findIndex((i: any) => i.id === itemId);
+    if (itemIndex === -1) return;
+
+    const previousState = inventory[itemIndex].state;
+    const updatedState = {
+      ...previousState,
+      custom_image_position_x: position.x,
+      custom_image_position_y: position.y,
+    };
+    const updatedItem = { ...inventory[itemIndex], state: updatedState };
+    inventory[itemIndex] = updatedItem;
+
+    await withOptimisticUpdate(
+      () => {
+        set((s: any) => ({
+          character: s.character ? { ...s.character, character_inventory: inventory } : null,
+        }));
+
+        return () => {
+          const rollbackInventory = [...((get() as any).character?.character_inventory || [])];
+          const idx = rollbackInventory.findIndex((i: any) => i.id === itemId);
+          if (idx !== -1) {
+            rollbackInventory[idx] = { ...rollbackInventory[idx], state: previousState };
+          }
+          set((s: any) => ({
+            character: s.character ? { ...s.character, character_inventory: rollbackInventory } : null,
+          }));
+        };
+      },
+      async () => dataService.inventory.update(itemId, { state: updatedState }),
+      'Failed to update image position'
+    );
   },
 
   convertItemToHomebrew: async (inventoryItemId, homebrewItemData) => {
