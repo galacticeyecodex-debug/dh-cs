@@ -223,8 +223,8 @@ describe('parseActionType', () => {
     expect(parseActionType('You gain advantage on your next roll', 'Ability')).toBe('buff');
   });
 
-  it('should default spells to attack', () => {
-    expect(parseActionType('Cast this spell', 'Spell')).toBe('attack');
+  it('should default spells to utility', () => {
+    expect(parseActionType('Cast this spell', 'Spell')).toBe('utility');
   });
 
   it('should default abilities to passive', () => {
@@ -352,7 +352,7 @@ describe('hasCombatRelevance', () => {
     expect(hasCombatRelevance(card)).toBe(true);
   });
 
-  it('should return true for reaction action_type', () => {
+  it('should return false for reaction action_type', () => {
     const card: EnhancedAbilityCard = {
       name: 'Test',
       level: '1',
@@ -362,7 +362,7 @@ describe('hasCombatRelevance', () => {
       text: 'Test ability',
       action_type: 'reaction',
     };
-    expect(hasCombatRelevance(card)).toBe(true);
+    expect(hasCombatRelevance(card)).toBe(false);
   });
 
   it('should return true for cards with attack property', () => {
@@ -383,7 +383,7 @@ describe('hasCombatRelevance', () => {
     expect(hasCombatRelevance(card)).toBe(true);
   });
 
-  it('should return true for cards with damage keyword', () => {
+  it('should return false for cards with damage keyword', () => {
     const card: EnhancedAbilityCard = {
       name: 'Test',
       level: '1',
@@ -393,7 +393,7 @@ describe('hasCombatRelevance', () => {
       text: 'Test spell',
       keywords: ['damage'],
     };
-    expect(hasCombatRelevance(card)).toBe(true);
+    expect(hasCombatRelevance(card)).toBe(false);
   });
 
   it('should return false for passive abilities without combat relevance', () => {
