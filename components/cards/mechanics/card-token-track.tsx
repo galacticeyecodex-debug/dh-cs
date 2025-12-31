@@ -72,7 +72,7 @@ export default function CardTokenTrack({
       {/* Token label */}
       <div className="flex items-center justify-between text-xs text-gray-400">
         <span>
-          Tokens{tokenSource ? ` (${tokenSource})` : ''}
+          Tokens{tokenSource ? ` (${tokenSource.charAt(0).toUpperCase() + tokenSource.slice(1)})` : ''}
         </span>
         <span>
           {currentTokens}/{calculatedMax}
