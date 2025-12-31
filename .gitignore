@@ -29,6 +29,9 @@ ehthumbs.db
 .vscode/
 .idea/
 
+# Windows specific
+*.Zone.Identifier
+
 # debug
 *.log
 npm-debug.log*
@@ -66,4 +69,3 @@ gha-creds-*.json
 reference/
 screenshots/
 docs/
-
