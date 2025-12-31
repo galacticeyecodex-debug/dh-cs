@@ -46,7 +46,18 @@ export default function PlaymatView() {
   const [viewMode, setViewMode] = useState<'loadout' | 'vault'>('loadout');
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<CharacterCard | null>(null);
+  const [cardDetailMode, setCardDetailMode] = useState<'full' | 'art-only'>('full');
   const [activeAbilityId, setActiveAbilityId] = useState<string | null>(null);
+
+  const handleViewCard = useCallback((card: CharacterCard) => {
+    setCardDetailMode('full');
+    setSelectedCard(card);
+  }, []);
+
+  const handleEditCardArt = useCallback((card: CharacterCard) => {
+    setCardDetailMode('art-only');
+    setSelectedCard(card);
+  }, []);
   const [allLibraryItems, setAllLibraryItems] = useState<LibraryItem[]>([]);
   const [enhancedAbilities, setEnhancedAbilities] = useState<EnhancedAbilityCard[]>([]);
   const [libraryLoading, setLibraryLoading] = useState(true);
@@ -267,7 +278,8 @@ export default function PlaymatView() {
                     card={charCard}
                     enhancedData={enhancedData}
                     onMoveLocation={(loc) => handleMoveCard(charCard.id, loc)}
-                    onView={() => setSelectedCard(charCard)}
+                    onView={() => handleViewCard(charCard)}
+                    onEditArt={() => handleEditCardArt(charCard)}
                     onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
                   />
                 );
@@ -307,7 +319,8 @@ export default function PlaymatView() {
                     card={charCard}
                     enhancedData={enhancedData}
                     onMoveLocation={(loc) => handleMoveCard(charCard.id, loc)}
-                    onView={() => setSelectedCard(charCard)}
+                    onView={() => handleViewCard(charCard)}
+                    onEditArt={() => handleEditCardArt(charCard)}
                     onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
                   />
                 );
@@ -335,6 +348,7 @@ export default function PlaymatView() {
         <CardDetailModal
           charCard={selectedCard}
           onClose={() => setSelectedCard(null)}
+          mode={cardDetailMode}
         />
       )}
 
@@ -424,14 +438,14 @@ export default function PlaymatView() {
 // Remove CardThumbnail component
 
 
-function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClose: () => void }) {
+function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: CharacterCard, onClose: () => void, mode?: 'full' | 'art-only' }) {
   const { character, updateCardImage, user } = useCharacterStore();
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown', domain: '', tier: 0, type: '', data: {} };
   const recallCost = data?.recall || '0';
   const theme = getDomainTheme(domain);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [showImageOptions, setShowImageOptions] = useState(false);
+  const [showImageOptions, setShowImageOptions] = useState(mode === 'art-only');
 
   // Parse card mechanics
   const passiveModifiers = character ? parseCardPassiveModifiers(charCard, character) : [];
@@ -516,6 +530,8 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
     }
   };
 
+  const isFull = mode === 'full';
+
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
       <div
@@ -523,69 +539,87 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
         style={{ borderTop: `4px solid ${theme.primary}` }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Header Section */}
-        <div className="absolute top-0 left-0 w-full flex justify-between items-center p-3 z-10">
-          {/* Top Left: Level */}
-          <div
-            className="relative w-12 h-16 flex items-center justify-center text-white font-eveleth font-bold text-xl"
-            style={{
-              clipPath: 'polygon(0% 0%, 100% 0%, 100% 80%, 50% 100%, 0% 80%)',
-              backgroundColor: theme.primary
-            }}
-          >
-            {tier}
-          </div>
+        {isFull && (
+          <>
+            {/* Top Header Section */}
+            <div className="absolute top-0 left-0 w-full flex justify-between items-center p-3 z-10">
+              {/* Top Left: Level */}
+              <div
+                className="relative w-12 h-16 flex items-center justify-center text-white font-eveleth font-bold text-xl"
+                style={{
+                  clipPath: 'polygon(0% 0%, 100% 0%, 100% 80%, 50% 100%, 0% 80%)',
+                  backgroundColor: theme.primary
+                }}
+              >
+                {tier}
+              </div>
 
-          {/* Top Right: Recall Cost */}
-          <div
-            className="relative w-10 h-10 rounded-full flex items-center justify-center text-white font-eveleth font-bold text-lg shadow-md border-2"
-            style={{
-              backgroundColor: theme.secondary,
-              borderColor: theme.accent
-            }}
-          >
-            {recallCost}
-            <Zap size={14} className="absolute bottom-1 right-1 text-yellow-400" />
-          </div>
+              {/* Top Right: Recall Cost */}
+              <div
+                className="relative w-10 h-10 rounded-full flex items-center justify-center text-white font-eveleth font-bold text-lg shadow-md border-2"
+                style={{
+                  backgroundColor: theme.secondary,
+                  borderColor: theme.accent
+                }}
+              >
+                {recallCost}
+                <Zap size={14} className="absolute bottom-1 right-1 text-yellow-400" />
+              </div>
+            </div>
 
-          {/* Close Button - repositioned */}
-          <button onClick={onClose} className="absolute top-2 right-2 text-white/70 hover:text-white bg-black/50 rounded-full p-1">
+            {/* Card Type Banner */}
+            <div className="mt-16 pt-2 pb-1 text-center z-10">
+              <span
+                className="uppercase font-bold text-xs text-white px-3 py-1 rounded-full tracking-wider shadow-sm border"
+                style={{
+                  backgroundColor: `${theme.primary}cc`,
+                  borderColor: theme.accent
+                }}
+              >
+                {domain} - {type}
+              </span>
+            </div>
+
+            {/* Card Name */}
+            <div className="text-center px-4 pt-2">
+              <h2 className="text-3xl font-bold font-eveleth text-white">{name}</h2>
+            </div>
+          </>
+        )}
+
+        {!isFull && (
+          <div className="flex justify-between items-center p-4 border-b border-white/10">
+            <h2 className="text-lg font-bold font-eveleth text-white">Change Art</h2>
+            <button onClick={onClose} className="text-white/70 hover:text-white">
+              <X size={20} />
+            </button>
+          </div>
+        )}
+
+        {isFull && (
+          <button onClick={onClose} className="absolute top-2 right-2 text-white/70 hover:text-white bg-black/50 rounded-full p-1 z-20">
             <X size={20} />
           </button>
-        </div>
-
-        {/* Card Type Banner */}
-        <div className="mt-16 pt-2 pb-1 text-center z-10">
-          <span
-            className="uppercase font-bold text-xs text-white px-3 py-1 rounded-full tracking-wider shadow-sm border"
-            style={{
-              backgroundColor: `${theme.primary}cc`,
-              borderColor: theme.accent
-            }}
-          >
-            {domain} - {type}
-          </span>
-        </div>
-
-        {/* Card Name */}
-        <div className="text-center px-4 pt-2">
-          <h2 className="text-3xl font-bold font-eveleth text-white">{name}</h2>
-        </div>
+        )}
 
         {/* Card Description */}
         <div className="flex-1 overflow-y-auto px-6 py-4 text-sm leading-relaxed">
-          {data?.description || data?.text ? (
-            <div className="prose prose-invert text-gray-300 text-center">
-              <ReactMarkdown>
-                {data.description || data.text}
-              </ReactMarkdown>
-            </div>
-          ) : (
-            <p className="italic text-gray-500 text-center">No description available.</p>
+          {isFull && (
+            <>
+              {data?.description || data?.text ? (
+                <div className="prose prose-invert text-gray-300 text-center">
+                  <ReactMarkdown>
+                    {data.description || data.text}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <p className="italic text-gray-500 text-center">No description available.</p>
+              )}
+            </>
           )}
 
           {/* Image Management Section */}
-          <div className="mt-6 pt-4 border-t border-white/10">
+          <div className={clsx("pt-4", isFull ? "mt-6 border-t border-white/10" : "")}>
             <h3
               className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center justify-between"
               style={{ color: theme.accent }}
@@ -696,7 +730,7 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
           </div>
 
           {/* Passive Modifiers Section */}
-          {passiveModifiers.length > 0 && (
+          {isFull && passiveModifiers.length > 0 && (
             <div className="mt-6 pt-4 border-t border-white/10">
               <h3 className="text-xs font-bold uppercase text-purple-400 tracking-wider mb-3 flex items-center gap-2">
                 <Sparkles size={14} /> Passive Modifiers
@@ -747,7 +781,7 @@ function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClo
           )}
 
           {/* Combat Ability Section */}
-          {combatAbility && (
+          {isFull && combatAbility && (
             <div className="mt-6 pt-4 border-t border-white/10">
               <h3 className="text-xs font-bold uppercase text-purple-400 tracking-wider mb-3 flex items-center gap-2">
                 <Swords size={14} /> Combat Ability
