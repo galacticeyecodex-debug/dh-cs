@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS public.characters (
   class_id TEXT, -- Could reference library(id) or just be text
   subclass_id TEXT,
   ancestry TEXT,
+  ancestry_features JSONB, -- Stores selected features for mixed ancestry
   community TEXT,
   transformation TEXT, -- Optional transformation card (Vampire, Werewolf, etc.)
 
@@ -350,7 +351,7 @@ BEGIN
   
   -- 1. Insert Character
   INSERT INTO public.characters (
-    user_id, name, level, class_id, subclass_id, ancestry, community, transformation,
+    user_id, name, level, class_id, subclass_id, ancestry, ancestry_features, community, transformation,
     stats, vitals, damage_thresholds, hope, fear, evasion, proficiency,
     experiences, domains, gold, image_url, modifiers,
     subclass_progression
@@ -361,6 +362,7 @@ BEGIN
     p_character->>'class_id',
     p_character->>'subclass_id',
     p_character->>'ancestry',
+    p_character->'ancestry_features',
     p_character->>'community',
     p_character->>'transformation',
     COALESCE(p_character->'stats', '{}'::jsonb),

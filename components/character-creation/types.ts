@@ -4,6 +4,8 @@ export interface CharacterFormData {
   name: string;
   image_url?: string;
   ancestry_id: string;
+  is_mixed_ancestry?: boolean;
+  ancestry_id_2?: string;
   community_id: string;
   class_id: string;
   subclass_id: string;
