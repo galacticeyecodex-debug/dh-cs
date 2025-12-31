@@ -161,6 +161,13 @@ export default function CombatView() {
         .forEach(feat => {
           features.push({ ...feat, source: ancestryData.name, sourceType: 'ancestry' });
         });
+    } else if (character?.ancestry_features) {
+      // Handle mixed ancestry or custom features stored on character
+      character.ancestry_features
+        .filter((feat: any) => hasCombatRelevance(feat))
+        .forEach((feat: any) => {
+          features.push({ ...feat, source: character.ancestry || 'Ancestry', sourceType: 'ancestry' });
+        });
     }
 
     if (communityData?.feats) {
@@ -172,7 +179,7 @@ export default function CombatView() {
     }
 
     return features;
-  }, [ancestryData, communityData]);
+  }, [ancestryData, communityData, character?.ancestry, character?.ancestry_features]);
 
   if (!character) return null;
 
