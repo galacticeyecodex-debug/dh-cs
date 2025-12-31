@@ -40,8 +40,9 @@ export default function HeritageStep({
     }));
   };
 
-  const renderFeatCard = (feat: any, isSelected: boolean, onClick: () => void, colorClass: string) => (
+  const renderFeatCard = (feat: any, isSelected: boolean, onClick: () => void, colorClass: string, key: React.Key) => (
     <div 
+      key={key}
       onClick={onClick}
       className={clsx(
         "p-2 border rounded text-xs transition-all",
@@ -119,7 +120,7 @@ export default function HeritageStep({
                 <>
                   <p className="text-[10px] text-gray-500 uppercase font-bold ml-1">Select one feature:</p>
                   {selectedAncestry1.data.features.map((feat: any, i: number) => (
-                    renderFeatCard(feat, featIndex1 === i, () => handleFeatSelect(1, i), "bg-dagger-gold/20 border-dagger-gold/40 text-dagger-gold")
+                    renderFeatCard(feat, featIndex1 === i, () => handleFeatSelect(1, i), "bg-dagger-gold/20 border-dagger-gold/40 text-dagger-gold", i)
                   ))}
                 </>
               ) : (
@@ -153,7 +154,7 @@ export default function HeritageStep({
               <div className="mt-2 grid grid-cols-1 gap-2">
                 <p className="text-[10px] text-gray-500 uppercase font-bold ml-1">Select one feature:</p>
                 {selectedAncestry2.data.features.map((feat: any, i: number) => (
-                  renderFeatCard(feat, featIndex2 === i, () => handleFeatSelect(2, i), "bg-dagger-gold/20 border-dagger-gold/40 text-dagger-gold")
+                  renderFeatCard(feat, featIndex2 === i, () => handleFeatSelect(2, i), "bg-dagger-gold/20 border-dagger-gold/40 text-dagger-gold", i)
                 ))}
               </div>
             )}
