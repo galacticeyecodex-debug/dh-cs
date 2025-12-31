@@ -155,8 +155,8 @@ export default function PlaymatCard({
         tier={libraryItem.tier || 1}
         description={libraryItem.data?.description}
         recallCost={libraryItem.data?.recall ?? 0}
-        customImageUrl={card.state?.custom_image_url}
-        customImageType={card.state?.custom_image_type}
+        customImageUrl={card.state?.custom_image_url || '/assets/card/domain-placeholder.png'}
+        customImageType={card.state?.custom_image_type || 'artwork'}
         size="thumbnail"
         // variant="default" is implied
         hasPassiveModifiers={!!(enhancedData?.modifiers && enhancedData.modifiers.length > 0)}
