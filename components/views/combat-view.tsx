@@ -24,7 +24,7 @@ import ModifierSheet from '@/components/modifiers/modifier-sheet';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import useContentAccess from '@/hooks/useContentAccess';
 
-import { AttackCard, CombatSpellCard } from '@/components/combat';
+import { AttackCard, CombatSpellCard, MarkStressButton, SpendHopeButton } from '@/components/combat';
 import { hasCombatRelevance } from '@/lib/card-parser';
 import type { EnhancedAbilityCard, EnhancedAncestry, EnhancedCommunity, EnhancedFeature } from '@/types/cards';
 
@@ -303,6 +303,7 @@ export default function CombatView() {
                   const totalAttackBonus = totalTraitValue + attackModifier;
 
                   const calculatedDamage = calculateWeaponDamage(baseDamage, totalProficiency);
+                  const costs = libData?.costs;
 
                   return (
                     <AttackCard
@@ -324,6 +325,14 @@ export default function CombatView() {
                         prepareRoll(`${weapon.name} Damage`, totalDamageBonus, dice);
                       }}
                       onManageModifiers={() => setActiveWeaponId(weapon.id)}
+                      customActions={
+                        (costs?.stress || costs?.hope) ? (
+                          <>
+                            {costs?.stress && <MarkStressButton cost={costs.stress} size="sm" />}
+                            {costs?.hope && <SpendHopeButton cost={costs.hope} size="sm" />}
+                          </>
+                        ) : undefined
+                      }
                     />
                   );
                 })
