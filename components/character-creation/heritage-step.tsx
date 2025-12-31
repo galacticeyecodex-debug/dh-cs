@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { User as UserIcon } from 'lucide-react';
+import { Dna } from 'lucide-react';
 import clsx from 'clsx';
 import { CharacterFormData, LibraryData } from './types';
 
@@ -58,7 +58,7 @@ export default function HeritageStep({
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold font-serif flex items-center gap-2"><UserIcon size={20} /> Step 2: Heritage</h2>
+      <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Dna size={20} /> Step 2: Heritage</h2>
       
       <div className="space-y-4">
         <div className="flex items-center gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
