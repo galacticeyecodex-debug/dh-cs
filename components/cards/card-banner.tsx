@@ -10,6 +10,7 @@ import { getDomainTheme } from '@/lib/domain-colors';
 import {
   ArcanaDomainIcon,
   BladeDomainIcon,
+  BloodDomainIcon,
   BoneDomainIcon,
   CodexDomainIcon,
   DreadDomainIcon,
@@ -27,6 +28,8 @@ const getDomainIcon = (domain?: string) => {
       return ArcanaDomainIcon;
     case 'blade':
       return BladeDomainIcon;
+    case 'blood':
+      return BloodDomainIcon;
     case 'bone':
       return BoneDomainIcon;
     case 'codex':

@@ -28,6 +28,13 @@ export const DOMAIN_COLORS: Record<string, DomainTheme> = {
     gradient: 'from-red-700 to-red-800',
     textColor: '#ffffff',
   },
+  blood: {
+    primary: '#8a1c1c', // Dark Crimson
+    secondary: '#5c1212',
+    accent: '#ef4444',
+    gradient: 'from-red-900 to-red-950',
+    textColor: '#ffffff',
+  },
   bone: {
     primary: '#c1c7cc', // Light Gray
     secondary: '#a4a9a8',
