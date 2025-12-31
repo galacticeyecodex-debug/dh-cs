@@ -1,5 +1,6 @@
 export * from './arcana-domain';
 export * from './blade-domain';
+export * from './blood-domain';
 export * from './bone-domain';
 export * from './codex-domain';
 export * from './dread-domain';
