@@ -16,7 +16,12 @@
       "damage",
       "hope_cost",
       "spell"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "1d8"
+    }
   },
   {
     "name": "Unleash Chaos",
@@ -45,9 +50,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "single",
       "damage": "d10",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -61,7 +66,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "**Spend a Hope** to allow a creature you can touch to climb on walls and ceilings as easily as walking on the ground. This lasts until the end of the scene or you cast Wall Walk again.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -91,9 +96,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Melee",
-      "targets": "single",
       "damage": "1d20+3",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -107,7 +112,7 @@
     "type": "Spell",
     "recall": "0",
     "text": "**Spend a Hope** to create a single, small floating orb that you can move anywhere within Very Far range. While this spell is active, you can see through the orb as though you’re looking out from its position. You can transition between using your own senses and seeing through the orb freely. If the orb takes damage or moves out of range, the spell ends.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -145,7 +150,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "Make a **Spellcast Roll (15)**. On a success, place a number of tokens equal to your Agility on this card (minimum 1). When you make an **action roll** while flying, spend a token from this card. After the action that spends the last token is resolved, you descend to the ground directly below you.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "keywords": [
@@ -163,7 +168,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "Make a **Spellcast Roll (12)**. On a success, **spend a Hope** to teleport to another point you can see within Far range. If any willing creatures are within Very Close range, **spend an additional Hope** for each creature to bring them with you.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -199,9 +204,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "all_in_range",
       "damage": "d8+3",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -215,8 +220,8 @@
     "type": "Spell",
     "recall": "1",
     "text": "**Mark 2 Stress** to make a **Spellcast Roll**, unleashing lightning on all targets within Close range. Targets you succeed against must make a **reaction roll** with a Difficulty equal to the result of your **Spellcast Roll**. Targets who fail take **2d8+4** magic damage. Additional adversaries not already targeted by Chain Lightning and within Close range of previous targets who took damage must also make the **reaction roll**. Targets who fail take **2d8+4** magic damage. This chain continues until there are no more adversaries within range.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "stress": 2
@@ -232,6 +237,13 @@
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "target_reaction": true
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "2d8+4",
+      "damage_type": "magic",
+      "targets": "all_in_range"
     }
   },
   {
@@ -241,7 +253,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "You can channel arcane energy to have visions of the future. Once per long rest, immediately after the GM conveys the consequences of a roll you made, you can rescind the move and consequences like they never happened and make another move instead.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_long_rest",
     "keywords": [
@@ -256,7 +268,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "Make a **Spellcast Roll (15)**. On a success, you place an arcane marking on the ground where you currently stand. The next time you successfully cast Rift Walker, a rift in space opens up, providing safe passage back to the exact spot where the marking was placed. This rift stays open until you choose to close it or you cast another spell.\n\nYou can drop the spell at any time to cast Rift Walker again and place the marking somewhere new.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "keywords": [
@@ -282,9 +294,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "single",
       "damage": "d12+4",
-      "damage_type": "physical"
+      "damage_type": "physical",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -348,7 +360,13 @@
       "magic",
       "hope_cost",
       "spell"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d6",
+      "damage_type": "magic"
+    }
   },
   {
     "name": "Confusing Aura",
@@ -364,7 +382,13 @@
       "damage",
       "stress_cost",
       "spell"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d6",
+      "difficulty": 14
+    }
   },
   {
     "name": "Earthquake",
@@ -373,8 +397,8 @@
     "type": "Spell",
     "recall": "2",
     "text": "Make a **Spellcast Roll (16)**. Once per rest on a success, all targets within Very Far range who aren’t flying must make a **Reaction Roll (18)**. Targets who fail take **3d10+8** physical damage and are temporarily Vulnerable. Targets who succeed take half damage.\n\nAdditionally, when you succeed on the **Spellcast Roll**, all terrain within Very Far range becomes difficult to move through and structures within this range might sustain damage or crumble.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "once_per_rest",
     "keywords": [
       "damage",
@@ -389,6 +413,14 @@
       "trait": "Spellcast",
       "difficulty": 16,
       "target_reaction": true
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Very Far",
+      "damage": "3d10+8",
+      "damage_type": "physical",
+      "targets": "all_in_range",
+      "difficulty": 16
     }
   },
   {
@@ -398,7 +430,7 @@
     "type": "Spell",
     "recall": "0",
     "text": "Once per rest, make a **Spellcast Roll (15)**. On a success, drop into a vision that lets you clearly see and hear any place you have been before as though you are standing there in this moment. You can move freely in this vision and are not constrained by the physics or impediments of a physical body. This spell cannot be detected by mundane or magical means. You drop out of this vision upon taking damage or casting another spell.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_rest",
     "keywords": [
@@ -414,7 +446,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "After you or a willing ally make any roll, you can **spend 5 Hope** to change the numerical result of that roll to a result of your choice instead. The result must be plausible within the range of the dice.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -445,9 +477,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "all_in_range",
       "damage": "1d20+2",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -857,7 +889,7 @@
     "type": "Ability",
     "recall": "1",
     "text": "When you’re targeted by an attack made from beyond Melee range, you can **mark a Stress** to roll a **d4** and gain a bonus to your Evasion equal to the result against the attack.",
-    "action_type": "buff",
+    "action_type": "attack",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -866,7 +898,12 @@
     "keywords": [
       "stress_cost",
       "ability"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Melee",
+      "damage": "d4"
+    }
   },
   {
     "name": "Untouchable",
@@ -954,8 +991,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "When you Help an Ally, they can **spend a Hope** to add one of your Experiences to their roll alongside your advantage die.\n\nWhen making a Tag Team Roll, you can roll a **d20** as your Hope Die.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "hope": 1
@@ -964,7 +1001,12 @@
       "hope_cost",
       "buff",
       "ability"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d20"
+    }
   },
   {
     "name": "Boost",
@@ -973,8 +1015,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "**Mark a Stress** to boost off a willing ally within Close range, fling yourself into the air, and perform an aerial attack against a target within Far range. You have advantage on the attack, add a **d10** to the damage roll, and end your move within Melee range of the target.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "stress": 1
@@ -985,7 +1027,13 @@
       "buff",
       "movement",
       "ability"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Far",
+      "damage": "d10",
+      "targets": "single"
+    }
   },
   {
     "name": "Redirect",
@@ -994,8 +1042,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "When an attack made against you from beyond Melee range fails, roll a number of **d6s** equal to your Proficiency. If any roll a 6, you can **mark a Stress** to redirect the attack to damage an adversary within Very Close range instead.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "stress": 1
@@ -1004,7 +1052,12 @@
       "damage",
       "stress_cost",
       "ability"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Very Close",
+      "damage": "d6"
+    }
   },
   {
     "name": "Know Thy Enemy",
@@ -1044,14 +1097,19 @@
     "type": "Ability",
     "recall": "1",
     "text": "Name and describe your signature combat move. Once per rest, when you perform this signature move as part of an action you’re taking, you can roll a **d20** as your Hope Die. On a success, clear a Stress.",
-    "action_type": "buff",
+    "action_type": "attack",
     "timing": "action",
     "frequency": "once_per_rest",
     "keywords": [
       "stress_relief",
       "movement",
       "ability"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d20"
+    }
   },
   {
     "name": "Rapid Riposte",
@@ -1142,7 +1200,12 @@
       "damage",
       "stress_cost",
       "ability"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "2d12"
+    }
   },
   {
     "name": "Wrangle",
@@ -1151,8 +1214,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "Make an **Agility Roll** against all targets within Close range. **Spend a Hope** to move targets you succeed against, and any willing allies within Close range, to another point within Close range.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "hope": 1
@@ -1167,6 +1230,11 @@
     "roll": {
       "type": "Agility Roll",
       "trait": "Agility"
+    },
+    "attack": {
+      "trait": "Agility",
+      "range": "Close",
+      "targets": "all_in_range"
     }
   },
   {
@@ -1250,8 +1318,8 @@
     "type": "Grimoire",
     "recall": "2",
     "text": "**Power Push:** Make a **Spellcast Roll** against a target within Melee range.\nOn a success, they’re knocked back to Far range and take **d10+2** magic damage using your Proficiency.\n\n**Tova’s Armor:** **Spend a Hope** to give a target you can touch a +1 bonus to their Armor Score until their next rest or you cast Tova’s Armor again.\n\n**Ice Spike:** Make a **Spellcast Roll (12)** to summon a large ice spike within Far range. If you use it as a weapon, make the **Spellcast Roll** against the target’s Difficulty instead. On a success, deal **d6** physical damage using your Proficiency.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "hope": 1
@@ -1267,6 +1335,14 @@
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "difficulty": 12
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Far",
+      "damage": "d10+2",
+      "damage_type": "magic",
+      "targets": "single",
+      "difficulty": 12
     }
   },
   {
@@ -1276,8 +1352,8 @@
     "type": "Grimoire",
     "recall": "2",
     "text": "**Slumber:** Make a **Spellcast Roll** against a target within Very Close range. On a success, they’re Asleep until they take damage or the GM spends a Fear on their turn to clear this condition.\n\n**Arcane Barrage:** Once per rest, **spend any number of Hope** and shoot magical projectiles that strike a target of your choice within Close range. Roll a number of **d6s** equal to the Hope spent and deal that much magic damage to the target.\n\n**Telepathy:** **Spend a Hope** to open a line of mental communication with one target you can see. This connection lasts until your next rest or you cast Telepathy again.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "once_per_rest",
     "costs": {
       "hope": 1
@@ -1291,6 +1367,13 @@
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast"
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Very Close",
+      "damage": "d6",
+      "damage_type": "magic",
+      "targets": "single"
     }
   },
   {
@@ -1300,8 +1383,8 @@
     "type": "Grimoire",
     "recall": "2",
     "text": "**Wild Flame:** Make a **Spellcast Roll** against up to three adversaries within Melee range. Targets you succeed against take **2d6** magic damage and must **mark a Stress** as flames erupt from your hand.\n\n**Magic Hand:** You conjure a magical hand with the same size and strength as your own within Far range.\n\n**Mysterious Mist:** Make a **Spellcast Roll (13)** to cast a temporary thick fog that gathers in a stationary area within Very Close range. The fog heavily obscures this area and everything in it.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "stress": 1
@@ -1314,6 +1397,13 @@
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
+      "difficulty": 13
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Very Close",
+      "damage": "2d6",
+      "damage_type": "magic",
       "difficulty": 13
     }
   },
@@ -1370,8 +1460,8 @@
     "type": "Grimoire",
     "recall": "2",
     "text": "**Levitation:** Make a **Spellcast Roll** to temporarily lift a target you can see up into the air and move them within Close range of their original position.\n\n**Recant:** **Spend a Hope** to force a target within Melee range to make a **Reaction Roll (15)**. On a failure, they forget the last minute of your conversation.\n\n**Rune Circle:** **Mark a Stress** to create a temporary magical circle on the ground where you stand. All adversaries within Melee range, who enter Melee range, take **2d12+4** magic damage and are knocked back to Very Close range.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "stress": 1,
@@ -1390,6 +1480,14 @@
       "trait": "Spellcast",
       "difficulty": 15,
       "target_reaction": true
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Very Close",
+      "damage": "2d12+4",
+      "damage_type": "magic",
+      "targets": "all_in_range",
+      "difficulty": 15
     }
   },
   {
@@ -1399,8 +1497,8 @@
     "type": "Grimoire",
     "recall": "2",
     "text": "**Mystic Tether:** Make a **Spellcast Roll** against a target within Far range. On a success, they’re temporarily Restrained and must **mark a Stress**. If you target a flying creature, this spell grounds and temporarily Restrains them.\n\n**Fireball:** Make a **Spellcast Roll** against a target within Very Far range. On a success, hurl a sphere of fire toward them that explodes on impact. The target and all creatures within Very Close range of them must make a **Reaction Roll (13)**. Targets who fail take **4d20+5** magic damage using your Proficiency. Targets who succeed take half damage.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "stress": 1
@@ -1416,6 +1514,14 @@
       "trait": "Spellcast",
       "difficulty": 13,
       "target_reaction": true
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Very Far",
+      "damage": "4d20+5",
+      "damage_type": "magic",
+      "targets": "single",
+      "difficulty": 13
     }
   },
   {
@@ -1425,8 +1531,8 @@
     "type": "Grimoire",
     "recall": "3",
     "text": "**Repudiate:** You can interrupt a magical effect taking place. Make a **reaction roll** using your Spellcast trait. Once per rest on a success, the effect stops and any consequences are avoided.\n\n**Create Construct:** **Spend a Hope** to choose a group of objects around you and create an animated construct from them that obeys basic commands. Make a **Spellcast Roll** to command them to take action. When necessary, they share your Evasion and traits and their attacks deal **2d10+3** physical damage. You can only maintain one construct at a time, and they fall apart when they take any amount of damage.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "once_per_rest",
     "costs": {
       "hope": 1
@@ -1440,6 +1546,12 @@
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "target_reaction": true
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "2d10+3",
+      "damage_type": "physical"
     }
   },
   {
@@ -1482,7 +1594,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "Make a **Spellcast Roll (15)**. Once per rest on a success, **spend a Hope** to create a temporary magical wall between two points within Far range. It can be up to 50 feet high and form at any angle. Creatures or objects in its path are shunted to a side of their choice. The wall stays up until your next rest or you cast Manifest Wall again.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_rest",
     "costs": {
@@ -1506,7 +1618,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "Once per long rest, you can instantly teleport yourself and any number of willing targets within Close range to a place you’ve been before. Choose one of the following options, then make a **Spellcast Roll (16)**:\n\n- If you know the place very well, gain a +3 bonus.\n- If you’ve visited the place frequently, gain a +1 bonus.\n- If you’ve visited the place infrequently, gain no modifier.\n- If you’ve only been there once, gain a -2 penalty.\n\nOn a success, you appear where you were intending to go. On a failure, you appear off course, with the range of failure determining how far off course.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_long_rest",
     "keywords": [
@@ -1527,8 +1639,8 @@
     "type": "Spell",
     "recall": "0",
     "text": "Make a **Spellcast Roll** against a target within Close range. On a success, roll a number of **d20s** equal to your Spellcast trait. The target must make a **reaction roll** with a Difficulty equal to your highest result. On a success, the target must **mark a Stress** but isn’t banished. Once per rest on a failure, they are banished from this realm.\n\nWhen the PCs roll with Fear, the Difficulty gains a -1 penalty and the target makes another **reaction roll**. On a success, they return from banishment.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "once_per_rest",
     "costs": {
       "stress": 1
@@ -1541,6 +1653,12 @@
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "target_reaction": true
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d20",
+      "targets": "single"
     }
   },
   {
@@ -1603,8 +1721,8 @@
     "type": "Grimoire",
     "recall": "2",
     "text": "**Memory Delve:** Make a **Spellcast Roll** against a target within Far range. On a success, peer into the target’s mind and ask the GM a question. The GM describes any memories the target has pertaining to the answer.\n\n**Shared Clarity:** Once per long rest, **spend a Hope** to choose two willing creatures. When one of them would **mark Stress**, they can choose between the two of them who marks it. This spell lasts until their next rest.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "once_per_long_rest",
     "costs": {
       "hope": 1
@@ -1617,6 +1735,11 @@
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast"
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Far",
+      "targets": "single"
     }
   },
   {
@@ -1646,8 +1769,8 @@
     "type": "Grimoire",
     "recall": "4",
     "text": "**Transform:** Make a **Spellcast Roll (15)**. On a success, transform into an inanimate object no larger than twice your normal size. You can remain in this shape until you take damage.\n\n**Eternal Enervation:** Once per long rest, make a **Spellcast Roll** against a target within Close range. On a success, they become permanently Vulnerable. They can’t clear this condition by any means.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "once_per_long_rest",
     "keywords": [
       "damage",
@@ -1656,6 +1779,12 @@
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
+      "difficulty": 15
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "targets": "single",
       "difficulty": 15
     }
   },
@@ -1666,7 +1795,7 @@
     "type": "Spell",
     "recall": "4",
     "text": "Make a **Spellcast Roll (18)**. Once per long rest on a success, the GM tells you which adversaries within Far range have a Difficulty of 18 or lower. **Mark a Stress** for each one you wish to hit with this spell. They are killed and can’t come back to life by any means.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_long_rest",
     "costs": {
@@ -1708,7 +1837,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "Once per long rest, **spend 5 Hope** to cast this spell on two or more willing creatures. Until your next rest, when a creature connected by this union would **mark Stress** or Hit Points, the connected creatures can choose who marks it.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_long_rest",
     "costs": {
@@ -1822,8 +1951,8 @@
     "type": "Ability",
     "recall": "2",
     "text": "When you taunt or provoke a target within Far range, make a **Presence Roll** against them. Once per rest on a success, roll a number of **d4s** equal to your Proficiency. The target must **mark Stress** equal to the highest result rolled.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "once_per_rest",
     "keywords": [
       "stress_cost",
@@ -1832,6 +1961,12 @@
     "roll": {
       "type": "Presence Roll",
       "trait": "Presence"
+    },
+    "attack": {
+      "trait": "Presence",
+      "range": "Far",
+      "damage": "d4",
+      "targets": "single"
     }
   },
   {
@@ -1915,7 +2050,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "Choose a target within Very Far range. You can see through their eyes and hear through their ears. You can transition between using your own senses or the target’s freely until you cast another spell or until your next rest.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "keywords": [
@@ -2015,7 +2150,7 @@
     "type": "Spell",
     "recall": "0",
     "text": "Once per rest, take on the Stress from a willing creature within Melee range. The target describes what intimate knowledge or emotions telepathically leak from their mind in this moment between you. Transfer any number of their marked Stress to you, then gain a Hope for each Stress transferred.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_rest",
     "keywords": [
@@ -2068,7 +2203,7 @@
     "type": "Spell",
     "recall": "0",
     "text": "Once per long rest, **mark a Stress** to create a projected copy of yourself that can appear anywhere you’ve been before.\n\nYou can see and hear through the projection as though it were you and affect the world as though you were there. A creature investigating the projection can tell it’s of magical origin. This effect lasts until your next rest or your projection takes any damage.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_long_rest",
     "costs": {
@@ -2115,7 +2250,7 @@
     "type": "Spell",
     "recall": "3",
     "text": "Once per long rest, this card can mimic the features of another domain card of level 8 or lower in another player’s loadout. **Spend Hope** equal to half the card’s level to gain access to the feature. It lasts until your next rest or they place the card in their vault.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_long_rest",
     "keywords": [
@@ -2219,9 +2354,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
-      "targets": "all_in_range",
       "damage": "1d8+2",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -2235,7 +2370,7 @@
     "type": "Spell",
     "recall": "0",
     "text": "When you have a few minutes to prepare, you can **mark a Stress** to don the facade of any humanoid you can picture clearly in your mind. While disguised, you have advantage on **Presence Rolls** to avoid scrutiny.\n\nPlace a number of tokens equal to your Spellcast trait on this card. When you take an action while disguised, spend a token from this card. After the action that spends the last token is resolved, the disguise drops.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -2276,9 +2411,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Far",
-      "targets": "single",
       "damage": "d6",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -2317,8 +2452,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "When you position yourself behind a creature who’s about your size, you can **mark a Stress** to pull them into a chokehold, making them temporarily Vulnerable.\n\nWhen a creature attacks a target who is Vulnerable in this way, they deal an extra **2d6** damage.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "stress": 1
@@ -2328,7 +2463,13 @@
       "stress_cost",
       "debuff",
       "ability"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "2d6",
+      "targets": "single"
+    }
   },
   {
     "name": "Veil of Night",
@@ -2434,7 +2575,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "**Spend a Hope** to activate Phantom Retreat where you’re currently standing. **Spend another Hope** at any time before your next rest to disappear from where you are and reappear where you were standing when you activated Phantom Retreat. This spell ends after you reappear.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -2478,7 +2619,7 @@
     "type": "Spell",
     "recall": "0",
     "text": "When you have a few minutes of silence to focus, you can **mark a Stress** to change the appearance of all willing creatures within Close range. Their new forms must share a general body structure and size, and can be somebody or something you’ve seen before or entirely fabricated. A disguised creature has advantage on **Presence Rolls** to avoid scrutiny.\n\nActivate a Countdown (8). It ticks down as a consequence the GM chooses. When it triggers, the disguise drops.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -2569,7 +2710,14 @@
     ],
     "has_tokens": true,
     "max_tokens": null,
-    "token_source": "the"
+    "token_source": "the",
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d6",
+      "damage_type": "magic",
+      "targets": "single"
+    }
   },
   {
     "name": "Night Terror",
@@ -2578,14 +2726,20 @@
     "type": "Spell",
     "recall": "2",
     "text": "Once per long rest, choose any targets within Very Close range to perceive you as a nightmarish horror. The targets must succeed on a **Reaction Roll (16)** or become temporarily Horrified. While Horrified, they’re Vulnerable. Steal a number of Fear from the GM equal to the number of targets that are Horrified (up to the number of Fear in the GM’s pool). Roll a number of **d6s** equal to the number of stolen Fear and deal the total damage to each Horrified target. Discard the stolen Fear.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "once_per_long_rest",
     "keywords": [
       "damage",
       "debuff",
       "spell"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Very Close",
+      "damage": "d6",
+      "difficulty": 16
+    }
   },
   {
     "name": "Twilight Toll",
@@ -2594,8 +2748,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "Choose a target within Far range. When you succeed on an **action roll** against them that doesn’t result in making a damage roll, place a token on this card. When you deal damage to this target, spend any number of tokens to add a **d12** for each token spent to your damage roll. You can only hold Twilight Toll on one creature at a time.\n\nWhen you choose a new target or take a rest, clear all unspent tokens.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "keywords": [
       "damage",
@@ -2603,7 +2757,13 @@
       "ability"
     ],
     "has_tokens": true,
-    "max_tokens": null
+    "max_tokens": null,
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Far",
+      "damage": "d12",
+      "targets": "single"
+    }
   },
   {
     "name": "Eclipse",
@@ -2641,7 +2801,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "**Mark a Stress** to become Spectral until you make an **action roll** targeting another creature. While Spectral, you’re immune to physical damage and can float and pass through solid objects. Other creatures can still see you while you’re in this form.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -2717,9 +2877,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
-      "targets": "single",
       "damage": "1d8+1",
-      "damage_type": "physical"
+      "damage_type": "physical",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -2752,9 +2912,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
-      "targets": "all_in_range",
       "damage": "2d8+3",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -2811,9 +2971,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "single",
       "damage": "6d4",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -2857,8 +3017,8 @@
     "type": "Spell",
     "recall": "1",
     "text": "Make a **Spellcast Roll** against a target within Close range and choose one of the following options:\n\n- You pull the target into Melee range or pull yourself into Melee range of them.\n- You constrict the target and force them to **mark 2 Stress**.\n- All adversaries between you and the target must succeed on a **Reaction Roll (13)** or be hit by vines, taking **3d6+2** physical damage.\n\nOn a success, vines reach out from your hands, causing the chosen effect and temporarily Restraining the target.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "stress": 2
@@ -2875,6 +3035,14 @@
       "trait": "Spellcast",
       "difficulty": 13,
       "target_reaction": true
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "3d6+2",
+      "damage_type": "physical",
+      "targets": "all_in_range",
+      "difficulty": 13
     }
   },
   {
@@ -2954,7 +3122,7 @@
     "type": "Spell",
     "recall": "0",
     "text": "**Spend any number of Hope** to conjure that many magical steeds (such as horses, camels, or elephants) that you and your allies can ride until your next long rest or the steeds take any damage. The steeds double your land speed while traveling and, when in danger, allow you to move within Far range without having to roll. Creatures riding a steed gain a –2 penalty to attack rolls and a +2 bonus to damage rolls.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "keywords": [
@@ -2976,8 +3144,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "As an additional downtime move you can choose, roll a **d6** to see what you forage. Work with the GM to describe it and add it to your inventory as a consumable. Your party can carry up to five foraged consumables at a time.\n\n1. An unusual flower (Clear 2 Stress)\n1. A beautiful relic (Gain 2 Hope)\n1. An arcane rune (+2 to a **Spellcast Roll**)\n1. A healing vial (Clear 2 Hit Points)\n1. A luck charm (Reroll any die)\n1. Choose one of the options above.",
-    "action_type": "downtime",
-    "timing": "downtime",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "keywords": [
       "healing",
@@ -2989,6 +3157,11 @@
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast"
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d6"
     }
   },
   {
@@ -3021,7 +3194,13 @@
     "keywords": [
       "stress_cost",
       "spell"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d6",
+      "targets": "self"
+    }
   },
   {
     "name": "Forest Sprites",
@@ -3065,9 +3244,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
-      "targets": "allies_in_range",
       "damage": "1d4",
       "damage_type": "physical",
+      "targets": "allies_in_range",
       "difficulty": 15
     }
   },
@@ -3100,7 +3279,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "Make a **Spellcast Roll (18)**. Once per long rest on a success, you reshape the natural world, changing the surrounding plant life anywhere within Far range of you. For example, you can grow trees instantly, clear a path through dense vines, or create a wall of roots.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_long_rest",
     "keywords": [
@@ -3167,9 +3346,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "all_in_range",
       "damage": "2d20+8",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -3200,9 +3379,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "single",
       "damage": "d8+2",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -3250,7 +3429,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "You can infuse a corpse with a moment of life to speak with it. Make a **Spellcast Roll (13)**. On a success with Hope, the corpse answers up to three questions. On a success with Fear, the corpse answers one question. The corpse answers truthfully, but it can’t impart information it didn’t know in life. On a failure, or once the corpse has finished answering your questions, the body turns to dust.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "keywords": [
@@ -3318,7 +3497,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "Once per long rest, **spend 3 Hope** to reach out to the forces beyond and ask one “yes or no” question about an event, person, place, or situation in the near future. For a moment, the present falls away and you see the answer before you.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_long_rest",
     "costs": {
@@ -3356,7 +3535,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "**Spend a Hope** to shape a section of natural material you’re touching (such as stone, ice, or wood) to suit your purpose. The area of the material can be no larger than you. For example, you can form a rudimentary tool or create a door.\n\nYou can only affect the material within Close range of where you’re touching it.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -3378,7 +3557,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "Once per rest, **spend 3 Hope** to charge your powerful smite. When you next successfully attack with a weapon, double the result of your damage roll. This attack deals magic damage regardless of the weapon's damage type.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_rest",
     "costs": {
@@ -3398,7 +3577,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "After a long rest, place a number of tokens equal to your Spellcast trait on this card. Touch a creature and spend any number of tokens to clear 2 Hit Points or 2 Stress for each token spent.\n\nYou can also spend a token from this card when touching a creature to clear the Vulnerable condition or heal a physical or magical ailment (the GM might require additional tokens depending on the strength of the ailment).\n\nWhen you take a long rest, clear all unspent tokens.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "keywords": [
@@ -3429,8 +3608,8 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
-      "targets": "allies_in_range",
       "damage": "d6",
+      "targets": "allies_in_range",
       "difficulty": 16
     }
   },
@@ -3479,7 +3658,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "**Mark a Stress** to cast a protective aura on a target within Very Close range. When the target marks an Armor Slot, they reduce the severity of the attack by an additional threshold. If this spell causes a creature who would be damaged to instead mark no Hit Points, the effect ends.\n\nYou can only hold Shield Aura on one creature at a time.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -3503,8 +3682,8 @@
     "type": "Spell",
     "recall": "2",
     "text": "Make a **Spellcast Roll** to unleash powerful rays of burning sunlight against all adversaries in front of you within Far range. On a success, **spend any number of Hope** and force that many targets you succeeded against to make a **Reaction Roll (14)**.\n\nTargets who succeed take **3d20+3** magic damage. Targets who fail take **4d20+5** magic damage and are temporarily Stunned. While Stunned, they can’t use reactions and can’t take any other actions until they clear this condition.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "keywords": [
       "damage",
@@ -3519,6 +3698,14 @@
       "trait": "Spellcast",
       "difficulty": 14,
       "target_reaction": true
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Far",
+      "damage": "3d20+3",
+      "damage_type": "magic",
+      "targets": "all_in_range",
+      "difficulty": 14
     }
   },
   {
@@ -3548,7 +3735,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "Make a **Spellcast Roll (16)**. On a success, **mark any number of Stress** to target a line of allies within Far range. You can clear Hit Points on the targets equal to the number of Stress marked, divided among them however you’d like.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "keywords": [
@@ -3596,7 +3783,13 @@
     "frequency": "at_will",
     "keywords": [
       "spell"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d6",
+      "difficulty": 20
+    }
   },
   {
     "name": "Bare Bones",
@@ -3636,8 +3829,8 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
-      "targets": "single",
-      "damage": "d6"
+      "damage": "d6",
+      "targets": "single"
     }
   },
   {
@@ -3797,14 +3990,19 @@
     "type": "Ability",
     "recall": "1",
     "text": "Once per rest, when you critically succeed on an attack, you and allies who can see or hear you can clear a Hit Point or **1d4** Stress.",
-    "action_type": "buff",
+    "action_type": "attack",
     "timing": "action",
     "frequency": "once_per_rest",
     "keywords": [
       "healing",
       "stress_relief",
       "ability"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "1d4"
+    }
   },
   {
     "name": "Inevitable",
@@ -3845,8 +4043,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "When you would take damage, you can **mark a Stress** to reduce the severity of the damage by one threshold. When you do, roll a **d6**. On a result of 3 or lower, place this card in your vault.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "stress": 1
@@ -3855,7 +4053,12 @@
       "damage",
       "stress_cost",
       "ability"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d6"
+    }
   },
   {
     "name": "Valor-Touched",
@@ -3897,8 +4100,8 @@
     "type": "Ability",
     "recall": "2",
     "text": "**Spend 2 Hope** to strike the ground where you stand and make a **Strength Roll** against all targets within Very Close range. Targets you succeed against are thrown back to Far range and must make a **Reaction Roll (17)**. Targets who fail take **4d10+8** damage. Targets who succeed take half damage.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "hope": 2
@@ -3915,6 +4118,13 @@
       "trait": "Strength",
       "difficulty": 17,
       "target_reaction": true
+    },
+    "attack": {
+      "trait": "Strength",
+      "range": "Very Close",
+      "damage": "4d10+8",
+      "targets": "all_in_range",
+      "difficulty": 17
     }
   },
   {
@@ -3965,14 +4175,19 @@
     "type": "Ability",
     "recall": "4",
     "text": "When you mark your last Hit Point, instead of making a death move, you can roll a **d6** and clear a number of Hit Points equal to the result. Then place this card in your vault.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "keywords": [
       "healing",
       "movement",
       "ability"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d6"
+    }
   },
   {
     "name": "Unyielding Armor",
@@ -3981,11 +4196,16 @@
     "type": "Ability",
     "recall": "1",
     "text": "When you would mark an Armor Slot, roll a number of **d6s** equal to your Proficiency. If any roll a 6, reduce the severity by one threshold without marking an Armor Slot.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "keywords": [
       "ability"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d6"
+    }
   }
 ]
