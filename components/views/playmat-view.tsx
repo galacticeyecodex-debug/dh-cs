@@ -35,7 +35,6 @@ import { getDomainTheme } from '@/lib/domain-colors';
 import { uploadCharacterImage } from '@/lib/storage-service';
 import { getSystemModifiers } from '@/lib/utils';
 import Image from 'next/image';
-import { DomainCard } from '@/components/cards/domain-card';
 import PlaymatCard from '@/components/playmat/playmat-card';
 import type { EnhancedAbilityCard } from '@/types/cards';
 import useContentAccess from '@/hooks/useContentAccess';
