@@ -49,7 +49,7 @@ export function DomainCard({
   if (isFullCard) {
     return (
       <div
-        className="aspect-[2/3] rounded-lg overflow-hidden hover:ring-2 hover:ring-dagger-gold transition-all cursor-pointer relative"
+        className={`aspect-[2/3] rounded-lg overflow-hidden transition-all relative ${onClick ? 'hover:ring-2 hover:ring-dagger-gold cursor-pointer' : ''}`}
         onClick={onClick}
       >
         <Image
@@ -73,7 +73,7 @@ export function DomainCard({
   return (
     <div
       // A thin gold border around the domain cards
-      className="relative aspect-card overflow-hidden rounded-lg shadow-lg cursor-pointer hover:shadow-2xl transition-shadow bg-white text-black border border-dagger-gold"
+      className={`relative aspect-card overflow-hidden rounded-lg shadow-lg transition-shadow bg-white text-black border border-dagger-gold ${onClick ? 'cursor-pointer hover:shadow-2xl' : ''}`}
       style={{ width: cardWidth }}
       onClick={onClick}
     >
