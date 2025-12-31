@@ -41,7 +41,7 @@ import type { EnhancedAbilityCard } from '@/types/cards';
 import useContentAccess from '@/hooks/useContentAccess';
 
 export default function PlaymatView() {
-  const { character, moveCard, addCardToCollection, updateCardImage, updateModifiers, user } = useCharacterStore();
+  const { character, moveCard, addCardToCollection, updateCardImage, updateCardImagePosition, updateModifiers, user } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'loadout' | 'vault'>('loadout');
@@ -440,13 +440,20 @@ export default function PlaymatView() {
 
 
 function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: CharacterCard, onClose: () => void, mode?: 'full' | 'art-only' }) {
-  const { character, updateCardImage, user } = useCharacterStore();
+  const { character, updateCardImage, updateCardImagePosition, user } = useCharacterStore();
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown', domain: '', tier: 0, type: '', data: {} };
   const recallCost = data?.recall || '0';
   const theme = getDomainTheme(domain);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showImageOptions, setShowImageOptions] = useState(mode === 'art-only');
+
+  // Local position state for immediate UI feedback (debounced save to DB)
+  const [localPosition, setLocalPosition] = useState({
+    x: charCard.state?.custom_image_position_x ?? 50,
+    y: charCard.state?.custom_image_position_y ?? 0,
+  });
+  const positionSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Parse card mechanics
   const passiveModifiers = character ? parseCardPassiveModifiers(charCard, character) : [];
@@ -495,6 +502,21 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
   const handleRemoveImage = async () => {
     await updateCardImage(charCard.id, null);
     setShowImageOptions(false);
+  };
+
+  // Handle position change with debounced save
+  const handlePositionChange = (newPosition: { x: number; y: number }) => {
+    setLocalPosition(newPosition);
+
+    // Clear existing timeout
+    if (positionSaveTimeoutRef.current) {
+      clearTimeout(positionSaveTimeoutRef.current);
+    }
+
+    // Debounce the save to prevent excessive API calls while dragging
+    positionSaveTimeoutRef.current = setTimeout(() => {
+      updateCardImagePosition(charCard.id, newPosition);
+    }, 300);
   };
 
   // Helper to get condition icon
@@ -636,8 +658,103 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
               </button>
             </h3>
 
-            {/* Current Image Preview */}
-            {charCard.state?.custom_image_url && (
+            {/* Interactive Image Preview - drag to position (artwork type only) */}
+            {charCard.state?.custom_image_url && charCard.state?.custom_image_type !== 'full-card' && (
+              <div className="mb-3">
+                <p className="text-xs text-gray-500 mb-2">
+                  Drag the image to adjust position
+                </p>
+                <div
+                  className="relative rounded-lg overflow-hidden border-2 cursor-move select-none"
+                  style={{
+                    borderColor: theme.primary,
+                    // Match domain card art area aspect ratio: 240:160 = 1.5
+                    aspectRatio: '240 / 160',
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    const startX = e.clientX;
+                    const startY = e.clientY;
+                    const startPosX = localPosition.x;
+                    const startPosY = localPosition.y;
+
+                    const handleMouseMove = (moveEvent: MouseEvent) => {
+                      // Calculate delta as percentage of container size
+                      const deltaX = (moveEvent.clientX - startX) / 2; // Sensitivity factor
+                      const deltaY = (moveEvent.clientY - startY) / 2;
+
+                      // Invert direction: dragging right should move image left (show more right side)
+                      const newX = Math.max(0, Math.min(100, startPosX - deltaX));
+                      const newY = Math.max(0, Math.min(100, startPosY - deltaY));
+
+                      handlePositionChange({ x: newX, y: newY });
+                    };
+
+                    const handleMouseUp = () => {
+                      document.removeEventListener('mousemove', handleMouseMove);
+                      document.removeEventListener('mouseup', handleMouseUp);
+                    };
+
+                    document.addEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('mouseup', handleMouseUp);
+                  }}
+                  onTouchStart={(e) => {
+                    const touch = e.touches[0];
+                    const startX = touch.clientX;
+                    const startY = touch.clientY;
+                    const startPosX = localPosition.x;
+                    const startPosY = localPosition.y;
+
+                    const handleTouchMove = (moveEvent: TouchEvent) => {
+                      const touchMove = moveEvent.touches[0];
+                      const deltaX = (touchMove.clientX - startX) / 2;
+                      const deltaY = (touchMove.clientY - startY) / 2;
+
+                      const newX = Math.max(0, Math.min(100, startPosX - deltaX));
+                      const newY = Math.max(0, Math.min(100, startPosY - deltaY));
+
+                      handlePositionChange({ x: newX, y: newY });
+                    };
+
+                    const handleTouchEnd = () => {
+                      document.removeEventListener('touchmove', handleTouchMove);
+                      document.removeEventListener('touchend', handleTouchEnd);
+                    };
+
+                    document.addEventListener('touchmove', handleTouchMove);
+                    document.addEventListener('touchend', handleTouchEnd);
+                  }}
+                >
+                  <Image
+                    src={charCard.state.custom_image_url}
+                    alt={name}
+                    fill
+                    className="object-cover pointer-events-none"
+                    style={{ objectPosition: `${localPosition.x}% ${localPosition.y}%` }}
+                    sizes="400px"
+                    draggable={false}
+                  />
+                  {/* Drag indicator */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20 pointer-events-none">
+                    <div className="bg-black/60 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                      <ImageIcon size={12} /> Drag to reposition
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
+                  <span>Artwork Position</span>
+                  <button
+                    onClick={handleRemoveImage}
+                    className="text-red-400 hover:text-red-300 flex items-center gap-1"
+                  >
+                    <Trash2 size={12} /> Remove
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Full Card Preview (non-interactive) */}
+            {charCard.state?.custom_image_url && charCard.state?.custom_image_type === 'full-card' && (
               <div className="mb-3 relative group">
                 <div className="aspect-[2/3] relative rounded-lg overflow-hidden border-2" style={{ borderColor: theme.primary }}>
                   <Image
@@ -649,9 +766,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
                   />
                 </div>
                 <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
-                  <span>
-                    Type: {charCard.state.custom_image_type === 'full-card' ? 'Full Card' : 'Artwork Only'}
-                  </span>
+                  <span>Full Card Image</span>
                   <button
                     onClick={handleRemoveImage}
                     className="text-red-400 hover:text-red-300 flex items-center gap-1"

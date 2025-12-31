@@ -73,6 +73,8 @@ export interface CharacterCard {
     exhausted?: boolean;
     custom_image_url?: string;
     custom_image_type?: 'artwork' | 'full-card'; // How to display the custom image
+    custom_image_position_x?: number; // 0-100 percentage for horizontal position
+    custom_image_position_y?: number; // 0-100 percentage for vertical position
   };
   sort_order?: number;
   library_item?: LibraryItem; // Joined data for the card itself
