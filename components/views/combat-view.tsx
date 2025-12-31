@@ -325,14 +325,7 @@ export default function CombatView() {
                         prepareRoll(`${weapon.name} Damage`, totalDamageBonus, dice);
                       }}
                       onManageModifiers={() => setActiveWeaponId(weapon.id)}
-                      customActions={
-                        (costs?.stress || costs?.hope) ? (
-                          <>
-                            {costs?.stress && <MarkStressButton cost={costs.stress} size="sm" />}
-                            {costs?.hope && <SpendHopeButton cost={costs.hope} size="sm" />}
-                          </>
-                        ) : undefined
-                      }
+                      costs={costs}
                     />
                   );
                 })
@@ -643,24 +636,7 @@ export default function CombatView() {
                       frequency={ability.frequency}
                     />
                   ) : undefined}
-                  customActions={
-                    (ability.costs?.stress || ability.costs?.hope) ? (
-                      <>
-                        {ability.costs?.stress && (
-                          <MarkStressButton
-                            cost={ability.costs.stress}
-                            size="sm"
-                          />
-                        )}
-                        {ability.costs?.hope && (
-                          <SpendHopeButton
-                            cost={ability.costs.hope}
-                            size="sm"
-                          />
-                        )}
-                      </>
-                    ) : undefined
-                  }
+                  costs={ability.costs}
                 />
               );
             })}
