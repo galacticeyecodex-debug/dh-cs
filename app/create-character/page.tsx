@@ -294,7 +294,10 @@ export default function CreateCharacterPage() {
         : selectedAncestry?.name;
 
       const ancestryFeatures = formData.is_mixed_ancestry
-        ? [selectedAncestry?.data?.features?.[0], selectedAncestry2?.data?.features?.[1]]
+        ? [
+            selectedAncestry?.data?.features?.[formData.ancestry_feat_index_1 ?? 0], 
+            selectedAncestry2?.data?.features?.[formData.ancestry_feat_index_2 ?? 1]
+          ]
         : selectedAncestry?.data?.features;
 
       const selectedCommunity = libraryData.communities.find(c => c.id === formData.community_id);
