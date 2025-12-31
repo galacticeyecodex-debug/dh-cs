@@ -22,9 +22,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "single",
       "damage": "d10",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -38,7 +38,7 @@
     "type": "Spell",
     "recall": "0",
     "text": "Mark a Hit Point to conjure a talisman infused with your life essence. The talisman appears in your hand, and whoever carries the talisman gains its benefit: Whenever the talisman's bearer marks 2 or more Hit Points, they can **spend a Hope** to reduce the number of Hit Points marked by 1. The talisman disappears if you have no Hit Points marked or you use this spell again.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -73,7 +73,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "When you deal damage to a creature, **mark a Stress** to sear a red, magical mark on them. Until this mark disappears, you always know the direction of the marked creature relative to you, and that creature marks a Stress each time it deals damage to you or an ally of yours within Very Close range of you. The mark disappears when you use this spell again.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -126,7 +126,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "Make a **Spellcast Roll (12)**. On a success, mark a Hit Point as you conjure a bead of blood, which you lob at a point within Far range. A wave of heat fills the area within Very Close range of that point, igniting the internal vitals of those caught within. Each target within the area marks 1 Hit Point. On a success with Hope, each target within the area instead marks 2 Hit Points.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -165,9 +165,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "single",
       "damage": "d10",
-      "damage_type": "physical"
+      "damage_type": "physical",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -196,9 +196,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "self",
       "damage": "3d8",
       "damage_type": "magic",
+      "targets": "self",
       "difficulty": 13
     },
     "roll": {
@@ -279,7 +279,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "Mark a Hit Point to trace a circle of blood around yourself at Very Close range. While in the circle, you have resistance to your choice of physical or magic damage (choose when you cast the spell). Allies also gain this benefit while in the circle. The circle disappears if you move out of it, mark 2 or more Hit Points, or cast this spell again.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -322,9 +322,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "single",
       "damage": "d10",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -376,7 +376,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "**Spend a Hope** to allow yourself and a willing ally within Far range to redistribute marked Hit Points between the two of you. You then can't target that ally again with Life Leash until you finish a rest.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -400,8 +400,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "Your practice of blood magic has seeped into your bloodstream, enhancing your vitals in moments of urgency. When you roll with advantage, use a **d8** instead of a **d6** as your advantage die if you have 1 or more Hit Points marked.\n\nAfter you make a Strength, an Agility, or a **Finesse roll**, you can mark a Hit Point to roll **1d8** and add it to the result.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "hit_points": 1
@@ -413,6 +413,11 @@
     "roll": {
       "type": "Finesse Roll",
       "trait": "Finesse"
+    },
+    "attack": {
+      "trait": "Finesse",
+      "range": "Close",
+      "damage": "d8"
     }
   },
   {
@@ -541,9 +546,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "single",
       "damage": "d6+1",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -584,7 +589,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "Once per rest, when you roll with Fear, you can **spend any number of Hope** to place an equal number of tokens on this card, encasing yourself in a shadowy energy. After an attack roll is made against you, you can spend any number of tokens to give the attack roll a +1 penalty per token. On your next rest, remove all tokens from this card.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_rest",
     "keywords": [
@@ -604,8 +609,8 @@
     "type": "Spell",
     "recall": "2",
     "text": "When an ally within Close range takes damage from a target you can see, you can make a **Spellcast Reaction Roll** against the target. On a success, **mark a Stress** to deal them **d6** magic damage using your Proficiency.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "stress": 1
@@ -615,7 +620,14 @@
       "magic",
       "stress_cost",
       "spell"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d6",
+      "damage_type": "magic",
+      "targets": "single"
+    }
   },
   {
     "name": "Siphon Essence",
@@ -636,9 +648,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
-      "targets": "single",
       "damage": "d20",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -663,8 +675,8 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "single",
-      "damage": "1d4"
+      "damage": "1d4",
+      "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
@@ -678,7 +690,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "You can transfer suffering from one creature to another. Once per rest, mark any number of Hit Points on a willing creature within Melee range to clear an equal number of Hit Points on another willing creature within Melee range. You can choose yourself in place of either creature.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "once_per_rest",
     "keywords": [
@@ -698,7 +710,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "**Mark 2 Stress** to temporarily Chain a target within Close range. When a Chained creature deals damage, the target of their attack reduces the number of Hit Points they mark by one. You can't have more than one creature Chained at a time.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -722,8 +734,8 @@
     "type": "Spell",
     "recall": "2",
     "text": "Make a **Spellcast Roll** against a target within Far range. On a success, **spend a Hope** to call forth an otherworldly creature to attack them and deal **d10** magic damage using your Proficiency. The target must succeed on a **Reaction Roll (12)** to steel themselves from the horror or **mark **1d4** Stress**. After making the attack, the creature dissipates.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "hope": 1
@@ -741,6 +753,14 @@
       "trait": "Spellcast",
       "difficulty": 12,
       "target_reaction": true
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Far",
+      "damage": "d10",
+      "damage_type": "magic",
+      "targets": "single",
+      "difficulty": 12
     }
   },
   {
@@ -750,7 +770,7 @@
     "type": "Spell",
     "recall": "0",
     "text": "**Mark a Stress** to summon an eerie mist that turns you and any targets within Close range momentarily incorporeal. While a creature is incorporeal, they can move through solid objects and are immune to physical damage. A creature becomes corporeal again after they pass through a solid object or make an **action roll**. Otherwise, this effect drops at the end of the scene.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -776,7 +796,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "After making a successful attack, you can **spend 2 Hope** to leach power from the target. For each Hit Point your target marked from this attack, the GM loses a Fear.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -794,8 +814,8 @@
     "type": "Spell",
     "recall": "2",
     "text": "Make a **Spellcast Roll** against all adversaries within Close range. You can **spend a Hope** for any you succeed against, and they must make a **Reaction Roll (14)**. On a failure, they take **d8+6** magic damage using your Proficiency as they are engulfed in dark fire. On a success, they take half damage.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "attack",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "hope": 1
@@ -813,6 +833,14 @@
       "trait": "Spellcast",
       "difficulty": 14,
       "target_reaction": true
+    },
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "damage": "d8+6",
+      "damage_type": "magic",
+      "targets": "all_in_range",
+      "difficulty": 14
     }
   },
   {
@@ -822,7 +850,7 @@
     "type": "Spell",
     "recall": "0",
     "text": "When you deal magic damage to a target, you can **mark a Stress** to immediately teleport into Melee range of them. When you do, they become Vulnerable until they mark one or more Hit Points.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -902,8 +930,8 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
-      "targets": "single",
       "damage": "1d8",
+      "targets": "single",
       "difficulty": 14
     }
   },
@@ -914,7 +942,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "You embody the darkness you have dallied with. When this card is in your loadout:\n\n• Gain a +1 bonus to your damage thresholds for each Stress you have marked.\n• When you roll with Fear, you can **spend 2 Hope** to clear an Armor Slot.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -952,9 +980,9 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
-      "targets": "all_in_range",
       "damage": "d20",
-      "damage_type": "magic"
+      "damage_type": "magic",
+      "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
