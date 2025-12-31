@@ -171,6 +171,32 @@ export default function CreateCharacterPage() {
           selectedSecondaryWeaponId: null,
           selectedArmorId: null,
         }));
+
+        // Automatically populate suggested traits if they exist and stats are currently default (all 0)
+        if (selectedClass.data.suggested_traits) {
+          setFormData(prev => {
+            const currentStats = prev.stats || { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 };
+            const isDefault = Object.values(currentStats).every(v => v === 0);
+            
+            if (isDefault) {
+              const values = selectedClass.data.suggested_traits.split(',').map((v: string) => parseInt(v.trim()));
+              if (values.length === 6) {
+                return {
+                  ...prev,
+                  stats: {
+                    agility: values[0],
+                    strength: values[1],
+                    finesse: values[2],
+                    instinct: values[3],
+                    presence: values[4],
+                    knowledge: values[5]
+                  }
+                };
+              }
+            }
+            return prev;
+          });
+        }
       }
     }
   }, [formData.class_id, libraryData.classes]);
@@ -289,8 +315,8 @@ export default function CreateCharacterPage() {
       const selectedAncestry = libraryData.ancestries.find(a => a.id === formData.ancestry_id);
       const selectedAncestry2 = formData.is_mixed_ancestry ? libraryData.ancestries.find(a => a.id === formData.ancestry_id_2) : null;
       
-      const ancestryName = formData.is_mixed_ancestry && selectedAncestry2
-        ? `${selectedAncestry?.name} / ${selectedAncestry2?.name}`
+      const ancestryName = formData.is_mixed_ancestry
+        ? (formData.mixed_ancestry_name || (selectedAncestry2 ? `${selectedAncestry?.name}-${selectedAncestry2?.name}` : selectedAncestry?.name))
         : selectedAncestry?.name;
 
       const ancestryFeatures = formData.is_mixed_ancestry
