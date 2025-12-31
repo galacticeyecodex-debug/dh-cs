@@ -62,7 +62,7 @@ const STAT_PATTERNS: Record<string, RegExp> = {
   armor_score: /armor\s+score/i,
   proficiency: /proficiency/i,
   spellcast: /spellcast/i,
-  
+
   // Specific threshold patterns first to prevent partial matching with "damage"
   damage_threshold_severe: /severe\s+damage\s+thresholds?/i,
   damage_threshold_major: /major\s+damage\s+thresholds?/i,
@@ -76,8 +76,16 @@ const STAT_PATTERNS: Record<string, RegExp> = {
 
   attack: /attack(?:\s+rolls?)?/i, // Matches "attack" or "attack roll"
   // Use negative lookahead to ensure we don't match "damage threshold" as "damage"
-  damage: /damage(?:\s+rolls?)?(?!\s+threshold)/i, 
+  damage: /damage(?:\s+rolls?)?(?!\s+threshold)/i,
 };
+
+/**
+ * Strip markdown formatting for cleaner text matching
+ */
+export function stripMarkdown(text: string): string {
+  if (!text) return '';
+  return text.replace(/\*\*|\*/g, '');
+}
 
 /**
  * Main parsing function - extracts all passive modifiers from a card
@@ -559,47 +567,48 @@ export function parseTargetType(text: string): TargetType | undefined {
 }
 
 /**
- * Determine action type from card text and type
+ * Determine action type from card text and metadata
  */
-export function parseActionType(text: string, cardType: string): ActionType {
-  const lowerText = text.toLowerCase();
+export function parseActionType(text: string, cardType: string, attack?: CardAttack, roll?: CardRoll): ActionType {
+  const cleanText = stripMarkdown(text).toLowerCase();
+
+  // If we already parsed an attack, it's an attack
+  if (attack) return 'attack';
 
   // Check for reaction patterns
   if (
-    lowerText.includes('reaction roll') ||
-    lowerText.includes('when you would take damage') ||
-    lowerText.includes('when an attack') ||
-    lowerText.includes('when you are targeted')
+    cleanText.includes('reaction roll') ||
+    cleanText.includes('when you would take damage') ||
+    cleanText.includes('when an attack') ||
+    cleanText.includes('when you are targeted')
   ) {
     return 'reaction';
   }
 
-  // Check for attack patterns
-  if (
-    lowerText.includes('make a') &&
-    (lowerText.includes('roll against') || lowerText.includes('attack'))
-  ) {
+  // If it's a roll against something but didn't qualify as 'attack' (no damage/range)
+  // it might still be an attack action
+  if (cleanText.includes('make a') && (cleanText.includes('roll against') || cleanText.includes('attack'))) {
     return 'attack';
   }
 
   // Check for downtime patterns
-  if (lowerText.includes('during a rest') || lowerText.includes('downtime')) {
+  if (cleanText.includes('during a rest') || cleanText.includes('downtime')) {
     return 'downtime';
   }
 
   // Check for buff patterns
   if (
-    lowerText.includes('gain a bonus') ||
-    lowerText.includes('gain advantage') ||
-    lowerText.includes('clear a stress') ||
-    lowerText.includes('clear a hit point')
+    cleanText.includes('gain a bonus') ||
+    cleanText.includes('gain advantage') ||
+    cleanText.includes('clear a stress') ||
+    cleanText.includes('clear a hit point')
   ) {
     return 'buff';
   }
 
   // Default based on card type
   if (cardType === 'Spell') {
-    return 'attack'; // Most spells are attacks
+    return 'utility'; // Non-combat spells are utility
   }
 
   return 'passive';
@@ -763,25 +772,31 @@ export function parseRoll(text: string): CardRoll | undefined {
  * Parse attack information from card text
  */
 export function parseAttack(text: string): CardAttack | undefined {
+  const cleanText = stripMarkdown(text);
   const trait = parseRollTrait(text);
   const range = parseCardRange(text);
-
-  // If no trait or range, probably not an attack
-  if (!trait && !range) return undefined;
-
   const damage = parseCardDamage(text);
-  const damageType = parseCardDamageType(text);
-  const targets = parseTargetType(text);
-  const difficulty = parseRollDifficulty(text);
+  const hasAgainst = cleanText.toLowerCase().includes('against');
 
-  return {
+  // Stricter check: An attack needs damage OR a trait roll against a target
+  if (!damage && !(trait && hasAgainst)) return undefined;
+
+  const attack: CardAttack = {
     trait: trait || 'Spellcast',
     range: range || 'Close',
-    targets,
-    damage,
-    damage_type: damageType,
-    difficulty,
   };
+
+  if (damage) attack.damage = damage;
+  const damageType = parseCardDamageType(text);
+  if (damageType) attack.damage_type = damageType;
+
+  const targets = parseTargetType(text);
+  if (targets) attack.targets = targets;
+
+  const difficulty = parseRollDifficulty(text);
+  if (difficulty) attack.difficulty = difficulty;
+
+  return attack;
 }
 
 /**
@@ -798,12 +813,17 @@ export function enhanceAbilityCard(card: {
   const text = card.text;
   const cardType = card.type as 'Spell' | 'Ability';
 
-  const actionType = parseActionType(text, cardType);
-  const timing = parseTiming(text, actionType);
-  const frequency = parseFrequency(text);
+  // 1. Parse structured data first
+  const attack = parseAttack(text);
+  const roll = parseRoll(text);
   const costs = parseCosts(text);
+  const frequency = parseFrequency(text);
   const hasTokens = hasTokenMechanics(text);
   const keywords = extractKeywords(text, cardType);
+
+  // 2. Determine action type based on parsed data
+  const actionType = parseActionType(text, cardType, attack, roll);
+  const timing = parseTiming(text, actionType);
 
   const enhanced: EnhancedAbilityCard = {
     name: card.name,
@@ -827,12 +847,11 @@ export function enhanceAbilityCard(card: {
   }
 
   // Add attack info if applicable
-  if (actionType === 'attack') {
-    enhanced.attack = parseAttack(text);
+  if (attack) {
+    enhanced.attack = attack;
   }
 
   // Add roll info
-  const roll = parseRoll(text);
   if (roll) {
     enhanced.roll = roll;
   }
@@ -850,10 +869,7 @@ export function hasCombatRelevance(card: {
   keywords?: string[];
 }): boolean {
   if (card.action_type === 'attack') return true;
-  if (card.action_type === 'reaction') return true;
   if (card.attack) return true;
-  if (card.keywords?.includes('damage')) return true;
-  if (card.keywords?.includes('healing')) return true;
 
   return false;
 }
