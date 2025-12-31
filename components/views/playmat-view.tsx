@@ -27,23 +27,56 @@ import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
 import { ErrorBoundary } from '@/components/core/error-boundary';
+import ModifierSheet from '@/components/modifiers/modifier-sheet';
 import { parseCardPassiveModifiers, type PassiveModifier, type ModifierCondition } from '@/lib/card-parser';
 import { parseCombatAbility, type CombatAbility } from '@/lib/combat-spell-parser';
 import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { uploadCharacterImage } from '@/lib/storage-service';
+import { getSystemModifiers } from '@/lib/utils';
 import Image from 'next/image';
 import { DomainCard } from '@/components/cards/domain-card';
+import PlaymatCard from '@/components/playmat/playmat-card';
+import type { EnhancedAbilityCard } from '@/types/cards';
+import useContentAccess from '@/hooks/useContentAccess';
 
 export default function PlaymatView() {
-  const { character, moveCard, addCardToCollection, updateCardImage, user } = useCharacterStore();
+  const { character, moveCard, addCardToCollection, updateCardImage, updateModifiers, user } = useCharacterStore();
+  const { includePlaytest } = useContentAccess();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'loadout' | 'vault'>('loadout');
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<CharacterCard | null>(null);
+  const [activeAbilityId, setActiveAbilityId] = useState<string | null>(null);
   const [allLibraryItems, setAllLibraryItems] = useState<LibraryItem[]>([]);
+  const [enhancedAbilities, setEnhancedAbilities] = useState<EnhancedAbilityCard[]>([]);
   const [libraryLoading, setLibraryLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Load enhanced ability data from JSON files
+  useEffect(() => {
+    const loadEnhancedAbilities = async () => {
+      try {
+        const srdModule = await import('@/content/srd/json/abilities.json');
+        const srdData = (srdModule.default || []) as EnhancedAbilityCard[];
+
+        let playtestData: EnhancedAbilityCard[] = [];
+        if (includePlaytest) {
+          try {
+            const playtestModule = await import('@/content/playtest/json/abilities.json');
+            playtestData = (playtestModule.default || []) as EnhancedAbilityCard[];
+          } catch (e) {
+            console.warn('Playtest abilities not found');
+          }
+        }
+
+        setEnhancedAbilities([...srdData, ...playtestData]);
+      } catch (error) {
+        console.error('Failed to load enhanced abilities:', error);
+      }
+    };
+    loadEnhancedAbilities();
+  }, [includePlaytest]);
 
   useEffect(() => {
     const fetchAllLibraryItems = async () => {
@@ -227,15 +260,19 @@ export default function PlaymatView() {
           {/* Loadout Cards - Single Column */}
           <div className="flex flex-col items-center gap-4">
             {loadoutCards.length > 0 ? (
-              loadoutCards.map((charCard) => (
-                <CardThumbnail
-                  key={charCard.id}
-                  charCard={charCard}
-                  onClick={() => setSelectedCard(charCard)}
-                  actionLabel="To Vault"
-                  onAction={() => handleMoveCard(charCard.id, 'vault')}
-                />
-              ))
+              loadoutCards.map((charCard) => {
+                const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
+                return (
+                  <PlaymatCard
+                    key={charCard.id}
+                    card={charCard}
+                    enhancedData={enhancedData}
+                    onMoveLocation={(loc) => handleMoveCard(charCard.id, loc)}
+                    onView={() => setSelectedCard(charCard)}
+                    onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
+                  />
+                );
+              })
             ) : (
               <div className="w-[240px] aspect-[2.5/3.5] border-2 border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center text-gray-600 p-4 text-center">
                 <LibraryBig size={24} className="mb-2" />
@@ -263,15 +300,19 @@ export default function PlaymatView() {
         <div className="space-y-4">
           {vaultCards.length > 0 ? (
             <div className="flex flex-col items-center gap-4">
-              {vaultCards.map((charCard) => (
-                <CardThumbnail
-                  key={charCard.id}
-                  charCard={charCard}
-                  onClick={() => setSelectedCard(charCard)}
-                  actionLabel="To Loadout"
-                  onAction={() => handleMoveCard(charCard.id, 'loadout')}
-                />
-              ))}
+              {vaultCards.map((charCard) => {
+                const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
+                return (
+                  <PlaymatCard
+                    key={charCard.id}
+                    card={charCard}
+                    enhancedData={enhancedData}
+                    onMoveLocation={(loc) => handleMoveCard(charCard.id, loc)}
+                    onView={() => setSelectedCard(charCard)}
+                    onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
+                  />
+                );
+              })}
             </div>
           ) : (
             <div className="text-center text-gray-500 py-12">
@@ -297,57 +338,92 @@ export default function PlaymatView() {
           onClose={() => setSelectedCard(null)}
         />
       )}
+
+      {/* Ability Modifier Sheet */}
+      {activeAbilityId && (() => {
+        const ability = enhancedAbilities.find(a => a.name === activeAbilityId);
+        if (!ability) return null;
+
+        const tabs = [];
+
+        // 1. Roll Tab (Spellcast or Trait)
+        const rollTrait = ability.roll?.trait || ability.attack?.trait;
+        if (rollTrait) {
+          if (rollTrait.toLowerCase() === 'spellcast') {
+            const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
+            const rawTraitValue = spellcastTraitName ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0) : (character.spellcast || 0);
+
+            // Add trait modifiers if a trait is used
+            let traitModSum = 0;
+            if (spellcastTraitName) {
+              const tKey = spellcastTraitName.toLowerCase();
+              const tSystem = getSystemModifiers(character, tKey);
+              const tUser = character.modifiers?.[tKey] || [];
+              traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
+            }
+
+            const spellcastBase = rawTraitValue + traitModSum;
+            const spellcastMods = getSystemModifiers(character, 'spellcast');
+            const userSpellcastMods = character.modifiers?.['spellcast'] || [];
+
+            tabs.push({
+              id: 'spellcast',
+              label: 'Spellcast',
+              baseValue: spellcastBase,
+              currentModifiers: [...spellcastMods, ...userSpellcastMods],
+              onUpdateModifiers: (mods: any[]) => updateModifiers('spellcast', mods)
+            });
+          } else {
+            const traitKey = rollTrait.toLowerCase();
+            const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+            const systemTraitMods = getSystemModifiers(character, traitKey);
+            const userTraitMods = character.modifiers?.[traitKey] || [];
+
+            tabs.push({
+              id: traitKey,
+              label: rollTrait,
+              baseValue: baseTraitValue,
+              currentModifiers: [...systemTraitMods, ...userTraitMods],
+              onUpdateModifiers: (mods: any[]) => updateModifiers(traitKey, mods)
+            });
+          }
+        }
+
+        // 2. Damage Tab
+        if (ability.attack?.damage) {
+          const systemDamageMods = getSystemModifiers(character, 'damage');
+          const userDamageMods = character.modifiers?.['damage'] || [];
+
+          tabs.push({
+            id: 'damage',
+            label: 'Damage',
+            baseValue: 0,
+            currentModifiers: [...systemDamageMods, ...userDamageMods],
+            onUpdateModifiers: (mods: any[]) => updateModifiers('damage', mods)
+          });
+        }
+
+        if (tabs.length === 0) return null;
+
+        return (
+          <ModifierSheet
+            isOpen={!!activeAbilityId}
+            onClose={() => setActiveAbilityId(null)}
+            statLabel={`${ability.name} Modifiers`}
+            baseValue={0}
+            currentModifiers={[]}
+            onUpdateModifiers={() => { }}
+            tabs={tabs}
+          />
+        );
+      })()}
       </div>
     </ErrorBoundary>
   );
 }
 
-const CardThumbnail = React.memo(function CardThumbnail({ charCard, onClick, actionLabel, onAction }: { charCard: CharacterCard, onClick: () => void, actionLabel?: string, onAction?: () => void }) {
-  const { character } = useCharacterStore();
-  const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown Card', domain: '', tier: 0, type: '', data: {} };
-  const recallCost = data?.recall || '0';
+// Remove CardThumbnail component
 
-  // Check for mechanics
-  const hasPassiveModifiers = !!(character && parseCardPassiveModifiers(charCard, character).length > 0);
-  const hasCombatAbility = parseCombatAbility(charCard) !== null;
-
-  return (
-    <div className="group relative pb-6">
-      <DomainCard
-        name={name}
-        domain={domain}
-        tier={tier ?? 0}
-        type={type}
-        description={data?.description || data?.text}
-        recallCost={recallCost}
-        customImageUrl={charCard.state?.custom_image_url}
-        customImageType={charCard.state?.custom_image_type}
-        hasPassiveModifiers={hasPassiveModifiers}
-        hasCombatAbility={hasCombatAbility}
-        onClick={onClick}
-        size="thumbnail"
-      />
-
-      {actionLabel && onAction && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onAction(); }}
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-zinc-900 border border-white/20 text-[10px] font-bold text-gray-300 px-2 py-1 rounded-full hover:bg-zinc-700 hover:text-white whitespace-nowrap shadow-md z-30 flex items-center gap-1"
-        >
-          <ArrowRightLeft size={10} /> {actionLabel}
-        </button>
-      )}
-    </div>
-  );
-}, (prevProps, nextProps) => {
-  // Only re-render if card data changed
-  return prevProps.charCard.id === nextProps.charCard.id &&
-         prevProps.charCard.location === nextProps.charCard.location &&
-         prevProps.charCard.state?.custom_image_url === nextProps.charCard.state?.custom_image_url &&
-         prevProps.charCard.state?.custom_image_type === nextProps.charCard.state?.custom_image_type &&
-         prevProps.actionLabel === nextProps.actionLabel &&
-         prevProps.onClick === nextProps.onClick &&
-         prevProps.onAction === nextProps.onAction;
-});
 
 function CardDetailModal({ charCard, onClose }: { charCard: CharacterCard, onClose: () => void }) {
   const { character, updateCardImage, user } = useCharacterStore();

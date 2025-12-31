@@ -440,7 +440,7 @@ export default function CreateHomebrewItemModal({
                       onChange={(e) => setBurden(e.target.value)}
                       className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
                     >
-                      {BURDEN_OPTIONS.map(({ value, label}) => (
+                      {BURDEN_OPTIONS.map(({ value, label }) => (
                         <option key={value} value={value}>
                           {label}
                         </option>
@@ -509,12 +509,6 @@ export default function CreateHomebrewItemModal({
             {/* Modifiers Section */}
             <div className="bg-white/5 border border-white/10 rounded-lg p-4">
               <ModifierBuilder modifiers={modifiers} onChange={setModifiers} />
-            </div>
-
-            {/* Info Box */}
-            <div className="bg-blue-900/20 border border-blue-500/50 rounded-lg p-4 text-sm text-blue-200">
-              <strong>Tip:</strong> Modifiers are optional but make your item more powerful. Add bonuses to stats like
-              Strength, Evasion, or Armor to create unique effects.
             </div>
           </div>
 

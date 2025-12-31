@@ -7,6 +7,6 @@
 export { default as AttackCard } from './attack-card';
 export { default as MarkStressButton } from './mark-stress-button';
 export { default as SpendHopeButton } from './spend-hope-button';
-export { default as FrequencyCheckbox } from './frequency-checkbox';
-export { default as CardTokenTrack } from './card-token-track';
+export { default as FrequencyCheckbox } from '@/components/cards/mechanics/frequency-checkbox';
+export { default as CardTokenTrack } from '@/components/cards/mechanics/card-token-track';
 export { default as CardEnhancementPanel } from './card-enhancement-panel';
