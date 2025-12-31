@@ -16,10 +16,12 @@
  * - Optional action type badges (reaction, action)
  */
 
-import React from 'react';
-import { Zap, Skull, Dices } from 'lucide-react';
+import React, { useState } from 'react';
+import { Zap, Skull, Dices, RotateCcw } from 'lucide-react';
 import clsx from 'clsx';
 import { getValueColor } from '@/lib/styles';
+import MarkStressButton from './mark-stress-button';
+import SpendHopeButton from './spend-hope-button';
 
 export interface AttackCardCosts {
     stress?: number;
@@ -114,6 +116,8 @@ const AttackCard = React.memo(function AttackCard({
     rollLabel,
     isUsed = false,
 }: AttackCardProps) {
+    const [isCostPaid, setIsCostPaid] = useState(false);
+
     // Determine styles based on variant
     const borderClasses = {
         default: 'border-white/10 hover:border-white/30',
@@ -138,6 +142,10 @@ const AttackCard = React.memo(function AttackCard({
 
     // Determine default roll label
     const finalRollLabel = rollLabel || (hasDamage ? 'Attack' : 'Roll');
+
+    // Cost activation logic
+    const needsActivation = !!(costs?.stress || costs?.hope);
+    const canRoll = !needsActivation || isCostPaid;
 
     return (
         <div
@@ -232,34 +240,49 @@ const AttackCard = React.memo(function AttackCard({
                 </div>
             )}
 
+            {/* Costs Bar */}
+            {needsActivation && (
+                <div className="px-4 py-2 border-t border-white/5 bg-black/20 flex flex-wrap gap-2 items-center justify-between">
+                    <div className="flex flex-wrap gap-2">
+                        {costs?.stress && (
+                            <MarkStressButton
+                                cost={costs.stress}
+                                size="sm"
+                                onMark={() => setIsCostPaid(true)}
+                                disabled={isCostPaid || isUsed}
+                                className={isCostPaid ? 'opacity-50' : ''}
+                            />
+                        )}
+                        {costs?.hope && (
+                            <SpendHopeButton
+                                cost={costs.hope}
+                                size="sm"
+                                onSpend={() => setIsCostPaid(true)}
+                                disabled={isCostPaid || isUsed}
+                                className={isCostPaid ? 'opacity-50' : ''}
+                            />
+                        )}
+                    </div>
+                    {isCostPaid && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsCostPaid(false);
+                            }}
+                            className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider font-bold flex items-center gap-1 transition-colors"
+                            title="Reset cost activation"
+                        >
+                            <RotateCcw size={10} />
+                            Reset
+                        </button>
+                    )}
+                </div>
+            )}
+
             {/* Action Bar */}
             <div className="bg-black/40 p-2 flex flex-wrap gap-2 items-center">
                 {/* Custom Actions (Smart Buttons) */}
                 {customActions}
-
-                {/* Legacy Cost buttons (if not using customActions) */}
-                {!customActions && costs?.stress && (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onMarkStress?.();
-                        }}
-                        className="px-3 py-2 bg-red-900/20 hover:bg-red-900/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors text-red-300"
-                    >
-                        <Zap size={14} /> +{costs.stress} Stress
-                    </button>
-                )}
-                {!customActions && costs?.hope && (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onSpendHope?.();
-                        }}
-                        className="px-3 py-2 bg-blue-900/20 hover:bg-blue-900/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors text-blue-300"
-                    >
-                        <Zap size={14} /> -{costs.hope} Hope
-                    </button>
-                )}
 
                 {/* Attack Button */}
                 {onAttackRoll && (
@@ -268,11 +291,12 @@ const AttackCard = React.memo(function AttackCard({
                             e.stopPropagation();
                             onAttackRoll();
                         }}
-                        disabled={isUsed}
+                        disabled={isUsed || !canRoll}
                         className={clsx(
                             'relative flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors',
                             attackModifier !== 0 && 'text-dagger-gold',
-                            isUsed ? 'opacity-50 cursor-not-allowed' : 'hover:bg-opacity-60'
+                            (isUsed || !canRoll) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-opacity-60',
+                            !isCostPaid && needsActivation && 'border border-dashed border-white/20'
                         )}
                     >
                         {/* Dice icon for roll action */}
@@ -282,7 +306,7 @@ const AttackCard = React.memo(function AttackCard({
                         >
                             <Dices size={12} />
                         </div>
-                        <Zap size={16} className="text-yellow-400" />
+                        <Zap size={16} className={clsx(canRoll ? "text-yellow-400" : "text-gray-500")} />
                         {finalRollLabel} ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
                     </button>
                 )}
@@ -294,11 +318,12 @@ const AttackCard = React.memo(function AttackCard({
                             e.stopPropagation();
                             onDamageRoll();
                         }}
-                        disabled={isUsed}
+                        disabled={isUsed || !canRoll}
                         className={clsx(
                             'relative flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors',
                             damageModifier !== 0 && 'text-dagger-gold',
-                            isUsed ? 'opacity-50 cursor-not-allowed' : 'hover:bg-opacity-60'
+                            (isUsed || !canRoll) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-opacity-60',
+                            !isCostPaid && needsActivation && 'border border-dashed border-white/20'
                         )}
                     >
                         {/* Dice icon for roll action */}
@@ -308,7 +333,7 @@ const AttackCard = React.memo(function AttackCard({
                         >
                             <Dices size={12} />
                         </div>
-                        <Skull size={16} className="text-red-400" />
+                        <Skull size={16} className={clsx(canRoll ? "text-red-400" : "text-gray-500")} />
                         Damage {damageModifier !== 0 && `(${damageModifier >= 0 ? `+${damageModifier}` : damageModifier})`}
                     </button>
                 )}
