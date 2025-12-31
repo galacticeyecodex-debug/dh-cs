@@ -22,7 +22,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character-store';
 import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap, Shield, ShieldOff, Users, AlertCircle, Swords, Sparkles, Search, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import AddItemModal from '@/components/modals/add-item-modal';
+import AddItemModal from '@/components/views/inventory/add-item-modal';
 import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
@@ -36,7 +36,7 @@ import { uploadCharacterImage } from '@/lib/storage-service';
 import { MAX_IMAGE_FILE_SIZE, MAX_IMAGE_FILE_SIZE_MB } from '@/lib/image-utils';
 import { getSystemModifiers } from '@/lib/utils';
 import Image from 'next/image';
-import PlaymatCard from '@/components/playmat/playmat-card';
+import PlaymatCard from './playmat-card';
 import type { EnhancedAbilityCard } from '@/types/cards';
 import useContentAccess from '@/hooks/useContentAccess';
 
