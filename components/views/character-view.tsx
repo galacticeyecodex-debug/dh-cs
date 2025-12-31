@@ -14,6 +14,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
 import Image from 'next/image';
 import { getSystemModifiers } from '@/lib/utils';
@@ -35,6 +36,7 @@ import { ErrorBoundary } from '@/components/core/error-boundary';
 import useContentAccess from '@/hooks/useContentAccess';
 
 export default function CharacterView() {
+  const router = useRouter();
   const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
@@ -1293,6 +1295,18 @@ export default function CharacterView() {
           onLevelUp={() => {
             setIsManageOpen(false);
             setIsLevelUpOpen(true);
+          }}
+          onDelete={async () => {
+            if (!character || !user) return;
+            try {
+              await dataService.character.delete(character.id);
+              toast.success(`${character.name} deleted.`);
+              router.push('/client/characters');
+            } catch (err) {
+              console.error('Failed to delete character:', err);
+              toast.error('Failed to delete character');
+              throw err;
+            }
           }}
           onUpdate={async (updates) => {
             setIsManageLoading(true);
