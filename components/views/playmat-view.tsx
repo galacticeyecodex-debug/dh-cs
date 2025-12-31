@@ -33,6 +33,7 @@ import { parseCombatAbility, type CombatAbility } from '@/lib/combat-spell-parse
 import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { uploadCharacterImage } from '@/lib/storage-service';
+import { MAX_IMAGE_FILE_SIZE, MAX_IMAGE_FILE_SIZE_MB } from '@/lib/image-utils';
 import { getSystemModifiers } from '@/lib/utils';
 import Image from 'next/image';
 import PlaymatCard from '@/components/playmat/playmat-card';
@@ -159,277 +160,277 @@ export default function PlaymatView() {
     <ErrorBoundary>
       <div className="space-y-6">
         {/* Header & Toggle */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex bg-white/5 rounded-lg p-1 border border-white/10 w-full sm:w-auto">
-          <button
-            onClick={() => setViewMode('loadout')}
-            className={clsx(
-              "flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-              viewMode === 'loadout' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
-            )}
-          >
-            <ScrollText size={16} /> Loadout
-          </button>
-          <button
-            onClick={() => setViewMode('vault')}
-            className={clsx(
-              "flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-              viewMode === 'vault' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
-            )}
-          >
-            <Archive size={16} /> Vault
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          {/* Search Bar */}
-          <div className="relative flex-1 sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-            <input
-              type="text"
-              placeholder="Search cards..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-dagger-gold transition-colors"
-            />
-            {searchTerm && (
-              <button 
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-              >
-                <X size={12} />
-              </button>
-            )}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex bg-white/5 rounded-lg p-1 border border-white/10 w-full sm:w-auto">
+            <button
+              onClick={() => setViewMode('loadout')}
+              className={clsx(
+                "flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
+                viewMode === 'loadout' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
+              )}
+            >
+              <ScrollText size={16} /> Loadout
+            </button>
+            <button
+              onClick={() => setViewMode('vault')}
+              className={clsx(
+                "flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
+                viewMode === 'vault' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
+              )}
+            >
+              <Archive size={16} /> Vault
+            </button>
           </div>
 
-          <button
-            onClick={() => setIsAddCardModalOpen(true)}
-            className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-full text-sm font-bold flex items-center gap-1 transition-colors border border-white/10 flex-shrink-0"
-          >
-            <Plus size={16} /> <span className="hidden xs:inline">Add Card</span>
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {/* Search Bar */}
+            <div className="relative flex-1 sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+              <input
+                type="text"
+                placeholder="Search cards..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-dagger-gold transition-colors"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => setIsAddCardModalOpen(true)}
+              className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-full text-sm font-bold flex items-center gap-1 transition-colors border border-white/10 flex-shrink-0"
+            >
+              <Plus size={16} /> <span className="hidden xs:inline">Add Card</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Loadout View */}
-      {viewMode === 'loadout' && (
-        <div className="space-y-6">
-          {/* Active Modifiers Summary */}
-          {loadoutCards.length > 0 && character && (() => {
-            // Collect all active modifiers from loadout cards
-            const allModifiers: PassiveModifier[] = [];
-            loadoutCards.forEach(card => {
-              const mods = parseCardPassiveModifiers(card, character);
-              allModifiers.push(...mods.filter(m => m.isActive));
-            });
+        {/* Loadout View */}
+        {viewMode === 'loadout' && (
+          <div className="space-y-6">
+            {/* Active Modifiers Summary */}
+            {loadoutCards.length > 0 && character && (() => {
+              // Collect all active modifiers from loadout cards
+              const allModifiers: PassiveModifier[] = [];
+              loadoutCards.forEach(card => {
+                const mods = parseCardPassiveModifiers(card, character);
+                allModifiers.push(...mods.filter(m => m.isActive));
+              });
 
-            // Group modifiers by stat
-            const modifiersByStat = allModifiers.reduce((acc, mod) => {
-              if (!acc[mod.stat]) {
-                acc[mod.stat] = [];
-              }
-              acc[mod.stat].push(mod);
-              return acc;
-            }, {} as Record<string, PassiveModifier[]>);
+              // Group modifiers by stat
+              const modifiersByStat = allModifiers.reduce((acc, mod) => {
+                if (!acc[mod.stat]) {
+                  acc[mod.stat] = [];
+                }
+                acc[mod.stat].push(mod);
+                return acc;
+              }, {} as Record<string, PassiveModifier[]>);
 
-            const statKeys = Object.keys(modifiersByStat);
+              const statKeys = Object.keys(modifiersByStat);
 
-            if (statKeys.length === 0) return null;
+              if (statKeys.length === 0) return null;
 
-            return (
-              <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-                <h3 className="text-xs font-bold uppercase text-dagger-gold tracking-wider mb-3 flex items-center gap-2">
-                  <Sparkles size={14} /> Active Modifiers
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {statKeys.map(stat => {
-                    const mods = modifiersByStat[stat];
-                    const total = mods.reduce((sum, m) => sum + m.value, 0);
-                    return (
-                      <div key={stat} className="bg-white/5 border border-dagger-gold/30 rounded-lg p-3">
-                        <div className="text-[10px] text-gray-400 uppercase mb-1 capitalize">
-                          {stat.replace(/_/g, ' ')}
+              return (
+                <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                  <h3 className="text-xs font-bold uppercase text-dagger-gold tracking-wider mb-3 flex items-center gap-2">
+                    <Sparkles size={14} /> Active Modifiers
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {statKeys.map(stat => {
+                      const mods = modifiersByStat[stat];
+                      const total = mods.reduce((sum, m) => sum + m.value, 0);
+                      return (
+                        <div key={stat} className="bg-white/5 border border-dagger-gold/30 rounded-lg p-3">
+                          <div className="text-[10px] text-gray-400 uppercase mb-1 capitalize">
+                            {stat.replace(/_/g, ' ')}
+                          </div>
+                          <div className={clsx(
+                            "text-2xl font-bold",
+                            total >= 0 ? "text-green-400" : "text-red-400"
+                          )}>
+                            {total >= 0 ? `+${total}` : total}
+                          </div>
+                          <div className="text-[9px] text-gray-500 mt-1">
+                            {mods.length} modifier{mods.length > 1 ? 's' : ''}
+                          </div>
                         </div>
-                        <div className={clsx(
-                          "text-2xl font-bold",
-                          total >= 0 ? "text-green-400" : "text-red-400"
-                        )}>
-                          {total >= 0 ? `+${total}` : total}
-                        </div>
-                        <div className="text-[9px] text-gray-500 mt-1">
-                          {mods.length} modifier{mods.length > 1 ? 's' : ''}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })()}
+              );
+            })()}
 
-          {/* Loadout Cards - Single Column */}
-          <div className="flex flex-col gap-4">
-            {loadoutCards.length > 0 ? (
-              loadoutCards.map((charCard) => {
-                const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
-                return (
-                  <PlaymatCard
-                    key={charCard.id}
-                    card={charCard}
-                    enhancedData={enhancedData}
-                    onMoveLocation={(loc) => handleMoveCard(charCard.id, loc)}
-                    onView={() => handleViewCard(charCard)}
-                    onEditArt={() => handleEditCardArt(charCard)}
-                    onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
-                  />
-                );
-              })
+            {/* Loadout Cards - Single Column */}
+            <div className="flex flex-col gap-4">
+              {loadoutCards.length > 0 ? (
+                loadoutCards.map((charCard) => {
+                  const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
+                  return (
+                    <PlaymatCard
+                      key={charCard.id}
+                      card={charCard}
+                      enhancedData={enhancedData}
+                      onMoveLocation={(loc) => handleMoveCard(charCard.id, loc)}
+                      onView={() => handleViewCard(charCard)}
+                      onEditArt={() => handleEditCardArt(charCard)}
+                      onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
+                    />
+                  );
+                })
+              ) : (
+                <div className="w-[240px] aspect-[2.5/3.5] border-2 border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center text-gray-600 p-4 text-center">
+                  <LibraryBig size={24} className="mb-2" />
+                  <span className="text-sm">
+                    {searchTerm ? "No cards match your search." : "No cards in Loadout."}
+                  </span>
+                  <span className="text-xs">
+                    {searchTerm ? "Try a different search term." : "Add from Vault or create new!"}
+                  </span>
+                </div>
+              )}
+
+              {/* Fill remaining slots up to 5 only if not searching */}
+              {!searchTerm && Array.from({ length: Math.max(0, 5 - loadoutCards.length) }).map((_, i) => (
+                <div key={`empty-${i}`} className="w-[240px] aspect-[2.5/3.5] border-2 border-dashed border-white/5 rounded-lg flex items-center justify-center text-gray-600">
+                  <span className="text-xs uppercase">Slot {loadoutCards.length + i + 1}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Vault View */}
+        {viewMode === 'vault' && (
+          <div className="space-y-4">
+            {vaultCards.length > 0 ? (
+              <div className="flex flex-col items-center gap-4">
+                {vaultCards.map((charCard) => {
+                  const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
+                  return (
+                    <PlaymatCard
+                      key={charCard.id}
+                      card={charCard}
+                      enhancedData={enhancedData}
+                      onMoveLocation={(loc) => handleMoveCard(charCard.id, loc)}
+                      onView={() => handleViewCard(charCard)}
+                      onEditArt={() => handleEditCardArt(charCard)}
+                      onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
+                    />
+                  );
+                })}
+              </div>
             ) : (
-              <div className="w-[240px] aspect-[2.5/3.5] border-2 border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center text-gray-600 p-4 text-center">
-                <LibraryBig size={24} className="mb-2" />
-                <span className="text-sm">
-                  {searchTerm ? "No cards match your search." : "No cards in Loadout."}
-                </span>
-                <span className="text-xs">
-                  {searchTerm ? "Try a different search term." : "Add from Vault or create new!"}
-                </span>
+              <div className="text-center text-gray-500 py-12">
+                {searchTerm ? "No cards in vault match your search." : "Your Vault is empty."}
               </div>
             )}
-
-            {/* Fill remaining slots up to 5 only if not searching */}
-            {!searchTerm && Array.from({ length: Math.max(0, 5 - loadoutCards.length) }).map((_, i) => (
-              <div key={`empty-${i}`} className="w-[240px] aspect-[2.5/3.5] border-2 border-dashed border-white/5 rounded-lg flex items-center justify-center text-gray-600">
-                <span className="text-xs uppercase">Slot {loadoutCards.length + i + 1}</span>
-              </div>
-            ))}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Vault View */}
-      {viewMode === 'vault' && (
-        <div className="space-y-4">
-          {vaultCards.length > 0 ? (
-            <div className="flex flex-col items-center gap-4">
-              {vaultCards.map((charCard) => {
-                const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
-                return (
-                  <PlaymatCard
-                    key={charCard.id}
-                    card={charCard}
-                    enhancedData={enhancedData}
-                    onMoveLocation={(loc) => handleMoveCard(charCard.id, loc)}
-                    onView={() => handleViewCard(charCard)}
-                    onEditArt={() => handleEditCardArt(charCard)}
-                    onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
-                  />
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center text-gray-500 py-12">
-              {searchTerm ? "No cards in vault match your search." : "Your Vault is empty."}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Add Card Modal */}
-      <AddItemModal
-        isOpen={isAddCardModalOpen}
-        onClose={() => setIsAddCardModalOpen(false)}
-        onAddItem={handleAddCard}
-        libraryItems={allLibraryItems}
-        filterType="cards"
-      />
-
-      {/* Card Detail Modal */}
-      {selectedCard && (
-        <CardDetailModal
-          charCard={selectedCard}
-          onClose={() => setSelectedCard(null)}
-          mode={cardDetailMode}
+        {/* Add Card Modal */}
+        <AddItemModal
+          isOpen={isAddCardModalOpen}
+          onClose={() => setIsAddCardModalOpen(false)}
+          onAddItem={handleAddCard}
+          libraryItems={allLibraryItems}
+          filterType="cards"
         />
-      )}
 
-      {/* Ability Modifier Sheet */}
-      {activeAbilityId && (() => {
-        const ability = enhancedAbilities.find(a => a.name === activeAbilityId);
-        if (!ability) return null;
+        {/* Card Detail Modal */}
+        {selectedCard && (
+          <CardDetailModal
+            charCard={selectedCard}
+            onClose={() => setSelectedCard(null)}
+            mode={cardDetailMode}
+          />
+        )}
 
-        const tabs = [];
+        {/* Ability Modifier Sheet */}
+        {activeAbilityId && (() => {
+          const ability = enhancedAbilities.find(a => a.name === activeAbilityId);
+          if (!ability) return null;
 
-        // 1. Roll Tab (Spellcast or Trait)
-        const rollTrait = ability.roll?.trait || ability.attack?.trait;
-        if (rollTrait) {
-          if (rollTrait.toLowerCase() === 'spellcast') {
-            const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
-            const rawTraitValue = spellcastTraitName ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0) : (character.spellcast || 0);
+          const tabs = [];
 
-            // Add trait modifiers if a trait is used
-            let traitModSum = 0;
-            if (spellcastTraitName) {
-              const tKey = spellcastTraitName.toLowerCase();
-              const tSystem = getSystemModifiers(character, tKey);
-              const tUser = character.modifiers?.[tKey] || [];
-              traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
+          // 1. Roll Tab (Spellcast or Trait)
+          const rollTrait = ability.roll?.trait || ability.attack?.trait;
+          if (rollTrait) {
+            if (rollTrait.toLowerCase() === 'spellcast') {
+              const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
+              const rawTraitValue = spellcastTraitName ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0) : (character.spellcast || 0);
+
+              // Add trait modifiers if a trait is used
+              let traitModSum = 0;
+              if (spellcastTraitName) {
+                const tKey = spellcastTraitName.toLowerCase();
+                const tSystem = getSystemModifiers(character, tKey);
+                const tUser = character.modifiers?.[tKey] || [];
+                traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
+              }
+
+              const spellcastBase = rawTraitValue + traitModSum;
+              const spellcastMods = getSystemModifiers(character, 'spellcast');
+              const userSpellcastMods = character.modifiers?.['spellcast'] || [];
+
+              tabs.push({
+                id: 'spellcast',
+                label: 'Spellcast',
+                baseValue: spellcastBase,
+                currentModifiers: [...spellcastMods, ...userSpellcastMods],
+                onUpdateModifiers: (mods: any[]) => updateModifiers('spellcast', mods)
+              });
+            } else {
+              const traitKey = rollTrait.toLowerCase();
+              const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+              const systemTraitMods = getSystemModifiers(character, traitKey);
+              const userTraitMods = character.modifiers?.[traitKey] || [];
+
+              tabs.push({
+                id: traitKey,
+                label: rollTrait,
+                baseValue: baseTraitValue,
+                currentModifiers: [...systemTraitMods, ...userTraitMods],
+                onUpdateModifiers: (mods: any[]) => updateModifiers(traitKey, mods)
+              });
             }
+          }
 
-            const spellcastBase = rawTraitValue + traitModSum;
-            const spellcastMods = getSystemModifiers(character, 'spellcast');
-            const userSpellcastMods = character.modifiers?.['spellcast'] || [];
-
-            tabs.push({
-              id: 'spellcast',
-              label: 'Spellcast',
-              baseValue: spellcastBase,
-              currentModifiers: [...spellcastMods, ...userSpellcastMods],
-              onUpdateModifiers: (mods: any[]) => updateModifiers('spellcast', mods)
-            });
-          } else {
-            const traitKey = rollTrait.toLowerCase();
-            const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-            const systemTraitMods = getSystemModifiers(character, traitKey);
-            const userTraitMods = character.modifiers?.[traitKey] || [];
+          // 2. Damage Tab
+          if (ability.attack?.damage) {
+            const systemDamageMods = getSystemModifiers(character, 'damage');
+            const userDamageMods = character.modifiers?.['damage'] || [];
 
             tabs.push({
-              id: traitKey,
-              label: rollTrait,
-              baseValue: baseTraitValue,
-              currentModifiers: [...systemTraitMods, ...userTraitMods],
-              onUpdateModifiers: (mods: any[]) => updateModifiers(traitKey, mods)
+              id: 'damage',
+              label: 'Damage',
+              baseValue: 0,
+              currentModifiers: [...systemDamageMods, ...userDamageMods],
+              onUpdateModifiers: (mods: any[]) => updateModifiers('damage', mods)
             });
           }
-        }
 
-        // 2. Damage Tab
-        if (ability.attack?.damage) {
-          const systemDamageMods = getSystemModifiers(character, 'damage');
-          const userDamageMods = character.modifiers?.['damage'] || [];
+          if (tabs.length === 0) return null;
 
-          tabs.push({
-            id: 'damage',
-            label: 'Damage',
-            baseValue: 0,
-            currentModifiers: [...systemDamageMods, ...userDamageMods],
-            onUpdateModifiers: (mods: any[]) => updateModifiers('damage', mods)
-          });
-        }
-
-        if (tabs.length === 0) return null;
-
-        return (
-          <ModifierSheet
-            isOpen={!!activeAbilityId}
-            onClose={() => setActiveAbilityId(null)}
-            statLabel={`${ability.name} Modifiers`}
-            baseValue={0}
-            currentModifiers={[]}
-            onUpdateModifiers={() => { }}
-            tabs={tabs}
-          />
-        );
-      })()}
+          return (
+            <ModifierSheet
+              isOpen={!!activeAbilityId}
+              onClose={() => setActiveAbilityId(null)}
+              statLabel={`${ability.name} Modifiers`}
+              baseValue={0}
+              currentModifiers={[]}
+              onUpdateModifiers={() => { }}
+              tabs={tabs}
+            />
+          );
+        })()}
       </div>
     </ErrorBoundary>
   );
@@ -462,9 +463,9 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
       return;
     }
 
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be smaller than 5MB');
+    // Validate file size
+    if (file.size > MAX_IMAGE_FILE_SIZE) {
+      toast.error(`Image must be smaller than ${MAX_IMAGE_FILE_SIZE_MB}`);
       return;
     }
 
