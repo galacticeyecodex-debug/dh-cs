@@ -19,7 +19,7 @@ import {
   SageDomainIcon,
   SplendorDomainIcon,
   ValorDomainIcon,
-} from '@/components/icons';
+} from '@/components/domain-icons';
 
 // Get the domain icon component for a given domain
 const getDomainIcon = (domain?: string) => {
