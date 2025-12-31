@@ -26,7 +26,9 @@ export default function AssignTraitsStep({
   onBack,
   isValid
 }: AssignTraitsStepProps) {
-  const stats = formData.stats || { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 };
+  // Use a default stats object if formData.stats is undefined
+  const defaultStats = { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 };
+  const stats = formData.stats || defaultStats;
   const statKeys: (keyof CharacterFormData['stats'])[] = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
 
   // Calculate remaining pool
@@ -60,6 +62,7 @@ export default function AssignTraitsStep({
         {statKeys.map((stat) => {
           const value = stats[stat];
           const availableOptions = getAvailableValues(stat);
+          const isAssigned = formData.stats && formData.stats[stat] !== undefined;
           
           return (
             <div key={stat} className="flex flex-col gap-1">
@@ -68,8 +71,8 @@ export default function AssignTraitsStep({
                 value={value}
                 onChange={(e) => assignTraitValue(stat, parseInt(e.target.value))}
                 className={clsx(
-                  "w-full p-3 rounded-lg border-2 bg-black/40 text-xl font-bold transition-all focus:ring-dagger-gold focus:border-dagger-gold text-white",
-                  value !== 0 || traitAssignmentPool.filter(v => v === 0).length > 0
+                  "w-full p-3 rounded-lg border-2 bg-black/20 text-xl font-bold transition-all focus:ring-dagger-gold focus:border-dagger-gold text-white",
+                  isAssigned
                     ? "border-dagger-gold/30"
                     : "border-white/5"
                 )}
