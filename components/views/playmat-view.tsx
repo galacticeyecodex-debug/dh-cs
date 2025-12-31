@@ -257,7 +257,7 @@ export default function PlaymatView() {
           })()}
 
           {/* Loadout Cards - Single Column */}
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col gap-4">
             {loadoutCards.length > 0 ? (
               loadoutCards.map((charCard) => {
                 const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
