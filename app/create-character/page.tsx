@@ -170,27 +170,9 @@ export default function CreateCharacterPage() {
           selectedPrimaryWeaponId: null,
           selectedSecondaryWeaponId: null,
           selectedArmorId: null,
-          // Clear stats when class changes to force re-population
+          // Clear stats when class changes
           stats: undefined
         }));
-
-        // Automatically populate suggested traits if they exist
-        if (selectedClass.data.suggested_traits) {
-          const values = selectedClass.data.suggested_traits.split(',').map((v: string) => parseInt(v.trim()));
-          if (values.length === 6) {
-            setFormData(prev => ({
-              ...prev,
-              stats: {
-                agility: values[0],
-                strength: values[1],
-                finesse: values[2],
-                instinct: values[3],
-                presence: values[4],
-                knowledge: values[5]
-              }
-            }));
-          }
-        }
       }
     }
   }, [formData.class_id, libraryData.classes]);
@@ -456,7 +438,11 @@ export default function CreateCharacterPage() {
           {currentStep === 5 && (
             <AssignTraitsStep 
               formData={formData} traitAssignmentPool={TRAIT_ASSIGNMENT_POOL}
-              suggestedTraits={libraryData.classes.find(c => c.id === formData.class_id)?.data?.suggested_traits}
+              suggestedTraits={
+                libraryData.classes.find(c => c.id === formData.class_id)?.data?.suggested?.traits || 
+                libraryData.classes.find(c => c.id === formData.class_id)?.data?.suggested_traits
+              }
+              classSource={libraryData.classes.find(c => c.id === formData.class_id)?.source}
               assignTraitValue={assignTraitValue} setFormData={setFormData}
               onNext={() => setCurrentStep(6)} onBack={() => setCurrentStep(4)} isValid={validateStep(5)}
             />
