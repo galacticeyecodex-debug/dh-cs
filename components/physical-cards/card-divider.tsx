@@ -71,14 +71,13 @@ export function CardDivider({ domain, subtype, size = 'small' }: CardDividerProp
       {/* Type/subtype label text - only shows subtype */}
       {subtype && (
         <div
-          className="absolute z-50 font-eveleth font-bold uppercase text-center w-full flex items-center justify-center"
+          className="absolute z-40 font-eveleth font-bold uppercase text-center w-full flex items-center justify-center"
           style={{
             top: '50%',
             transform: 'translateY(-50%)',
             color: textColor,
             fontSize: dimensions.fontSize,
             letterSpacing: dimensions.letterSpacing,
-            textShadow: '0 1px 2px rgba(0,0,0,0.8)',
           }}
         >
           {subtype}

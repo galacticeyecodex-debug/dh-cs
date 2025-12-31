@@ -21,6 +21,8 @@ export interface DomainCardProps {
   recallCost?: string | number;
   customImageUrl?: string;
   customImageType?: 'artwork' | 'full-card';
+  /** Image position as percentages (0-100). x=50, y=0 means centered horizontally, top-aligned */
+  customImagePosition?: { x: number; y: number };
   hasPassiveModifiers?: boolean;
   hasCombatAbility?: boolean;
   onClick?: () => void;
@@ -36,6 +38,7 @@ export function DomainCard({
   recallCost = '0',
   customImageUrl,
   customImageType = 'artwork',
+  customImagePosition = { x: 50, y: 0 },
   hasPassiveModifiers,
   hasCombatAbility,
   onClick,
@@ -148,7 +151,8 @@ export function DomainCard({
             src={customImageUrl}
             alt={name}
             fill
-            className="object-cover object-center-top"
+            className="object-cover"
+            style={{ objectPosition: `${customImagePosition.x}% ${customImagePosition.y}%` }}
             sizes={isThumbnail ? "(max-width: 768px) 50vw, 240px" : "340px"}
           />
         </div>
