@@ -14,7 +14,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import ModifierBuilder from '@/components/modifiers/modifier-builder';
+import ModifierBuilder from '@/components/views/inventory/modifier-builder';
 import { Modifier } from '@/types/modifiers';
 
 describe.skip('ModifierBuilder', () => {
@@ -107,7 +107,7 @@ describe.skip('ModifierBuilder', () => {
     });
 
     it('should reject non-numeric values', () => {
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
       render(<ModifierBuilder {...defaultProps} />);
       fireEvent.click(screen.getByText('Add Modifier'));
 
