@@ -17,6 +17,7 @@
  */
 
 import React, { useState } from 'react';
+import { MarkdownText } from '@/components/shared/markdown-text';
 import { Zap, Skull, Dices, RotateCcw } from 'lucide-react';
 import clsx from 'clsx';
 import { getValueColor } from '@/lib/styles';
@@ -212,11 +213,9 @@ const AttackCard = React.memo(function AttackCard({
                     </div>
                     {/* Optional description */}
                     {description && (
-                        <p className="text-xs text-gray-400 mt-2 line-clamp-2">
-                            {description.split('**').map((part, i) =>
-                                i % 2 === 1 ? <strong key={i} className="text-white">{part}</strong> : part
-                            )}
-                        </p>
+                        <div className="text-xs text-gray-400 mt-2 line-clamp-2">
+                            <MarkdownText>{description}</MarkdownText>
+                        </div>
                     )}
                 </div>
 
