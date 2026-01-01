@@ -514,6 +514,18 @@ describe('parseCombatCategory', () => {
     });
   });
 
+  describe('attack_bonus (passive)', () => {
+    it('should detect Deft Maneuvers as passive (grants attack bonus)', () => {
+      const text = 'Once per rest, **mark a Stress** to sprint anywhere within Far range without making an **Agility Roll** to get there. If you end this movement within Melee range of an adversary and immediately make an attack against them, gain a +1 bonus to the attack roll.';
+      expect(parseCombatCategory(text)).toBe('passive_triggered');
+    });
+
+    it('should detect "make an attack, gain bonus" pattern as passive', () => {
+      const text = 'When you make an attack against an enemy, gain a +2 bonus to the attack roll.';
+      expect(parseCombatCategory(text)).toBe('passive_triggered');
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle markdown formatting in text', () => {
       const text = '**When you succeed on an attack**, add **1d8** to your damage roll.';
