@@ -120,6 +120,13 @@ CREATE TABLE IF NOT EXISTS public.characters (
   -- Seraph Prayer Dice
   seraph_prayer_dice JSONB, -- Stores prayer dice data for Seraph class
 
+  -- Class Features (New)
+  bard_rally_dice JSONB,        -- Stores Rally Die state for Bard
+  guardian_unstoppable JSONB,   -- Stores Unstoppable Die state for Guardian
+  wizard_strange_patterns JSONB, -- Stores Strange Patterns state for Wizard
+  druid_beastform JSONB,        -- Stores Beastform active state for Druid
+  ranger_focus JSONB,           -- Stores Ranger's Focus state for Ranger
+
   -- Card State tracking (tokens, frequency usage for domain cards)
   card_states JSONB DEFAULT '{}'::jsonb, -- Keyed by card name, stores tokens/usage state
 
