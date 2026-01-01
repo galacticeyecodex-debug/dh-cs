@@ -28,7 +28,7 @@ import React, { useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { Dices } from 'lucide-react';
 import clsx from 'clsx';
-import ModifierSheet from '@/components/modifiers/modifier-sheet';
+import ModifierSheet from '@/components/shared/modifier-sheet';
 import { getValueColor } from '@/lib/styles';
 
 interface StatButtonProps {

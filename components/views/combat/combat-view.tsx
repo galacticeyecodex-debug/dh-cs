@@ -20,7 +20,7 @@ import { dataService } from '@/lib/data-service';
 
 import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers, calculateAttackModifier, calculateDamageModifier } from '@/lib/utils';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
-import ModifierSheet from '@/components/modifiers/modifier-sheet';
+import ModifierSheet from '@/components/shared/modifier-sheet';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import useContentAccess from '@/hooks/useContentAccess';
 
