@@ -802,10 +802,21 @@ export function parseCombatCategory(text: string): CombatCategory {
 
   // Pattern 2: Standalone attack - player initiates an attack roll
   // Examples: "make a Strength Roll against", "make an attack against"
-  const isStandaloneAttack = (
+  // Exclude conditional attacks like "if you make an attack, gain +1 bonus"
+  const hasAttackInitiation = (
     cleanText.includes('make a') &&
     (cleanText.includes('roll against') || cleanText.includes('attack against'))
   );
+
+  // Check if it's actually granting a bonus to an attack rather than initiating one
+  // Pattern: "make an attack against them, gain a +X bonus" or similar
+  const isAttackBonus = (
+    hasAttackInitiation &&
+    (cleanText.includes('gain a +') || cleanText.includes('gain +')) &&
+    (cleanText.includes('bonus') || cleanText.includes('to the attack'))
+  );
+
+  const isStandaloneAttack = hasAttackInitiation && !isAttackBonus;
 
   if (isStandaloneAttack) {
     return 'standalone_attack';

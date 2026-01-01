@@ -31,11 +31,29 @@ export default function CardTokenTrack({
 
   // Calculate max tokens
   let calculatedMax = maxTokens ?? 0;
-  if (maxTokens === null && tokenSource && character?.stats) {
+  if (maxTokens === null && tokenSource && character) {
     // Dynamic max based on trait
-    const stat = character.stats[tokenSource as keyof typeof character.stats];
-    if (typeof stat === 'number') {
-      calculatedMax = stat;
+    const lowerSource = tokenSource.toLowerCase();
+
+    // Handle spellcast specially - it's derived from the character's spellcast trait
+    if (lowerSource === 'spellcast') {
+      // Check both direct property and subclass data for spellcast trait
+      const spellcastTrait = (
+        character.spellcast_trait ||
+        character.subclass_data?.data?.spellcast_trait
+      )?.toLowerCase();
+      if (spellcastTrait && character.stats) {
+        const stat = character.stats[spellcastTrait as keyof typeof character.stats];
+        if (typeof stat === 'number') {
+          calculatedMax = stat;
+        }
+      }
+    } else if (character.stats) {
+      // Direct trait lookup
+      const stat = character.stats[lowerSource as keyof typeof character.stats];
+      if (typeof stat === 'number') {
+        calculatedMax = stat;
+      }
     }
   }
 
