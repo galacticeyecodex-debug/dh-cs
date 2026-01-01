@@ -23,7 +23,7 @@
 import React, { useState } from 'react';
 import { Heart, Zap, Shield, Eye } from 'lucide-react';
 import clsx from 'clsx';
-import ModifierSheet, { ModifierTab } from '@/components/modifiers/modifier-sheet';
+import ModifierSheet, { ModifierTab } from '@/components/shared/modifier-sheet';
 import { getValueColor, getPanelBorder, PANEL } from '@/lib/styles';
 
 // Props interface for VitalCard
@@ -181,9 +181,9 @@ const VitalCard = React.memo(function VitalCard({
           "w-full",
           // Critical condition overrides modified border (handled by getPanelBorder)
           // Hide modified border for Evasion specifically
-          getPanelBorder({ 
-            isCritical: isCriticalCondition, 
-            isModified: label === 'Evasion' ? false : isModified 
+          getPanelBorder({
+            isCritical: isCriticalCondition,
+            isModified: label === 'Evasion' ? false : isModified
           }),
           className
         )}>
