@@ -190,6 +190,40 @@ The standard bottom-sheet component for managing temporary bonuses/penalties.
 - **Delete/Remove:** `text-red-400` (red indicates destructive action)
 - **Add/Create:** `text-green-400` or `text-dagger-gold` (positive action)
 
+### 7.2 Selection States in Forms
+All selection buttons (class, subclass, items, etc.) should use consistent color states:
+
+**Active/Selected State:**
+- Background: `bg-dagger-gold/20`
+- Border: `border-dagger-gold`
+- Text: `text-white`
+- Badge (if used): `bg-dagger-gold text-black`
+
+**Inactive/Unselected State:**
+- Background: `bg-white/5`
+- Border: `border-white/10`
+- Text: `text-gray-300`
+- Hover: `hover:bg-white/10`
+
+**Example:**
+```tsx
+<button
+  className={clsx(
+    "px-3 py-2 rounded text-sm font-medium transition-colors border",
+    isSelected
+      ? "bg-dagger-gold/20 border-dagger-gold text-white"
+      : "bg-white/5 text-gray-300 border-white/10 hover:bg-white/10"
+  )}
+>
+  Option Name
+  {isSelected && (
+    <span className="text-xs bg-dagger-gold text-black px-1.5 py-0.5 rounded">
+      Selected
+    </span>
+  )}
+</button>
+```
+
 ## 8. Colors
 
 ### 8.1 Theme Colors (app/globals.css)
