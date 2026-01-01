@@ -13,7 +13,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import CreateHomebrewItemModal from '@/components/modals/create-homebrew-item-modal';
+import CreateHomebrewItemModal from '@/components/views/inventory/create-homebrew-item-modal';
 
 describe('CreateHomebrewItemModal', () => {
   const mockOnClose = vi.fn();
