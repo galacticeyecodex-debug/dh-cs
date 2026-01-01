@@ -1,18 +1,11 @@
 import { CharacterFormData, LibraryData, LibraryLookupItem } from '@/components/character-creation/types';
 import { RangerCompanion } from '@/types/character';
+import classesData from '@/content/srd/json/classes.json';
 
 interface TemplateDefinition {
   subclassKeyword: string;
   ancestry: string;
   community: string;
-  stats: {
-    agility: number;
-    strength: number;
-    finesse: number;
-    instinct: number;
-    presence: number;
-    knowledge: number;
-  };
   experiences: [string, string];
   primaryWeapon: string;
   secondaryWeapon: string;
@@ -57,7 +50,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Troubadour',
       ancestry: 'Elf',
       community: 'Highborne',
-      stats: { agility: 0, strength: -1, finesse: 1, instinct: 0, presence: 2, knowledge: 1 },
       experiences: ['Charming Performer', 'Lorekeeper'],
       primaryWeapon: 'Rapier',
       secondaryWeapon: 'Dagger',
@@ -68,7 +60,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Wordsmith',
       ancestry: 'Human',
       community: 'Loreborne',
-      stats: { agility: 0, strength: -1, finesse: 0, instinct: 1, presence: 2, knowledge: 1 },
       experiences: ['Silver Tongue', 'Historian'],
       primaryWeapon: 'Rapier',
       secondaryWeapon: 'Dagger',
@@ -81,7 +72,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Elements',
       ancestry: 'Elf',
       community: 'Wildborne',
-      stats: { agility: 0, strength: 0, finesse: 0, instinct: 2, presence: 0, knowledge: 1 },
       experiences: ['One with Nature', 'Elementalist'],
       primaryWeapon: 'Staff',
       secondaryWeapon: 'Dagger',
@@ -92,7 +82,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Renewal',
       ancestry: 'Firbolg',
       community: 'Wildborne',
-      stats: { agility: 0, strength: 1, finesse: 0, instinct: 2, presence: 0, knowledge: 0 },
       experiences: ['Healer', 'Guardian of Life'],
       primaryWeapon: 'Staff',
       secondaryWeapon: 'Dagger',
@@ -105,7 +94,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Stalwart',
       ancestry: 'Dwarf',
       community: 'Underborne',
-      stats: { agility: -1, strength: 2, finesse: 0, instinct: 1, presence: 0, knowledge: 1 },
       experiences: ['Unbreakable', 'Tunnel Fighter'],
       primaryWeapon: 'Warhammer',
       secondaryWeapon: 'Shield',
@@ -116,7 +104,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Vengeance',
       ancestry: 'Orc',
       community: 'Ridgeborne',
-      stats: { agility: 0, strength: 2, finesse: 0, instinct: 0, presence: 1, knowledge: 0 },
       experiences: ['Avenger', 'Intimidating'],
       primaryWeapon: 'Greatsword',
       secondaryWeapon: 'Handaxe',
@@ -129,7 +116,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Wayfinder',
       ancestry: 'Elf',
       community: 'Wildborne',
-      stats: { agility: 2, strength: 0, finesse: 1, instinct: 1, presence: -1, knowledge: 0 },
       experiences: ['Master Tracker', 'Survivalist'],
       primaryWeapon: 'Longbow',
       secondaryWeapon: 'Dagger',
@@ -140,7 +126,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Beastbound',
       ancestry: 'Human',
       community: 'Wildborne',
-      stats: { agility: 2, strength: 0, finesse: 1, instinct: 1, presence: -1, knowledge: 0 },
       experiences: ['Beast Master', 'Forest Guide'],
       primaryWeapon: 'Longbow',
       secondaryWeapon: 'Dagger',
@@ -154,7 +139,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Syndicate',
       ancestry: 'Halfling',
       community: 'Slyborne',
-      stats: { agility: 2, strength: -1, finesse: 2, instinct: 0, presence: 1, knowledge: -1 },
       experiences: ['Street Smart', 'Stealth Expert'],
       primaryWeapon: 'Shortsword',
       secondaryWeapon: 'Dagger',
@@ -165,7 +149,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Nightwalker',
       ancestry: 'Katari',
       community: 'Slyborne',
-      stats: { agility: 2, strength: 0, finesse: 2, instinct: 0, presence: -1, knowledge: 0 },
       experiences: ['Shadow Assassin', 'Acrobat'],
       primaryWeapon: 'Dagger',
       secondaryWeapon: 'Dagger',
@@ -178,7 +161,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Divine',
       ancestry: 'Human',
       community: 'Orderborne',
-      stats: { agility: 1, strength: 2, finesse: 0, instinct: 0, presence: 1, knowledge: -1 },
       experiences: ['Divine Messenger', 'Protector of the Weak'],
       primaryWeapon: 'Greatsword',
       secondaryWeapon: 'Dagger',
@@ -189,7 +171,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Winged',
       ancestry: 'Faerie',
       community: 'Orderborne',
-      stats: { agility: 2, strength: 1, finesse: 0, instinct: 0, presence: 1, knowledge: -1 },
       experiences: ['Aerial Combatant', 'Guardian Angel'],
       primaryWeapon: 'Longsword',
       secondaryWeapon: 'Shield',
@@ -202,7 +183,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Elemental',
       ancestry: 'Drakona',
       community: 'Wildborne',
-      stats: { agility: 1, strength: 0, finesse: 0, instinct: 2, presence: 0, knowledge: 0 },
       experiences: ['Volatile Magic', 'Elementalist'],
       primaryWeapon: 'Staff',
       secondaryWeapon: 'Dagger',
@@ -213,7 +193,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Primal',
       ancestry: 'Elf',
       community: 'Wildborne',
-      stats: { agility: 0, strength: 0, finesse: 0, instinct: 2, presence: 1, knowledge: 0 },
       experiences: ['Wild Magic', 'Nature\'s Wrath'],
       primaryWeapon: 'Staff',
       secondaryWeapon: 'Dagger',
@@ -226,7 +205,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Slayer',
       ancestry: 'Orc',
       community: 'Ridgeborne',
-      stats: { agility: 1, strength: 2, finesse: 0, instinct: 0, presence: 0, knowledge: 0 },
       experiences: ['Battle Hardened', 'Mercenary Work'],
       primaryWeapon: 'Greatsword',
       secondaryWeapon: 'Handaxe',
@@ -237,7 +215,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Brave',
       ancestry: 'Human',
       community: 'Orderborne',
-      stats: { agility: 0, strength: 2, finesse: 0, instinct: 0, presence: 1, knowledge: 0 },
       experiences: ['Leader of Men', 'Fearless'],
       primaryWeapon: 'Longsword',
       secondaryWeapon: 'Shield',
@@ -250,7 +227,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'Knowledge',
       ancestry: 'Human',
       community: 'Loreborne',
-      stats: { agility: 0, strength: -1, finesse: 0, instinct: 1, presence: 0, knowledge: 2 },
       experiences: ['Academic', 'Arcane Researcher'],
       primaryWeapon: 'Staff',
       secondaryWeapon: 'Wand',
@@ -261,7 +237,6 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       subclassKeyword: 'War',
       ancestry: 'Human',
       community: 'Ridgeborne',
-      stats: { agility: 1, strength: 0, finesse: 0, instinct: 1, presence: -1, knowledge: 2 },
       experiences: ['Battle Mage', 'Tactician'],
       primaryWeapon: 'Staff',
       secondaryWeapon: 'Wand',
@@ -275,22 +250,42 @@ const findItemByName = (items: LibraryLookupItem[], name: string): LibraryLookup
   return items.find(i => i.name.toLowerCase().includes(name.toLowerCase()));
 };
 
+/**
+ * Parse suggested traits string from SRD (e.g., "+1, -1, +2, 0, +1, 0")
+ * into stats object
+ */
+function parseSuggestedTraits(traitsString: string) {
+  const values = traitsString.split(',').map(s => parseInt(s.trim()));
+  if (values.length !== 6) {
+    console.warn('Invalid suggested_traits format:', traitsString);
+    return { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 };
+  }
+
+  return {
+    agility: values[0],
+    strength: values[1],
+    finesse: values[2],
+    instinct: values[3],
+    presence: values[4],
+    knowledge: values[5]
+  };
+}
+
 export function getTemplateForClass(
-  classId: string, 
+  classId: string,
   subclassId: string,
   libraryData: LibraryData
 ): Partial<CharacterFormData> | null {
   const selectedClass = libraryData.classes.find(c => c.id === classId);
   const selectedSubclass = libraryData.subclasses.find(s => s.id === subclassId);
-  
+
   if (!selectedClass || !selectedSubclass) return null;
 
   const classTemplates = TEMPLATES[selectedClass.name];
   if (!classTemplates) return null;
 
   // Find the matching template for this subclass
-  // We match based on the subclass name containing the keyword
-  const templateKey = Object.keys(classTemplates).find(key => 
+  const templateKey = Object.keys(classTemplates).find(key =>
     selectedSubclass.name.includes(classTemplates[key].subclassKeyword)
   );
 
@@ -301,9 +296,15 @@ export function getTemplateForClass(
 
   const template = classTemplates[templateKey];
 
+  // Get suggested traits from SRD JSON
+  const classDataFromSRD = classesData.find((c: any) => c.name === selectedClass.name);
+  const stats = classDataFromSRD?.suggested_traits
+    ? parseSuggestedTraits(classDataFromSRD.suggested_traits)
+    : { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 };
+
   // Find Ancestry
   const ancestry = findItemByName(libraryData.ancestries, template.ancestry);
-  
+
   // Find Community
   const community = findItemByName(libraryData.communities, template.community);
 
@@ -322,7 +323,7 @@ export function getTemplateForClass(
     subclass_id: subclassId,
     ancestry_id: ancestry.id,
     community_id: community.id,
-    stats: template.stats,
+    stats: stats,
     experiences: template.experiences,
     selectedPrimaryWeaponId: primaryWeapon?.id || null,
     selectedSecondaryWeaponId: secondaryWeapon?.id || null,
