@@ -18,6 +18,7 @@ import type {
   CardAttack,
   CardCosts,
   CardRoll,
+  CombatCategory,
   DamageType,
   EnhancedAbilityCard,
   EnhancedFeature,
@@ -770,6 +771,61 @@ export function parseRoll(text: string): CardRoll | undefined {
 }
 
 /**
+ * Determine the combat category based on text patterns
+ * This controls which buttons appear on combat cards
+ */
+export function parseCombatCategory(text: string): CombatCategory {
+  const cleanText = stripMarkdown(text).toLowerCase();
+
+  // Pattern 1: Damage bonus - triggered by succeeding on an existing attack
+  // Examples: "when you succeed on an attack... add d6 to damage"
+  //           "add to your damage roll"
+  //           "deal an additional 1d4 damage"
+  const hasTriggerPattern = (
+    cleanText.includes('when you succeed on an attack') ||
+    cleanText.includes('on a success') ||
+    cleanText.includes('if you succeed')
+  );
+
+  const hasDamageAddition = (
+    // "add X to your damage roll" or "add X to the damage"
+    (cleanText.includes('add') && (cleanText.includes('to your damage') || cleanText.includes('damage roll') || cleanText.includes('to the damage'))) ||
+    // "deal an additional X damage" or "dealing an additional X damage"
+    (cleanText.includes('deal') && cleanText.includes('additional') && cleanText.includes('damage'))
+  );
+
+  const isDamageBonus = hasTriggerPattern && hasDamageAddition;
+
+  if (isDamageBonus) {
+    return 'damage_bonus';
+  }
+
+  // Pattern 2: Standalone attack - player initiates an attack roll
+  // Examples: "make a Strength Roll against", "make an attack against"
+  const isStandaloneAttack = (
+    cleanText.includes('make a') &&
+    (cleanText.includes('roll against') || cleanText.includes('attack against'))
+  );
+
+  if (isStandaloneAttack) {
+    return 'standalone_attack';
+  }
+
+  // Pattern 3: Roll only - requires a roll but not damage
+  // Examples: "make a Spellcast Roll (10)" without damage output
+  const hasRollPattern = /make a \*?\*?(?:spellcast|strength|agility|finesse|presence|knowledge|instinct) roll\*?\*?/i.test(text);
+  const hasDamage = /\d*d\d+/.test(text);
+
+  if (hasRollPattern && !hasDamage) {
+    return 'roll_only';
+  }
+
+  // Pattern 4: Passive/Triggered - no explicit roll required from player
+  // Examples: "Spend Hope to gain...", "When you take damage..."
+  return 'passive_triggered';
+}
+
+/**
  * Parse attack information from card text
  */
 export function parseAttack(text: string): CardAttack | undefined {
@@ -785,6 +841,7 @@ export function parseAttack(text: string): CardAttack | undefined {
   const attack: CardAttack = {
     trait: trait || 'Spellcast',
     range: range || 'Close',
+    combat_category: parseCombatCategory(text),
   };
 
   if (damage) attack.damage = damage;
@@ -884,11 +941,16 @@ export function enhanceFeature(feature: {
   )) {
     const damage = parseCardDamage(text);
     if (damage) {
+      // Determine if this is truly a damage bonus (triggered by another attack)
+      // or if it's a standalone attack that was missed
+      const combatCategory = parseCombatCategory(text);
+
       attack = {
         trait: 'Bonus',
         range: 'Melee',
         damage: damage,
-        damage_type: parseCardDamageType(text)
+        damage_type: parseCardDamageType(text),
+        combat_category: combatCategory,
       };
     }
   }
