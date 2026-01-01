@@ -12,7 +12,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCharacterStore, Character } from '@/store/character-store';
 import { dataService } from '@/lib/data-service';
@@ -21,6 +21,7 @@ import clsx from 'clsx';
 import { X } from 'lucide-react';
 import { uploadCharacterAvatar } from '@/lib/storage-service';
 import { calculateDamageThresholds } from '@/lib/gameLogic';
+import { getTemplateForClass } from '@/lib/character-templates';
 import { 
   BasicInfoStep, 
   HeritageStep, 
@@ -64,6 +65,8 @@ export default function CreateCharacterPage() {
   const [libraryLoading, setLibraryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTemplateApplied, setIsTemplateApplied] = useState(false);
+  const prevClassIdRef = useRef<string | null>(null);
 
   // Image Upload State
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
@@ -123,59 +126,87 @@ export default function CreateCharacterPage() {
 
   useEffect(() => {
     if (formData.class_id && libraryData.classes.length > 0) {
-      const selectedClass = libraryData.classes.find(c => c.id === formData.class_id);
-      if (selectedClass) {
-        setCalculatedVitals({
-          hp: selectedClass.data.starting_hp || 5,
-          stress: selectedClass.data.starting_stress || 6,
-          armor: selectedClass.data.starting_armor_score || 0,
-          evasion: 10
-        });
-
-        if (selectedClass.data.domains && selectedClass.data.domains.length >= 2) {
-          setFormData(prev => {
-            if (prev.domains?.[0] === selectedClass.data.domains[0] && prev.domains?.[1] === selectedClass.data.domains[1]) {
-              return prev;
-            }
-            return {
-              ...prev,
-              domains: [selectedClass.data.domains[0], selectedClass.data.domains[1]],
-              selectedCards: []
-            };
-          });
-        }
-
-        const initialMiscItems: string[] = [];
-        if (selectedClass.data.class_items_raw) {
-          if (selectedClass.data.class_items_raw.includes('Minor Health Potion')) initialMiscItems.push('consumable-minor-health-potion');
-          else if (selectedClass.data.class_items_raw.includes('Minor Stamina Potion')) initialMiscItems.push('consumable-minor-stamina-potion');
-          
-          ['torch', '50 feet of rope', 'basic supplies'].forEach(itemName => {
-            if (selectedClass.data.class_items_raw.toLowerCase().includes(itemName)) {
-              initialMiscItems.push(`misc-${itemName.replace(/\s/g, '-')}`);
-            }
-          });
-        }
-
-        setStartingItemsAndCards({
-          cards: [],
-          weapons: [],
-          armor: [],
-          misc: initialMiscItems,
-          gold: { handfuls: 1, bags: 0, chests: 0 }
-        });
+      if (prevClassIdRef.current !== formData.class_id) {
+        prevClassIdRef.current = formData.class_id;
         
-        setFormData(prev => ({
-          ...prev,
-          selectedPrimaryWeaponId: null,
-          selectedSecondaryWeaponId: null,
-          selectedArmorId: null,
-          // Clear stats when class changes
-          stats: undefined
-        }));
+        const selectedClass = libraryData.classes.find(c => c.id === formData.class_id);
+        if (selectedClass) {
+          setCalculatedVitals({
+            hp: selectedClass.data.starting_hp || 5,
+            stress: selectedClass.data.starting_stress || 6,
+            armor: selectedClass.data.starting_armor_score || 0,
+            evasion: 10
+          });
+
+          if (selectedClass.data.domains && selectedClass.data.domains.length >= 2) {
+            setFormData(prev => {
+              if (prev.domains?.[0] === selectedClass.data.domains[0] && prev.domains?.[1] === selectedClass.data.domains[1]) {
+                return prev;
+              }
+              return {
+                ...prev,
+                domains: [selectedClass.data.domains[0], selectedClass.data.domains[1]],
+                selectedCards: []
+              };
+            });
+          }
+
+          const initialMiscItems: string[] = [];
+          if (selectedClass.data.class_items_raw) {
+            if (selectedClass.data.class_items_raw.includes('Minor Health Potion')) initialMiscItems.push('consumable-minor-health-potion');
+            else if (selectedClass.data.class_items_raw.includes('Minor Stamina Potion')) initialMiscItems.push('consumable-minor-stamina-potion');
+            
+            ['torch', '50 feet of rope', 'basic supplies'].forEach(itemName => {
+              if (selectedClass.data.class_items_raw.toLowerCase().includes(itemName)) {
+                initialMiscItems.push(`misc-${itemName.replace(/\s/g, '-')}`);
+              }
+            });
+          }
+
+          setStartingItemsAndCards({
+            cards: [],
+            weapons: [],
+            armor: [],
+            misc: initialMiscItems,
+            gold: { handfuls: 1, bags: 0, chests: 0 }
+          });
+          
+          if (!isTemplateApplied) {
+            setFormData(prev => ({
+              ...prev,
+              selectedPrimaryWeaponId: null,
+              selectedSecondaryWeaponId: null,
+              selectedArmorId: null,
+              // Clear stats when class changes
+              stats: undefined
+            }));
+          } else {
+            setIsTemplateApplied(false);
+          }
+        }
       }
     }
-  }, [formData.class_id, libraryData.classes]);
+  }, [formData.class_id, libraryData.classes, isTemplateApplied]);
+
+  const handleApplyTemplate = useCallback((classId: string, subclassId: string) => {
+    const templateData = getTemplateForClass(classId, subclassId, libraryData);
+    if (templateData) {
+      setIsTemplateApplied(true);
+      // We set the form data, which triggers the effect because class_id likely changes (or is set).
+      // Even if class_id is same, other fields update. 
+      // But effect only runs if class_id changes (due to our ref check) OR if isTemplateApplied changes?
+      // Wait, isTemplateApplied is in dependency array.
+      // So setting it true triggers effect. Ref matches (if class same). 
+      // If class different, Ref differs.
+      
+      // If we select template for NEW class:
+      // setIsTemplateApplied(true) -> Effect runs. prevClassIdRef != newClassId (NO, formData not updated yet).
+      // setFormData(...) -> Effect runs. prevClassIdRef != newClassId.
+      // Inside effect: isTemplateApplied is true. So we skip clearing. set false.
+      
+      setFormData(prev => ({ ...prev, ...templateData }));
+    }
+  }, [libraryData]);
 
   const handleDomainChange = useCallback((index: number, value: string) => {
     setFormData(prev => {
@@ -254,7 +285,7 @@ export default function CreateCharacterPage() {
   const validateStep = useCallback((step: number) => {
     const isBeastbond = formData.subclass_id && libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
     switch (step) {
-      case 1: return !!formData.name;
+      case 1: return true; // Name is optional, defaults to "New Character"
       case 2: 
         if (formData.is_mixed_ancestry) {
           return !!formData.ancestry_id && !!formData.ancestry_id_2 && !!formData.community_id;
@@ -321,7 +352,7 @@ export default function CreateCharacterPage() {
       const characterPayload = {
         character: {
           user_id: user.id,
-          name: formData.name!,
+          name: formData.name?.trim() || 'New Character',
           level: 1,
           ancestry: ancestryName,
           ancestry_features: ancestryFeatures,
@@ -414,6 +445,8 @@ export default function CreateCharacterPage() {
               imagePreview={imagePreview} selectedImageFile={selectedImageFile}
               handleImageFileChange={handleImageFileChange} setSelectedImageFile={setSelectedImageFile}
               setImagePreview={setImagePreview} onNext={() => setCurrentStep(2)} isValid={validateStep(1)}
+              libraryData={libraryData}
+              onApplyTemplate={handleApplyTemplate}
             />
           )}
           {currentStep === 2 && (
