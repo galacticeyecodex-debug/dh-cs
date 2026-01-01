@@ -19,18 +19,19 @@ import { useCharacterStore } from '@/store/character-store';
 import Image from 'next/image';
 import { getSystemModifiers } from '@/lib/utils';
 import StatButton from '@/components/views/character/trait-button';
+import { MarkdownText } from '@/components/shared/markdown-text';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
 import ExperienceSheet from './experience-manager';
-import LevelUpModal from './level-up-modal';
+import LevelUpModal from './level-up/level-up-modal';
 import ManageCharacterModal from './manage-character-modal';
-import AdvancementHistory from './advancement-history';
-import SubclassFeatureCard from './subclass-feature-card';
+import AdvancementHistory from './level-up/advancement-history';
+import SubclassFeatureCard from './subclass-features/subclass-feature-card';
 import CompanionSheet from './subclass-features/beastbound-companion-sheet';
-import PrayerDiceCard from './class-features/prayer-dice-card';
-import RallyDiceCard from './class-features/rally-dice-card';
-import UnstoppableCard from './class-features/unstoppable-card';
-import StrangePatternsCard from './class-features/strange-patterns-card';
-import BeastformCard from './class-features/beastform-card';
+import PrayerDiceCard from './class-features/seraph-prayer-dice-card';
+import RallyDiceCard from './class-features/bard-rally-card';
+import UnstoppableCard from './class-features/guardian-unstoppable-card';
+import StrangePatternsCard from './class-features/wizard-strange-patterns-card';
+import BeastformCard from './class-features/druid-beastform-card';
 import RangerFocusCard from './class-features/ranger-focus-card';
 import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap, Info, Sparkles, PawPrint } from 'lucide-react';
 import clsx from 'clsx';
@@ -554,9 +555,7 @@ export default function CharacterView() {
                                 {feature.name}
                               </div>
                               <div className="text-sm text-gray-300 leading-relaxed">
-                                {feature.text?.split('**').map((part: string, j: number) =>
-                                  j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
-                                )}
+                                <MarkdownText>{feature.text}</MarkdownText>
                               </div>
                             </div>
                           ))}
@@ -610,9 +609,7 @@ export default function CharacterView() {
                                 {feature.name}
                               </div>
                               <div className="text-sm text-gray-300 leading-relaxed">
-                                {feature.text?.split('**').map((part: string, j: number) =>
-                                  j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
-                                )}
+                                <MarkdownText>{feature.text}</MarkdownText>
                               </div>
                             </div>
                           ))}
@@ -666,9 +663,7 @@ export default function CharacterView() {
                                 {feature.name}
                               </div>
                               <div className="text-sm text-gray-300 leading-relaxed">
-                                {feature.text?.split('**').map((part: string, j: number) =>
-                                  j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
-                                )}
+                                <MarkdownText>{feature.text}</MarkdownText>
                               </div>
                               {feature.has_tokens && (
                                 <div className="mt-2 text-xs text-dagger-gold">
@@ -744,9 +739,7 @@ export default function CharacterView() {
                             {character.class_data.data.hope_feature.name}
                           </div>
                           <div className="text-sm text-gray-300 leading-relaxed">
-                            {character.class_data.data.hope_feature.description?.split('**').map((part: string, j: number) =>
-                              j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
-                            )}
+                            <MarkdownText>{character.class_data.data.hope_feature.description}</MarkdownText>
                           </div>
                         </div>
                       )}
@@ -846,9 +839,7 @@ export default function CharacterView() {
                               {feature.name}
                             </div>
                             <div className="text-sm text-gray-300 leading-relaxed">
-                              {feature.text?.split('**').map((part: string, j: number) =>
-                                j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
-                              )}
+                              <MarkdownText>{feature.text}</MarkdownText>
                             </div>
                           </div>
                         );
