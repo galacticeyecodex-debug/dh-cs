@@ -5,7 +5,7 @@ import { PawPrint, Info, X } from 'lucide-react';
 import { DruidBeastform } from '@/types/character';
 import { toast } from 'sonner';
 import clsx from 'clsx';
-import BeastformSheet from './beastform-sheet';
+import BeastformSheet from './druid-beastform-sheet';
 
 interface BeastformCardProps {
     beastform: DruidBeastform | undefined;
