@@ -27,7 +27,7 @@ import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
 import { ErrorBoundary } from '@/components/core/error-boundary';
-import ModifierSheet from '@/components/modifiers/modifier-sheet';
+import ModifierSheet from '@/components/shared/modifier-sheet';
 import { parseCardPassiveModifiers, type PassiveModifier, type ModifierCondition } from '@/lib/card-parser';
 import { parseCombatAbility, type CombatAbility } from '@/lib/combat-spell-parser';
 import { toast } from 'react-hot-toast';
