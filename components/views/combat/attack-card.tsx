@@ -18,7 +18,7 @@
 
 import React, { useState } from 'react';
 import { MarkdownText } from '@/components/shared/markdown-text';
-import { Zap, Skull, Dices, RotateCcw } from 'lucide-react';
+import { Zap, Skull, Dices, RotateCcw, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { getValueColor } from '@/lib/styles';
 import MarkStressButton from './mark-stress-button';
@@ -118,6 +118,7 @@ const AttackCard = React.memo(function AttackCard({
     isUsed = false,
 }: AttackCardProps) {
     const [isCostPaid, setIsCostPaid] = useState(false);
+    const [showDescription, setShowDescription] = useState(false);
 
     // Determine styles based on variant
     const borderClasses = {
@@ -163,23 +164,44 @@ const AttackCard = React.memo(function AttackCard({
         >
             {/* Header Section */}
             <div className="p-4 flex justify-between items-start relative">
-                {/* Gear button for modifiers - top right corner of header */}
-                {onManageModifiers && (
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onManageModifiers();
-                        }}
-                        className="absolute top-1 right-1 z-10 text-gray-500 hover:text-gray-300 transition-colors p-0.5 rounded hover:bg-white/10"
-                        aria-label={`Manage ${name} modifiers`}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-                            <circle cx="12" cy="12" r="3" />
-                        </svg>
-                    </button>
-                )}
+                {/* Action buttons - top right corner of header */}
+                <div className="absolute top-1 right-1 z-10 flex items-center gap-0.5">
+                    {/* Info button - toggle description visibility */}
+                    {description && (
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowDescription(!showDescription);
+                            }}
+                            className={clsx(
+                                "transition-colors p-0.5 rounded hover:bg-white/10",
+                                showDescription ? "text-dagger-gold" : "text-gray-500 hover:text-gray-300"
+                            )}
+                            aria-label={`${showDescription ? 'Hide' : 'Show'} ${name} description`}
+                            title={showDescription ? "Hide description" : "Show description"}
+                        >
+                            <Info size={12} />
+                        </button>
+                    )}
+                    {/* Gear button for modifiers */}
+                    {onManageModifiers && (
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onManageModifiers();
+                            }}
+                            className="text-gray-500 hover:text-gray-300 transition-colors p-0.5 rounded hover:bg-white/10"
+                            aria-label={`Manage ${name} modifiers`}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                    )}
+                </div>
 
                 {/* Name and Badges */}
                 <div className="flex-1 mr-4">
@@ -215,12 +237,6 @@ const AttackCard = React.memo(function AttackCard({
                             </span>
                         )}
                     </div>
-                    {/* Optional description */}
-                    {description && (
-                        <div className="text-xs text-gray-400 mt-2 line-clamp-2">
-                            <MarkdownText>{description}</MarkdownText>
-                        </div>
-                    )}
                 </div>
 
                 {/* Damage Display - only show if we have damage */}
@@ -235,6 +251,13 @@ const AttackCard = React.memo(function AttackCard({
                     </div>
                 )}
             </div>
+
+            {/* Collapsible Description Section */}
+            {showDescription && description && (
+                <div className="mx-4 mb-2 p-3 bg-white/5 rounded-lg border border-white/5 text-sm text-gray-300">
+                    <MarkdownText>{description}</MarkdownText>
+                </div>
+            )}
 
             {/* Token Track */}
             {tokenTrack && (
