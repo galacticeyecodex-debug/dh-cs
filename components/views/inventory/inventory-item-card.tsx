@@ -21,6 +21,7 @@ import Image from 'next/image';
 import { Sword, Shield, ArrowRightLeft, ImageIcon, Settings, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { CharacterInventoryItem } from '@/store/character-store';
+import { MarkdownText } from '@/components/shared/markdown-text';
 
 export interface InventoryItemCardProps {
     /** The inventory item to display */
@@ -126,11 +127,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                             <>
                                 {data.feature?.name && <span className="font-bold text-gray-300">{data.feature.name}: </span>}
                                 {data.feature?.text && (
-                                    <span className="italic">
-                                        {data.feature.text.split('**').map((part: string, j: number) =>
-                                            j % 2 === 1 ? <strong key={j} className="text-white not-italic">{part}</strong> : part
-                                        )}{' '}
-                                    </span>
+                                    <MarkdownText className="inline-block">{data.feature.text}</MarkdownText>
                                 )}
                                 <span className="block mt-0.5 text-gray-500">Score: {data.base_score}, Thresholds: {data.base_thresholds}</span>
                             </>
@@ -141,20 +138,13 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                                 </span>
                                 {data.feature?.name && <span className="font-bold text-gray-300">{data.feature.name}: </span>}
                                 {data.feature?.text && (
-                                    <span className="italic">
-                                        {data.feature.text.split('**').map((part: string, j: number) =>
-                                            j % 2 === 1 ? <strong key={j} className="text-white not-italic">{part}</strong> : part
-                                        )}
-                                    </span>
+                                    <MarkdownText className="inline-block">{data.feature.text}</MarkdownText>
                                 )}
                             </>
                         ) : (
-                            (() => {
-                                const text = item.description || data?.markdown || 'No description';
-                                return typeof text === 'string' ? text.split('**').map((part: string, j: number) =>
-                                    j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
-                                ) : text;
-                            })()
+                            <MarkdownText>
+                                {item.description || data?.markdown || 'No description'}
+                            </MarkdownText>
                         )}
                     </div>
 
@@ -194,13 +184,8 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
 
             {/* Collapsible Description Section */}
             {showDescription && fullDescription && (
-                <div className="mt-2 p-3 bg-white/5 rounded-lg border border-white/5 text-sm text-gray-300 whitespace-pre-wrap">
-                    {typeof fullDescription === 'string'
-                        ? fullDescription.split('**').map((part: string, j: number) =>
-                            j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
-                        )
-                        : fullDescription
-                    }
+                <div className="mt-2 p-3 bg-white/5 rounded-lg border border-white/5 text-sm text-gray-300">
+                    <MarkdownText>{fullDescription}</MarkdownText>
                 </div>
             )}
 

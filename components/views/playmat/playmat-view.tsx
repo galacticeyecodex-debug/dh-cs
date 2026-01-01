@@ -25,7 +25,7 @@ import { useRouter } from 'next/navigation';
 import AddItemModal from '@/components/views/inventory/add-item-modal';
 import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
-import ReactMarkdown from 'react-markdown';
+import { MarkdownText } from '@/components/shared/markdown-text';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import { parseCardPassiveModifiers, type PassiveModifier, type ModifierCondition } from '@/lib/card-parser';
@@ -630,10 +630,10 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
           {isFull && (
             <>
               {data?.description || data?.text ? (
-                <div className="prose prose-invert text-gray-300 text-center">
-                  <ReactMarkdown>
+                <div className="text-gray-300 text-center">
+                  <MarkdownText>
                     {data.description || data.text}
-                  </ReactMarkdown>
+                  </MarkdownText>
                 </div>
               ) : (
                 <p className="italic text-gray-500 text-center">No description available.</p>

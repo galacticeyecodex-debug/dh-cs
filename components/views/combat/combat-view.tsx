@@ -14,6 +14,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { MarkdownText } from '@/components/shared/markdown-text';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { Shield, Swords, Crosshair, Eye, EyeOff, Wand2, Moon, Dna } from 'lucide-react';
 import { dataService } from '@/lib/data-service';
@@ -238,12 +239,12 @@ export default function CombatView() {
                 {armor.library_item?.data && (
                   <div className="text-xs text-gray-400 mt-1">
                     {armor.library_item.data.feature?.name && (
-                      <p className="italic">
+                      <div className="italic">
                         <span className="font-bold not-italic text-gray-300">{armor.library_item.data.feature.name}:</span>{' '}
-                        {armor.library_item.data.feature.text?.split('**').map((part: string, j: number) =>
-                          j % 2 === 1 ? <strong key={j} className="text-white not-italic">{part}</strong> : part
-                        )}
-                      </p>
+                        <div className="inline-block align-top">
+                          <MarkdownText>{armor.library_item.data.feature.text}</MarkdownText>
+                        </div>
+                      </div>
                     )}
                     <p className="mt-1">Score: {armor.library_item.data.base_score}, Thresholds: {armor.library_item.data.base_thresholds}</p>
                   </div>
