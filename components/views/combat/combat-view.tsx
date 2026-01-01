@@ -521,6 +521,11 @@ export default function CombatView() {
                 subclass: 'bg-indigo-500/20 text-indigo-400',
               };
 
+              // Determine if this feature needs an Attack button based on combat_category
+              // damage_bonus and passive_triggered features don't need Attack buttons
+              const combatCategory = attack?.combat_category || 'passive_triggered';
+              const showAttackButton = combatCategory === 'standalone_attack' || combatCategory === 'roll_only';
+
               return (
                 <AttackCard
                   key={`${feature.source}-${feature.name}`}
@@ -534,7 +539,7 @@ export default function CombatView() {
                   attackModifier={attackModifier}
                   damageModifier={damageModifier}
                   proficiency={totalProficiency}
-                  onAttackRoll={() => prepareRoll(`${feature.name} (${trait})`, totalAttackBonus)}
+                  onAttackRoll={showAttackButton ? () => prepareRoll(`${feature.name} (${trait})`, totalAttackBonus) : undefined}
                   onDamageRoll={baseDamage ? () => {
                     const { dice, modifier } = parseDamageRoll(calculatedDamage!);
                     const totalDamageBonus = modifier + damageModifier;
@@ -549,6 +554,7 @@ export default function CombatView() {
                     label: feature.source,
                     className: sourceColors[feature.sourceType]
                   }]}
+                  rollLabel={combatCategory === 'damage_bonus' ? undefined : (combatCategory === 'roll_only' ? 'Roll' : 'Attack')}
                 />
               );
             })}
@@ -638,8 +644,12 @@ export default function CombatView() {
               // Determine border variant
               const borderVariant = ability.action_type === 'reaction' ? 'reaction' : 'spell';
 
+              // Determine combat category for button visibility
+              const combatCategory = ability.attack?.combat_category || 'passive_triggered';
+              const showAttackButton = combatCategory === 'standalone_attack' || combatCategory === 'roll_only';
+
               // Prepare callbacks
-              const handleAttackRoll = rollLabel ? () => {
+              const handleAttackRoll = (rollLabel && showAttackButton) ? () => {
                 prepareRoll(`${ability.name} ${rollLabel} Roll`, rollBonus);
               } : undefined;
 
@@ -668,8 +678,9 @@ export default function CombatView() {
                   badges={badges}
                   borderVariant={borderVariant}
                   actionType={ability.action_type}
-                  rollLabel={rollLabel}
+                  rollLabel={combatCategory === 'damage_bonus' ? undefined : (combatCategory === 'roll_only' ? 'Roll' : rollLabel)}
                   isUsed={isUsed}
+                  description={ability.text}
                   tokenTrack={ability.has_tokens ? (
                     <CardTokenTrack
                       cardName={ability.name}
