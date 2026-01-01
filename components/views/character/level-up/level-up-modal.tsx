@@ -52,11 +52,11 @@ import { RangerCompanion } from '@/types/character';
 import { calculateTierAchievements, calculateNewDamageThresholds, getTier, getMaxCardLevelForDomain, getClassDomains } from '@/lib/level-up-helpers';
 import { validateNewLevel, validateAdvancementSelections } from '@/lib/level-up-validation';
 import { getCardLevel, getCardDescription, getCardType, isCardInDomain, isCardAvailableAtLevel } from '@/lib/card-helpers';
-import MulticlassSelection from '../../level-up/multiclass-selection';
-import DomainExchange from '../../level-up/domain-exchange';
-import TraitSelection from '../../level-up/trait-selection';
-import ExperienceSelection from '../../level-up/experience-selection';
-import VitalSlotSelection from '../../level-up/vital-slot-selection';
+import MulticlassSelection from './multiclass-selection';
+import DomainExchange from './domain-exchange';
+import TraitSelection from './trait-selection';
+import ExperienceSelection from './experience-selection';
+import VitalSlotSelection from './vital-slot-selection';
 import { Character } from '@/store/character-store';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 
@@ -1069,10 +1069,10 @@ export default function LevelUpModal({
                             onClick={() => setSelectedCompanionTraining(isSelected ? '' : option.key)}
                             disabled={!!isMaxed}
                             className={`w-full text-left p-4 rounded-lg border transition-all ${isSelected
-                                ? `${colors.bg} ${colors.border} border-2`
-                                : isMaxed
-                                  ? 'bg-black/20 border-white/5 opacity-50 cursor-not-allowed'
-                                  : 'bg-black/20 border-white/10 hover:border-white/30'
+                              ? `${colors.bg} ${colors.border} border-2`
+                              : isMaxed
+                                ? 'bg-black/20 border-white/5 opacity-50 cursor-not-allowed'
+                                : 'bg-black/20 border-white/10 hover:border-white/30'
                               }`}
                           >
                             <div className="flex items-start justify-between gap-3">
