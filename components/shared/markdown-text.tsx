@@ -20,9 +20,9 @@ export function MarkdownText({ children, className }: MarkdownTextProps) {
           // Paragraphs: allow them to inherit color/size, add spacing
           p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
           
-          // Bold: Use Daggerheart gold or white depending on context, generally bold white
-          // In this app, bold often indicates keywords.
-          strong: ({ children }) => <strong className="font-bold text-white">{children}</strong>,
+          // Bold: Inherit text color from parent, just add font-weight
+          // This allows it to work on both dark (combat cards) and light (domain cards) backgrounds
+          strong: ({ children }) => <strong className="font-bold">{children}</strong>,
           
           // Italic: Standard italic
           em: ({ children }) => <em className="italic">{children}</em>,
