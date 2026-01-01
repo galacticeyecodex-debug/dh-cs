@@ -108,5 +108,5 @@ export function getDomainTheme(domain?: string): DomainTheme {
   }
 
   const normalizedDomain = domain.toLowerCase();
-  return DOMAIN_COLORS[normalizedDomain] || DOMAIN_COLORS.arcana;
+  return DOMAIN_COLORS[normalizedDomain];
 }

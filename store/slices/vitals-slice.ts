@@ -11,7 +11,7 @@
 import { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
-import { Experience, RangerCompanion, SeraphPrayerDice } from '@/types/character';
+import { Experience, RangerCompanion, SeraphPrayerDice, BardRallyDice, GuardianUnstoppable, WizardStrangePatterns, DruidBeastform, RangerFocus } from '@/types/character';
 import { CharacterStore } from '@/types/store';
 
 export interface VitalsSlice {
@@ -23,6 +23,11 @@ export interface VitalsSlice {
   updateExperiences: (experiences: Experience[]) => Promise<void>;
   updateCompanion: (companion: RangerCompanion) => Promise<void>;
   updatePrayerDice: (prayerDice: SeraphPrayerDice) => Promise<void>;
+  updateBardRallyDice: (rallyDice: BardRallyDice) => Promise<void>;
+  updateGuardianUnstoppable: (unstoppable: GuardianUnstoppable) => Promise<void>;
+  updateWizardStrangePatterns: (patterns: WizardStrangePatterns) => Promise<void>;
+  updateDruidBeastform: (data: DruidBeastform) => Promise<void>;
+  updateRangerFocus: (data: RangerFocus) => Promise<void>;
 }
 
 export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice> = (set, get) => ({
@@ -229,6 +234,121 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
       },
       async () => dataService.character.update(characterId, { seraph_prayer_dice: prayerDice }),
       'Failed to update prayer dice'
+    );
+  },
+
+  updateBardRallyDice: async (rallyDice: BardRallyDice) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const prev = (get() as any).character!.bard_rally_dice;
+        set((s: any) => ({
+          character: s.character ? { ...s.character, bard_rally_dice: rallyDice } : null,
+        }));
+        return () => {
+          set((s: any) => ({
+            character: s.character ? { ...s.character, bard_rally_dice: prev } : null,
+          }));
+        };
+      },
+      async () => dataService.character.update(characterId, { bard_rally_dice: rallyDice }),
+      'Failed to update rally dice'
+    );
+  },
+
+  updateGuardianUnstoppable: async (unstoppable: GuardianUnstoppable) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const prev = (get() as any).character!.guardian_unstoppable;
+        set((s: any) => ({
+          character: s.character ? { ...s.character, guardian_unstoppable: unstoppable } : null,
+        }));
+        return () => {
+          set((s: any) => ({
+            character: s.character ? { ...s.character, guardian_unstoppable: prev } : null,
+          }));
+        };
+      },
+      async () => dataService.character.update(characterId, { guardian_unstoppable: unstoppable }),
+      'Failed to update unstoppable state'
+    );
+  },
+
+  updateWizardStrangePatterns: async (patterns: WizardStrangePatterns) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const prev = (get() as any).character!.wizard_strange_patterns;
+        set((s: any) => ({
+          character: s.character ? { ...s.character, wizard_strange_patterns: patterns } : null,
+        }));
+        return () => {
+          set((s: any) => ({
+            character: s.character ? { ...s.character, wizard_strange_patterns: prev } : null,
+          }));
+        };
+      },
+      async () => dataService.character.update(characterId, { wizard_strange_patterns: patterns }),
+      'Failed to update strange patterns'
+    );
+  },
+
+  updateDruidBeastform: async (data: DruidBeastform) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const prev = (get() as any).character!.druid_beastform;
+        set((s: any) => ({
+          character: s.character ? { ...s.character, druid_beastform: data } : null,
+        }));
+        return () => {
+          set((s: any) => ({
+            character: s.character ? { ...s.character, druid_beastform: prev } : null,
+          }));
+        };
+      },
+      async () => dataService.character.update(characterId, { druid_beastform: data }),
+      'Failed to update beastform'
+    );
+  },
+
+  updateRangerFocus: async (data: RangerFocus) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const prev = (get() as any).character!.ranger_focus;
+        set((s: any) => ({
+          character: s.character ? { ...s.character, ranger_focus: data } : null,
+        }));
+        return () => {
+          set((s: any) => ({
+            character: s.character ? { ...s.character, ranger_focus: prev } : null,
+          }));
+        };
+      },
+      async () => dataService.character.update(characterId, { ranger_focus: data }),
+      'Failed to update ranger focus'
     );
   },
 });
