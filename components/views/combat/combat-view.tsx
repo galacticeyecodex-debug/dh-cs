@@ -26,7 +26,7 @@ import { ErrorBoundary } from '@/components/core/error-boundary';
 import useContentAccess from '@/hooks/useContentAccess';
 
 import { AttackCard, MarkStressButton, SpendHopeButton, FrequencyCheckbox, CardTokenTrack } from './';
-import { hasCombatRelevance } from '@/lib/card-parser';
+import { hasCombatRelevance, enhanceFeature } from '@/lib/card-parser';
 import type { EnhancedAbilityCard, EnhancedAncestry, EnhancedCommunity, EnhancedFeature, Frequency } from '@/types/cards';
 
 export default function CombatView() {
@@ -42,7 +42,7 @@ export default function CombatView() {
   const [activeAbilityId, setActiveAbilityId] = useState<string | null>(null);
   const [transformationCard, setTransformationCard] = useState<any>(null);
   const [enhancedAbilities, setEnhancedAbilities] = useState<EnhancedAbilityCard[]>([]);
-  const [showHeritageFeatures, setShowHeritageFeatures] = useState(true);
+  const [showFeatures, setShowFeatures] = useState(true);
   const [ancestryData, setAncestryData] = useState<EnhancedAncestry | null>(null);
   const [communityData, setCommunityData] = useState<EnhancedCommunity | null>(null);
 
@@ -152,10 +152,11 @@ export default function CombatView() {
       .filter((ability): ability is EnhancedAbilityCard => ability !== null);
   }, [character?.character_cards, enhancedAbilities]);
 
-  // Filter combat-relevant ancestry and community features
-  const combatHeritageFeatures = useMemo(() => {
-    const features: Array<EnhancedFeature & { source: string; sourceType: 'ancestry' | 'community' }> = [];
+  // Filter combat-relevant ancestry, community, class, and subclass features
+  const combatFeatures = useMemo(() => {
+    const features: Array<EnhancedFeature & { source: string; sourceType: 'ancestry' | 'community' | 'class' | 'subclass' }> = [];
 
+    // Ancestry Features
     if (ancestryData?.feats) {
       ancestryData.feats
         .filter(feat => hasCombatRelevance(feat))
@@ -165,12 +166,15 @@ export default function CombatView() {
     } else if (character?.ancestry_features) {
       // Handle mixed ancestry or custom features stored on character
       character.ancestry_features
-        .filter((feat: any) => hasCombatRelevance(feat))
         .forEach((feat: any) => {
-          features.push({ ...feat, source: character.ancestry || 'Ancestry', sourceType: 'ancestry' });
+          const enhanced = enhanceFeature(feat);
+          if (hasCombatRelevance(enhanced)) {
+            features.push({ ...enhanced, source: character.ancestry || 'Ancestry', sourceType: 'ancestry' });
+          }
         });
     }
 
+    // Community Features
     if (communityData?.feats) {
       communityData.feats
         .filter(feat => hasCombatRelevance(feat))
@@ -179,8 +183,37 @@ export default function CombatView() {
         });
     }
 
+    // Class Features
+    if (character?.class_data?.data?.class_features) {
+      character.class_data.data.class_features.forEach((feat: any) => {
+        const enhanced = enhanceFeature(feat);
+        if (hasCombatRelevance(enhanced)) {
+          features.push({ ...enhanced, source: character.class_data?.name || 'Class', sourceType: 'class' });
+        }
+      });
+    }
+
+    // Subclass Features
+    if (character?.subclass_data?.data) {
+      const data = character.subclass_data.data;
+      const progression = character.subclass_progression;
+
+      const allSubclassFeats = [
+        ...(progression?.foundation_obtained ? (data.foundation_features || []) : []),
+        ...(progression?.specialization_obtained ? (data.specialization_features || []) : []),
+        ...(progression?.mastery_obtained ? (data.mastery_features || []) : []),
+      ];
+
+      allSubclassFeats.forEach((feat: any) => {
+        const enhanced = enhanceFeature(feat);
+        if (hasCombatRelevance(enhanced)) {
+          features.push({ ...enhanced, source: character.subclass_data?.name || 'Subclass', sourceType: 'subclass' });
+        }
+      });
+    }
+
     return features;
-  }, [ancestryData, communityData, character?.ancestry, character?.ancestry_features]);
+  }, [ancestryData, communityData, character?.ancestry, character?.ancestry_features, character?.class_data, character?.subclass_data, character?.subclass_progression]);
 
   if (!character) return null;
 
@@ -443,23 +476,23 @@ export default function CombatView() {
           </div>
         )}
 
-        {/* Heritage Features (Ancestry & Community) */}
-        {combatHeritageFeatures.length > 0 && (
+        {/* Traits & Features (Ancestry, Community, Class, Subclass) */}
+        {combatFeatures.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                <Dna size={14} /> Heritage Features
+                <Dna size={14} /> Traits & Features
               </h3>
               <button
-                onClick={() => setShowHeritageFeatures(!showHeritageFeatures)}
+                onClick={() => setShowFeatures(!showFeatures)}
                 className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
               >
-                {showHeritageFeatures ? <EyeOff size={14} /> : <Eye size={14} />}
-                {showHeritageFeatures ? 'Hide' : 'Show'}
+                {showFeatures ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showFeatures ? 'Hide' : 'Show'}
               </button>
             </div>
 
-            {showHeritageFeatures && combatHeritageFeatures.map((feature) => {
+            {showFeatures && combatFeatures.map((feature) => {
               const attack = feature.attack;
               const trait = attack?.trait || 'Instinct';
               const traitKey = trait.toLowerCase();
@@ -479,6 +512,14 @@ export default function CombatView() {
               // Calculate damage with proficiency
               const baseDamage = attack?.damage;
               const calculatedDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
+
+              // Color mapping for badges
+              const sourceColors = {
+                ancestry: 'bg-emerald-500/20 text-emerald-400',
+                community: 'bg-amber-500/20 text-amber-400',
+                class: 'bg-cyan-500/20 text-cyan-400',
+                subclass: 'bg-indigo-500/20 text-indigo-400',
+              };
 
               return (
                 <AttackCard
@@ -500,15 +541,13 @@ export default function CombatView() {
                     prepareRoll(`${feature.name} Damage`, totalDamageBonus, dice);
                   } : undefined}
                   onManageModifiers={() => setActiveWeaponId(`heritage-${feature.source}-${feature.name}`)}
-                  borderVariant={feature.sourceType === 'ancestry' ? 'ancestry' : 'community'}
-                  // description={feature.text} // descriptions make the 
+                  borderVariant={feature.sourceType}
+                  description={feature.text}
                   actionType={feature.action_type}
                   costs={feature.costs}
                   badges={[{
                     label: feature.source,
-                    className: feature.sourceType === 'ancestry'
-                      ? 'bg-emerald-500/20 text-emerald-400'
-                      : 'bg-amber-500/20 text-amber-400'
+                    className: sourceColors[feature.sourceType]
                   }]}
                 />
               );
@@ -691,7 +730,7 @@ export default function CombatView() {
           } else if (isHeritage) {
             // Find the matching heritage feature
             const heritageKey = activeWeaponId.replace('heritage-', '');
-            const heritageFeature = combatHeritageFeatures.find(
+            const heritageFeature = combatFeatures.find(
               f => `${f.source}-${f.name}` === heritageKey
             );
             if (heritageFeature) {
