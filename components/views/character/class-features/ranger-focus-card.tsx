@@ -1,6 +1,6 @@
 'use client';
 
-import ReactMarkdown from 'react-markdown';
+import { MarkdownText } from '@/components/shared/markdown-text';
 import React from 'react';
 import { Target, Info, X, Check } from 'lucide-react';
 import { RangerFocus } from '@/types/character';
@@ -66,16 +66,9 @@ export default function RangerFocusCard({
 
             {showInfo && (
                 <div className="mb-3 p-3 bg-white/5 rounded-lg border border-white/5 text-xs text-gray-400 space-y-1">
-                    <ReactMarkdown
-                        components={{
-                            strong: ({node, ...props}) => <strong className="text-white font-bold" {...props} />,
-                            p: ({node, ...props}) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />,
-                            ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props} />,
-                            li: ({node, ...props}) => <li className="pl-1" {...props} />,
-                        }}
-                    >
+                    <MarkdownText>
                         {description}
-                    </ReactMarkdown>
+                    </MarkdownText>
                 </div>
             )}
 
