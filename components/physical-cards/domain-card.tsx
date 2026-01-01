@@ -6,7 +6,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import ReactMarkdown from 'react-markdown';
+import { MarkdownText } from '@/components/shared/markdown-text';
 import { Sparkles, Swords } from 'lucide-react';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { CardBanner } from './card-banner';
@@ -192,7 +192,7 @@ export function DomainCard({
           }}
         >
           {description ? (
-            <ReactMarkdown>{description}</ReactMarkdown>
+            <MarkdownText>{description}</MarkdownText>
           ) : (
             <p className="italic text-gray-500">No description.</p>
           )}
