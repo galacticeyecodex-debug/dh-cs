@@ -27,6 +27,13 @@ export type TargetType = 'single' | 'all_in_range' | 'adjacent' | 'self' | 'ally
 // Damage types
 export type DamageType = 'physical' | 'magic';
 
+// Combat action categories - determines which buttons to show
+export type CombatCategory =
+  | 'standalone_attack'  // "Make a roll against..." - shows Attack + Damage buttons
+  | 'damage_bonus'       // "When you succeed on attack, add damage" - shows Damage button only
+  | 'roll_only'          // "Make a Roll (DC)" without damage - shows Roll button only
+  | 'passive_triggered'; // Triggered effect, no roll required - no attack/roll buttons
+
 // Range values from Daggerheart
 export type Range = 'Melee' | 'Very Close' | 'Close' | 'Far' | 'Very Far';
 
@@ -55,6 +62,7 @@ export interface CardAttack {
   damage_type?: DamageType;
   difficulty?: number; // Fixed DC if applicable
   secondary_effects?: string[];
+  combat_category?: CombatCategory; // Determines which buttons to show
 }
 
 /**
