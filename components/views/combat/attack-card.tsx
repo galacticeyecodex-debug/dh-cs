@@ -62,16 +62,16 @@ export interface AttackCardProps {
     icon?: React.ReactNode;
     /** Optional description text to show below badges */
     description?: string;
-    /** Optional additional badges to display */
+    /** Additional badges to display */
     badges?: Array<{
         label: string;
         className?: string;
     }>;
     /** Border variant for different card types */
-    borderVariant?: 'default' | 'companion' | 'ancestry' | 'community' | 'spell' | 'reaction';
-    /** Optional action type (reaction, action, etc.) */
+    borderVariant?: 'default' | 'companion' | 'ancestry' | 'community' | 'spell' | 'reaction' | 'class' | 'subclass';
+    /** Action type (reaction, action, etc.) */
     actionType?: string;
-    /** Optional costs for using this ability */
+    /** Costs for using this ability */
     costs?: AttackCardCosts;
     /** Optional callbacks for cost buttons */
     onMarkStress?: () => void;
@@ -127,6 +127,8 @@ const AttackCard = React.memo(function AttackCard({
         community: 'border-amber-500/30 hover:border-white/30',
         spell: 'border-purple-500/30 hover:border-purple-500/50',
         reaction: 'border-orange-500/30 hover:border-orange-500/50',
+        class: 'border-cyan-500/30 hover:border-white/30',
+        subclass: 'border-indigo-500/30 hover:border-white/30',
     };
 
     const bgClasses = {
@@ -136,6 +138,8 @@ const AttackCard = React.memo(function AttackCard({
         community: '',
         spell: 'bg-purple-900/10',
         reaction: 'bg-orange-900/10',
+        class: 'bg-cyan-900/5',
+        subclass: 'bg-indigo-900/5',
     };
 
     // Check if we have damage to display
