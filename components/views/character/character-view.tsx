@@ -27,6 +27,11 @@ import AdvancementHistory from './advancement-history';
 import SubclassFeatureCard from './subclass-feature-card';
 import CompanionSheet from './subclass-features/beastbound-companion-sheet';
 import PrayerDiceCard from './class-features/prayer-dice-card';
+import RallyDiceCard from './class-features/rally-dice-card';
+import UnstoppableCard from './class-features/unstoppable-card';
+import StrangePatternsCard from './class-features/strange-patterns-card';
+import BeastformCard from './class-features/beastform-card';
+import RangerFocusCard from './class-features/ranger-focus-card';
 import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap, Info, Sparkles, PawPrint } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/storage-service';
@@ -38,7 +43,7 @@ import useContentAccess from '@/hooks/useContentAccess';
 
 export default function CharacterView() {
   const router = useRouter();
-  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice } = useCharacterStore();
+  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice, updateBardRallyDice, updateGuardianUnstoppable, updateWizardStrangePatterns, updateDruidBeastform, updateRangerFocus } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
@@ -748,6 +753,74 @@ export default function CharacterView() {
 
                       {/* Core Class Features */}
                       {character.class_data.data.class_features?.map((feature: any, idx: number) => {
+                        // Special handling for Bard Rally
+                        if (feature.name === 'Rally') {
+                          return (
+                            <div key={idx} className="mt-2">
+                              <RallyDiceCard
+                                rallyDice={character.bard_rally_dice}
+                                characterLevel={character.level}
+                                description={feature.text}
+                                onUpdateRallyDice={updateBardRallyDice}
+                              />
+                            </div>
+                          );
+                        }
+
+                        // Special handling for Guardian Unstoppable
+                        if (feature.name === 'Unstoppable') {
+                          return (
+                            <div key={idx} className="mt-2">
+                              <UnstoppableCard
+                                unstoppable={character.guardian_unstoppable}
+                                characterLevel={character.level}
+                                description={feature.text}
+                                onUpdateUnstoppable={updateGuardianUnstoppable}
+                              />
+                            </div>
+                          );
+                        }
+
+                        // Special handling for Wizard Strange Patterns
+                        if (feature.name === 'Strange Patterns') {
+                          return (
+                            <div key={idx} className="mt-2">
+                              <StrangePatternsCard
+                                strangePatterns={character.wizard_strange_patterns}
+                                description={feature.text}
+                                onUpdateStrangePatterns={updateWizardStrangePatterns}
+                              />
+                            </div>
+                          );
+                        }
+
+                        // Special handling for Druid Beastform
+                        if (feature.name === 'Beastform') {
+                          return (
+                            <div key={idx} className="mt-2">
+                              <BeastformCard
+                                beastform={character.druid_beastform}
+                                characterLevel={character.level}
+                                onUpdateBeastform={updateDruidBeastform}
+                              />
+                            </div>
+                          );
+                        }
+
+                        // Special handling for Ranger Focus
+                        // Verify name matches SRD (Smart quote or regular quote)
+                        if (feature.name === 'Ranger’s Focus' || feature.name === "Ranger's Focus") {
+                          return (
+                            <div key={idx} className="mt-2">
+                              <RangerFocusCard
+                                rangerFocus={character.ranger_focus}
+                                description={feature.text}
+                                onUpdateRangerFocus={updateRangerFocus}
+                              />
+                            </div>
+                          );
+                        }
+
                         // Special handling for Prayer Dice - render interactive component
                         if (feature.name === 'Prayer Dice') {
                           const traitName = (character.spellcast_trait || character.subclass_data?.data?.spellcast_trait || '').toLowerCase();
@@ -759,6 +832,7 @@ export default function CharacterView() {
                                 prayerDice={character.seraph_prayer_dice}
                                 spellcastValue={spellcastValue}
                                 hasDevout={character.subclass_data?.name?.toLowerCase() === 'divine wielder' && character.subclass_progression?.specialization_obtained === true}
+                                description={feature.text}
                                 onUpdatePrayerDice={updatePrayerDice}
                               />
                             </div>
