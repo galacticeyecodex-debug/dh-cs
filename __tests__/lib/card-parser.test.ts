@@ -10,6 +10,7 @@ import {
   evaluateModifierCondition,
   calculateTier,
   getBareBonesBonuses,
+  parseCombatCategory,
   type PassiveModifier,
   type ModifierCondition
 } from '@/lib/card-parser';
@@ -426,5 +427,108 @@ describe('getBareBonesBonuses', () => {
     expect(bonuses[1].value).toBe(3); // Minor: tier 3
     expect(bonuses[2].value).toBe(6); // Major: tier 3 * 2
     expect(bonuses[3].value).toBe(9); // Severe: tier 3 * 3
+  });
+});
+
+describe('parseCombatCategory', () => {
+  describe('standalone_attack', () => {
+    it('should detect "Make a roll against" pattern', () => {
+      const text = 'Make a **Spellcast Roll** against a target within Close range.';
+      expect(parseCombatCategory(text)).toBe('standalone_attack');
+    });
+
+    it('should detect "Make an attack against" pattern', () => {
+      const text = 'Make an attack against all enemies within Melee range.';
+      expect(parseCombatCategory(text)).toBe('standalone_attack');
+    });
+
+    it('should detect "Make a Finesse roll against" for weapons', () => {
+      const text = 'Make a **Finesse Roll** against all enemies within Melee range of you, dealing d10 physical damage to each target.';
+      expect(parseCombatCategory(text)).toBe('standalone_attack');
+    });
+  });
+
+  describe('damage_bonus', () => {
+    it('should detect Rogue Sneak Attack pattern', () => {
+      const text = 'When you succeed on an attack while **Cloaked** or while an ally is within **Melee** range of your target, add a number of d6s equal to your proficiency to your damage roll.';
+      expect(parseCombatCategory(text)).toBe('damage_bonus');
+    });
+
+    it('should detect "on a success... add damage" pattern', () => {
+      const text = 'On a success, add 1d8 to the damage roll.';
+      expect(parseCombatCategory(text)).toBe('damage_bonus');
+    });
+
+    it('should detect "if you succeed... add to damage" pattern', () => {
+      const text = 'If you succeed on your attack roll, add 2d6 to the damage.';
+      expect(parseCombatCategory(text)).toBe('damage_bonus');
+    });
+
+    it('should detect "when you succeed... deal additional damage" pattern', () => {
+      const text = 'When you succeed on an attack, deal an additional 1d4 damage.';
+      expect(parseCombatCategory(text)).toBe('damage_bonus');
+    });
+
+    it('should detect Faun Kick pattern (on success + damage)', () => {
+      const text = 'When you succeed on an attack against an adversary, you can **mark a Stress** to kick them as part of the attack, dealing an additional 2d6 physical damage and moving them from **Close** to **Far** away.';
+      expect(parseCombatCategory(text)).toBe('damage_bonus');
+    });
+  });
+
+  describe('roll_only', () => {
+    it('should detect roll pattern without damage', () => {
+      const text = 'Make a **Knowledge Roll** (DC 15) to identify the creature.';
+      expect(parseCombatCategory(text)).toBe('roll_only');
+    });
+
+    it('should detect Presence roll for social checks', () => {
+      const text = 'Make a **Presence Roll** against the target to persuade them.';
+      // This has "against" so it would be standalone_attack
+      expect(parseCombatCategory(text)).toBe('standalone_attack');
+    });
+
+    it('should detect skill check pattern', () => {
+      const text = 'Make a **Spellcast Roll** to maintain concentration.';
+      expect(parseCombatCategory(text)).toBe('roll_only');
+    });
+  });
+
+  describe('passive_triggered', () => {
+    it('should return passive_triggered for conditional effects', () => {
+      const text = 'When an ally within Close range takes damage, you can mark a Stress to reduce that damage by your Armor Score.';
+      expect(parseCombatCategory(text)).toBe('passive_triggered');
+    });
+
+    it('should return passive_triggered for passive bonuses', () => {
+      const text = 'You gain a +1 bonus to your Evasion while wearing armor.';
+      expect(parseCombatCategory(text)).toBe('passive_triggered');
+    });
+
+    it('should return passive_triggered for reaction abilities without attacks', () => {
+      const text = 'As a reaction when you take damage, you may spend 2 Hope to halve the damage.';
+      expect(parseCombatCategory(text)).toBe('passive_triggered');
+    });
+
+    it('should return passive_triggered for empty text', () => {
+      expect(parseCombatCategory('')).toBe('passive_triggered');
+    });
+  });
+
+  describe('edge cases', () => {
+    it('should handle markdown formatting in text', () => {
+      const text = '**When you succeed on an attack**, add **1d8** to your damage roll.';
+      expect(parseCombatCategory(text)).toBe('damage_bonus');
+    });
+
+    it('should be case-insensitive', () => {
+      const text = 'MAKE A STRENGTH ROLL AGAINST the enemy.';
+      expect(parseCombatCategory(text)).toBe('standalone_attack');
+    });
+
+    it('should prioritize damage_bonus over standalone_attack', () => {
+      // This tests when both patterns could match - damage_bonus should take precedence
+      const text = 'When you succeed on an attack against an enemy, add 2d6 to your damage roll.';
+      expect(parseCombatCategory(text)).toBe('damage_bonus');
+    });
   });
 });

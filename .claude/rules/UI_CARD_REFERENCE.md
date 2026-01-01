@@ -474,7 +474,7 @@ All combat actions use the same base `AttackCard` component, which adapts its la
 ║                                                                               ║
 ║  ┌─────────────────────────────────────────────────────────────────────┐      ║
 ║  │  p-4  flex justify-between items-start relative                     │      ║
-║  │                                                                 ⚙️ │      ║
+║  │                                                            ℹ️ ⚙️    │      ║
 ║  │  [ICON] NAME                                            2d8+2       │      ║
 ║  │  font-serif font-bold text-white text-lg                text-xl     │      ║
 ║  │                                                         font-bold   │      ║
@@ -486,8 +486,16 @@ All combat actions use the same base `AttackCard` component, which adapts its la
 ║  │  │  400         │ │  400         │ │  400         │     text-gray-  │      ║
 ║  │  └──────────────┘ └──────────────┘ └──────────────┘     500         │      ║
 ║  │                                                         uppercase   │      ║
-║  │  [Optional Description Text - line-clamp-2]                         │      ║
-║  │  text-xs text-gray-400 mt-2                                         │      ║
+║  └─────────────────────────────────────────────────────────────────────┘      ║
+║                                                                               ║
+║  ┌─────────────────────────────────────────────────────────────────────┐      ║
+║  │  [Collapsible Description - only shown if info button clicked]      │      ║
+║  │  mx-4 mb-2 p-3 bg-white/5 rounded-lg border border-white/5          │      ║
+║  │                                                                     │      ║
+║  │  When you succeed on an attack while Cloaked or while an ally is    │      ║
+║  │  within Melee range of your target, add a number of d6s...          │      ║
+║  │  text-sm text-gray-300                                              │      ║
+║  │  (MarkdownText rendered)                                            │      ║
 ║  └─────────────────────────────────────────────────────────────────────┘      ║
 ║                                                                               ║
 ║  ┌─────────────────────────────────────────────────────────────────────┐      ║
@@ -528,11 +536,15 @@ The `borderVariant` prop controls the theme of the card:
 
 ### AttackCard Modular Slots
 
-1.  **⚙️ Gear Button:** Shown if `onManageModifiers` is provided. Opens the modifier management sheet.
-2.  **Smart Cost Buttons:** Passed via `customActions`. These use `MarkStressButton` and `SpendHopeButton` which check affordability.
-3.  **Token Track:** Passed via `tokenTrack`. Displays interactive resource trackers (e.g., Flight tokens).
-4.  **Frequency:** Passed via `frequency`. Displays `FrequencyCheckbox` for once-per-rest/session abilities.
-5.  **Roll Buttons:** `Attack` and `Damage` buttons are relative flex-1 and include a small `🎲` dice icon in the top-right corner.
+1.  **ℹ️ Info Button:** Shown if `description` prop is provided. Toggles collapsible description section. Located just left of the gear button in the top-right corner.
+    - **Inactive state**: `text-gray-500 hover:text-gray-300`
+    - **Active state**: `text-dagger-gold` (when description is visible)
+    - **Icon size**: 12px
+2.  **⚙️ Gear Button:** Shown if `onManageModifiers` is provided. Opens the modifier management sheet.
+3.  **Smart Cost Buttons:** Passed via `customActions`. These use `MarkStressButton` and `SpendHopeButton` which check affordability.
+4.  **Token Track:** Passed via `tokenTrack`. Displays interactive resource trackers (e.g., Flight tokens).
+5.  **Frequency:** Passed via `frequency`. Displays `FrequencyCheckbox` for once-per-rest/session abilities.
+6.  **Roll Buttons:** `Attack` and `Damage` buttons are relative flex-1 and include a small `🎲` dice icon in the top-right corner.
 
 ---
 
