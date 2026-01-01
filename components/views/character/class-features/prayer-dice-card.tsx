@@ -13,6 +13,7 @@
  * - Clear all dice at session end
  */
 
+import ReactMarkdown from 'react-markdown';
 import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Dices, Info, RotateCcw, CheckCircle2, Circle } from 'lucide-react';
 import clsx from 'clsx';
@@ -24,6 +25,7 @@ interface PrayerDiceCardProps {
   prayerDice: SeraphPrayerDice | undefined;
   spellcastValue: number; // The character's Spellcast trait value (e.g., Strength)
   hasDevout: boolean; // Divine Wielder specialization feature
+  description: string;
   onUpdatePrayerDice: (dice: SeraphPrayerDice) => void;
 }
 
@@ -31,6 +33,7 @@ export default function PrayerDiceCard({
   prayerDice,
   spellcastValue,
   hasDevout,
+  description,
   onUpdatePrayerDice,
 }: PrayerDiceCardProps) {
   const [showInfo, setShowInfo] = useState(false);
@@ -152,16 +155,18 @@ export default function PrayerDiceCard({
       {/* Info Section (Collapsible) */}
       {showInfo && (
         <div className="mb-3 p-3 bg-white/5 rounded-lg border border-white/5">
-          <p className="text-xs text-gray-400 mb-2">
-            At the beginning of each session, roll a number of d4s equal to your Spellcast trait.
-            You can spend any number of Prayer Dice to aid yourself or an ally within Far range.
-          </p>
-          <p className="text-xs font-bold text-white mb-1">Uses:</p>
-          <ul className="space-y-0.5 text-xs text-gray-400 ml-4">
-            <li>• Reduce incoming damage by die value</li>
-            <li>• Add die value to a roll (after rolling)</li>
-            <li>• Gain Hope equal to die value</li>
-          </ul>
+          <div className="text-xs text-gray-400">
+             <ReactMarkdown
+                components={{
+                    strong: ({node, ...props}) => <strong className="text-white font-bold" {...props} />,
+                    p: ({node, ...props}) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />,
+                    ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props} />,
+                    li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                }}
+            >
+                {description}
+            </ReactMarkdown>
+          </div>
           <p className="text-xs text-gray-500 mt-2">
             ⚠️ Clear all dice at the end of each session
           </p>

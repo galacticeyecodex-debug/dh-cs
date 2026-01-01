@@ -195,6 +195,21 @@ export interface Character {
   // Seraph Prayer Dice
   seraph_prayer_dice?: SeraphPrayerDice;
 
+  // Bard Rally Dice
+  bard_rally_dice?: BardRallyDice;
+
+  // Guardian Unstoppable
+  guardian_unstoppable?: GuardianUnstoppable;
+
+  // Wizard Strange Patterns
+  wizard_strange_patterns?: WizardStrangePatterns;
+
+  // Druid Beastform
+  druid_beastform?: DruidBeastform;
+
+  // Ranger Focus
+  ranger_focus?: RangerFocus;
+
   // Card State tracking (tokens, frequency usage)
   card_states?: Record<string, {
     current_tokens: number;
@@ -248,6 +263,44 @@ export interface RangerCompanion {
     bonded: boolean;
     aware: boolean;
   };
+}
+
+// Bard Rally Dice Types
+export interface RallyDie {
+  id: string;
+  value: number; // 1-6 or 1-8
+  used: boolean;
+}
+
+export interface BardRallyDice {
+  dice: RallyDie[];
+  die_size: 'd6' | 'd8'; // Increases at level 5
+  lastRolled?: string; // ISO timestamp
+}
+
+// Guardian Unstoppable Types
+export interface GuardianUnstoppable {
+  is_active: boolean; // "While Unstoppable"
+  current_value: number; // Current face of the die (or cumulative bonus?) "Add the current value... to your damage roll"
+  die_size: 'd4' | 'd6'; // Increases at level 5
+  start_value: 1; // Always starts at 1
+}
+
+// Wizard Strange Patterns Types
+export interface WizardStrangePatterns {
+  target_number: number; // 1-12
+}
+
+// Druid Beastform
+export interface DruidBeastform {
+  is_active: boolean;
+  active_form: string; // Name of the beastform
+}
+
+// Ranger Focus
+export interface RangerFocus {
+  is_active: boolean;
+  target_name?: string;
 }
 
 // Seraph Prayer Dice Types
