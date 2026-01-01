@@ -22,8 +22,8 @@
 import React from 'react';
 import { Target, Zap, MapPin, Skull } from 'lucide-react';
 import clsx from 'clsx';
-import MarkStressButton from './mark-stress-button';
-import SpendHopeButton from './spend-hope-button';
+import MarkStressButton from '../combat/mark-stress-button';
+import SpendHopeButton from '../combat/spend-hope-button';
 import FrequencyCheckbox from '@/components/views/playmat/frequency-checkbox';
 import CardTokenTrack from '@/components/views/playmat/card-token-track';
 import { useCharacterStore } from '@/store/character-store';
