@@ -17,7 +17,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, AlertCircle, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
-import ModifierBuilder from '@/components/modifiers/modifier-builder';
+import ModifierBuilder from '@/components/views/inventory/modifier-builder';
 import { Modifier } from '@/types/modifiers';
 
 export interface HomebrewItemData {
