@@ -20,6 +20,7 @@ import type {
   CardRoll,
   DamageType,
   EnhancedAbilityCard,
+  EnhancedFeature,
   Frequency,
   Range,
   TargetType,
@@ -854,6 +855,74 @@ export function enhanceAbilityCard(card: {
   // Add roll info
   if (roll) {
     enhanced.roll = roll;
+  }
+
+  return enhanced;
+}
+
+/**
+ * Enhance a generic feature (Ancestry, Community, Class, Subclass) with parsed metadata
+ */
+export function enhanceFeature(feature: {
+  name: string;
+  text: string;
+}): EnhancedFeature {
+  const text = feature.text;
+
+  // 1. Parse structured data
+  let attack = parseAttack(text);
+  const costs = parseCosts(text);
+  const frequency = parseFrequency(text);
+  const hasTokens = hasTokenMechanics(text);
+  const keywords = extractKeywords(text, 'Feature');
+
+  // Special handling for damage bonuses (e.g., Sneak Attack, Combat Training)
+  // If no attack detected but text mentions adding damage dice
+  if (!attack && (
+    (text.includes('add') || text.includes('deal')) &&
+    (text.includes('damage') || text.includes('damage roll'))
+  )) {
+    const damage = parseCardDamage(text);
+    if (damage) {
+      attack = {
+        trait: 'Bonus',
+        range: 'Melee',
+        damage: damage,
+        damage_type: parseCardDamageType(text)
+      };
+    }
+  }
+
+  // 2. Determine action type
+  let actionType = parseActionType(text, 'Ability', attack);
+
+  // If we forced an attack object for damage bonus, force action_type to attack
+  if (attack && actionType !== 'attack') {
+    actionType = 'attack';
+  }
+
+  const timing = parseTiming(text, actionType);
+
+  const enhanced: EnhancedFeature = {
+    name: feature.name,
+    text: feature.text,
+    action_type: actionType,
+    timing,
+    frequency,
+    costs,
+    keywords,
+  };
+
+  // Add token info if applicable
+  if (hasTokens) {
+    enhanced.has_tokens = true;
+    enhanced.max_tokens = parseMaxTokens(text);
+    enhanced.token_source = parseTokenSource(text);
+  }
+
+  // Add attack info if applicable
+  if (attack) {
+    enhanced.attack = attack;
   }
 
   return enhanced;
