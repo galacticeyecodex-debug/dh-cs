@@ -79,10 +79,22 @@ export interface CardRoll {
  * Stat modifier applied by a card
  */
 export interface CardModifier {
-  stat: string;
-  value: number;
-  condition?: string;
+  stat: string;           // Target stat: "agility", "evasion", "damage", etc.
+  value: number;          // Calculated numeric value
+  formula?: string;       // Dynamic formula if applicable: "half_agility", "3_plus_strength"
+  condition?: ModifierCondition; // Activation condition
+  source?: string;        // Card name (for debugging)
 }
+
+/**
+ * Condition types for modifier activation
+ */
+export type ModifierCondition =
+  | { type: 'always' }
+  | { type: 'when_armored' }
+  | { type: 'when_unarmored' }
+  | { type: 'loadout_domain_count'; domain: string; minCount: number }
+  | { type: 'environment'; requirement: string };
 
 /**
  * Threshold modifiers (for damage thresholds)
@@ -201,6 +213,13 @@ export interface FrequencyCheckboxProps {
   cardName: string;
   frequency: Frequency;
   onToggle?: (used: boolean) => void;
+  className?: string;
+}
+
+export interface ActiveEffectCheckboxProps {
+  cardName: string;
+  duration: string;
+  onToggle?: (active: boolean) => void;
   className?: string;
 }
 

@@ -17,6 +17,7 @@ import type {
   ActionType,
   CardAttack,
   CardCosts,
+  CardModifier,
   CardRoll,
   CombatCategory,
   DamageType,
@@ -191,6 +192,117 @@ export function parseCardPassiveModifiers(
 
   return modifiers;
 }
+
+/**
+ * Parse modifiers from card text without character context
+ * Used for pre-parsing modifiers into the enhanced JSON
+ */
+export function parseStaticModifiers(text: string, cardName: string): CardModifier[] {
+  const modifiers: CardModifier[] = [];
+
+  // Strip markdown formatting first
+  const cleanText = stripMarkdown(text);
+
+  // Parse condition context first
+  const condition = extractCondition(cleanText);
+
+  // Pattern 1: Static bonus/penalty - "+1 bonus to your Agility" or "-2 penalty to your Spellcast Rolls"
+  const staticMatches = Array.from(cleanText.matchAll(/([+\-]\d+)\s+(?:(?:bonus|penalty)\s+)?to\s+(?:your\s+)?([a-z\s]+?)(?:\s+rolls?)?(?:\.|,|\n|$|\s+(?:but|and|or|while|when))/gi));
+
+  for (const matchResult of staticMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const valueStr = match[1];
+    const statText = match[2];
+    if (!valueStr || !statText) continue;
+
+    const value = parseInt(valueStr); // Handles both +1 and -1
+    const stat = matchStatName(statText.trim());
+
+    if (stat) {
+      modifiers.push({
+        stat,
+        value,
+        condition,
+        source: cardName
+      });
+    }
+  }
+
+  // Pattern 2: Dynamic bonus - "equal to half your Agility"
+  const dynamicMatches = Array.from(cleanText.matchAll(/equal to\s+(?:(half)\s+)?(?:your\s+)?([a-z]+)/gi));
+
+  for (const matchResult of dynamicMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const isHalf = !!match[1];
+    const sourceStat = match[2]!.toLowerCase();
+
+    // Find what stat this bonus applies to (look backwards in the text)
+    const beforeText = cleanText.substring(0, match.index);
+    const targetStatMatch = beforeText.match(/to\s+(?:your\s+)?([a-z\s]+?)$/i);
+
+    if (targetStatMatch) {
+      const targetStat = matchStatName(targetStatMatch[1]!.trim());
+      if (targetStat) {
+        const formula = isHalf ? `half_${sourceStat}` : sourceStat;
+
+        modifiers.push({
+          stat: targetStat,
+          value: 0, // Will be calculated at runtime
+          formula,
+          condition,
+          source: cardName
+        });
+      }
+    }
+  }
+
+  // Pattern 3: Complex formula - "3 + your Strength" (for Bare Bones)
+  const complexMatches = Array.from(cleanText.matchAll(/(\d+)\s*\+\s*(?:your\s+)?([a-z]+)/gi));
+
+  for (const matchResult of complexMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const baseValue = parseInt(match[1]!);
+    const sourceStat = match[2]!.toLowerCase();
+
+    // Find target stat
+    const beforeText = cleanText.substring(0, match.index);
+    const targetStatMatch = beforeText.match(/to\s+(?:your\s+)?([a-z\s]+?)(?:\s+equal)?$/i);
+
+    if (targetStatMatch) {
+      const targetStat = matchStatName(targetStatMatch[1]!.trim());
+      if (targetStat) {
+        const formula = `${baseValue}_plus_${sourceStat}`;
+
+        modifiers.push({
+          stat: targetStat,
+          value: 0, // Will be calculated at runtime
+          formula,
+          condition,
+          source: cardName
+        });
+      }
+    }
+  }
+
+  // Pattern 4: Damage reduction - "reduce incoming damage by 1d8"
+  const reductionMatches = Array.from(cleanText.matchAll(/reduce(?:\s+(?:incoming|the))?\s+damage\s+by\s+(\d*d\d+(?:\+\d+)?)/gi));
+
+  for (const matchResult of reductionMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const diceNotation = match[1];
+
+    modifiers.push({
+      stat: 'damage_reduction',
+      value: 0, // Will be rolled at runtime
+      formula: diceNotation,
+      condition,
+      source: cardName
+    });
+  }
+
+  return modifiers;
+}
+
 
 /**
  * Extract condition from card description
@@ -372,8 +484,17 @@ export function getBareBonesBonuses(character: Character): PassiveModifier[] {
 /**
  * Parse stress cost from card text
  * Matches patterns like "mark a Stress", "mark 2 Stress", "**mark a Stress**"
+ * Excludes stress costs that are for replenishment (e.g., "mark a Stress to replenish")
  */
 export function parseStressCost(text: string): number {
+  // Strip markdown for pattern matching
+  const cleanText = stripMarkdown(text);
+
+  // Check if stress is for replenishment, not activation
+  if (/mark\s+(?:a\s+)?\d*\s*Stress\s+to\s+replenish/i.test(cleanText)) {
+    return 0; // This is a replenishment cost, not an activation cost
+  }
+
   // Match "mark X Stress" or "mark a Stress"
   const patterns = [
     /\*\*mark (\d+) Stress\*\*/i,
@@ -475,6 +596,25 @@ export function parseFrequency(text: string): Frequency {
 }
 
 /**
+ * Parse duration from card text
+ */
+export function parseDuration(text: string): 'scene' | 'rest' | 'until_triggered' | null {
+  const cleanText = stripMarkdown(text).toLowerCase();
+
+  if (cleanText.includes('until the end of the scene')) {
+    return 'scene';
+  }
+  if (cleanText.includes('until your next rest')) {
+    return 'rest';
+  }
+  if (cleanText.includes('until triggered')) {
+    return 'until_triggered';
+  }
+
+  return null;
+}
+
+/**
  * Parse range from card text
  */
 export function parseCardRange(text: string): Range | undefined {
@@ -504,30 +644,82 @@ export function parseCardRange(text: string): Range | undefined {
  * Parse the trait used for rolls from card text
  */
 export function parseRollTrait(text: string): string | undefined {
-  const traitPattern = /\*\*(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct) Roll\*\*/i;
+  // Match patterns like "**Spellcast Roll**" or "**Spellcast Roll (13)**"
+  const traitPattern = /\*\*(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct) Roll(?:\s*\(\d+\))?\*\*/i;
   const match = text.match(traitPattern);
-  return match ? match[1] : undefined;
+  if (match) return match[1];
+
+  // Also try without markdown for plain text
+  const plainPattern = /(?:make a|make an)\s+(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct)\s+Roll/i;
+  const plainMatch = text.match(plainPattern);
+  if (plainMatch) return plainMatch[1];
+
+  // Pattern for "reaction roll using your [Trait] trait"
+  // Need to strip markdown first to handle "**reaction roll** using your Spellcast trait"
+  const cleanText = stripMarkdown(text);
+  const usingTraitPattern = /(?:reaction\s+)?roll\s+using\s+(?:your\s+)?(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct)(?:\s+trait)?/i;
+  const usingMatch = cleanText.match(usingTraitPattern);
+  if (usingMatch) return usingMatch[1];
+
+  return undefined;
 }
 
 /**
  * Parse roll difficulty (DC) from card text
  */
 export function parseRollDifficulty(text: string): number | undefined {
+  // Strip markdown first to handle patterns like "**Spellcast Roll (15)**"
+  const cleanText = stripMarkdown(text);
+
   // Match patterns like "Spellcast Roll (15)" or "Roll (12)"
-  const dcPattern = /Roll\s*\((\d+)\)/i;
-  const match = text.match(dcPattern);
-  return match ? parseInt(match[1], 10) : undefined;
+  // Also matches "Reaction Roll (15)"
+  const dcPattern = /(?:Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct|Reaction)\s+Roll\s*\((\d+)\)/i;
+  const match = cleanText.match(dcPattern);
+  if (match) {
+    return parseInt(match[1], 10);
+  }
+
+  // Fallback: simpler pattern for "Roll (X)" without trait
+  const simplePattern = /Roll\s*\((\d+)\)/i;
+  const simpleMatch = cleanText.match(simplePattern);
+  return simpleMatch ? parseInt(simpleMatch[1], 10) : undefined;
 }
 
 /**
  * Parse damage from card text
- * Returns the first damage notation found
+ * Returns the first damage notation found that is associated with DEALING damage
+ * (not reducing damage, which is a defensive mechanic)
  */
 export function parseCardDamage(text: string): string | undefined {
-  // Match patterns like "d8", "1d8", "2d8+4", "d10+3"
-  const damagePattern = /(\d*d\d+(?:\+\d+)?)/i;
-  const match = text.match(damagePattern);
-  return match ? match[1] : undefined;
+  // Only match die rolls that are associated with dealing damage
+  // This prevents defensive abilities like "reduce damage by 1d8" from being classified as attacks
+  const damagePatterns = [
+    // "1d8 damage", "1d8 magic damage", "2d6+4 physical damage"
+    /(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
+    // "deal 1d8", "deal 2d6+3"
+    /deal\s+(\d*d\d+(?:\+\d+)?)/i,
+    // "dealing 1d8 damage"
+    /dealing\s+(\d*d\d+(?:\+\d+)?)/i,
+    // "take 1d8 damage" (enemies taking damage)
+    /take\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
+    // "takes 1d8 damage"
+    /takes\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
+    // "roll a number of d10s" (variable damage based on tokens/conditions)
+    /roll\s+(?:a\s+)?(?:number\s+of\s+)?(\*\*)?([d]\d+)s?\1?/i,
+  ];
+
+  for (const pattern of damagePatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      // For the variable damage pattern, extract the die type
+      if (pattern.source.includes('number')) {
+        return `${match[2]}`; // e.g., "d10" for variable number of d10s
+      }
+      return match[1];
+    }
+  }
+
+  return undefined;
 }
 
 /**
@@ -574,47 +766,85 @@ export function parseTargetType(text: string): TargetType | undefined {
 export function parseActionType(text: string, cardType: string, attack?: CardAttack, roll?: CardRoll): ActionType {
   const cleanText = stripMarkdown(text).toLowerCase();
 
-  // If we already parsed an attack, it's an attack
-  if (attack) return 'attack';
-
-  // Check for reaction patterns
-  if (
-    cleanText.includes('reaction roll') ||
-    cleanText.includes('when you would take damage') ||
-    cleanText.includes('when an attack') ||
-    cleanText.includes('when you are targeted')
-  ) {
+  // 1. Check for reaction patterns first (highest priority - defensive abilities)
+  // Note: "reaction roll" is complex - only treat as reaction if YOU are making it
+  const reactionPatterns = [
+    /\byou (?:can |must )?(?:make|making) a reaction roll\b/i,  // You make a reaction roll
+    /\bby making a reaction roll\b/i,  // "interrupt... by making a reaction roll"
+    /\bwhen you would take damage\b/i,
+    /\bwhen an attack made against you\b/i,
+    /\bwhen you are targeted\b/i,
+    /\bwhen you mark your last\b/i,
+    /\binstead of making a death move\b/i,
+    /\bwhen you would mark an armor slot\b/i,
+    /\bwhen a creature within\b/i,
+  ];
+  if (reactionPatterns.some(pattern => pattern.test(cleanText))) {
     return 'reaction';
   }
 
-  // If it's a roll against something but didn't qualify as 'attack' (no damage/range)
-  // it might still be an attack action
-  // BUT: exclude cases where "attack" appears in end-of-effect context (e.g., "make an attack, you are no longer Cloaked")
-  const hasAttackInitiation = cleanText.includes('make a') && (cleanText.includes('roll against') || cleanText.includes('attack'));
-  const isEndOfEffectContext = cleanText.includes('you are no longer') || cleanText.includes('this effect ends');
-
-  if (hasAttackInitiation && !isEndOfEffectContext) {
-    return 'attack';
-  }
-
-  // Check for downtime patterns
-  if (cleanText.includes('during a rest') || cleanText.includes('downtime')) {
+  // 2. Check for downtime patterns
+  if (
+    cleanText.includes('during a rest') ||
+    cleanText.includes('downtime move') ||
+    cleanText.includes('as an additional downtime') ||
+    cleanText.includes('as a downtime move')
+  ) {
     return 'downtime';
   }
 
-  // Check for buff patterns
+  // 3. Check if this is an ATTACK (player initiates combat action)
+  // An attack needs: "make a Roll against" OR parsed attack data
+  const hasRollAgainst = /make (?:a |an )?\*?\*?(?:\w+\s+)?roll\*?\*? against/i.test(text);
+  const hasAttackWith = /make (?:a |an )?attack with/i.test(cleanText);
+  const hasExplicitAttack = /(?:spend|mark).*?to make (?:a |an )?attack/i.test(cleanText);
+
+  // But exclude "when you make a successful attack" (that's a trigger, not initiation)
+  const isAttackTrigger = /when you (?:make a success|succeed|critically succeed|fail)/i.test(cleanText);
+
+  if ((attack || hasRollAgainst || hasAttackWith || hasExplicitAttack) && !isAttackTrigger) {
+    return 'attack';
+  }
+
+  // 4. Check for passive abilities (triggered by conditions, not actively used)
+  const passiveTriggers = [
+    /^when you (?:roll|deal|succeed|critically|fail)/i,
+    /^when you make a successful/i,
+    /^while you(?:'re| are)/i,
+    /^you have advantage/i,
+    /^you have a base/i,
+    /^gain a \+?\d+ bonus to/i,
+    /^when an ally/i,
+  ];
+
+  if (passiveTriggers.some(pattern => pattern.test(cleanText))) {
+    // Check if it's a triggered buff (healing, rerolls)
+    if (cleanText.includes('clear a hit point') || cleanText.includes('clear a stress') ||
+      cleanText.includes('clear 2') || cleanText.includes('clear 3') ||
+      cleanText.includes('can reroll') || cleanText.includes('gain hope') ||
+      cleanText.includes('gain a hope')) {
+      return 'buff';
+    }
+    return 'passive';
+  }
+
+  // 5. Check for buff patterns (healing, support, granting bonuses to self/allies)
   if (
     cleanText.includes('gain a bonus') ||
     cleanText.includes('gain advantage') ||
     cleanText.includes('clear a stress') ||
-    cleanText.includes('clear a hit point')
+    cleanText.includes('clear a hit point') ||
+    cleanText.includes('clear 2 hit points') ||
+    cleanText.includes('lay your hands upon') ||
+    cleanText.includes('healing magic') ||
+    cleanText.includes('close their wounds')
   ) {
     return 'buff';
   }
 
-  // Default based on card type
+  // 6. Default based on card type
   if (cardType === 'Spell') {
-    return 'utility'; // Non-combat spells are utility
+    return 'utility';
   }
 
   return 'passive';
@@ -624,6 +854,36 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
  * Determine timing from action type and text
  */
 export function parseTiming(text: string, actionType: ActionType): Timing {
+  const cleanText = stripMarkdown(text).toLowerCase();
+
+  // Check for reactive/defensive patterns in text (overrides action_type)
+  // These indicate the ability is used in response to something, not proactively on your turn
+  const reactionPatterns = [
+    /\bwhen you would take\b/,
+    /\bwhen you would mark\b/,
+    /\breduce incoming damage\b/,
+    /\bwhen an attack\b/,
+    /\bwhen you(?:'re| are) targeted\b/,
+    /\bwhen (?:a|an) (?:creature|adversary|enemy) (?:attacks|targets|damages)\b/,
+    /\binterrupt\b/,
+    // Ally protection patterns
+    /\bwhen an ally(?:\s+within\b|\s+would\b)/,
+    // Death move / last HP patterns
+    /\bwhen you mark your last\b/,
+    /\binstead of making a death move\b/,
+    // Armor slot marking patterns
+    /\bwhen you(?:\s+would)?\s+mark an armor slot\b/,
+    // When ally deals damage (follow-up attack)
+    /\bwhen an ally(?:\s+within\b)?.*?deals damage\b/,
+  ];
+
+  for (const pattern of reactionPatterns) {
+    if (pattern.test(cleanText)) {
+      return 'reaction';
+    }
+  }
+
+  // Default based on action_type
   if (actionType === 'reaction') {
     return 'reaction';
   }
@@ -677,26 +937,51 @@ export function parseMaxTokens(text: string): number | null {
  * Parse token source trait from card text
  */
 export function parseTokenSource(text: string): string | undefined {
-  const traitPattern = /tokens? equal to (?:your )?(\w+)/i;
-  const match = text.match(traitPattern);
-  if (match) {
-    const trait = match[1].toLowerCase();
-    // Map common variations
-    const traitMap: Record<string, string> = {
-      'agility': 'agility',
-      'strength': 'strength',
-      'finesse': 'finesse',
-      'presence': 'presence',
-      'knowledge': 'knowledge',
-      'instinct': 'instinct',
-      'spellcast': 'spellcast',
-      'proficiency': 'proficiency',
-      'level': 'level',
-      'tier': 'tier',
-    };
-    return traitMap[trait] || trait;
+  const cleanText = stripMarkdown(text).toLowerCase();
+
+  // Pattern 1: "tokens equal to your [trait]" or "tokens equal to [trait]"
+  const pattern1 = /tokens?(?:\s+on\s+this\s+card)?\s+equal\s+to\s+(?:your\s+)?(\w+)/i;
+  const match1 = cleanText.match(pattern1);
+  if (match1) {
+    return normalizeTokenSourceTrait(match1[1]);
   }
+
+  // Pattern 2: "a number of tokens equal to your [trait]"
+  const pattern2 = /(?:a\s+)?number\s+of\s+tokens?\s+equal\s+to\s+(?:your\s+)?(\w+)/i;
+  const match2 = cleanText.match(pattern2);
+  if (match2) {
+    return normalizeTokenSourceTrait(match2[1]);
+  }
+
+  // Pattern 3: "place tokens equal to..." or "place a number of tokens equal to..."
+  const pattern3 = /place\s+(?:a\s+number\s+of\s+)?tokens?\s+equal\s+to\s+(?:your\s+)?(\w+)/i;
+  const match3 = cleanText.match(pattern3);
+  if (match3) {
+    return normalizeTokenSourceTrait(match3[1]);
+  }
+
   return undefined;
+}
+
+/**
+ * Normalize token source trait names
+ */
+function normalizeTokenSourceTrait(trait: string): string {
+  const normalized = trait.toLowerCase();
+  // Map common variations
+  const traitMap: Record<string, string> = {
+    'agility': 'agility',
+    'strength': 'strength',
+    'finesse': 'finesse',
+    'presence': 'presence',
+    'knowledge': 'knowledge',
+    'instinct': 'instinct',
+    'spellcast': 'spellcast',
+    'proficiency': 'proficiency',
+    'level': 'level',
+    'tier': 'tier',
+  };
+  return traitMap[normalized] || normalized;
 }
 
 /**
@@ -706,43 +991,54 @@ export function extractKeywords(text: string, cardType: string): string[] {
   const keywords: string[] = [];
   const lowerText = text.toLowerCase();
 
-  // Damage-related
-  if (lowerText.includes('damage')) keywords.push('damage');
-  if (lowerText.includes('magic damage')) keywords.push('magic');
-  if (lowerText.includes('physical damage')) keywords.push('physical');
+  // Damage reduction (defensive)
+  if (/reduce(?:\s+(?:incoming|the))?\s+damage/.test(lowerText)) {
+    keywords.push('damage_reduction');
+  }
+
+  // Damage-related (offensive) - only for dealing damage, not reducing
+  if (/\bdamage\b/.test(lowerText)) {
+    // Exclude damage reduction patterns
+    if (!/reduce(?:\s+(?:incoming|the))?\s+damage/.test(lowerText)) {
+      keywords.push('damage');
+    }
+  }
+  if (/\bmagic\s+damage\b/.test(lowerText)) keywords.push('magic');
+  if (/\bphysical\s+damage\b/.test(lowerText)) keywords.push('physical');
 
   // AoE
-  if (lowerText.includes('all targets') || lowerText.includes('all adversaries')) {
+  if (/\ball\s+targets\b/.test(lowerText) || /\ball\s+adversaries\b/.test(lowerText)) {
     keywords.push('aoe');
   }
 
-  // Healing/Support
-  if (lowerText.includes('clear') && lowerText.includes('hit point')) {
+  // Healing/Support - require words to appear together as a phrase
+  if (/\bclear\b.*?\bhit\s+points?\b|\bhit\s+points?\b.*?\bclear\b/.test(lowerText)) {
     keywords.push('healing');
   }
-  if (lowerText.includes('clear') && lowerText.includes('stress')) {
+  if (/\bclear\b.*?\bstress\b|\bstress\b.*?\bclear\b/.test(lowerText)) {
     keywords.push('stress_relief');
   }
-  if (lowerText.includes('gain') && lowerText.includes('hope')) {
+  // Fix: "gain" must be a complete word (not part of "again")
+  if (/\bgain\b/.test(lowerText) && /\bhope\b/.test(lowerText)) {
     keywords.push('hope_gain');
   }
 
   // Costs
-  if (lowerText.includes('mark') && lowerText.includes('stress')) {
+  if (/\bmark\b/.test(lowerText) && /\bstress\b/.test(lowerText)) {
     keywords.push('stress_cost');
   }
-  if (lowerText.includes('spend') && lowerText.includes('hope')) {
+  if (/\bspend\b/.test(lowerText) && /\bhope\b/.test(lowerText)) {
     keywords.push('hope_cost');
   }
 
   // Control
-  if (lowerText.includes('vulnerable')) keywords.push('debuff');
-  if (lowerText.includes('restrained')) keywords.push('control');
-  if (lowerText.includes('advantage')) keywords.push('buff');
-  if (lowerText.includes('disadvantage')) keywords.push('debuff');
+  if (/\bvulnerable\b/.test(lowerText)) keywords.push('debuff');
+  if (/\brestrained\b/.test(lowerText)) keywords.push('control');
+  if (/\badvantage\b/.test(lowerText)) keywords.push('buff');
+  if (/\bdisadvantage\b/.test(lowerText)) keywords.push('debuff');
 
   // Movement
-  if (lowerText.includes('teleport') || lowerText.includes('move')) {
+  if (/\bteleport\b/.test(lowerText) || /\bmove\b/.test(lowerText)) {
     keywords.push('movement');
   }
 
@@ -761,14 +1057,21 @@ export function extractKeywords(text: string, cardType: string): string[] {
  */
 export function parseRoll(text: string): CardRoll | undefined {
   const trait = parseRollTrait(text);
-  if (!trait) return undefined;
-
   const difficulty = parseRollDifficulty(text);
-  const hasTargetReaction = text.toLowerCase().includes('reaction roll');
+
+  // Need at least a trait or difficulty to have a roll
+  if (!trait && !difficulty) return undefined;
+
+  const cleanText = text.toLowerCase();
+  // Target makes a reaction roll (forced save)
+  const hasTargetReaction =
+    cleanText.includes('reaction roll') ||
+    /must\s+(?:make|succeed)\s+(?:a|on)\s+.*?reaction/i.test(cleanText) ||
+    /(?:targets?|creatures?)\s+(?:who|that|must)\s+.*?reaction/i.test(cleanText);
 
   return {
-    type: `${trait} Roll`,
-    trait,
+    type: `${trait || 'Spellcast'} Roll`,
+    trait: trait || 'Spellcast',
     difficulty,
     target_reaction: hasTargetReaction,
   };
@@ -882,6 +1185,12 @@ export function enhanceAbilityCard(card: {
   type: string;
   recall: string;
   text: string;
+  // Optional overrides
+  action_type_override?: ActionType;
+  timing_override?: Timing;
+  frequency_override?: Frequency;
+  keywords_override?: string[];
+  costs_override?: CardCosts;
 }): EnhancedAbilityCard {
   const text = card.text;
   const cardType = card.type as 'Spell' | 'Ability';
@@ -889,14 +1198,25 @@ export function enhanceAbilityCard(card: {
   // 1. Parse structured data first
   const attack = parseAttack(text);
   const roll = parseRoll(text);
-  const costs = parseCosts(text);
-  const frequency = parseFrequency(text);
+  const costs = card.costs_override || parseCosts(text); // Override takes precedence
+  const frequency = card.frequency_override || parseFrequency(text);
   const hasTokens = hasTokenMechanics(text);
-  const keywords = extractKeywords(text, cardType);
+  const keywords = card.keywords_override || extractKeywords(text, cardType);
 
-  // 2. Determine action type based on parsed data
-  const actionType = parseActionType(text, cardType, attack, roll);
-  const timing = parseTiming(text, actionType);
+  // 2. Determine action type (with override)
+  const actionType = card.action_type_override || parseActionType(text, cardType, attack, roll);
+  const timing = card.timing_override || parseTiming(text, actionType);
+
+  // Log overrides for visibility
+  if (card.action_type_override || card.timing_override || card.frequency_override || card.keywords_override || card.costs_override) {
+    const overrides = [];
+    if (card.action_type_override) overrides.push(`action_type=${card.action_type_override}`);
+    if (card.timing_override) overrides.push(`timing=${card.timing_override}`);
+    if (card.frequency_override) overrides.push(`frequency=${card.frequency_override}`);
+    if (card.keywords_override) overrides.push(`keywords`);
+    if (card.costs_override) overrides.push(`costs`);
+    console.log(`  ⚠️  ${card.name}: Using overrides [${overrides.join(', ')}]`);
+  }
 
   const enhanced: EnhancedAbilityCard = {
     name: card.name,
@@ -911,6 +1231,12 @@ export function enhanceAbilityCard(card: {
     costs,
     keywords,
   };
+
+  // Parse and add passive modifiers
+  const modifiers = parseStaticModifiers(text, card.name);
+  if (modifiers.length > 0) {
+    enhanced.modifiers = modifiers;
+  }
 
   // Add token info if applicable
   if (hasTokens) {
@@ -927,6 +1253,12 @@ export function enhanceAbilityCard(card: {
   // Add roll info
   if (roll) {
     enhanced.roll = roll;
+  }
+
+  // Add duration
+  const duration = parseDuration(text);
+  if (duration) {
+    enhanced.duration = duration;
   }
 
   return enhanced;

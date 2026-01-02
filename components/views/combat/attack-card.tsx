@@ -274,7 +274,10 @@ const AttackCard = React.memo(function AttackCard({
                             <MarkStressButton
                                 cost={costs.stress}
                                 size="sm"
-                                onMark={() => setIsCostPaid(true)}
+                                onMark={() => {
+                                    setIsCostPaid(true);
+                                    onMarkStress?.();
+                                }}
                                 disabled={isCostPaid || isUsed}
                                 className={isCostPaid ? 'opacity-50' : ''}
                             />
@@ -283,7 +286,10 @@ const AttackCard = React.memo(function AttackCard({
                             <SpendHopeButton
                                 cost={costs.hope}
                                 size="sm"
-                                onSpend={() => setIsCostPaid(true)}
+                                onSpend={() => {
+                                    setIsCostPaid(true);
+                                    onSpendHope?.();
+                                }}
                                 disabled={isCostPaid || isUsed}
                                 className={isCostPaid ? 'opacity-50' : ''}
                             />

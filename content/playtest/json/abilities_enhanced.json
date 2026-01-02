@@ -72,8 +72,8 @@
     "type": "Spell",
     "recall": "1",
     "text": "When you deal damage to a creature, **mark a Stress** to sear a red, magical mark on them. Until this mark disappears, you always know the direction of the marked creature relative to you, and that creature marks a Stress each time it deals damage to you or an ally of yours within Very Close range of you. The mark disappears when you use this spell again.",
-    "action_type": "utility",
-    "timing": "action",
+    "action_type": "passive",
+    "timing": "free",
     "frequency": "at_will",
     "costs": {
       "stress": 1
@@ -130,7 +130,13 @@
     },
     "keywords": [
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 12,
+      "target_reaction": false
+    }
   },
   {
     "name": "Blood Puppet",
@@ -232,7 +238,17 @@
     "frequency": "at_will",
     "keywords": [
       "spell"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "combat_category": "passive_triggered"
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "target_reaction": true
+    }
   },
   {
     "name": "Parasite of the Will",
@@ -352,7 +368,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "When you make a successful attack roll against an adversary and cause them to mark 2 or more Hit Points, you can **spend a Hope** to clear a Hit Point or Stress.",
-    "action_type": "attack",
+    "action_type": "buff",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -474,7 +490,7 @@
     "recall": "1",
     "text": "When you would mark your last Hit Point, **spend a Hope** to **mark a Stress** instead.",
     "action_type": "passive",
-    "timing": "free",
+    "timing": "reaction",
     "frequency": "at_will",
     "costs": {
       "stress": 1,
@@ -597,7 +613,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "When an ally within Close range takes damage from a target you can see, you can make a **Spellcast Reaction Roll** against the target. On a success, **mark a Stress** to deal them **d6** magic damage using your Proficiency.",
-    "action_type": "reaction",
+    "action_type": "passive",
     "timing": "reaction",
     "frequency": "at_will",
     "costs": {
@@ -825,8 +841,8 @@
     "type": "Spell",
     "recall": "0",
     "text": "When you deal magic damage to a target, you can **mark a Stress** to immediately teleport into Melee range of them. When you do, they become Vulnerable until they mark one or more Hit Points.",
-    "action_type": "utility",
-    "timing": "action",
+    "action_type": "passive",
+    "timing": "free",
     "frequency": "at_will",
     "costs": {
       "stress": 1
@@ -865,8 +881,8 @@
     "type": "Spell",
     "recall": "2",
     "text": "Succeed on a **Spellcast Roll (13)** to create a visible wall of writhing, necrotic energy in a line between two points within Far range that lasts until you mark a Hit Point or cast this spell again. Any creatures inside the wall when it appears or who try to pass through the wall must **mark 2 Stress**, then make a **Reaction Roll (16)**. On a failure, they are temporarily Restrained by the wall.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "utility",
+    "timing": "action",
     "frequency": "at_will",
     "costs": {
       "stress": 2,
@@ -876,7 +892,13 @@
       "stress_cost",
       "control",
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 13,
+      "target_reaction": true
+    }
   },
   {
     "name": "Dark Army",
@@ -895,7 +917,13 @@
       "spell"
     ],
     "has_tokens": true,
-    "max_tokens": 8
+    "max_tokens": 8,
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 14,
+      "target_reaction": false
+    }
   },
   {
     "name": "Eldritch Flesh",
