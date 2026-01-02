@@ -1062,7 +1062,19 @@ export function parseRoll(text: string): CardRoll | undefined {
   // Need at least a trait or difficulty to have a roll
   if (!trait && !difficulty) return undefined;
 
-  const cleanText = text.toLowerCase();
+  // Check for negation patterns - if the text says "without making" or "don't make" a roll, don't extract it
+  const cleanText = stripMarkdown(text).toLowerCase();
+  const negationPatterns = [
+    /without\s+making\s+(?:a|an)\s+\w+\s+roll/i,
+    /don't\s+(?:make|need)\s+(?:a|an)\s+\w+\s+roll/i,
+    /doesn't\s+(?:make|need|require)\s+(?:a|an)\s+\w+\s+roll/i,
+    /no\s+\w+\s+roll/i,
+  ];
+
+  if (negationPatterns.some(pattern => pattern.test(cleanText))) {
+    return undefined;
+  }
+
   // Target makes a reaction roll (forced save)
   const hasTargetReaction =
     cleanText.includes('reaction roll') ||

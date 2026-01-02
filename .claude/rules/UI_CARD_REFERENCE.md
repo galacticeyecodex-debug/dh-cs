@@ -1325,7 +1325,7 @@ Wraps the visual Domain Card with interactive gameplay mechanics in a panel wrap
 ║  │  │  │  [Upload Options - if showImageOptions]             │    │    │      ║
 ║  │  │  │                                                     │    │    │      ║
 ║  │  │  │  ┌───────────────────────────────────────────────┐  │    │    │      ║
-║  │  │  │  │  📤 Artwork Background                        │  │    │    │      ║
+║  │  │  │  │  📤 Artwork Only                              │  │    │    │      ║
 ║  │  │  │  │  Upload character art or scene...             │  │    │    │      ║
 ║  │  │  │  │  bg-white/5 hover:bg-white/10                 │  │    │    │      ║
 ║  │  │  │  │  border border-white/20 rounded-lg p-3        │  │    │    │      ║
