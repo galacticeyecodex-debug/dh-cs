@@ -22,13 +22,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "d10",
       "damage_type": "magic",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -83,11 +85,7 @@
       "damage",
       "stress_cost",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Very Close"
-    }
+    ]
   },
   {
     "name": "Vitality Manipulation",
@@ -112,11 +110,13 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "standalone_attack",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -134,12 +134,7 @@
     },
     "keywords": [
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Very Close",
-      "difficulty": 12
-    }
+    ]
   },
   {
     "name": "Blood Puppet",
@@ -165,13 +160,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "d10",
       "damage_type": "physical",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -196,6 +193,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "3d8",
       "damage_type": "magic",
       "targets": "self",
@@ -204,7 +202,8 @@
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
-      "difficulty": 13
+      "difficulty": 13,
+      "target_reaction": false
     }
   },
   {
@@ -265,11 +264,13 @@
     ],
     "attack": {
       "trait": "Spellcast",
-      "range": "Very Far"
+      "range": "Very Far",
+      "combat_category": "standalone_attack"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -290,13 +291,7 @@
       "magic",
       "movement",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Very Close",
-      "targets": "self",
-      "damage_type": "magic"
-    }
+    ]
   },
   {
     "name": "Blood Bind",
@@ -322,13 +317,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "d10",
       "damage_type": "magic",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -386,12 +383,7 @@
       "hope_gain",
       "hope_cost",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Far",
-      "targets": "self"
-    }
+    ]
   },
   {
     "name": "Runic Adrenaline",
@@ -410,14 +402,16 @@
       "buff",
       "ability"
     ],
-    "roll": {
-      "type": "Finesse Roll",
-      "trait": "Finesse"
-    },
     "attack": {
       "trait": "Finesse",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "d8"
+    },
+    "roll": {
+      "type": "Finesse Roll",
+      "trait": "Finesse",
+      "target_reaction": false
     }
   },
   {
@@ -444,11 +438,13 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "standalone_attack",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -473,11 +469,13 @@
     ],
     "attack": {
       "trait": "Spellcast",
-      "range": "Far"
+      "range": "Far",
+      "combat_category": "standalone_attack"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -521,11 +519,13 @@
     ],
     "attack": {
       "trait": "Spellcast",
-      "range": "Close"
+      "range": "Close",
+      "combat_category": "standalone_attack"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -546,13 +546,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "d6+1",
       "damage_type": "magic",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -575,11 +577,13 @@
     ],
     "attack": {
       "trait": "Spellcast",
-      "range": "Close"
+      "range": "Close",
+      "combat_category": "standalone_attack"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -624,6 +628,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "standalone_attack",
       "damage": "d6",
       "damage_type": "magic",
       "targets": "single"
@@ -648,13 +653,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "passive_triggered",
       "damage": "d20",
       "damage_type": "magic",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -675,12 +682,14 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "1d4",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -696,12 +705,7 @@
     "keywords": [
       "healing",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Melee",
-      "targets": "self"
-    }
+    ]
   },
   {
     "name": "Chains of Affliction",
@@ -720,12 +724,7 @@
       "damage",
       "stress_cost",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close",
-      "targets": "single"
-    }
+    ]
   },
   {
     "name": "Summon Horror",
@@ -748,19 +747,20 @@
       "hope_cost",
       "spell"
     ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Far",
+      "combat_category": "standalone_attack",
+      "damage": "d10",
+      "damage_type": "magic",
+      "targets": "single",
+      "difficulty": 12
+    },
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "difficulty": 12,
       "target_reaction": true
-    },
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Far",
-      "damage": "d10",
-      "damage_type": "magic",
-      "targets": "single",
-      "difficulty": 12
     }
   },
   {
@@ -782,12 +782,7 @@
       "stress_cost",
       "movement",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close",
-      "damage_type": "physical"
-    }
+    ]
   },
   {
     "name": "Dire Strike",
@@ -828,19 +823,20 @@
       "hope_cost",
       "spell"
     ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "combat_category": "standalone_attack",
+      "damage": "d8+6",
+      "damage_type": "magic",
+      "targets": "all_in_range",
+      "difficulty": 14
+    },
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "difficulty": 14,
       "target_reaction": true
-    },
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close",
-      "damage": "d8+6",
-      "damage_type": "magic",
-      "targets": "all_in_range",
-      "difficulty": 14
     }
   },
   {
@@ -863,13 +859,7 @@
       "debuff",
       "movement",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Melee",
-      "targets": "single",
-      "damage_type": "magic"
-    }
+    ]
   },
   {
     "name": "Dread-Touched",
@@ -930,6 +920,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "damage_bonus",
       "damage": "1d8",
       "targets": "single",
       "difficulty": 14
@@ -980,13 +971,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "d20",
       "damage_type": "magic",
       "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -1051,6 +1044,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "1d6"
     }
   }
