@@ -27,6 +27,10 @@ describe('Abilities Schema Validation - Bone Domain', () => {
             const mod = enhanced.modifiers?.find(m => m.stat === 'attack');
             expect(mod?.value).toBe(1);
         });
+
+        it('should NOT have a roll (says "without making an Agility Roll")', () => {
+            expect(enhanced.roll).toBeUndefined();
+        });
     });
 
     describe('I See It Coming', () => {
