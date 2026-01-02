@@ -1007,11 +1007,6 @@
       "trait": "Agility",
       "range": "Far",
       "combat_category": "passive_triggered"
-    },
-    "roll": {
-      "type": "Agility Roll",
-      "trait": "Agility",
-      "target_reaction": false
     }
   },
   {

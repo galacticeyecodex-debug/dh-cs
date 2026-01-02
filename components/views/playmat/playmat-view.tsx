@@ -791,7 +791,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
                   <div className="flex items-start gap-3">
                     <Upload size={16} className="mt-0.5" style={{ color: theme.accent }} />
                     <div>
-                      <div className="font-bold text-sm">Artwork Background</div>
+                      <div className="font-bold text-sm">Artwork Only</div>
                       <div className="text-xs text-gray-400 mt-1">
                         Upload character art or scene. Text will display over the image with a gradient overlay.
                       </div>
