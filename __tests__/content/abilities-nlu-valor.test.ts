@@ -16,11 +16,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have no costs', () => {
-            expect(enhanced.costs).toBeUndefined();
+            expect(enhanced.enhancement.costs).toBeUndefined();
         });
     });
 
@@ -30,11 +30,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
     });
 
@@ -44,15 +44,15 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be timing reaction (when ally would take damage)', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
 
         it('should be action_type passive or reaction', () => {
-            expect(['passive', 'reaction']).toContain(enhanced.action_type);
+            expect(['passive', 'reaction']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -62,11 +62,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.action_type);
+            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
         });
 
         it('should have modifier for damage with formula strength', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'damage');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage');
             expect(mod?.formula).toBe('strength');
         });
     });
@@ -77,11 +77,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
     });
 
@@ -91,11 +91,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.action_type);
+            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -105,11 +105,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -119,15 +119,15 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have roll.trait = Presence', () => {
-            expect(enhanced.roll?.trait).toBe('Presence');
+            expect(enhanced.enhancement.roll?.trait).toBe('Presence');
         });
 
         it('should have attack.trait = Presence', () => {
-            expect(enhanced.attack?.trait).toBe('Presence');
+            expect(enhanced.enhancement.attack?.trait).toBe('Presence');
         });
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
     });
 
@@ -137,11 +137,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 2', () => {
-            expect(enhanced.costs?.hope).toBe(2);
+            expect(enhanced.enhancement.costs?.hope).toBe(2);
         });
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.action_type);
+            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -151,12 +151,12 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have modifier for armor_score +1', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'armor_score');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'armor_score');
             expect(mod?.value).toBe(1);
         });
 
         it('should be action_type downtime or passive', () => {
-            expect(['downtime', 'passive']).toContain(enhanced.action_type);
+            expect(['downtime', 'passive']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -166,11 +166,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBe('buff');
         });
     });
 
@@ -180,11 +180,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have no costs', () => {
-            expect(enhanced.costs).toBeUndefined();
+            expect(enhanced.enhancement.costs).toBeUndefined();
         });
     });
 
@@ -194,7 +194,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.action_type);
+            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -204,11 +204,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be timing reaction (when taking damage)', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
     });
 
@@ -218,11 +218,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have modifier for armor_score +1 with loadout condition', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'armor_score');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'armor_score');
             expect(mod?.value).toBe(1);
             expect(mod?.condition?.type).toBe('loadout_domain_count');
             expect(mod?.condition?.minCount).toBe(4);
@@ -235,15 +235,15 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have costs.stress = 3', () => {
-            expect(enhanced.costs?.stress).toBe(3);
+            expect(enhanced.enhancement.costs?.stress).toBe(3);
         });
 
         it('should have duration = rest', () => {
-            expect(enhanced.duration).toBe('rest');
+            expect(enhanced.enhancement.duration).toBe('rest');
         });
     });
 
@@ -253,19 +253,19 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 2', () => {
-            expect(enhanced.costs?.hope).toBe(2);
+            expect(enhanced.enhancement.costs?.hope).toBe(2);
         });
 
         it('should have roll.trait = Strength', () => {
-            expect(enhanced.roll?.trait).toBe('Strength');
+            expect(enhanced.enhancement.roll?.trait).toBe('Strength');
         });
 
         it('should have roll.target_reaction = true', () => {
-            expect(enhanced.roll?.target_reaction).toBe(true);
+            expect(enhanced.enhancement.roll?.target_reaction).toBe(true);
         });
 
         it('should have attack.targets = all_in_range', () => {
-            expect(enhanced.attack?.targets).toBe('all_in_range');
+            expect(enhanced.enhancement.attack?.targets).toBe('all_in_range');
         });
     });
 
@@ -275,11 +275,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.action_type);
+            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -289,7 +289,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
     });
 
@@ -299,7 +299,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be timing reaction (when marking last HP)', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
     });
 
@@ -309,11 +309,11 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be timing reaction (when marking armor slot)', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
 
         it('should be action_type passive or reaction', () => {
-            expect(['passive', 'reaction']).toContain(enhanced.action_type);
+            expect(['passive', 'reaction']).toContain(enhanced.enhancement.action_type);
         });
     });
 });

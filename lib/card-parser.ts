@@ -661,6 +661,16 @@ export function parseRollTrait(text: string): string | undefined {
   const usingMatch = cleanText.match(usingTraitPattern);
   if (usingMatch) return usingMatch[1];
 
+  // Pattern for weapon-based traits: "Instinct weapon", "Finesse Close weapon"
+  const weaponTraitPattern = /(?:as\s+(?:a|an)\s+)?(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct)\s+(?:\w+\s+)?weapon/i;
+  const weaponMatch = cleanText.match(weaponTraitPattern);
+  if (weaponMatch) return weaponMatch[1];
+
+  // Pattern for "treating it as an X weapon"
+  const treatAsPattern = /treating\s+it\s+as\s+(?:a|an)\s+(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct)\s+weapon/i;
+  const treatMatch = cleanText.match(treatAsPattern);
+  if (treatMatch) return treatMatch[1];
+
   return undefined;
 }
 
@@ -691,6 +701,9 @@ export function parseRollDifficulty(text: string): number | undefined {
  * (not reducing damage, which is a defensive mechanic)
  */
 export function parseCardDamage(text: string): string | undefined {
+  // Strip markdown for cleaner matching
+  const cleanText = stripMarkdown(text);
+
   // Only match die rolls that are associated with dealing damage
   // This prevents defensive abilities like "reduce damage by 1d8" from being classified as attacks
   const damagePatterns = [
@@ -700,16 +713,20 @@ export function parseCardDamage(text: string): string | undefined {
     /deal\s+(\d*d\d+(?:\+\d+)?)/i,
     // "dealing 1d8 damage"
     /dealing\s+(\d*d\d+(?:\+\d+)?)/i,
+    // "deals d8 damage" or "that deals d12 physical damage"
+    /deals\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
+    // "an extra 2d6 damage" or "extra 1d6 damage"
+    /extra\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
     // "take 1d8 damage" (enemies taking damage)
     /take\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
     // "takes 1d8 damage"
     /takes\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
     // "roll a number of d10s" (variable damage based on tokens/conditions)
-    /roll\s+(?:a\s+)?(?:number\s+of\s+)?(\*\*)?([d]\d+)s?\1?/i,
+    /roll\s+(?:a\s+)?(?:number\s+of\s+)?(\*\*)?(d\d+)s?\1?/i,
   ];
 
   for (const pattern of damagePatterns) {
-    const match = text.match(pattern);
+    const match = cleanText.match(pattern);
     if (match) {
       // For the variable damage pattern, extract the die type
       if (pattern.source.includes('number')) {
@@ -772,12 +789,59 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     /\byou (?:can |must )?(?:make|making) a reaction roll\b/i,  // You make a reaction roll
     /\bby making a reaction roll\b/i,  // "interrupt... by making a reaction roll"
     /\bwhen you would take damage\b/i,
+    /\bwhen you would take (?:minor|major|severe) damage\b/i,  // Threshold-specific damage
+    /\bwhen you take (?:minor|major|severe) damage\b/i,  // "when you take Minor damage"
     /\bwhen an attack made against you\b/i,
     /\bwhen you are targeted\b/i,
     /\bwhen you mark your last\b/i,
     /\binstead of making a death move\b/i,
     /\bwhen you would mark an armor slot\b/i,
     /\bwhen a creature within\b/i,
+    // Ally protection reactions
+    /\bwhen an ally (?:within|would|takes|marks)\b/i,
+    /\bwhen an ally.*?takes damage\b/i,
+    /\bwhen an ally.*?marks.*?hit point\b/i,
+    // Adversary attack reactions  
+    /\bafter an adversary makes an attack against you\b/i,
+    /\bwhen an adversary.*?attack(?:s)? (?:you|against)\b/i,
+    /\bwhen an adversary within.*?succeeds\b/i,
+    // Damage halving/reduction as reaction
+    /\bto halve incoming\b/i,
+    /\bhalve incoming (?:physical|magic|magical)? ?damage\b/i,
+    // Roll result reactions (fear/hope)
+    /\bwhen you roll with fear\b/i,
+    // Targeting reactions
+    /\bwhen.*?target(?:s|ed) you\b/i,
+    // Force adversary to reroll (reaction during their action)
+    /\bforce\s+(?:an?\s+)?adversary\s+to\s+reroll\b/i,
+    /\bforce\s+(?:the\s+)?attacker\s+to\b/i,
+    // Attack of opportunity style reactions
+    /\bif\s+(?:an?\s+)?adversary\s+(?:within|attempts)\b/i,
+    /\battempts?\s+to\s+leave\s+(?:that\s+)?(?:range|melee)\b/i,
+    // Physical damage trigger
+    /\bwhen you take physical damage\b/i,
+    // Damage-would-mark patterns
+    /\bwhen.*?damage\s+(?:from\s+)?(?:an?\s+)?attack\s+would\s+mark\b/i,
+    /\bwould\s+mark\s+(?:your\s+)?last\s+(?:hit\s+point|stress)\b/i,
+    // Armor slot reaction
+    /\bmark\s+(?:an\s+)?additional\s+armor\s+slot\s+to\s+reduce\b/i,
+    // Attack roll succeeds against you
+    /\bwhen\s+(?:an?\s+)?attack\s+roll\s+against\s+you\s+succeeds\b/i,
+    // GM gains Fear trigger
+    /\bwhen\s+(?:the\s+)?gm\s+gains\s+(?:a\s+)?fear\b/i,
+    // Ally roll failure trigger
+    /\bwhen\s+(?:you\s+or\s+)?(?:an?\s+)?ally.*?(?:rolls?|fails)\s+(?:a\s+)?failure\b/i,
+    /\brolls\s+a\s+failure\s+on\s+(?:an?\s+)?\*?\*?action\s+roll\b/i,
+    // Creature causes marking Hit Points (Hex-style)  
+    /\bwhen\s+(?:a\s+)?creature\s+causes\s+(?:you|an\s+ally).*?to\s+mark\b/i,
+    // When you mark Hit Points from attack
+    /\bwhen\s+you\s+mark\s+(?:one\s+or\s+)?more\s+(?:than\s+one\s+)?hit\s+points?\s+from\b/i,
+    /\bwhen\s+you\s+mark\s+more\s+than\s+one\s+(?:hit\s+point|hp)\s+from\b/i,
+    // Generic "when you mark" triggers (Wolf Form, etc.)
+    /\bwhen\s+you\s+mark\s+(?:one\s+or\s+more\s+)?hit\s+points?\b/i,
+    /\bwhen\s+you\s+\*?\*?mark\s+your\s+last\s+stress\b/i,
+    // "if you mark" HP from attack (Juggernaut style)
+    /\bif\s+you\s+mark\s+(?:more\s+than\s+)?(?:one\s+)?hit\s+points?\s+from\b/i,
   ];
   if (reactionPatterns.some(pattern => pattern.test(cleanText))) {
     return 'reaction';
@@ -786,6 +850,9 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
   // 2. Check for downtime patterns
   if (
     cleanText.includes('during a rest') ||
+    cleanText.includes('during a long rest') ||
+    cleanText.includes('when you finish a rest') ||
+    cleanText.includes('spend a downtime move') ||
     cleanText.includes('downtime move') ||
     cleanText.includes('as an additional downtime') ||
     cleanText.includes('as a downtime move')
@@ -806,7 +873,57 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     return 'attack';
   }
 
-  // 4. Check for passive abilities (triggered by conditions, not actively used)
+  // 4. Check for utility abilities (transformations, cantrips, illusions, communication, resource conversion)
+  const utilityPatterns = [
+    /\btransform\s+into\b/i,
+    /\bmagically\s+transform\b/i,
+    /\bcreate\s+(?:a\s+)?(?:minor\s+)?(?:visual\s+)?illusion\b/i,
+    /\bperform\s+harmless\b/i,
+    /\bsubtl[e]?\s+(?:magical\s+)?effects?\b/i,
+    /\bspeak\s+with\b/i,
+    /\bcommunicate\s+(?:across|with)\b/i,
+    /\bretract\s+into\s+your\s+shell\b/i,
+    /\bextract\s+(?:one\s+)?memory\b/i,
+    /\bplace\s+(?:a\s+)?domain\s+card\b/i,
+    // Teleportation / disappearing
+    /\bdisappear\s+from\s+where\s+you\s+are\b/i,
+    /\bdisappear\s+and\s+(?:then\s+)?reappear\b/i,
+    /\breappear\s+(?:inside|in|at|next\s+to)\b/i,
+    /\bslip\s+into\s+the\s+realm\b/i,
+    // Becoming cloaked/hidden
+    /\bbecome\s+cloaked\b/i,
+    /\bto\s+become\s+cloaked\b/i,
+    // Creating zones/effects
+    /\bcreate\s+(?:a\s+)?(?:temporary|dark)\b/i,
+    /\bcall\s+on\s+a\s+shady\s+contact\b/i,
+    // Item acquisition
+    /\breach\s+into\s+(?:this|your)\s+pack\b/i,
+    /\bpull\s+out\s+(?:a|an)\s+(?:mundane\s+)?item\b/i,
+    // Channel/incarnation
+    /\bchannel\s+one\s+of\b/i,
+    /\bprioritize\s+a[n]?\s+adversary\b/i,
+    // Glamour/disguise
+    /\bglamour\s+yourself\b/i,
+    /\bmagical\s+facade\b/i,
+    /\bdisguise\s+yourself\b/i,
+    // Spectral/spirit form transitions
+    /\bbody\s+becomes\s+spectral\b/i,
+    /\bshift\s+between\s+corporeal\s+and\s+incorporeal\b/i,
+    /\btransition\s+into\s+(?:and\s+out\s+of\s+)?(?:your\s+)?spirit\s+form\b/i,
+    // Commune with spirits
+    /\bcommune\s+with\s+(?:an?\s+)?(?:ancestor|deity|spirit|being)\b/i,
+    /\bconverse\s+with\s+(?:any\s+)?(?:nearby\s+)?spirits\b/i,
+    /\bstep\s+beyond\s+the\s+veil\b/i,
+    // Unbelievable feats (movement utility)
+    /\bperform\s+an\s+unbelievable\s+feat\b/i,
+    /\brunning\s+across\s+water\b/i,
+    /\bleaping\s+between\s+distant\b/i,
+  ];
+  if (utilityPatterns.some(pattern => pattern.test(cleanText))) {
+    return 'utility';
+  }
+
+  // 5. Check for passive abilities (triggered by conditions, not actively used)
   const passiveTriggers = [
     /^when you (?:roll|deal|succeed|critically|fail)/i,
     /^when you make a successful/i,
@@ -828,21 +945,41 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     return 'passive';
   }
 
-  // 5. Check for buff patterns (healing, support, granting bonuses to self/allies)
+  // 6. Check for buff patterns (healing, support, granting bonuses to self/allies)
   if (
     cleanText.includes('gain a bonus') ||
     cleanText.includes('gain advantage') ||
     cleanText.includes('clear a stress') ||
     cleanText.includes('clear a hit point') ||
     cleanText.includes('clear 2 hit points') ||
+    cleanText.includes('clear 2 armor slots') ||
     cleanText.includes('lay your hands upon') ||
     cleanText.includes('healing magic') ||
-    cleanText.includes('close their wounds')
+    cleanText.includes('close their wounds') ||
+    // Rally die / dice granting
+    /give\s+(?:yourself|each|all)\b.*?\bdie\b/i.test(cleanText) ||
+    /\brally\s+die\b/i.test(cleanText) ||
+    // Self-enhancement buffs
+    /\bbecome\s+unstoppable\b/i.test(cleanText) ||
+    /\broll\s+a\s+d20\s+as\s+your\s+hope\s+die\b/i.test(cleanText) ||
+    // Reroll abilities
+    /\breroll\s+(?:any\s+)?(?:number\s+of\s+)?(?:your\s+)?damage\s+dice\b/i.test(cleanText) ||
+    // Bonus to attack/damage rolls
+    /\b\+\d+\s+bonus\s+to\s+(?:your\s+)?(?:attack|damage)\s+rolls?\b/i.test(cleanText) ||
+    /\bgain\s+a\s+\+\d+\s+bonus\s+to\s+your\s+evasion\b/i.test(cleanText) ||
+    // Healing with dice
+    /\bclears?\s+(?:1d4|1d6|1d8)\s+hit\s+points?\b/i.test(cleanText) ||
+    /\bthat\s+creature\s+clears\b/i.test(cleanText) ||
+    // Weapon enchantment/enhancement
+    /\benchant\s+(?:one\s+of\s+)?(?:your\s+)?(?:active\s+)?weapons?\b/i.test(cleanText) ||
+    /\bextra\s+\*?\*?\d*d\d+\*?\*?\s+damage\s+when\s+you\s+hit\b/i.test(cleanText) ||
+    // Have advantage on all action rolls
+    /\bhave\s+advantage\s+on\s+all\s+\*?\*?action\s+rolls?\*?\*?\b/i.test(cleanText)
   ) {
     return 'buff';
   }
 
-  // 6. Default based on card type
+  // 7. Default based on card type
   if (cardType === 'Spell') {
     return 'utility';
   }
@@ -913,11 +1050,18 @@ export function hasTokenMechanics(text: string): boolean {
  * Returns null if tokens are dynamic (based on trait)
  */
 export function parseMaxTokens(text: string): number | null {
-  // Check for fixed token count
+  // Check for fixed token count - "place 8 tokens"
   const fixedPattern = /place (\d+) tokens?/i;
   const fixedMatch = text.match(fixedPattern);
   if (fixedMatch) {
     return parseInt(fixedMatch[1], 10);
+  }
+
+  // Check for "hold up to X tokens" or "up to X tokens at a time"
+  const holdPattern = /(?:hold\s+)?up\s+to\s+\*?\*?(\d+)\s+tokens?\*?\*?(?:\s+at\s+a\s+time)?/i;
+  const holdMatch = text.match(holdPattern);
+  if (holdMatch) {
+    return parseInt(holdMatch[1], 10);
   }
 
   // Check for "tokens equal to" pattern (dynamic)
@@ -995,6 +1139,10 @@ export function extractKeywords(text: string, cardType: string): string[] {
   if (/reduce(?:\s+(?:incoming|the))?\s+damage/.test(lowerText)) {
     keywords.push('damage_reduction');
   }
+  // Also catch "reduce the number of Hit Points they mark"
+  if (/reduce\s+(?:the\s+)?(?:number\s+of\s+)?hit\s+points\s+(?:they|you)\s+mark/.test(lowerText)) {
+    if (!keywords.includes('damage_reduction')) keywords.push('damage_reduction');
+  }
 
   // Damage-related (offensive) - only for dealing damage, not reducing
   if (/\bdamage\b/.test(lowerText)) {
@@ -1006,21 +1154,41 @@ export function extractKeywords(text: string, cardType: string): string[] {
   if (/\bmagic\s+damage\b/.test(lowerText)) keywords.push('magic');
   if (/\bphysical\s+damage\b/.test(lowerText)) keywords.push('physical');
 
-  // AoE
-  if (/\ball\s+targets\b/.test(lowerText) || /\ball\s+adversaries\b/.test(lowerText)) {
+  // AoE - expanded patterns
+  if (
+    /\ball\s+targets\b/.test(lowerText) ||
+    /\ball\s+adversaries\b/.test(lowerText) ||
+    /\ball\s+creatures\s+within\b/.test(lowerText) ||
+    /\beach\s+adversary\b/.test(lowerText) ||
+    /\beach\s+creature\s+within\b/.test(lowerText) ||
+    /\beach\s+target\s+within\b/.test(lowerText) ||
+    /\bto\s+all\s+creatures\b/.test(lowerText)
+  ) {
     keywords.push('aoe');
   }
 
-  // Healing/Support - require words to appear together as a phrase
+  // Healing/Support - multiple patterns to catch various phrasing
   if (/\bclear\b.*?\bhit\s+points?\b|\bhit\s+points?\b.*?\bclear\b/.test(lowerText)) {
+    keywords.push('healing');
+  }
+  // Also catch "clears X Hit Point" or "clear a Hit Point"
+  if (/\bclears?\s+(?:\d+\s+)?(?:a\s+)?hit\s+point/i.test(lowerText)) {
     keywords.push('healing');
   }
   if (/\bclear\b.*?\bstress\b|\bstress\b.*?\bclear\b/.test(lowerText)) {
     keywords.push('stress_relief');
   }
+  // Also catch "clears X Stress" or "clear a Stress"
+  if (/\bclears?\s+(?:\d+\s+)?(?:a\s+)?stress/i.test(lowerText)) {
+    keywords.push('stress_relief');
+  }
   // Fix: "gain" must be a complete word (not part of "again")
   if (/\bgain\b/.test(lowerText) && /\bhope\b/.test(lowerText)) {
     keywords.push('hope_gain');
+  }
+  // Catch "gains a Hope" for abilities that give party Hope
+  if (/\bgains?\s+(?:a\s+)?hope\b/i.test(lowerText)) {
+    if (!keywords.includes('hope_gain')) keywords.push('hope_gain');
   }
 
   // Costs
@@ -1037,9 +1205,19 @@ export function extractKeywords(text: string, cardType: string): string[] {
   if (/\badvantage\b/.test(lowerText)) keywords.push('buff');
   if (/\bdisadvantage\b/.test(lowerText)) keywords.push('debuff');
 
-  // Movement
+  // Movement - expanded patterns
   if (/\bteleport\b/.test(lowerText) || /\bmove\b/.test(lowerText)) {
     keywords.push('movement');
+  }
+  // Additional movement patterns: leap, fly, jump, reappear, hover
+  if (/\bleap\b|\bfly\b|\bjump\b|\breappear\b|\bhover\b/.test(lowerText)) {
+    if (!keywords.includes('movement')) keywords.push('movement');
+  }
+  // Forced movement: throw, pull, push
+  if (/\bthrow\s+(?:them|target|an?\s+adversary)\b/.test(lowerText) ||
+    /\bpull\s+(?:yourself|the\s+target|them)\b/.test(lowerText) ||
+    /\bpush\s+(?:them|target|an?\s+adversary)\b/.test(lowerText)) {
+    if (!keywords.includes('movement')) keywords.push('movement');
   }
 
   // Tokens
@@ -1160,13 +1338,31 @@ export function parseCombatCategory(text: string): CombatCategory {
  */
 export function parseAttack(text: string): CardAttack | undefined {
   const cleanText = stripMarkdown(text);
+  const lowerText = cleanText.toLowerCase();
   const trait = parseRollTrait(text);
   const range = parseCardRange(text);
   const damage = parseCardDamage(text);
-  const hasAgainst = cleanText.toLowerCase().includes('against');
+  const hasAgainst = lowerText.includes('against');
 
-  // Stricter check: An attack needs damage OR a trait roll against a target
-  if (!damage && !(trait && hasAgainst)) return undefined;
+  // Check for weapon-style descriptions
+  const isWeaponAbility = /(?:as\s+(?:a|an)\s+)?\w+\s+weapon\s+that\s+deals/i.test(cleanText) ||
+    /treating\s+it\s+as\s+(?:a|an)\s+\w+\s+weapon/i.test(cleanText) ||
+    /use\s+(?:it|your\s+\w+)\s+as\s+(?:a|an)\s+\w+\s+\w*\s*weapon/i.test(cleanText);
+
+  // Check for attack actions
+  const hasMakeRollTo = /make\s+(?:a|an)\s+\*?\*?\w+\s+roll\*?\*?\s+to/i.test(text);
+  const hasAttackTarget = /attack\s+(?:a\s+)?target/i.test(lowerText) ||
+    /scratch\s+a\s+target/i.test(lowerText) ||
+    /use\s+this\s+breath\s+against/i.test(lowerText);
+
+  // Requirements for parsing as an attack:
+  // 1. Has damage, OR
+  // 2. Has trait roll against target, OR
+  // 3. Is a weapon ability, OR
+  // 4. Make a roll to affect target
+  if (!damage && !(trait && hasAgainst) && !isWeaponAbility && !hasMakeRollTo && !hasAttackTarget) {
+    return undefined;
+  }
 
   const attack: CardAttack = {
     trait: trait || 'Spellcast',
@@ -1183,6 +1379,12 @@ export function parseAttack(text: string): CardAttack | undefined {
 
   const difficulty = parseRollDifficulty(text);
   if (difficulty) attack.difficulty = difficulty;
+
+  // Extract effect from ability text (e.g., "become vulnerable")
+  if (/\bvulnerable\b/i.test(lowerText)) {
+    attack.secondary_effects = attack.secondary_effects || [];
+    attack.secondary_effects.push('vulnerable');
+  }
 
   return attack;
 }
@@ -1237,40 +1439,77 @@ export function enhanceAbilityCard(card: {
     type: cardType,
     recall: card.recall,
     text: card.text,
-    action_type: actionType,
-    timing,
-    frequency,
-    costs,
-    keywords,
+    enhancement: {
+      action_type: actionType,
+      timing,
+      frequency,
+      costs,
+      keywords,
+    }
   };
 
   // Parse and add passive modifiers
   const modifiers = parseStaticModifiers(text, card.name);
   if (modifiers.length > 0) {
-    enhanced.modifiers = modifiers;
+    enhanced.enhancement.modifiers = modifiers;
   }
 
   // Add token info if applicable
   if (hasTokens) {
-    enhanced.has_tokens = true;
-    enhanced.max_tokens = parseMaxTokens(text);
-    enhanced.token_source = parseTokenSource(text);
+    enhanced.enhancement.has_tokens = true;
+    enhanced.enhancement.max_tokens = parseMaxTokens(text);
+    enhanced.enhancement.token_source = parseTokenSource(text);
+  }
+
+  // Add attack/roll info
+  if (attack) {
+    enhanced.enhancement.attack = attack;
+  }
+
+  if (roll) {
+    enhanced.enhancement.roll = roll;
+  }
+
+  const durationPatterns = [
+    { type: 'until_triggered', pattern: /until triggered/i },
+    { type: 'rest', pattern: /until (?:you )?(?:finish )?(?:a |your )?(?:next )?rest/i },
+    { type: 'long_rest', pattern: /until (?:you )?(?:finish a )?long rest/i },
+    { type: 'scene', pattern: /for the (?:rest of the )?scene/i },
+    { type: 'session', pattern: /for the (?:rest of the )?session/i },
+  ];
+
+  for (const { type, pattern } of durationPatterns) {
+    if (pattern.test(text)) {
+      enhanced.enhancement.duration = type;
+      break;
+    }
   }
 
   // Add attack info if applicable
   if (attack) {
-    enhanced.attack = attack;
+    enhanced.enhancement.attack = attack;
+  } else {
+    // Even without a full attack, extract range for effect range / ally range
+    const effectRange = parseCardRange(text);
+    if (effectRange) {
+      enhanced.enhancement.attack = {
+        trait: 'None',
+        range: effectRange,
+      };
+    }
   }
 
   // Add roll info
   if (roll) {
-    enhanced.roll = roll;
+    enhanced.enhancement.roll = roll;
   }
 
-  // Add duration
-  const duration = parseDuration(text);
-  if (duration) {
-    enhanced.duration = duration;
+  // Add duration (if not already found by previous patterns)
+  if (!enhanced.enhancement.duration) {
+    const duration = parseDuration(text);
+    if (duration) {
+      enhanced.enhancement.duration = duration;
+    }
   }
 
   return enhanced;

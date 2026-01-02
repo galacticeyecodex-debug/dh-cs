@@ -16,11 +16,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have modifier for evasion +1', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'evasion');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'evasion');
             expect(mod?.value).toBe(1);
         });
     });
@@ -31,11 +31,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should have roll.difficulty = 12', () => {
-            expect(enhanced.roll?.difficulty).toBe(12);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(12);
         });
     });
 
@@ -45,15 +45,15 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.damage_type = physical', () => {
-            expect(enhanced.attack?.damage_type).toBe('physical');
+            expect(enhanced.enhancement.attack?.damage_type).toBe('physical');
         });
     });
 
@@ -63,15 +63,15 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should have attack.targets = all_in_range', () => {
-            expect(enhanced.attack?.targets).toBe('all_in_range');
+            expect(enhanced.enhancement.attack?.targets).toBe('all_in_range');
         });
     });
 
@@ -81,11 +81,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should have duration = rest', () => {
-            expect(enhanced.duration).toBe('rest');
+            expect(enhanced.enhancement.duration).toBe('rest');
         });
     });
 
@@ -95,11 +95,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.damage_type = magic', () => {
-            expect(enhanced.attack?.damage_type).toBe('magic');
+            expect(enhanced.enhancement.attack?.damage_type).toBe('magic');
         });
     });
 
@@ -109,11 +109,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
     });
 
@@ -123,11 +123,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have roll.target_reaction = true', () => {
-            expect(enhanced.roll?.target_reaction).toBe(true);
+            expect(enhanced.enhancement.roll?.target_reaction).toBe(true);
         });
 
         it('should have roll.difficulty = 13', () => {
-            expect(enhanced.roll?.difficulty).toBe(13);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(13);
         });
     });
 
@@ -137,15 +137,15 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have costs.hope = 2', () => {
-            expect(enhanced.costs?.hope).toBe(2);
+            expect(enhanced.enhancement.costs?.hope).toBe(2);
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBe('buff');
         });
     });
 
@@ -155,19 +155,19 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should have token_source = spellcast', () => {
-            expect(enhanced.token_source).toBe('spellcast');
+            expect(enhanced.enhancement.token_source).toBe('spellcast');
         });
     });
 
@@ -177,15 +177,15 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 2', () => {
-            expect(enhanced.costs?.hope).toBe(2);
+            expect(enhanced.enhancement.costs?.hope).toBe(2);
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should have roll.difficulty = 13', () => {
-            expect(enhanced.roll?.difficulty).toBe(13);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(13);
         });
     });
 
@@ -195,11 +195,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
 
         it('should have modifier for damage +2', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'damage');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage');
             expect(mod?.value).toBe(2);
         });
     });
@@ -210,7 +210,7 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type downtime', () => {
-            expect(enhanced.action_type).toBe('downtime');
+            expect(enhanced.enhancement.action_type).toBe('downtime');
         });
     });
 
@@ -220,11 +220,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have modifier for spellcast +2 with loadout condition', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'spellcast');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'spellcast');
             expect(mod?.value).toBe(2);
             expect(mod?.condition?.type).toBe('loadout_domain_count');
             expect(mod?.condition?.minCount).toBe(4);
@@ -237,11 +237,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
     });
 
@@ -251,12 +251,12 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have modifier for attack +3', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'attack');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'attack');
             expect(mod?.value).toBe(3);
         });
 
         it('should have roll.difficulty = 13', () => {
-            expect(enhanced.roll?.difficulty).toBe(13);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(13);
         });
     });
 
@@ -266,11 +266,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have roll.difficulty = 15', () => {
-            expect(enhanced.roll?.difficulty).toBe(15);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(15);
         });
     });
 
@@ -280,11 +280,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -294,11 +294,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have roll.difficulty = 18', () => {
-            expect(enhanced.roll?.difficulty).toBe(18);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(18);
         });
     });
 
@@ -308,15 +308,15 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should have modifier for damage +10', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'damage');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage');
             expect(mod?.value).toBe(10);
         });
     });
@@ -327,15 +327,15 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.targets = all_in_range', () => {
-            expect(enhanced.attack?.targets).toBe('all_in_range');
+            expect(enhanced.enhancement.attack?.targets).toBe('all_in_range');
         });
 
         it('should have attack.damage_type = magic', () => {
-            expect(enhanced.attack?.damage_type).toBe('magic');
+            expect(enhanced.enhancement.attack?.damage_type).toBe('magic');
         });
     });
 });

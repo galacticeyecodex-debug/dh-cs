@@ -27,10 +27,18 @@ import { AttackCard, MarkStressButton, SpendHopeButton } from '@/components/view
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { EnhancedAbilityCard } from '@/types/cards';
 import { getSystemModifiers, calculateWeaponDamage, parseDamageRoll } from '@/lib/utils';
+import {
+  getEnhancement,
+  getAttack,
+  getRoll,
+  getCosts,
+  getActionType,
+  hasTokens as checkHasTokens
+} from '@/lib/enhancement-utils';
 
 interface PlaymatCardProps {
   card: CharacterCard;
-  enhancedData?: EnhancedAbilityCard;
+  enhancedData?: EnhancedAbilityCard; // Use generalized interface if needed
   onMoveLocation: (location: 'loadout' | 'vault') => void;
   onView: () => void;
   onEditArt?: () => void;
@@ -50,13 +58,20 @@ export default function PlaymatCard({
 
   if (!libraryItem) return null;
 
+  // --- Enhancement Data Extraction ---
+  const enhancement = enhancedData ? getEnhancement(enhancedData) : undefined;
+  const attack = enhancedData ? getAttack(enhancedData) : undefined;
+  const roll = enhancedData ? getRoll(enhancedData) : undefined;
+  const costs = enhancedData ? getCosts(enhancedData) : undefined;
+  const actionType = enhancedData ? getActionType(enhancedData) : 'passive';
+  const hasTokens = enhancedData ? checkHasTokens(enhancedData) : false;
+
   // --- Attack / Roll Calculation Logic (Similar to CombatView) ---
-  // If the card has an attack or roll, we prepare the data for AttackCard
-  const hasAttack = enhancedData?.attack || enhancedData?.roll;
+  const hasAttackOrRoll = !!(attack || roll);
 
   let attackCardNode = null;
 
-  if (character && hasAttack && enhancedData) {
+  if (character && hasAttackOrRoll && enhancedData && enhancement) {
     // 1. Calculate Proficiency
     const baseProficiency = character.proficiency || 1;
     const systemProfMods = getSystemModifiers(character, 'proficiency');
@@ -64,7 +79,7 @@ export default function PlaymatCard({
     const totalProficiency = Math.max(1, baseProficiency + [...systemProfMods, ...userProfMods].reduce((acc, mod) => acc + mod.value, 0));
 
     // 2. Calculate Spellcast/Trait Bonus
-    const rollTrait = enhancedData.roll?.trait || enhancedData.attack?.trait;
+    const rollTrait = roll?.trait || attack?.trait;
     let rollBonus = 0;
     let rollLabel = '';
 
@@ -100,7 +115,7 @@ export default function PlaymatCard({
     }
 
     // 3. Calculate Damage
-    const baseDamage = enhancedData.attack?.damage;
+    const baseDamage = attack?.damage;
     const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
 
     // 4. Render AttackCard (Mini Version)
@@ -108,9 +123,9 @@ export default function PlaymatCard({
       <div className="mt-2">
         <AttackCard
           id={`playmat-${card.id}`}
-          name={enhancedData.name} // Usually we might want simpler name or just "Attack"
+          name={enhancedData.name}
           trait={rollLabel || 'Roll'}
-          range={enhancedData.attack?.range || ''}
+          range={attack?.range || ''}
           baseDamage={baseDamage}
           calculatedDamage={finalDamage}
           totalAttackBonus={rollBonus}
@@ -122,23 +137,21 @@ export default function PlaymatCard({
             const { dice, modifier } = parseDamageRoll(finalDamage);
             prepareRoll(`${enhancedData.name} Damage`, modifier, dice);
           } : undefined}
-          borderVariant={enhancedData.action_type === 'reaction' ? 'reaction' : 'spell'}
-          // For playmat, we might want a simplified look? 
-          // AttackCard is already quite dense. Let's use it as is for consistency.
+          borderVariant={actionType === 'reaction' ? 'reaction' : 'spell'}
           rollLabel={rollLabel || 'Roll'}
-          costs={enhancedData.costs}
-          onSpendHope={() => character && updateHope(character.hope - (enhancedData.costs?.hope || 0))}
-          onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (enhancedData.costs?.stress || 0))}
+          costs={costs || undefined}
+          onSpendHope={() => character && updateHope(character.hope - (costs?.hope || 0))}
+          onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (costs?.stress || 0))}
         />
       </div>
     );
   }
 
   // --- Mechanics Tray Logic ---
-  const showTokenTrack = enhancedData?.has_tokens;
-  const showFrequency = enhancedData?.frequency && enhancedData.frequency !== 'at_will';
-  const showDuration = !!enhancedData?.duration;
-  const showMechanics = showTokenTrack || showFrequency || hasAttack || showDuration;
+  const showTokenTrack = hasTokens;
+  const showFrequency = enhancement?.frequency && enhancement.frequency !== 'at_will';
+  const showDuration = !!enhancement?.duration;
+  const showMechanics = showTokenTrack || showFrequency || hasAttackOrRoll || showDuration;
 
   const isLoadout = card.location === 'loadout';
 
@@ -161,9 +174,8 @@ export default function PlaymatCard({
           y: card.state?.custom_image_position_y ?? 0,
         }}
         size="thumbnail"
-        // variant="default" is implied
-        hasPassiveModifiers={!!(enhancedData?.modifiers && enhancedData.modifiers.length > 0)}
-        hasCombatAbility={!!hasAttack}
+        hasPassiveModifiers={!!(enhancement?.modifiers && enhancement.modifiers.length > 0)}
+        hasCombatAbility={!!hasAttackOrRoll}
       />
 
       {/* Modifiers Button (Top Right Overlay) */}
@@ -176,7 +188,6 @@ export default function PlaymatCard({
           className="absolute top-2 right-2 z-40 p-1.5 bg-black/50 hover:bg-black/80 text-white/70 hover:text-white rounded-full transition-colors backdrop-blur-sm border border-white/10"
           title="Change Card Art"
         >
-          {/* Future: This button may be used to manage card-specific modifiers (TBD) */}
           <Settings size={14} />
         </button>
       )}
@@ -189,31 +200,31 @@ export default function PlaymatCard({
         }}
       >
         {/* Token Track */}
-        {showTokenTrack && (
+        {showTokenTrack && enhancement && (
           <CardTokenTrack
             cardName={libraryItem.name}
-            maxTokens={enhancedData?.max_tokens ?? null}
-            tokenSource={enhancedData?.token_source}
+            maxTokens={enhancement.max_tokens ?? null}
+            tokenSource={enhancement.token_source}
           />
         )}
 
         {/* Frequency */}
-        {showFrequency && enhancedData?.frequency && (
+        {showFrequency && enhancement?.frequency && (
           <div className="flex justify-center">
             <FrequencyCheckbox
               cardName={libraryItem.name}
-              frequency={enhancedData.frequency}
+              frequency={enhancement.frequency}
               className="bg-white/5 px-3 py-1.5 w-full justify-center"
             />
           </div>
         )}
 
         {/* Persistent Effect / Duration */}
-        {enhancedData?.duration && (
+        {showDuration && enhancement?.duration && (
           <div className="flex justify-center">
             <ActiveEffectCheckbox
               cardName={libraryItem.name}
-              duration={enhancedData.duration}
+              duration={enhancement.duration}
               className="bg-white/5 px-3 py-1.5 w-full justify-center"
             />
           </div>
@@ -223,20 +234,20 @@ export default function PlaymatCard({
         {attackCardNode}
 
         {/* Action Costs (for non-attack cards) */}
-        {!hasAttack && enhancedData?.costs && (
+        {!hasAttackOrRoll && costs && (
           <div className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5">
-            {enhancedData.costs.hope && (
+            {costs.hope && (
               <SpendHopeButton
-                cost={enhancedData.costs.hope}
-                onSpend={() => character && updateHope(character.hope - (enhancedData.costs?.hope || 0))}
-                disabled={!character || character.hope < (enhancedData.costs?.hope || 0)}
+                cost={costs.hope}
+                onSpend={() => character && updateHope(character.hope - (costs.hope || 0))}
+                disabled={!character || character.hope < (costs.hope || 0)}
               />
             )}
-            {enhancedData.costs.stress && (
+            {costs.stress && (
               <MarkStressButton
-                cost={enhancedData.costs.stress}
-                onMark={() => character && updateVitals('stress_current', character.vitals.stress_current + (enhancedData.costs?.stress || 0))}
-                disabled={!character || character.vitals.stress_current + (enhancedData.costs?.stress || 0) > character.vitals.stress_max}
+                cost={costs.stress}
+                onMark={() => character && updateVitals('stress_current', character.vitals.stress_current + (costs.stress || 0))}
+                disabled={!character || character.vitals.stress_current + (costs.stress || 0) > character.vitals.stress_max}
               />
             )}
           </div>
