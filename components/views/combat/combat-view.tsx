@@ -30,7 +30,7 @@ import { hasCombatRelevance, enhanceFeature } from '@/lib/card-parser';
 import type { EnhancedAbilityCard, EnhancedAncestry, EnhancedCommunity, EnhancedFeature, Frequency } from '@/types/cards';
 
 export default function CombatView() {
-  const { character, prepareRoll, updateModifiers, cardStates } = useCharacterStore();
+  const { character, prepareRoll, updateModifiers, cardStates, updateHope, updateVitals } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const [showProficiencyModifiers, setShowProficiencyModifiers] = useState(false);
   const [showVitals, setShowVitals] = useState(true);
@@ -51,13 +51,13 @@ export default function CombatView() {
     const loadEnhancedAbilities = async () => {
       try {
         // Load SRD abilities
-        const srdModule = await import('@/content/srd/json/abilities.json');
+        const srdModule = await import('@/content/srd/json/abilities_enhanced.json');
         const srdData = (srdModule.default || []) as EnhancedAbilityCard[];
 
         // Load Playtest abilities if enabled
         let playtestData: EnhancedAbilityCard[] = [];
         if (includePlaytest) {
-          const playtestModule = await import('@/content/playtest/json/abilities.json');
+          const playtestModule = await import('@/content/playtest/json/abilities_enhanced.json');
           playtestData = (playtestModule.default || []) as EnhancedAbilityCard[];
         }
 
@@ -107,7 +107,7 @@ export default function CombatView() {
       try {
         // Load ancestries from SRD only (playtest ancestries don't exist yet)
         if (character.ancestry) {
-          const srdAncestriesModule = await import('@/content/srd/json/ancestries.json');
+          const srdAncestriesModule = await import('@/content/srd/json/ancestries_enhanced.json');
           const srdAncestries = (srdAncestriesModule.default || []) as EnhancedAncestry[];
           const ancestry = srdAncestries.find(a => a.name === character.ancestry);
           setAncestryData(ancestry || null);
@@ -117,7 +117,7 @@ export default function CombatView() {
 
         // Load communities from SRD only (playtest communities don't exist yet)
         if (character.community) {
-          const srdCommunitiesModule = await import('@/content/srd/json/communities.json');
+          const srdCommunitiesModule = await import('@/content/srd/json/communities_enhanced.json');
           const srdCommunities = (srdCommunitiesModule.default || []) as EnhancedCommunity[];
           const community = srdCommunities.find(c => c.name === character.community);
           setCommunityData(community || null);
@@ -367,6 +367,8 @@ export default function CombatView() {
                       }}
                       onManageModifiers={() => setActiveWeaponId(weapon.id)}
                       costs={costs}
+                      onSpendHope={() => character && updateHope(character.hope - (costs?.hope || 0))}
+                      onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (costs?.stress || 0))}
                     />
                   );
                 })
@@ -467,6 +469,8 @@ export default function CombatView() {
                           const totalDamageBonus = modifier + damageModifier;
                           prepareRoll(`${feature.name} Damage`, totalDamageBonus, dice);
                         }}
+                        onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (feature.costs?.stress || 0))}
+                        onSpendHope={() => character && updateHope(character.hope - (feature.costs?.hope || 0))}
                         onManageModifiers={() => setActiveWeaponId(`transformation-${index}`)}
                       />
                     );
@@ -554,6 +558,8 @@ export default function CombatView() {
                     label: feature.source,
                     className: sourceColors[feature.sourceType]
                   }]}
+                  onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (feature.costs?.stress || 0))}
+                  onSpendHope={() => character && updateHope(character.hope - (feature.costs?.hope || 0))}
                   rollLabel={combatCategory === 'damage_bonus' ? undefined : (combatCategory === 'roll_only' ? 'Roll' : 'Attack')}
                 />
               );
@@ -695,6 +701,8 @@ export default function CombatView() {
                     />
                   ) : undefined}
                   costs={ability.costs}
+                  onSpendHope={() => character && updateHope(character.hope - (ability.costs?.hope || 0))}
+                  onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (ability.costs?.stress || 0))}
                 />
               );
             })}

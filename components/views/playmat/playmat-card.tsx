@@ -22,6 +22,7 @@ import clsx from 'clsx';
 import { DomainCard } from '@/components/physical-cards/domain-card';
 import CardTokenTrack from '@/components/views/playmat/card-token-track';
 import FrequencyCheckbox from '@/components/views/playmat/frequency-checkbox';
+import ActiveEffectCheckbox from '@/components/views/playmat/active-effect-checkbox';
 import { AttackCard, MarkStressButton, SpendHopeButton } from '@/components/views/combat';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { EnhancedAbilityCard } from '@/types/cards';
@@ -44,7 +45,7 @@ export default function PlaymatCard({
   onEditArt,
   onManageModifiers,
 }: PlaymatCardProps) {
-  const { character, prepareRoll } = useCharacterStore();
+  const { character, prepareRoll, updateHope, updateVitals } = useCharacterStore();
   const libraryItem = card.library_item;
 
   if (!libraryItem) return null;
@@ -126,6 +127,8 @@ export default function PlaymatCard({
           // AttackCard is already quite dense. Let's use it as is for consistency.
           rollLabel={rollLabel || 'Roll'}
           costs={enhancedData.costs}
+          onSpendHope={() => character && updateHope(character.hope - (enhancedData.costs?.hope || 0))}
+          onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (enhancedData.costs?.stress || 0))}
         />
       </div>
     );
@@ -134,7 +137,8 @@ export default function PlaymatCard({
   // --- Mechanics Tray Logic ---
   const showTokenTrack = enhancedData?.has_tokens;
   const showFrequency = enhancedData?.frequency && enhancedData.frequency !== 'at_will';
-  const showMechanics = showTokenTrack || showFrequency || hasAttack;
+  const showDuration = !!enhancedData?.duration;
+  const showMechanics = showTokenTrack || showFrequency || hasAttack || showDuration;
 
   const isLoadout = card.location === 'loadout';
 
@@ -204,8 +208,39 @@ export default function PlaymatCard({
           </div>
         )}
 
+        {/* Persistent Effect / Duration */}
+        {enhancedData?.duration && (
+          <div className="flex justify-center">
+            <ActiveEffectCheckbox
+              cardName={libraryItem.name}
+              duration={enhancedData.duration}
+              className="bg-white/5 px-3 py-1.5 w-full justify-center"
+            />
+          </div>
+        )}
+
         {/* Embedded Attack Card */}
         {attackCardNode}
+
+        {/* Action Costs (for non-attack cards) */}
+        {!hasAttack && enhancedData?.costs && (
+          <div className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5">
+            {enhancedData.costs.hope && (
+              <SpendHopeButton
+                cost={enhancedData.costs.hope}
+                onSpend={() => character && updateHope(character.hope - (enhancedData.costs?.hope || 0))}
+                disabled={!character || character.hope < (enhancedData.costs?.hope || 0)}
+              />
+            )}
+            {enhancedData.costs.stress && (
+              <MarkStressButton
+                cost={enhancedData.costs.stress}
+                onMark={() => character && updateVitals('stress_current', character.vitals.stress_current + (enhancedData.costs?.stress || 0))}
+                disabled={!character || character.vitals.stress_current + (enhancedData.costs?.stress || 0) > character.vitals.stress_max}
+              />
+            )}
+          </div>
+        )}
 
         {/* Actions Row */}
         <div className="pt-1 border-t border-white/5 flex gap-2">
