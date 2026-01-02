@@ -20,6 +20,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "1d8"
     }
   },
@@ -50,13 +51,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "d10",
       "damage_type": "magic",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -96,13 +99,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Melee",
+      "combat_category": "standalone_attack",
       "damage": "1d20+3",
       "damage_type": "magic",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -123,11 +128,7 @@
       "hope_cost",
       "movement",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Very Far"
-    }
+    ]
   },
   {
     "name": "Counterspell",
@@ -178,12 +179,7 @@
       "hope_cost",
       "movement",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Very Close",
-      "difficulty": 12
-    }
+    ]
   },
   {
     "name": "Preservation Blast",
@@ -204,13 +200,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "d8+3",
       "damage_type": "magic",
       "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -233,17 +231,18 @@
       "stress_cost",
       "spell"
     ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "combat_category": "passive_triggered",
+      "damage": "2d8+4",
+      "damage_type": "magic",
+      "targets": "all_in_range"
+    },
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "target_reaction": true
-    },
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close",
-      "damage": "2d8+4",
-      "damage_type": "magic",
-      "targets": "all_in_range"
     }
   },
   {
@@ -294,13 +293,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "damage_bonus",
       "damage": "d12+4",
       "damage_type": "physical",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -325,7 +326,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "When you make a successful **Spellcast Roll** to cast a different spell, you can **spend a Hope** to become Cloaked. While Cloaked, you remain unseen if you are stationary when an adversary moves to where they would normally see you. When you move into or within an adversary’s line of sight or make an attack, you are no longer Cloaked.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -336,13 +337,10 @@
       "movement",
       "spell"
     ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close"
-    },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -364,6 +362,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "d6",
       "damage_type": "magic"
     }
@@ -386,6 +385,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "standalone_attack",
       "damage": "d6",
       "difficulty": 14
     }
@@ -408,19 +408,20 @@
       "movement",
       "spell"
     ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Very Far",
+      "combat_category": "passive_triggered",
+      "damage": "3d10+8",
+      "damage_type": "physical",
+      "targets": "all_in_range",
+      "difficulty": 16
+    },
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "difficulty": 16,
       "target_reaction": true
-    },
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Very Far",
-      "damage": "3d10+8",
-      "damage_type": "physical",
-      "targets": "all_in_range",
-      "difficulty": 16
     }
   },
   {
@@ -477,13 +478,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "1d20+2",
       "damage_type": "magic",
       "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -538,12 +541,7 @@
       "hope_gain",
       "hope_cost",
       "ability"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Very Close",
-      "targets": "single"
-    }
+    ]
   },
   {
     "name": "A Soldier’s Bond",
@@ -875,11 +873,13 @@
     ],
     "attack": {
       "trait": "Agility",
-      "range": "Far"
+      "range": "Far",
+      "combat_category": "passive_triggered"
     },
     "roll": {
       "type": "Agility Roll",
-      "trait": "Agility"
+      "trait": "Agility",
+      "target_reaction": false
     }
   },
   {
@@ -902,6 +902,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Melee",
+      "combat_category": "passive_triggered",
       "damage": "d4"
     }
   },
@@ -962,6 +963,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "standalone_attack",
       "damage": "d8"
     }
   },
@@ -1005,6 +1007,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "d20"
     }
   },
@@ -1031,6 +1034,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "passive_triggered",
       "damage": "d10",
       "targets": "single"
     }
@@ -1056,6 +1060,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "passive_triggered",
       "damage": "d6"
     }
   },
@@ -1083,11 +1088,13 @@
     ],
     "attack": {
       "trait": "Instinct",
-      "range": "Close"
+      "range": "Close",
+      "combat_category": "standalone_attack"
     },
     "roll": {
       "type": "Instinct Roll",
-      "trait": "Instinct"
+      "trait": "Instinct",
+      "target_reaction": false
     }
   },
   {
@@ -1108,6 +1115,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "d20"
     }
   },
@@ -1204,6 +1212,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "standalone_attack",
       "damage": "2d12"
     }
   },
@@ -1227,14 +1236,16 @@
       "movement",
       "ability"
     ],
-    "roll": {
-      "type": "Agility Roll",
-      "trait": "Agility"
-    },
     "attack": {
       "trait": "Agility",
       "range": "Close",
+      "combat_category": "standalone_attack",
       "targets": "all_in_range"
+    },
+    "roll": {
+      "type": "Agility Roll",
+      "trait": "Agility",
+      "target_reaction": false
     }
   },
   {
@@ -1331,18 +1342,20 @@
       "hope_gain",
       "hope_cost"
     ],
-    "roll": {
-      "type": "Spellcast Roll",
-      "trait": "Spellcast",
-      "difficulty": 12
-    },
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "d10+2",
       "damage_type": "magic",
       "targets": "single",
       "difficulty": 12
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 12,
+      "target_reaction": false
     }
   },
   {
@@ -1364,16 +1377,18 @@
       "hope_gain",
       "hope_cost"
     ],
-    "roll": {
-      "type": "Spellcast Roll",
-      "trait": "Spellcast"
-    },
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "standalone_attack",
       "damage": "d6",
       "damage_type": "magic",
       "targets": "single"
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -1394,17 +1409,19 @@
       "magic",
       "stress_cost"
     ],
-    "roll": {
-      "type": "Spellcast Roll",
-      "trait": "Spellcast",
-      "difficulty": 13
-    },
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "standalone_attack",
       "damage": "2d6",
       "damage_type": "magic",
       "difficulty": 13
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 13,
+      "target_reaction": false
     }
   },
   {
@@ -1423,13 +1440,7 @@
     "keywords": [
       "hope_gain",
       "hope_cost"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close",
-      "targets": "self",
-      "difficulty": 14
-    }
+    ]
   },
   {
     "name": "Book of Vagras",
@@ -1450,7 +1461,8 @@
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
-      "difficulty": 15
+      "difficulty": 15,
+      "target_reaction": false
     }
   },
   {
@@ -1475,19 +1487,20 @@
       "hope_cost",
       "movement"
     ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Very Close",
+      "combat_category": "passive_triggered",
+      "damage": "2d12+4",
+      "damage_type": "magic",
+      "targets": "all_in_range",
+      "difficulty": 15
+    },
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "difficulty": 15,
       "target_reaction": true
-    },
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Very Close",
-      "damage": "2d12+4",
-      "damage_type": "magic",
-      "targets": "all_in_range",
-      "difficulty": 15
     }
   },
   {
@@ -1509,19 +1522,20 @@
       "stress_cost",
       "control"
     ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Very Far",
+      "combat_category": "standalone_attack",
+      "damage": "4d20+5",
+      "damage_type": "magic",
+      "targets": "single",
+      "difficulty": 13
+    },
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "difficulty": 13,
       "target_reaction": true
-    },
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Very Far",
-      "damage": "4d20+5",
-      "damage_type": "magic",
-      "targets": "single",
-      "difficulty": 13
     }
   },
   {
@@ -1542,16 +1556,17 @@
       "physical",
       "hope_cost"
     ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "combat_category": "passive_triggered",
+      "damage": "2d10+3",
+      "damage_type": "physical"
+    },
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "target_reaction": true
-    },
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close",
-      "damage": "2d10+3",
-      "damage_type": "physical"
     }
   },
   {
@@ -1577,6 +1592,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "standalone_attack",
       "damage": "4d10+3",
       "damage_type": "magic",
       "difficulty": 15
@@ -1584,7 +1600,8 @@
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
-      "difficulty": 15
+      "difficulty": 15,
+      "target_reaction": false
     }
   },
   {
@@ -1604,12 +1621,7 @@
       "hope_gain",
       "hope_cost",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Far",
-      "difficulty": 15
-    }
+    ]
   },
   {
     "name": "Teleport",
@@ -1624,13 +1636,7 @@
     "keywords": [
       "movement",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close",
-      "targets": "self",
-      "difficulty": 16
-    }
+    ]
   },
   {
     "name": "Banish",
@@ -1649,16 +1655,17 @@
       "stress_cost",
       "spell"
     ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "combat_category": "standalone_attack",
+      "damage": "d20",
+      "targets": "single"
+    },
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "target_reaction": true
-    },
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close",
-      "damage": "d20",
-      "targets": "single"
     }
   },
   {
@@ -1678,6 +1685,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "d8"
     }
   },
@@ -1690,7 +1698,8 @@
     "text": "**Pass Through:** Make a **Spellcast Roll (13)**. Once per rest on a success, you and all creatures touching you can pass through a wall or door within Close range. The effect ends once everyone is on the other side.\n\n**Plane Gate:** Make a **Spellcast Roll (14)**. Once per long rest on a success, open a gateway to a location in another dimension or plane of existence you’ve been to before. This gateway lasts until your next rest.",
     "action_type": "passive",
     "timing": "free",
-    "frequency": "once_per_long_rest"
+    "frequency": "once_per_long_rest",
+    "keywords": []
   },
   {
     "name": "Codex-Touched",
@@ -1711,7 +1720,8 @@
     ],
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -1732,14 +1742,16 @@
       "stress_cost",
       "hope_cost"
     ],
-    "roll": {
-      "type": "Spellcast Roll",
-      "trait": "Spellcast"
-    },
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "targets": "single"
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -1776,16 +1788,18 @@
       "damage",
       "debuff"
     ],
-    "roll": {
-      "type": "Spellcast Roll",
-      "trait": "Spellcast",
-      "difficulty": 15
-    },
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "standalone_attack",
       "targets": "single",
       "difficulty": 15
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 15,
+      "target_reaction": false
     }
   },
   {
@@ -1804,12 +1818,7 @@
     "keywords": [
       "stress_cost",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Far",
-      "difficulty": 18
-    }
+    ]
   },
   {
     "name": "Book of Yarrow",
@@ -1889,11 +1898,13 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "standalone_attack",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -1937,11 +1948,13 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "standalone_attack",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -1958,15 +1971,17 @@
       "stress_cost",
       "ability"
     ],
-    "roll": {
-      "type": "Presence Roll",
-      "trait": "Presence"
-    },
     "attack": {
       "trait": "Presence",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "d4",
       "targets": "single"
+    },
+    "roll": {
+      "type": "Presence Roll",
+      "trait": "Presence",
+      "target_reaction": false
     }
   },
   {
@@ -1991,11 +2006,13 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "standalone_attack",
       "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2019,13 +2036,7 @@
       "spell"
     ],
     "has_tokens": true,
-    "max_tokens": null,
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Melee",
-      "targets": "self",
-      "difficulty": 10
-    }
+    "max_tokens": null
   },
   {
     "name": "Soothing Speech",
@@ -2055,12 +2066,7 @@
     "frequency": "at_will",
     "keywords": [
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Very Far",
-      "targets": "single"
-    }
+    ]
   },
   {
     "name": "Thought Delver",
@@ -2083,11 +2089,13 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2110,12 +2118,14 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Melee",
+      "combat_category": "standalone_attack",
       "difficulty": 13
     },
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
-      "difficulty": 13
+      "difficulty": 13,
+      "target_reaction": false
     }
   },
   {
@@ -2157,11 +2167,7 @@
       "hope_gain",
       "stress_cost",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Melee"
-    }
+    ]
   },
   {
     "name": "Endless Charisma",
@@ -2236,11 +2242,13 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2289,11 +2297,13 @@
     ],
     "attack": {
       "trait": "Spellcast",
-      "range": "Close"
+      "range": "Close",
+      "combat_category": "standalone_attack"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2354,13 +2364,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "passive_triggered",
       "damage": "1d8+2",
       "damage_type": "magic",
       "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2411,13 +2423,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Far",
+      "combat_category": "standalone_attack",
       "damage": "d6",
       "damage_type": "magic",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2438,11 +2452,13 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "standalone_attack",
       "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2467,6 +2483,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "2d6",
       "targets": "single"
     }
@@ -2484,12 +2501,7 @@
     "keywords": [
       "buff",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Far",
-      "difficulty": 13
-    }
+    ]
   },
   {
     "name": "Stealth Expertise",
@@ -2531,11 +2543,13 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "standalone_attack",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2561,11 +2575,13 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "standalone_attack",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2605,11 +2621,13 @@
     ],
     "attack": {
       "trait": "Spellcast",
-      "range": "Close"
+      "range": "Close",
+      "combat_category": "standalone_attack"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2629,11 +2647,7 @@
       "stress_cost",
       "buff",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close"
-    }
+    ]
   },
   {
     "name": "Midnight-Touched",
@@ -2714,6 +2728,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "standalone_attack",
       "damage": "d6",
       "damage_type": "magic",
       "targets": "single"
@@ -2737,6 +2752,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "passive_triggered",
       "damage": "d6",
       "difficulty": 16
     }
@@ -2761,6 +2777,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "passive_triggered",
       "damage": "d12",
       "targets": "single"
     }
@@ -2787,12 +2804,7 @@
       "buff",
       "debuff",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Far",
-      "difficulty": 16
-    }
+    ]
   },
   {
     "name": "Specter of the Dark",
@@ -2851,7 +2863,8 @@
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
-      "difficulty": 12
+      "difficulty": 12,
+      "target_reaction": false
     }
   },
   {
@@ -2877,13 +2890,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "damage_bonus",
       "damage": "1d8+1",
       "damage_type": "physical",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2912,13 +2927,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "standalone_attack",
       "damage": "2d8+3",
       "damage_type": "magic",
       "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2945,11 +2962,13 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Melee",
+      "combat_category": "passive_triggered",
       "damage": "d6"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -2971,13 +2990,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "damage_bonus",
       "damage": "6d4",
       "damage_type": "magic",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -3002,12 +3023,14 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "d8",
       "damage_type": "physical"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -3030,19 +3053,20 @@
       "stress_cost",
       "spell"
     ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "combat_category": "standalone_attack",
+      "damage": "3d6+2",
+      "damage_type": "physical",
+      "targets": "all_in_range",
+      "difficulty": 13
+    },
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "difficulty": 13,
       "target_reaction": true
-    },
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close",
-      "damage": "3d6+2",
-      "damage_type": "physical",
-      "targets": "all_in_range",
-      "difficulty": 13
     }
   },
   {
@@ -3089,6 +3113,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Melee",
+      "combat_category": "passive_triggered",
       "damage": "d6"
     }
   },
@@ -3131,11 +3156,7 @@
       "hope_cost",
       "movement",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Far"
-    }
+    ]
   },
   {
     "name": "Forager",
@@ -3154,14 +3175,16 @@
       "movement",
       "ability"
     ],
-    "roll": {
-      "type": "Spellcast Roll",
-      "trait": "Spellcast"
-    },
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "d6"
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -3198,6 +3221,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "d6",
       "targets": "self"
     }
@@ -3217,12 +3241,7 @@
       "hope_gain",
       "hope_cost",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Far",
-      "difficulty": 13
-    }
+    ]
   },
   {
     "name": "Rejuvenation Barrier",
@@ -3244,6 +3263,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "passive_triggered",
       "damage": "1d4",
       "damage_type": "physical",
       "targets": "allies_in_range",
@@ -3269,7 +3289,8 @@
     "token_source": "the",
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -3284,12 +3305,7 @@
     "frequency": "once_per_long_rest",
     "keywords": [
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Far",
-      "difficulty": 18
-    }
+    ]
   },
   {
     "name": "Force of Nature",
@@ -3314,13 +3330,10 @@
       "control",
       "spell"
     ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close"
-    },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -3346,13 +3359,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "2d20+8",
       "damage_type": "magic",
       "targets": "all_in_range"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -3379,13 +3394,15 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Far",
+      "combat_category": "standalone_attack",
       "damage": "d8+2",
       "damage_type": "magic",
       "targets": "single"
     },
     "roll": {
       "type": "Spellcast Roll",
-      "trait": "Spellcast"
+      "trait": "Spellcast",
+      "target_reaction": false
     }
   },
   {
@@ -3544,11 +3561,7 @@
     "keywords": [
       "hope_cost",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Close"
-    }
+    ]
   },
   {
     "name": "Smite",
@@ -3608,6 +3621,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Very Close",
+      "combat_category": "passive_triggered",
       "damage": "d6",
       "targets": "allies_in_range",
       "difficulty": 16
@@ -3668,12 +3682,7 @@
       "damage",
       "stress_cost",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Very Close",
-      "targets": "single"
-    }
+    ]
   },
   {
     "name": "Stunning Sunlight",
@@ -3693,19 +3702,20 @@
       "hope_cost",
       "spell"
     ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Far",
+      "combat_category": "passive_triggered",
+      "damage": "3d20+3",
+      "damage_type": "magic",
+      "targets": "all_in_range",
+      "difficulty": 14
+    },
     "roll": {
       "type": "Spellcast Roll",
       "trait": "Spellcast",
       "difficulty": 14,
       "target_reaction": true
-    },
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Far",
-      "damage": "3d20+3",
-      "damage_type": "magic",
-      "targets": "all_in_range",
-      "difficulty": 14
     }
   },
   {
@@ -3743,12 +3753,7 @@
       "stress_relief",
       "stress_cost",
       "spell"
-    ],
-    "attack": {
-      "trait": "Spellcast",
-      "range": "Far",
-      "difficulty": 16
-    }
+    ]
   },
   {
     "name": "Invigoration",
@@ -3768,6 +3773,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "d6"
     }
   },
@@ -3787,6 +3793,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "d6",
       "difficulty": 20
     }
@@ -3829,6 +3836,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "damage_bonus",
       "damage": "d6",
       "targets": "single"
     }
@@ -3887,7 +3895,8 @@
     ],
     "roll": {
       "type": "Presence Roll",
-      "trait": "Presence"
+      "trait": "Presence",
+      "target_reaction": false
     }
   },
   {
@@ -3943,11 +3952,13 @@
     "attack": {
       "trait": "Presence",
       "range": "Close",
+      "combat_category": "standalone_attack",
       "targets": "single"
     },
     "roll": {
       "type": "Presence Roll",
-      "trait": "Presence"
+      "trait": "Presence",
+      "target_reaction": false
     }
   },
   {
@@ -4001,6 +4012,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "1d4"
     }
   },
@@ -4057,6 +4069,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "d6"
     }
   },
@@ -4113,18 +4126,19 @@
       "hope_cost",
       "ability"
     ],
+    "attack": {
+      "trait": "Strength",
+      "range": "Very Close",
+      "combat_category": "standalone_attack",
+      "damage": "4d10+8",
+      "targets": "all_in_range",
+      "difficulty": 17
+    },
     "roll": {
       "type": "Strength Roll",
       "trait": "Strength",
       "difficulty": 17,
       "target_reaction": true
-    },
-    "attack": {
-      "trait": "Strength",
-      "range": "Very Close",
-      "damage": "4d10+8",
-      "targets": "all_in_range",
-      "difficulty": 17
     }
   },
   {
@@ -4186,6 +4200,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "d6"
     }
   },
@@ -4205,6 +4220,7 @@
     "attack": {
       "trait": "Spellcast",
       "range": "Close",
+      "combat_category": "passive_triggered",
       "damage": "d6"
     }
   }

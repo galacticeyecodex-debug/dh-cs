@@ -589,7 +589,11 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
 
   // If it's a roll against something but didn't qualify as 'attack' (no damage/range)
   // it might still be an attack action
-  if (cleanText.includes('make a') && (cleanText.includes('roll against') || cleanText.includes('attack'))) {
+  // BUT: exclude cases where "attack" appears in end-of-effect context (e.g., "make an attack, you are no longer Cloaked")
+  const hasAttackInitiation = cleanText.includes('make a') && (cleanText.includes('roll against') || cleanText.includes('attack'));
+  const isEndOfEffectContext = cleanText.includes('you are no longer') || cleanText.includes('this effect ends');
+
+  if (hasAttackInitiation && !isEndOfEffectContext) {
     return 'attack';
   }
 
