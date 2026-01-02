@@ -16,11 +16,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBe('buff');
         });
     });
 
@@ -30,11 +30,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
     });
 
@@ -44,15 +44,15 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should have token_source = presence', () => {
-            expect(enhanced.token_source).toBe('presence');
+            expect(enhanced.enhancement.token_source).toBe('presence');
         });
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.action_type);
+            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -62,11 +62,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type attack (rolls against target)', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.range = Very Close', () => {
-            expect(enhanced.attack?.range).toBe('Very Close');
+            expect(enhanced.enhancement.attack?.range).toBe('Very Close');
         });
     });
 
@@ -76,11 +76,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have roll.trait = Presence', () => {
-            expect(enhanced.roll?.trait).toBe('Presence');
+            expect(enhanced.enhancement.roll?.trait).toBe('Presence');
         });
     });
 
@@ -90,11 +90,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have attack.targets = all_in_range', () => {
-            expect(enhanced.attack?.targets).toBe('all_in_range');
+            expect(enhanced.enhancement.attack?.targets).toBe('all_in_range');
         });
     });
 
@@ -104,19 +104,19 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should have token_source = spellcast', () => {
-            expect(enhanced.token_source).toBe('spellcast');
+            expect(enhanced.enhancement.token_source).toBe('spellcast');
         });
 
         it('should have roll.difficulty = 10', () => {
-            expect(enhanced.roll?.difficulty).toBe(10);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(10);
         });
     });
 
@@ -126,11 +126,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type downtime', () => {
-            expect(enhanced.action_type).toBe('downtime');
+            expect(enhanced.enhancement.action_type).toBe('downtime');
         });
 
         it('should be timing downtime', () => {
-            expect(enhanced.timing).toBe('downtime');
+            expect(enhanced.enhancement.timing).toBe('downtime');
         });
     });
 
@@ -140,11 +140,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
 
         it('should have duration = rest', () => {
-            expect(enhanced.duration).toBe('rest');
+            expect(enhanced.enhancement.duration).toBe('rest');
         });
     });
 
@@ -154,11 +154,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should have attack.range = Far', () => {
-            expect(enhanced.attack?.range).toBe('Far');
+            expect(enhanced.enhancement.attack?.range).toBe('Far');
         });
     });
 
@@ -168,11 +168,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have roll.difficulty = 13', () => {
-            expect(enhanced.roll?.difficulty).toBe(13);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(13);
         });
 
         it('should have attack.range = Melee', () => {
-            expect(enhanced.attack?.range).toBe('Melee');
+            expect(enhanced.enhancement.attack?.range).toBe('Melee');
         });
     });
 
@@ -182,15 +182,15 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should have modifier for damage +5', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'damage');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage');
             expect(mod?.value).toBe(5);
         });
     });
@@ -201,11 +201,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -215,11 +215,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -229,7 +229,7 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -239,15 +239,15 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should have duration = rest', () => {
-            expect(enhanced.duration).toBe('rest');
+            expect(enhanced.enhancement.duration).toBe('rest');
         });
     });
 
@@ -257,11 +257,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should have attack.targets = all_in_range', () => {
-            expect(enhanced.attack?.targets).toBe('all_in_range');
+            expect(enhanced.enhancement.attack?.targets).toBe('all_in_range');
         });
     });
 
@@ -271,11 +271,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have duration = rest', () => {
-            expect(enhanced.duration).toBe('rest');
+            expect(enhanced.enhancement.duration).toBe('rest');
         });
     });
 
@@ -285,7 +285,7 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -295,11 +295,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should be timing reaction (when ally deals damage)', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
     });
 
@@ -309,11 +309,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 });

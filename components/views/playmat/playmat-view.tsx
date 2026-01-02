@@ -37,6 +37,7 @@ import { getSystemModifiers } from '@/lib/utils';
 import Image from 'next/image';
 import PlaymatCard from './playmat-card';
 import type { EnhancedAbilityCard } from '@/types/cards';
+import { getAttack, getRoll } from '@/lib/enhancement-utils';
 import useContentAccess from '@/hooks/useContentAccess';
 
 export default function PlaymatView() {
@@ -360,7 +361,10 @@ export default function PlaymatView() {
           const tabs = [];
 
           // 1. Roll Tab (Spellcast or Trait)
-          const rollTrait = ability.roll?.trait || ability.attack?.trait;
+          const attack = getAttack(ability);
+          const roll = getRoll(ability);
+          const rollTrait = roll?.trait || attack?.trait;
+
           if (rollTrait) {
             if (rollTrait.toLowerCase() === 'spellcast') {
               const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
@@ -403,7 +407,7 @@ export default function PlaymatView() {
           }
 
           // 2. Damage Tab
-          if (ability.attack?.damage) {
+          if (attack?.damage) {
             const systemDamageMods = getSystemModifiers(character, 'damage');
             const userDamageMods = character.modifiers?.['damage'] || [];
 

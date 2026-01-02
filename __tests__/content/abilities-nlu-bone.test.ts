@@ -16,20 +16,20 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should have modifier for attack +1', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'attack');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'attack');
             expect(mod?.value).toBe(1);
         });
 
         it('should NOT have a roll (says "without making an Agility Roll")', () => {
-            expect(enhanced.roll).toBeUndefined();
+            expect(enhanced.enhancement.roll).toBeUndefined();
         });
     });
 
@@ -39,15 +39,15 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be timing reaction (when targeted)', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
 
         it('should have modifier for evasion', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'evasion');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'evasion');
             expect(mod).toBeDefined();
         });
     });
@@ -58,11 +58,11 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have modifier for evasion with formula half_agility', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'evasion');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'evasion');
             expect(mod?.formula).toBe('half_agility');
         });
     });
@@ -73,11 +73,11 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 2', () => {
-            expect(enhanced.costs?.hope).toBe(2);
+            expect(enhanced.enhancement.costs?.hope).toBe(2);
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -87,11 +87,11 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should have token_source = knowledge', () => {
-            expect(enhanced.token_source).toBe('knowledge');
+            expect(enhanced.enhancement.token_source).toBe('knowledge');
         });
     });
 
@@ -101,15 +101,15 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type passive (triggered condition)', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should be timing reaction', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
     });
 
@@ -119,11 +119,11 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1 (for ally spending)', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type buff (helps ally)', () => {
-            expect(enhanced.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBe('buff');
         });
     });
 
@@ -133,11 +133,11 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type attack (performs attack)', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
     });
 
@@ -147,11 +147,11 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be timing reaction', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
     });
 
@@ -161,11 +161,11 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should have roll.trait = Instinct', () => {
-            expect(enhanced.roll?.trait).toBe('Instinct');
+            expect(enhanced.enhancement.roll?.trait).toBe('Instinct');
         });
     });
 
@@ -175,7 +175,7 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
     });
 
@@ -185,15 +185,15 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type reaction', () => {
-            expect(enhanced.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBe('reaction');
         });
 
         it('should be timing reaction', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
     });
 
@@ -203,15 +203,15 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type downtime', () => {
-            expect(enhanced.action_type).toBe('downtime');
+            expect(enhanced.enhancement.action_type).toBe('downtime');
         });
 
         it('should be timing downtime', () => {
-            expect(enhanced.timing).toBe('downtime');
+            expect(enhanced.enhancement.timing).toBe('downtime');
         });
     });
 
@@ -221,15 +221,15 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 3', () => {
-            expect(enhanced.costs?.hope).toBe(3);
+            expect(enhanced.enhancement.costs?.hope).toBe(3);
         });
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have modifier for agility +1 with loadout condition', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'agility');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'agility');
             expect(mod?.value).toBe(1);
             expect(mod?.condition?.type).toBe('loadout_domain_count');
             expect(mod?.condition?.minCount).toBe(4);
@@ -242,11 +242,11 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have modifier for damage', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'damage');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage');
             expect(mod).toBeDefined();
         });
     });
@@ -257,7 +257,7 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
     });
 
@@ -267,15 +267,15 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should have attack.trait = Agility', () => {
-            expect(enhanced.attack?.trait).toBe('Agility');
+            expect(enhanced.enhancement.attack?.trait).toBe('Agility');
         });
 
         it('should have attack.targets = all_in_range', () => {
-            expect(enhanced.attack?.targets).toBe('all_in_range');
+            expect(enhanced.enhancement.attack?.targets).toBe('all_in_range');
         });
     });
 
@@ -285,11 +285,11 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have no costs', () => {
-            expect(enhanced.costs).toBeUndefined();
+            expect(enhanced.enhancement.costs).toBeUndefined();
         });
     });
 
@@ -299,15 +299,15 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
     });
 
@@ -317,11 +317,11 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 3', () => {
-            expect(enhanced.costs?.hope).toBe(3);
+            expect(enhanced.enhancement.costs?.hope).toBe(3);
         });
 
         it('should have modifier for proficiency +1', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'proficiency');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'proficiency');
             expect(mod?.value).toBe(1);
         });
     });
@@ -332,15 +332,15 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type reaction', () => {
-            expect(enhanced.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBe('reaction');
         });
 
         it('should be timing reaction', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
 
         it('should have no costs', () => {
-            expect(enhanced.costs).toBeUndefined();
+            expect(enhanced.enhancement.costs).toBeUndefined();
         });
     });
 });

@@ -120,6 +120,32 @@ export interface TokenConfig {
  * Enhanced Ability/Spell Card interface
  * Extends the base JSON structure with interactive metadata
  */
+/**
+ * The enhancement block structure containing all parser-derived fields
+ */
+export interface EnhancementBlock {
+  action_type: ActionType;
+  timing: Timing;
+  frequency: Frequency;
+  costs?: CardCosts | null;
+  keywords?: string[];
+  has_tokens?: boolean;
+  max_tokens?: number | null;
+  token_source?: string;
+  token_replenish?: TokenReplenish;
+  attack?: CardAttack | null;
+  roll?: CardRoll | null;
+  uses_proficiency?: boolean;
+  effects?: string[];
+  modifiers?: CardModifier[];
+  threshold_modifiers?: ThresholdModifiers;
+  duration?: string;
+}
+
+/**
+ * Enhanced Ability/Spell Card interface
+ * Extends the base JSON structure with interactive metadata
+ */
 export interface EnhancedAbilityCard {
   // Base fields (existing in JSON)
   name: string;
@@ -129,31 +155,9 @@ export interface EnhancedAbilityCard {
   recall: string;
   text: string;
 
-  // Enhanced fields (parsed/added)
-  action_type?: ActionType;
-  timing?: Timing;
-  frequency?: Frequency;
-  costs?: CardCosts;
-
-  // Token tracking
-  has_tokens?: boolean;
-  max_tokens?: number | null;
-  token_source?: string;
-  token_replenish?: TokenReplenish;
-
-  // Combat mechanics
-  attack?: CardAttack;
-  roll?: CardRoll;
-  uses_proficiency?: boolean;  // Whether damage scales with proficiency
-  effects?: string[];          // Status effects (On Fire, Vulnerable, etc.)
-
-  // Modifiers
-  modifiers?: CardModifier[];
-  threshold_modifiers?: ThresholdModifiers;
-
-  // Metadata
-  keywords?: string[];
-  duration?: 'scene' | 'rest' | 'until_triggered' | null;
+  // Enhanced fields (nested blocks)
+  enhancement: EnhancementBlock;
+  enhancement_override?: EnhancementBlock;
 }
 
 /**
