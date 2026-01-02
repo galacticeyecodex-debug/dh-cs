@@ -132,6 +132,8 @@ export interface EnhancedAbilityCard {
   // Combat mechanics
   attack?: CardAttack;
   roll?: CardRoll;
+  uses_proficiency?: boolean;  // Whether damage scales with proficiency
+  effects?: string[];          // Status effects (On Fire, Vulnerable, etc.)
 
   // Modifiers
   modifiers?: CardModifier[];
