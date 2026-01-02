@@ -24,19 +24,19 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type utility (defensive, no attack)', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
 
         it('should be timing reaction (when taking damage)', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
 
         it('should be frequency at_will (no usage limit in text)', () => {
-            expect(enhanced.frequency).toBe('at_will');
+            expect(enhanced.enhancement.frequency).toBe('at_will');
         });
     });
 
@@ -46,27 +46,27 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should have token_source = spellcast', () => {
-            expect(enhanced.token_source).toBe('spellcast');
+            expect(enhanced.enhancement.token_source).toBe('spellcast');
         });
 
         it('should be action_type attack (deals magic damage)', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.trait = Spellcast', () => {
-            expect(enhanced.attack?.trait).toBe('Spellcast');
+            expect(enhanced.enhancement.attack?.trait).toBe('Spellcast');
         });
 
         it('should have attack.range = Far', () => {
-            expect(enhanced.attack?.range).toBe('Far');
+            expect(enhanced.enhancement.attack?.range).toBe('Far');
         });
 
         it('should have attack.damage_type = magic', () => {
-            expect(enhanced.attack?.damage_type).toBe('magic');
+            expect(enhanced.enhancement.attack?.damage_type).toBe('magic');
         });
     });
 
@@ -76,19 +76,19 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should have duration = scene', () => {
-            expect(enhanced.duration).toBe('scene');
+            expect(enhanced.enhancement.duration).toBe('scene');
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
 
         it('should be frequency at_will', () => {
-            expect(enhanced.frequency).toBe('at_will');
+            expect(enhanced.enhancement.frequency).toBe('at_will');
         });
     });
 
@@ -98,19 +98,19 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.range = Melee', () => {
-            expect(enhanced.attack?.range).toBe('Melee');
+            expect(enhanced.enhancement.attack?.range).toBe('Melee');
         });
 
         it('should have attack.damage_type = magic', () => {
-            expect(enhanced.attack?.damage_type).toBe('magic');
+            expect(enhanced.enhancement.attack?.damage_type).toBe('magic');
         });
 
         it('should have no costs (no spend/mark in activation)', () => {
-            expect(enhanced.costs).toBeUndefined();
+            expect(enhanced.enhancement.costs).toBeUndefined();
         });
     });
 
@@ -120,11 +120,11 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type utility (no attack/damage dealt)', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -134,15 +134,15 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type reaction', () => {
-            expect(enhanced.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBe('reaction');
         });
 
         it('should be timing reaction', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
 
         it('should have roll.trait = Spellcast', () => {
-            expect(enhanced.roll?.trait).toBe('Spellcast');
+            expect(enhanced.enhancement.roll?.trait).toBe('Spellcast');
         });
     });
 
@@ -152,19 +152,19 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should have token_source = agility', () => {
-            expect(enhanced.token_source).toBe('agility');
+            expect(enhanced.enhancement.token_source).toBe('agility');
         });
 
         it('should have roll.difficulty = 15', () => {
-            expect(enhanced.roll?.difficulty).toBe(15);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(15);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -174,15 +174,15 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1 (base cost)', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should have roll.difficulty = 12', () => {
-            expect(enhanced.roll?.difficulty).toBe(12);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(12);
         });
 
         it('should be action_type utility (movement, no damage)', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -192,15 +192,15 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.targets = all_in_range', () => {
-            expect(enhanced.attack?.targets).toBe('all_in_range');
+            expect(enhanced.enhancement.attack?.targets).toBe('all_in_range');
         });
 
         it('should have attack.damage_type = magic', () => {
-            expect(enhanced.attack?.damage_type).toBe('magic');
+            expect(enhanced.enhancement.attack?.damage_type).toBe('magic');
         });
     });
 
@@ -210,15 +210,15 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 2', () => {
-            expect(enhanced.costs?.stress).toBe(2);
+            expect(enhanced.enhancement.costs?.stress).toBe(2);
         });
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have roll.target_reaction = true', () => {
-            expect(enhanced.roll?.target_reaction).toBe(true);
+            expect(enhanced.enhancement.roll?.target_reaction).toBe(true);
         });
     });
 
@@ -228,11 +228,11 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -242,11 +242,11 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have roll.difficulty = 15', () => {
-            expect(enhanced.roll?.difficulty).toBe(15);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(15);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -256,15 +256,15 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type attack (can deal damage)', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.damage_type = physical', () => {
-            expect(enhanced.attack?.damage_type).toBe('physical');
+            expect(enhanced.enhancement.attack?.damage_type).toBe('physical');
         });
 
         it('should have attack.range = Far', () => {
-            expect(enhanced.attack?.range).toBe('Far');
+            expect(enhanced.enhancement.attack?.range).toBe('Far');
         });
     });
 
@@ -274,18 +274,18 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have modifier for spellcast with loadout condition', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'spellcast');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'spellcast');
             expect(mod?.value).toBe(1);
             expect(mod?.condition?.type).toBe('loadout_domain_count');
             expect(mod?.condition?.minCount).toBe(4);
         });
 
         it('should be frequency once_per_rest (for dice switch)', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
     });
 
@@ -295,11 +295,11 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -309,11 +309,11 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be timing reaction (when taking damage)', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
 
         it('should be action_type utility or reaction', () => {
-            expect(['utility', 'reaction']).toContain(enhanced.action_type);
+            expect(['utility', 'reaction']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -323,11 +323,11 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have roll.difficulty = 14', () => {
-            expect(enhanced.roll?.difficulty).toBe(14);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(14);
         });
     });
 
@@ -337,15 +337,15 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have roll.difficulty = 16', () => {
-            expect(enhanced.roll?.difficulty).toBe(16);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(16);
         });
 
         it('should have roll.target_reaction = true', () => {
-            expect(enhanced.roll?.target_reaction).toBe(true);
+            expect(enhanced.enhancement.roll?.target_reaction).toBe(true);
         });
     });
 
@@ -355,15 +355,15 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have roll.difficulty = 15', () => {
-            expect(enhanced.roll?.difficulty).toBe(15);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(15);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -373,11 +373,11 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 5', () => {
-            expect(enhanced.costs?.hope).toBe(5);
+            expect(enhanced.enhancement.costs?.hope).toBe(5);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -387,15 +387,15 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.targets = all_in_range', () => {
-            expect(enhanced.attack?.targets).toBe('all_in_range');
+            expect(enhanced.enhancement.attack?.targets).toBe('all_in_range');
         });
 
         it('should have attack.damage_type = magic', () => {
-            expect(enhanced.attack?.damage_type).toBe('magic');
+            expect(enhanced.enhancement.attack?.damage_type).toBe('magic');
         });
     });
 });

@@ -16,15 +16,15 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type passive (triggered condition)', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should be timing free or reaction', () => {
-            expect(['free', 'reaction']).toContain(enhanced.timing);
+            expect(['free', 'reaction']).toContain(enhanced.enhancement.timing);
         });
     });
 
@@ -34,15 +34,15 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have no costs', () => {
-            expect(enhanced.costs).toBeUndefined();
+            expect(enhanced.enhancement.costs).toBeUndefined();
         });
 
         it('should be frequency at_will', () => {
-            expect(enhanced.frequency).toBe('at_will');
+            expect(enhanced.enhancement.frequency).toBe('at_will');
         });
     });
 
@@ -52,11 +52,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type attack (extends an attack)', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
     });
 
@@ -66,15 +66,15 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have no costs', () => {
-            expect(enhanced.costs).toBeUndefined();
+            expect(enhanced.enhancement.costs).toBeUndefined();
         });
     });
 
@@ -84,11 +84,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBe('buff');
         });
     });
 
@@ -98,11 +98,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should be action_type passive or reaction', () => {
-            expect(['passive', 'reaction']).toContain(enhanced.action_type);
+            expect(['passive', 'reaction']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -112,11 +112,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -126,11 +126,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have modifier for proficiency +1', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'proficiency');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'proficiency');
             expect(mod?.value).toBe(1);
         });
     });
@@ -141,11 +141,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have modifier for damage_threshold +2', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'damage_threshold');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage_threshold');
             expect(mod?.value).toBe(2);
         });
     });
@@ -156,12 +156,12 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type buff', () => {
-            expect(enhanced.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBe('buff');
         });
 
         // Variable cost - could have costs or not depending on parser
         it('should be frequency at_will', () => {
-            expect(enhanced.frequency).toBe('at_will');
+            expect(enhanced.enhancement.frequency).toBe('at_will');
         });
     });
 
@@ -171,7 +171,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -181,11 +181,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
     });
 
@@ -195,11 +195,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should have modifier for damage', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'damage');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage');
             expect(mod).toBeDefined();
         });
     });
@@ -210,18 +210,18 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have modifier for attack +2 with loadout condition', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'attack');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'attack');
             expect(mod?.value).toBe(2);
             expect(mod?.condition?.type).toBe('loadout_domain_count');
             expect(mod?.condition?.minCount).toBe(4);
         });
 
         it('should have modifier for damage_threshold_severe +4', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'damage_threshold_severe');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage_threshold_severe');
             expect(mod?.value).toBe(4);
         });
     });
@@ -232,11 +232,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type passive (triggered on failure)', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -246,11 +246,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBe('buff');
         });
     });
 
@@ -260,11 +260,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have modifier for damage +10', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'damage');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage');
             expect(mod?.value).toBe(10);
         });
     });
@@ -275,11 +275,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.action_type);
+            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
         });
 
         it('should have no costs', () => {
-            expect(enhanced.costs).toBeUndefined();
+            expect(enhanced.enhancement.costs).toBeUndefined();
         });
     });
 
@@ -289,15 +289,15 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
     });
 
@@ -307,11 +307,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 4', () => {
-            expect(enhanced.costs?.stress).toBe(4);
+            expect(enhanced.enhancement.costs?.stress).toBe(4);
         });
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
     });
 
@@ -321,11 +321,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type reaction (can respond to ally attack)', () => {
-            expect(enhanced.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBe('reaction');
         });
     });
 });

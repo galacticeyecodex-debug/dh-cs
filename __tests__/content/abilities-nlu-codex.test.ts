@@ -16,15 +16,15 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1 (Tova\'s Armor)', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type attack (Power Push and Ice Spike deal damage)', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have modifier for armor_score +1', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'armor_score');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'armor_score');
             expect(mod?.value).toBe(1);
         });
     });
@@ -35,15 +35,15 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1 (Telepathy base cost)', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be frequency once_per_rest (Arcane Barrage)', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have duration = rest (Telepathy lasts until rest)', () => {
-            expect(enhanced.duration).toBe('rest');
+            expect(enhanced.enhancement.duration).toBe('rest');
         });
     });
 
@@ -53,11 +53,11 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.damage_type = magic', () => {
-            expect(enhanced.attack?.damage_type).toBe('magic');
+            expect(enhanced.enhancement.attack?.damage_type).toBe('magic');
         });
     });
 
@@ -67,11 +67,11 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 2 (Parallecta)', () => {
-            expect(enhanced.costs?.hope).toBe(2);
+            expect(enhanced.enhancement.costs?.hope).toBe(2);
         });
 
         it('should be action_type utility or buff', () => {
-            expect(['utility', 'buff']).toContain(enhanced.action_type);
+            expect(['utility', 'buff']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -81,11 +81,11 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1 (Arcane Door)', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be frequency once_per_rest (Runic Lock)', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
     });
 
@@ -95,15 +95,15 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1 (Recant)', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should have costs.stress = 1 (Rune Circle)', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should have roll.target_reaction = true (Recant forces reaction)', () => {
-            expect(enhanced.roll?.target_reaction).toBe(true);
+            expect(enhanced.enhancement.roll?.target_reaction).toBe(true);
         });
     });
 
@@ -113,15 +113,15 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type attack (Fireball deals massive damage)', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.range = Very Far (Fireball)', () => {
-            expect(enhanced.attack?.range).toBe('Very Far');
+            expect(enhanced.enhancement.attack?.range).toBe('Very Far');
         });
 
         it('should have roll.target_reaction = true', () => {
-            expect(enhanced.roll?.target_reaction).toBe(true);
+            expect(enhanced.enhancement.roll?.target_reaction).toBe(true);
         });
     });
 
@@ -131,15 +131,15 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1 (Create Construct)', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be frequency once_per_rest (Repudiate)', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should be action_type reaction (Repudiate is a reaction)', () => {
-            expect(enhanced.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBe('reaction');
         });
     });
 
@@ -149,15 +149,15 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1 (Arcane Deflection)', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be frequency once_per_long_rest (Arcane Deflection)', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have duration = rest (Time Lock)', () => {
-            expect(enhanced.duration).toBe('rest');
+            expect(enhanced.enhancement.duration).toBe('rest');
         });
     });
 
@@ -167,19 +167,19 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have duration = rest', () => {
-            expect(enhanced.duration).toBe('rest');
+            expect(enhanced.enhancement.duration).toBe('rest');
         });
 
         it('should have roll.difficulty = 15', () => {
-            expect(enhanced.roll?.difficulty).toBe(15);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(15);
         });
     });
 
@@ -189,15 +189,15 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have roll.difficulty = 16', () => {
-            expect(enhanced.roll?.difficulty).toBe(16);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(16);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -207,11 +207,11 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have roll.target_reaction = true', () => {
-            expect(enhanced.roll?.target_reaction).toBe(true);
+            expect(enhanced.enhancement.roll?.target_reaction).toBe(true);
         });
     });
 
@@ -221,11 +221,11 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type utility (marks target, no immediate damage)', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
 
         it('should be frequency at_will', () => {
-            expect(enhanced.frequency).toBe('at_will');
+            expect(enhanced.enhancement.frequency).toBe('at_will');
         });
     });
 
@@ -235,11 +235,11 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest (Plane Gate is more restrictive)', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have duration = rest (Plane Gate)', () => {
-            expect(enhanced.duration).toBe('rest');
+            expect(enhanced.enhancement.duration).toBe('rest');
         });
     });
 
@@ -249,15 +249,15 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -267,11 +267,11 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1 (Shared Clarity)', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
     });
 
@@ -281,15 +281,15 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 2', () => {
-            expect(enhanced.costs?.hope).toBe(2);
+            expect(enhanced.enhancement.costs?.hope).toBe(2);
         });
 
         it('should be action_type downtime', () => {
-            expect(enhanced.action_type).toBe('downtime');
+            expect(enhanced.enhancement.action_type).toBe('downtime');
         });
 
         it('should be timing downtime', () => {
-            expect(enhanced.timing).toBe('downtime');
+            expect(enhanced.enhancement.timing).toBe('downtime');
         });
     });
 
@@ -299,11 +299,11 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest (Eternal Enervation)', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have roll.difficulty = 15 (Transform)', () => {
-            expect(enhanced.roll?.difficulty).toBe(15);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(15);
         });
     });
 
@@ -313,11 +313,11 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have roll.difficulty = 18', () => {
-            expect(enhanced.roll?.difficulty).toBe(18);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(18);
         });
     });
 
@@ -327,11 +327,11 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 5 (Magic Immunity)', () => {
-            expect(enhanced.costs?.hope).toBe(5);
+            expect(enhanced.enhancement.costs?.hope).toBe(5);
         });
 
         it('should have duration = rest (Magic Immunity)', () => {
-            expect(enhanced.duration).toBe('rest');
+            expect(enhanced.enhancement.duration).toBe('rest');
         });
     });
 
@@ -341,15 +341,15 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 5', () => {
-            expect(enhanced.costs?.hope).toBe(5);
+            expect(enhanced.enhancement.costs?.hope).toBe(5);
         });
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have duration = rest', () => {
-            expect(enhanced.duration).toBe('rest');
+            expect(enhanced.enhancement.duration).toBe('rest');
         });
     });
 });

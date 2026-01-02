@@ -16,15 +16,15 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.damage_type = magic', () => {
-            expect(enhanced.attack?.damage_type).toBe('magic');
+            expect(enhanced.enhancement.attack?.damage_type).toBe('magic');
         });
     });
 
@@ -34,15 +34,15 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 2', () => {
-            expect(enhanced.costs?.hope).toBe(2);
+            expect(enhanced.enhancement.costs?.hope).toBe(2);
         });
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBe('buff');
         });
     });
 
@@ -52,11 +52,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -66,11 +66,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have roll.difficulty = 13', () => {
-            expect(enhanced.roll?.difficulty).toBe(13);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(13);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -80,15 +80,15 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should have roll.difficulty = 13', () => {
-            expect(enhanced.roll?.difficulty).toBe(13);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(13);
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBe('buff');
         });
     });
 
@@ -98,11 +98,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -112,11 +112,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have modifier for proficiency +1', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'proficiency');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'proficiency');
             expect(mod?.value).toBe(1);
         });
     });
@@ -127,11 +127,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have costs.hope = 3', () => {
-            expect(enhanced.costs?.hope).toBe(3);
+            expect(enhanced.enhancement.costs?.hope).toBe(3);
         });
     });
 
@@ -141,11 +141,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 3', () => {
-            expect(enhanced.costs?.hope).toBe(3);
+            expect(enhanced.enhancement.costs?.hope).toBe(3);
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBe('buff');
         });
     });
 
@@ -155,11 +155,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -169,11 +169,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have costs.hope = 3', () => {
-            expect(enhanced.costs?.hope).toBe(3);
+            expect(enhanced.enhancement.costs?.hope).toBe(3);
         });
     });
 
@@ -183,11 +183,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should have token_source = spellcast', () => {
-            expect(enhanced.token_source).toBe('spellcast');
+            expect(enhanced.enhancement.token_source).toBe('spellcast');
         });
     });
 
@@ -197,11 +197,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have roll.difficulty = 16', () => {
-            expect(enhanced.roll?.difficulty).toBe(16);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(16);
         });
     });
 
@@ -211,11 +211,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 2', () => {
-            expect(enhanced.costs?.hope).toBe(2);
+            expect(enhanced.enhancement.costs?.hope).toBe(2);
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBe('buff');
         });
     });
 
@@ -225,11 +225,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have modifier for damage_threshold_severe +3', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'damage_threshold_severe');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage_threshold_severe');
             expect(mod?.value).toBe(3);
             expect(mod?.condition?.type).toBe('loadout_domain_count');
             expect(mod?.condition?.minCount).toBe(4);
@@ -242,11 +242,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -256,11 +256,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have roll.target_reaction = true', () => {
-            expect(enhanced.roll?.target_reaction).toBe(true);
+            expect(enhanced.enhancement.roll?.target_reaction).toBe(true);
         });
 
         it('should have attack.targets = all_in_range', () => {
-            expect(enhanced.attack?.targets).toBe('all_in_range');
+            expect(enhanced.enhancement.attack?.targets).toBe('all_in_range');
         });
     });
 
@@ -270,15 +270,15 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 2', () => {
-            expect(enhanced.costs?.hope).toBe(2);
+            expect(enhanced.enhancement.costs?.hope).toBe(2);
         });
 
         it('should have roll.difficulty = 15', () => {
-            expect(enhanced.roll?.difficulty).toBe(15);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(15);
         });
 
         it('should have modifier for presence with formula', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'presence');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'presence');
             expect(mod?.formula).toBe('spellcast');
         });
     });
@@ -289,11 +289,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have roll.difficulty = 16', () => {
-            expect(enhanced.roll?.difficulty).toBe(16);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(16);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -303,7 +303,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -313,7 +313,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have roll.difficulty = 20', () => {
-            expect(enhanced.roll?.difficulty).toBe(20);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(20);
         });
     });
 });

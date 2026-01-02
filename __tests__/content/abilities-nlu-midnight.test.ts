@@ -16,11 +16,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have no costs', () => {
-            expect(enhanced.costs).toBeUndefined();
+            expect(enhanced.enhancement.costs).toBeUndefined();
         });
     });
 
@@ -30,19 +30,19 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.targets = all_in_range', () => {
-            expect(enhanced.attack?.targets).toBe('all_in_range');
+            expect(enhanced.enhancement.attack?.targets).toBe('all_in_range');
         });
 
         it('should have attack.damage_type = magic', () => {
-            expect(enhanced.attack?.damage_type).toBe('magic');
+            expect(enhanced.enhancement.attack?.damage_type).toBe('magic');
         });
     });
 
@@ -52,15 +52,15 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should have token_source = spellcast', () => {
-            expect(enhanced.token_source).toBe('spellcast');
+            expect(enhanced.enhancement.token_source).toBe('spellcast');
         });
     });
 
@@ -70,15 +70,15 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should have attack.range = Very Far', () => {
-            expect(enhanced.attack?.range).toBe('Very Far');
+            expect(enhanced.enhancement.attack?.range).toBe('Very Far');
         });
 
         it('should have duration = rest', () => {
-            expect(enhanced.duration).toBe('rest');
+            expect(enhanced.enhancement.duration).toBe('rest');
         });
     });
 
@@ -88,15 +88,15 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
 
         it('should have attack.targets = all_in_range', () => {
-            expect(enhanced.attack?.targets).toBe('all_in_range');
+            expect(enhanced.enhancement.attack?.targets).toBe('all_in_range');
         });
 
         it('should have no costs', () => {
-            expect(enhanced.costs).toBeUndefined();
+            expect(enhanced.enhancement.costs).toBeUndefined();
         });
     });
 
@@ -106,11 +106,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.action_type);
+            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -120,11 +120,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have roll.difficulty = 13', () => {
-            expect(enhanced.roll?.difficulty).toBe(13);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(13);
         });
 
         it('should be action_type utility or buff', () => {
-            expect(['utility', 'buff', 'attack']).toContain(enhanced.action_type);
+            expect(['utility', 'buff', 'attack']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -134,11 +134,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -148,11 +148,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type attack (rolls against target)', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
     });
 
@@ -162,7 +162,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
     });
 
@@ -172,11 +172,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1 (base activation)', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -186,7 +186,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
     });
 
@@ -196,11 +196,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 
@@ -210,11 +210,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
     });
 
@@ -224,15 +224,15 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.hope = 1', () => {
-            expect(enhanced.costs?.hope).toBe(1);
+            expect(enhanced.enhancement.costs?.hope).toBe(1);
         });
 
         it('should be action_type reaction', () => {
-            expect(enhanced.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBe('reaction');
         });
 
         it('should be timing reaction', () => {
-            expect(enhanced.timing).toBe('reaction');
+            expect(enhanced.enhancement.timing).toBe('reaction');
         });
     });
 
@@ -242,11 +242,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
 
         it('should have modifier for evasion +1', () => {
-            const mod = enhanced.modifiers?.find(m => m.stat === 'evasion');
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'evasion');
             expect(mod?.value).toBe(1);
         });
     });
@@ -257,11 +257,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should be action_type passive or attack', () => {
-            expect(['passive', 'attack']).toContain(enhanced.action_type);
+            expect(['passive', 'attack']).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -271,11 +271,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should be action_type attack', () => {
-            expect(enhanced.action_type).toBe('attack');
+            expect(enhanced.enhancement.action_type).toBe('attack');
         });
     });
 
@@ -285,11 +285,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.has_tokens).toBe(true);
+            expect(enhanced.enhancement.has_tokens).toBe(true);
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBe('passive');
         });
     });
 
@@ -299,11 +299,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be frequency once_per_long_rest', () => {
-            expect(enhanced.frequency).toBe('once_per_long_rest');
+            expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
         it('should have roll.difficulty = 16', () => {
-            expect(enhanced.roll?.difficulty).toBe(16);
+            expect(enhanced.enhancement.roll?.difficulty).toBe(16);
         });
     });
 
@@ -313,11 +313,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have costs.stress = 1', () => {
-            expect(enhanced.costs?.stress).toBe(1);
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBe('utility');
         });
     });
 });
