@@ -67,13 +67,13 @@ export default function PlaymatView() {
   useEffect(() => {
     const loadEnhancedAbilities = async () => {
       try {
-        const srdModule = await import('@/content/srd/json/abilities.json');
+        const srdModule = await import('@/content/srd/json/abilities_enhanced.json');
         const srdData = (srdModule.default || []) as EnhancedAbilityCard[];
 
         let playtestData: EnhancedAbilityCard[] = [];
         if (includePlaytest) {
           try {
-            const playtestModule = await import('@/content/playtest/json/abilities.json');
+            const playtestModule = await import('@/content/playtest/json/abilities_enhanced.json');
             playtestData = (playtestModule.default || []) as EnhancedAbilityCard[];
           } catch (e) {
             console.warn('Playtest abilities not found');

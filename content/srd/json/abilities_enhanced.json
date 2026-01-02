@@ -142,7 +142,12 @@
     "frequency": "at_will",
     "keywords": [
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "target_reaction": true
+    }
   },
   {
     "name": "Flight",
@@ -160,7 +165,13 @@
     ],
     "has_tokens": true,
     "max_tokens": null,
-    "token_source": "agility"
+    "token_source": "agility",
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 15,
+      "target_reaction": false
+    }
   },
   {
     "name": "Blink Out",
@@ -179,7 +190,13 @@
       "hope_cost",
       "movement",
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 12,
+      "target_reaction": false
+    }
   },
   {
     "name": "Preservation Blast",
@@ -270,7 +287,13 @@
     "frequency": "at_will",
     "keywords": [
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 15,
+      "target_reaction": false
+    }
   },
   {
     "name": "Telekinesis",
@@ -335,8 +358,8 @@
     "type": "Spell",
     "recall": "2",
     "text": "When you make a successful **Spellcast Roll** to cast a different spell, you can **spend a Hope** to become Cloaked. While Cloaked, you remain unseen if you are stationary when an adversary moves to where they would normally see you. When you move into or within an adversary’s line of sight or make an attack, you are no longer Cloaked.",
-    "action_type": "utility",
-    "timing": "action",
+    "action_type": "passive",
+    "timing": "free",
     "frequency": "at_will",
     "costs": {
       "hope": 1
@@ -390,6 +413,12 @@
       "combat_category": "standalone_attack",
       "damage": "d6",
       "difficulty": 14
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 14,
+      "target_reaction": false
     }
   },
   {
@@ -399,8 +428,8 @@
     "type": "Spell",
     "recall": "2",
     "text": "Make a **Spellcast Roll (16)**. Once per rest on a success, all targets within Very Far range who aren’t flying must make a **Reaction Roll (18)**. Targets who fail take **3d10+8** physical damage and are temporarily Vulnerable. Targets who succeed take half damage.\n\nAdditionally, when you succeed on the **Spellcast Roll**, all terrain within Very Far range becomes difficult to move through and structures within this range might sustain damage or crumble.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "utility",
+    "timing": "action",
     "frequency": "once_per_rest",
     "keywords": [
       "damage",
@@ -431,7 +460,13 @@
       "damage",
       "movement",
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 15,
+      "target_reaction": false
+    }
   },
   {
     "name": "Adjust Reality",
@@ -507,8 +542,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "When you roll your damage dice, you can reroll any 1s or 2s.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "buff",
+    "timing": "action",
     "frequency": "at_will",
     "keywords": [
       "damage",
@@ -522,8 +557,8 @@
     "type": "Ability",
     "recall": "0",
     "text": "When you make a successful attack against a target within Very Close range, you can **spend a Hope** to use the attack against all other targets within Very Close range. All additional adversaries you succeed against with this ability take half damage.",
-    "action_type": "attack",
-    "timing": "action",
+    "action_type": "passive",
+    "timing": "free",
     "frequency": "at_will",
     "costs": {
       "hope": 1
@@ -575,8 +610,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "Once per rest, when a creature within Melee range would deal damage to you, you can avoid the attack and safely move out of Melee range of the enemy.",
-    "action_type": "passive",
-    "timing": "free",
+    "action_type": "reaction",
+    "timing": "reaction",
     "frequency": "once_per_rest",
     "keywords": [
       "damage",
@@ -720,7 +755,7 @@
     "type": "Ability",
     "recall": "1",
     "text": "Before you make an attack, you can **mark a Stress** to gain a bonus to your damage roll equal to twice your Strength. You can Rage Up twice per attack.",
-    "action_type": "attack",
+    "action_type": "buff",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -892,8 +927,8 @@
     "type": "Ability",
     "recall": "0",
     "text": "When you make a successful attack against an adversary, you can **mark 4 Stress** to force the target to mark a number of Hit Points equal to the number of Hit Points you currently have marked instead of rolling for damage.",
-    "action_type": "attack",
-    "timing": "action",
+    "action_type": "passive",
+    "timing": "free",
     "frequency": "at_will",
     "costs": {
       "stress": 4
@@ -933,7 +968,13 @@
       "damage",
       "stress_cost",
       "ability"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 15,
+      "target_reaction": true
+    }
   },
   {
     "name": "Deft Maneuvers",
@@ -1058,7 +1099,7 @@
     "type": "Ability",
     "recall": "1",
     "text": "After a long rest, place a number of tokens equal to your Knowledge on this card (minimum 1). The first time you move within Close range of an adversary and make an attack against them, you can spend one token to choose one of the following options:\n\n- You make the attack with advantage.\n- You clear a Stress on an ally within Melee range of the adversary.\n- You add a **d8** to your damage roll.\n\nWhen you take a long rest, clear all unspent tokens.",
-    "action_type": "attack",
+    "action_type": "buff",
     "timing": "action",
     "frequency": "at_will",
     "keywords": [
@@ -1145,7 +1186,7 @@
     "type": "Ability",
     "recall": "1",
     "text": "When an attack made against you from beyond Melee range fails, roll a number of **d6s** equal to your Proficiency. If any roll a 6, you can **mark a Stress** to redirect the attack to damage an adversary within Very Close range instead.",
-    "action_type": "attack",
+    "action_type": "reaction",
     "timing": "reaction",
     "frequency": "at_will",
     "costs": {
@@ -1292,8 +1333,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "When you make a successful attack with a weapon, gain a bonus to your damage roll equal to either your Finesse or Agility.",
-    "action_type": "attack",
-    "timing": "action",
+    "action_type": "passive",
+    "timing": "free",
     "frequency": "at_will",
     "keywords": [
       "damage",
@@ -1318,8 +1359,8 @@
     "type": "Ability",
     "recall": "3",
     "text": "When you make a successful attack, you can **mark a Stress** to make the next successful attack against that same target deal an extra **2d12** damage.",
-    "action_type": "attack",
-    "timing": "action",
+    "action_type": "passive",
+    "timing": "free",
     "frequency": "at_will",
     "costs": {
       "stress": 1
@@ -1383,8 +1424,8 @@
     "type": "Ability",
     "recall": "3",
     "text": "**Spend a Hope** and make an attack against all adversaries within your weapon’s range. Once per long rest, on a success against any targets, roll your weapon’s damage and distribute that damage however you wish between the targets you succeeded against. Before you deal damage to each target, roll an additional damage die and add its result to the damage you deal to them.",
-    "action_type": "attack",
-    "timing": "action",
+    "action_type": "passive",
+    "timing": "free",
     "frequency": "once_per_long_rest",
     "costs": {
       "hope": 1
@@ -1566,7 +1607,20 @@
     },
     "keywords": [
       "hope_cost"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "combat_category": "roll_only",
+      "targets": "self",
+      "difficulty": 14
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 14,
+      "target_reaction": false
+    }
   },
   {
     "name": "Book of Vagras",
@@ -1598,8 +1652,8 @@
     "type": "Grimoire",
     "recall": "2",
     "text": "**Levitation:** Make a **Spellcast Roll** to temporarily lift a target you can see up into the air and move them within Close range of their original position.\n\n**Recant:** **Spend a Hope** to force a target within Melee range to make a **Reaction Roll (15)**. On a failure, they forget the last minute of your conversation.\n\n**Rune Circle:** **Mark a Stress** to create a temporary magical circle on the ground where you stand. All adversaries within Melee range, who enter Melee range, take **2d12+4** magic damage and are knocked back to Very Close range.",
-    "action_type": "reaction",
-    "timing": "reaction",
+    "action_type": "passive",
+    "timing": "free",
     "frequency": "at_will",
     "costs": {
       "stress": 1,
@@ -1661,7 +1715,7 @@
     "type": "Grimoire",
     "recall": "3",
     "text": "**Repudiate:** You can interrupt a magical effect taking place. Make a **reaction roll** using your Spellcast trait. Once per rest on a success, the effect stops and any consequences are avoided.\n\n**Create Construct:** **Spend a Hope** to choose a group of objects around you and create an animated construct from them that obeys basic commands. Make a **Spellcast Roll** to command them to take action. When necessary, they share your Evasion and traits and their attacks deal **2d10+3** physical damage. You can only maintain one construct at a time, and they fall apart when they take any amount of damage.",
-    "action_type": "reaction",
+    "action_type": "passive",
     "timing": "reaction",
     "frequency": "once_per_rest",
     "costs": {
@@ -1729,6 +1783,12 @@
       "hope_cost",
       "spell"
     ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 15,
+      "target_reaction": false
+    },
     "duration": "rest"
   },
   {
@@ -1744,7 +1804,13 @@
     "keywords": [
       "movement",
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 16,
+      "target_reaction": false
+    }
   },
   {
     "name": "Banish",
@@ -1802,6 +1868,12 @@
     "timing": "free",
     "frequency": "once_per_long_rest",
     "keywords": [],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 13,
+      "target_reaction": false
+    },
     "duration": "rest"
   },
   {
@@ -1919,7 +1991,13 @@
     "keywords": [
       "stress_cost",
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 18,
+      "target_reaction": false
+    }
   },
   {
     "name": "Book of Yarrow",
@@ -1939,6 +2017,12 @@
       "magic",
       "hope_cost"
     ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 18,
+      "target_reaction": false
+    },
     "duration": "rest"
   },
   {
@@ -2026,7 +2110,8 @@
       "ability"
     ],
     "has_tokens": true,
-    "max_tokens": null
+    "max_tokens": null,
+    "token_source": "presence"
   },
   {
     "name": "Tell No Lies",
@@ -2135,7 +2220,21 @@
       "spell"
     ],
     "has_tokens": true,
-    "max_tokens": null
+    "max_tokens": null,
+    "token_source": "spellcast",
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Melee",
+      "combat_category": "roll_only",
+      "targets": "self",
+      "difficulty": 10
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 10,
+      "target_reaction": false
+    }
   },
   {
     "name": "Soothing Speech",
@@ -2399,7 +2498,7 @@
     "recall": "1",
     "text": "When an ally within Close range deals damage to an adversary, you can make a **Spellcast Roll** against that same target. On a success, you deal the same damage to the target that your ally dealt. If your **Spellcast Roll** succeeds with Fear, place this card in your vault.",
     "action_type": "attack",
-    "timing": "action",
+    "timing": "reaction",
     "frequency": "at_will",
     "keywords": [
       "damage",
@@ -2595,13 +2694,19 @@
     "type": "Spell",
     "recall": "1",
     "text": "Make a **Spellcast Roll (13)**. On a success, you can create a temporary curtain of darkness between two points within Far range. Only you can see through this darkness. You’re considered Hidden to adversaries on the other side of the veil, and you have advantage on attacks you make through the darkness. The veil remains until you cast another spell.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "keywords": [
       "buff",
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 13,
+      "target_reaction": false
+    }
   },
   {
     "name": "Stealth Expertise",
@@ -2754,8 +2859,8 @@
     "type": "Ability",
     "recall": "2",
     "text": "When you have midnight domain cards in your loadout are from the midnight domain, gain the following benefits:\n\n- Once per rest, when you have 0 Hope and the GM would gain a Fear, you can gain a Hope instead.\n- When you make a successful attack, you can **mark a Stress** to add the result of your Fear Die to your damage roll.",
-    "action_type": "attack",
-    "timing": "action",
+    "action_type": "passive",
+    "timing": "free",
     "frequency": "once_per_rest",
     "costs": {
       "stress": 1
@@ -2794,8 +2899,8 @@
     "type": "Ability",
     "recall": "2",
     "text": "Your prowess is enhanced under the cover of shadow. While you’re shrouded in low light or darkness, you gain a +1 bonus to your Evasion and make attack rolls with advantage.",
-    "action_type": "attack",
-    "timing": "action",
+    "action_type": "passive",
+    "timing": "free",
     "frequency": "at_will",
     "keywords": [
       "buff",
@@ -2819,7 +2924,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "When you take magic damage, place tokens equal to the number of Hit Points you marked on this card. You can store a number of tokens equal to your Spellcast trait.\n\nWhen you make a successful attack against a target, you can spend any number of tokens to add a **d6** for each token spent to your damage roll.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "keywords": [
@@ -2853,6 +2958,12 @@
       "combat_category": "passive_triggered",
       "damage": "d6",
       "difficulty": 16
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 16,
+      "target_reaction": true
     }
   },
   {
@@ -2891,7 +3002,19 @@
       "stress_cost",
       "debuff",
       "spell"
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Far",
+      "combat_category": "roll_only",
+      "difficulty": 16
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 16,
+      "target_reaction": false
+    }
   },
   {
     "name": "Specter of the Dark",
@@ -2958,8 +3081,8 @@
       "ability"
     ],
     "roll": {
-      "type": "Spellcast Roll",
-      "trait": "Spellcast",
+      "type": "Instinct Roll",
+      "trait": "Instinct",
       "difficulty": 12,
       "target_reaction": false
     }
@@ -3038,7 +3161,7 @@
     "type": "Spell",
     "recall": "1",
     "text": "**Spend a Hope** to summon a small nature spirit or forest critter to your side until your next rest, you cast Natural Familiar again, or the familiar is targeted by an attack. If you **spend an additional Hope**, you can summon a familiar that flies. You can communicate with them, make a **Spellcast Roll** to command them to perform simple tasks, and **mark a Stress** to see through their eyes.\n\nWhen you deal damage to an adversary within Melee range of your familiar, you add a **d6** to your damage roll.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -3215,7 +3338,19 @@
       "spell"
     ],
     "has_tokens": true,
-    "max_tokens": null
+    "max_tokens": null,
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Close",
+      "combat_category": "roll_only",
+      "difficulty": 13
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 13,
+      "target_reaction": false
+    }
   },
   {
     "name": "Conjured Steeds",
@@ -3252,8 +3387,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "As an additional downtime move you can choose, roll a **d6** to see what you forage. Work with the GM to describe it and add it to your inventory as a consumable. Your party can carry up to five foraged consumables at a time.\n\n1. An unusual flower (Clear 2 Stress)\n1. A beautiful relic (Gain 2 Hope)\n1. An arcane rune (+2 to a **Spellcast Roll**)\n1. A healing vial (Clear 2 Hit Points)\n1. A luck charm (Reroll any die)\n1. Choose one of the options above.",
-    "action_type": "attack",
-    "timing": "action",
+    "action_type": "downtime",
+    "timing": "downtime",
     "frequency": "at_will",
     "keywords": [
       "healing",
@@ -3343,7 +3478,19 @@
         },
         "source": "Forest Sprites"
       }
-    ]
+    ],
+    "attack": {
+      "trait": "Spellcast",
+      "range": "Far",
+      "combat_category": "roll_only",
+      "difficulty": 13
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 13,
+      "target_reaction": false
+    }
   },
   {
     "name": "Rejuvenation Barrier",
@@ -3361,7 +3508,13 @@
       "healing",
       "movement",
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 15,
+      "target_reaction": false
+    }
   },
   {
     "name": "Fane of the Wilds",
@@ -3398,7 +3551,13 @@
     "frequency": "once_per_long_rest",
     "keywords": [
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 18,
+      "target_reaction": false
+    }
   },
   {
     "name": "Force of Nature",
@@ -3407,7 +3566,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "**Mark a Stress** to transform into a hulking nature spirit, gaining the following benefits:\n\n- When you succeed on an attack or **Spellcast Roll**, gain a +10 bonus to the damage roll.\n- When you deal enough damage to defeat a creature within Close range, you absorb them and clear an Armor Slot.\n- You can’t be Restrained.\n\nBefore you make an **action roll**, you must **spend a Hope**. If you can’t, you revert to your normal form.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -3549,7 +3708,13 @@
     "frequency": "at_will",
     "keywords": [
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 13,
+      "target_reaction": false
+    }
   },
   {
     "name": "Healing Hands",
@@ -3569,7 +3734,13 @@
       "stress_relief",
       "stress_cost",
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 13,
+      "target_reaction": false
+    }
   },
   {
     "name": "Second Wind",
@@ -3696,7 +3867,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "After a long rest, place a number of tokens equal to your Spellcast trait on this card. Touch a creature and spend any number of tokens to clear 2 Hit Points or 2 Stress for each token spent.\n\nYou can also spend a token from this card when touching a creature to clear the Vulnerable condition or heal a physical or magical ailment (the GM might require additional tokens depending on the strength of the ailment).\n\nWhen you take a long rest, clear all unspent tokens.",
-    "action_type": "utility",
+    "action_type": "buff",
     "timing": "action",
     "frequency": "at_will",
     "keywords": [
@@ -3723,7 +3894,13 @@
     "keywords": [
       "damage",
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 16,
+      "target_reaction": false
+    }
   },
   {
     "name": "Healing Strike",
@@ -3832,7 +4009,7 @@
     "type": "Spell",
     "recall": "2",
     "text": "Make a **Spellcast Roll (15)** to magically empower your aura. On a success, **spend 2 Hope** to make your Presence equal to your Spellcast trait until your next long rest.\n\nWhile this spell is active, an adversary must **mark a Stress** when they target you with an attack.",
-    "action_type": "attack",
+    "action_type": "utility",
     "timing": "action",
     "frequency": "at_will",
     "costs": {
@@ -3854,7 +4031,13 @@
         },
         "source": "Overwhelming Aura"
       }
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 15,
+      "target_reaction": false
+    }
   },
   {
     "name": "Salvation Beam",
@@ -3871,7 +4054,13 @@
       "stress_relief",
       "stress_cost",
       "spell"
-    ]
+    ],
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 16,
+      "target_reaction": false
+    }
   },
   {
     "name": "Invigoration",
@@ -3907,6 +4096,12 @@
       "combat_category": "passive_triggered",
       "damage": "d6",
       "difficulty": 20
+    },
+    "roll": {
+      "type": "Spellcast Roll",
+      "trait": "Spellcast",
+      "difficulty": 20,
+      "target_reaction": false
     }
   },
   {
@@ -3952,7 +4147,7 @@
     "recall": "1",
     "text": "When an ally within Very Close range would take damage, you can **mark a Stress** to stand in the way and make yourself the target of the attack instead. When you take damage from this attack, you can mark any number of Armor Slots.",
     "action_type": "passive",
-    "timing": "free",
+    "timing": "reaction",
     "frequency": "at_will",
     "costs": {
       "stress": 1
@@ -4082,7 +4277,7 @@
     "recall": "2",
     "text": "When an ally within Close range fails a roll, you can **spend 2 Hope** to allow them to reroll either their Hope or Fear Die.",
     "action_type": "passive",
-    "timing": "free",
+    "timing": "reaction",
     "frequency": "at_will",
     "costs": {
       "hope": 2
@@ -4172,7 +4367,7 @@
     "type": "Ability",
     "recall": "1",
     "text": "When you would take damage, you can **mark a Stress** to reduce the severity of the damage by one threshold. When you do, roll a **d6**. On a result of 3 or lower, place this card in your vault.",
-    "action_type": "attack",
+    "action_type": "reaction",
     "timing": "reaction",
     "frequency": "at_will",
     "costs": {
@@ -4317,8 +4512,8 @@
     "type": "Ability",
     "recall": "4",
     "text": "When you mark your last Hit Point, instead of making a death move, you can roll a **d6** and clear a number of Hit Points equal to the result. Then place this card in your vault.",
-    "action_type": "attack",
-    "timing": "action",
+    "action_type": "reaction",
+    "timing": "reaction",
     "frequency": "at_will",
     "keywords": [
       "healing",
@@ -4339,8 +4534,8 @@
     "type": "Ability",
     "recall": "1",
     "text": "When you would mark an Armor Slot, roll a number of **d6s** equal to your Proficiency. If any roll a 6, reduce the severity by one threshold without marking an Armor Slot.",
-    "action_type": "attack",
-    "timing": "action",
+    "action_type": "reaction",
+    "timing": "reaction",
     "frequency": "at_will",
     "keywords": [
       "ability"

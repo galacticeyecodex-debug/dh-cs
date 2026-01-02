@@ -36,6 +36,9 @@ export interface CardStateSlice {
   resetCardUsed: (cardName: string, frequency: Frequency) => Promise<void>;
   resetAllCardsByFrequency: (frequency: Frequency) => Promise<void>;
 
+  // Active state management
+  toggleCardActive: (cardName: string) => Promise<void>;
+
   // State helpers
   initializeCardState: (cardName: string) => void;
 }
@@ -211,5 +214,28 @@ export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStat
       const newCardStates = { ...currentCardStates, [cardName]: { ...defaultCardState } };
       set({ cardStates: newCardStates });
     }
+  },
+
+  toggleCardActive: async (cardName: string) => {
+    const state = get() as CharacterStore;
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+    const currentCardStates = state.cardStates || {};
+    const cardState = currentCardStates[cardName] || { ...defaultCardState };
+    const newCardState = { ...cardState, is_active: !cardState.is_active };
+    const newCardStates = { ...currentCardStates, [cardName]: newCardState };
+
+    await withOptimisticUpdate(
+      () => {
+        const previousStates = { ...((get() as CharacterStore).cardStates || {}) };
+        set({ cardStates: newCardStates });
+        return () => {
+          set({ cardStates: previousStates });
+        };
+      },
+      async () => dataService.character.update(characterId, { card_states: newCardStates }),
+      'Failed to toggle card active state'
+    );
   },
 });
