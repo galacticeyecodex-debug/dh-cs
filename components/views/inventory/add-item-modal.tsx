@@ -29,9 +29,10 @@ interface AddItemModalProps {
   libraryItems: LibraryItem[];
   filterType?: 'inventory' | 'cards'; // Optional prop to default filtering context
   isLoading?: boolean;
+  ownedCards?: { library_item?: LibraryItem }[]; // Cards already owned by character (to filter out duplicates)
 }
 
-export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems, filterType = 'inventory', isLoading = false }: AddItemModalProps) {
+export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems, filterType = 'inventory', isLoading = false, ownedCards }: AddItemModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // 'weapon', 'armor', 'consumable', 'item', 'card'
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
@@ -73,9 +74,21 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
     // Merge library and homebrew items
     const allItems = [...libraryItems, ...homebrewAsLibraryItems];
 
+    // Create set of owned card IDs for fast lookup (only for cards, not inventory items)
+    const ownedCardIds = new Set(
+      filterType === 'cards' && ownedCards
+        ? ownedCards.map(card => card.library_item?.id).filter(Boolean)
+        : []
+    );
+
     return allItems.filter(item => {
+      // CRITICAL: For cards, filter out items that are already owned (prevent duplicates)
+      if (filterType === 'cards' && ownedCardIds.has(item.id)) {
+        return false;
+      }
+
       const matchesSearch = searchTerm ? (
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.domain && item.domain.toLowerCase().includes(searchTerm.toLowerCase()))
       ) : true;
 
@@ -108,7 +121,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
 
       return matchesSearch && matchesCategory && matchesDomain && matchesHomebrew && isRelevantType;
     });
-  }, [libraryItems, homebrewItems, searchTerm, selectedCategory, selectedDomain, showHomebrewOnly, filterType]);
+  }, [libraryItems, homebrewItems, searchTerm, selectedCategory, selectedDomain, showHomebrewOnly, filterType, ownedCards]);
 
   if (!isOpen) return null;
 

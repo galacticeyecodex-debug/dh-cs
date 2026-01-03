@@ -1121,7 +1121,7 @@
     "type": "Ability",
     "recall": "0",
     "text": "Once per rest, **mark a Stress** to sprint anywhere within Far range without making an **Agility Roll** to get there.\n\nIf you end this movement within Melee range of an adversary and immediately make an attack against them, gain a +1 bonus to the attack roll.",
-    "enhancement": {
+    "enhancement_override": {
       "timing": "action",
       "frequency": "once_per_rest",
       "costs": {
@@ -1145,6 +1145,12 @@
         "trait": "Agility",
         "range": "Far",
         "combat_category": "passive_triggered"
+      },
+      "roll": {
+        "type": "Attack Roll",
+        "trait": "Attack",
+        "target_reaction": false,
+        "requires_cost_for_roll": true
       }
     }
   },
