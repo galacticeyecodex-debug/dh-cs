@@ -39,7 +39,9 @@ export default function ActiveEffectCheckbox({
         ? 'Active (Scene)'
         : duration === 'rest'
             ? 'Active (Rest)'
-            : 'Active Effect';
+            : duration === 'conditional'
+                ? 'Active (Conditional)'
+                : 'Active Effect';
 
     return (
         <button

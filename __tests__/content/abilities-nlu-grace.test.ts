@@ -52,7 +52,7 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         });
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 

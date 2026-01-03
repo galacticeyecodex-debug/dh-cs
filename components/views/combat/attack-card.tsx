@@ -160,8 +160,13 @@ const AttackCard = React.memo(function AttackCard({
     // Determine default roll label
     const finalRollLabel = rollLabel || (hasDamage ? 'Attack' : 'Roll');
 
-    // Cost activation logic - only require cost payment if the roll explicitly requires it
-    const needsActivation = !!(costs?.stress || costs?.hope) && roll?.requires_cost_for_roll === true;
+    // Cost activation logic:
+    // 1. If roll?.requires_cost_for_roll is true, costs are prerequisites for rolling
+    // 2. If there are costs but NO roll (e.g., Deft Maneuvers), always show costs
+    // 3. If roll exists but requires_cost_for_roll is false/undefined, costs are post-roll (don't gate the roll)
+    const hasCosts = !!(costs?.stress || costs?.hope);
+    const hasRoll = !!onAttackRoll;
+    const needsActivation = hasCosts && (roll?.requires_cost_for_roll === true || !hasRoll);
     const canRoll = !needsActivation || isCostPaid;
 
     return (
