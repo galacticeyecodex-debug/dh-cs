@@ -1,15 +1,48 @@
 /**
- * DOMAIN CARD PARSER
+ * DOMAIN CARD PARSER (NLU Engine)
  * ----------------------------------------------------------------------------
- * Extracts passive modifiers and combat mechanics from domain card descriptions.
+ * This module is the core NLU (Natural Language Understanding) engine for the
+ * Daggerheart Character Sheet. It analyzes raw card text to extract structured
+ * gameplay mechanics, enabling interactive features in the application.
  *
- * FUNCTIONALITY:
- * - Parses card text for stat bonuses (+1 to Agility, +half Agility to Evasion, etc.)
- * - Evaluates conditions (equipment state, loadout composition)
- * - Calculates dynamic modifier values
- * - Returns structured modifier data for integration with character stats
+ * DOCUMENTATION & REFERENCE:
+ *   - Schema Definitions: dh-cs/types/cards.ts
+ *   - Integration: dh-cs/scripts/enhance_json.ts
+ *   - Test Suite: dh-cs/__tests__/content/abilities-enhanced.test.ts
  *
- * This parser follows similar patterns to ModifierBuilder for consistency.
+ * CORE FUNCTIONALITY:
+ * The parser breaks down card descriptions into semantic components:
+ *
+ * 1. Activation & Costs (`parseCosts`, `parseActionType`)
+ *    - Detects resource costs (Hope, Stress, HP)
+ *    - Identifies action types (Attack, Reaction, Utility, Passive)
+ *
+ * 2. Combat Mechanics (`enhanceAbilityCard` -> `attack` block)
+ *    - Extracts attack traits (Strength, Spellcast, etc.)
+ *    - Parses ranges, damage dice, and damage types
+ *    - Classifies combat usage (standalone attack vs. damage bonus)
+ *
+ * 3. Passive Modifiers (`parseCardPassiveModifiers`)
+ *    - Parses static bonuses ("+1 to Evasion")
+ *    - Handles dynamic formulas ("equal to half your Agility")
+ *    - Evaluates conditional activators ("while unarmored")
+ *
+ * 4. Token Tracking (`parseCardTokens`)
+ *    - Identifies token pools ("put 3 tokens on this card")
+ *    - Determines replenishment rules (rest, long rest)
+ *
+ * ARCHITECTURE:
+ * - `enhanceAbilityCard`: The main entry point. Orchestrates the sub-parsers onto a raw card.
+ * - Sub-parsers: Specialized functions (e.g., `parseStressCost`, `parseCardDamage`) that
+ *   handle specific mechanics using regex patterns.
+ * - `stripMarkdown`: Normalizes text (removes bold/italics) for consistent matching.
+ *
+ * EXTENDING THE PARSER:
+ * When adding new mechanics (e.g., Environment effects):
+ * 1. Define the schema in `types/cards.ts`.
+ * 2. Create a new sub-parser function here (e.g., `parseEnvironmentEffect`).
+ * 3. Add the parser call to `enhanceAbilityCard`.
+ * 4. Add test cases in `__tests__/content/abilities-enhanced.test.ts`.
  */
 
 import type { Character, CharacterCard } from '@/types/character';
@@ -909,7 +942,7 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     /\beach.*?gains?\s+(?:a\s+)?hope\b/i,
   ];
 
-  
+
   // Check if this is an ACTIVE BUFF ability - specifically for proactive enhancement
   // Key indicators: "you can go/muster/become" (active self-enhancement)
   // OR buff patterns without a reaction/passive trigger
