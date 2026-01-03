@@ -35,6 +35,13 @@
             "trait": "Spellcast",
             "range": "Close",
             "combat_category": "passive_triggered",
+            "additional_damage": [
+              {
+                "damage": "1d6",
+                "condition": "Until you finish your next rest, that weapon deals physical or magic damage (choose when you use this feature) and an",
+                "label": "Extra"
+              }
+            ],
             "damage": "1d6",
             "damage_type": "magic"
           },

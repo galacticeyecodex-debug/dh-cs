@@ -250,6 +250,13 @@
             "trait": "Spellcast",
             "range": "Very Close",
             "combat_category": "passive_triggered",
+            "additional_damage": [
+              {
+                "damage": "2d6",
+                "condition": "When you succeed on an attack against a target within Melee range, you can mark a Stress to kick yourself off them, dealing an",
+                "label": "Extra"
+              }
+            ],
             "damage": "2d6",
             "targets": "single"
           }
@@ -671,6 +678,13 @@
             "trait": "Spellcast",
             "range": "Melee",
             "combat_category": "passive_triggered",
+            "additional_damage": [
+              {
+                "damage": "1d6",
+                "condition": "When you succeed on an attack against a target within Melee range, you can spend a Hope to gore the target with your tusks, dealing an",
+                "label": "Extra"
+              }
+            ],
             "damage": "1d6",
             "targets": "single"
           }

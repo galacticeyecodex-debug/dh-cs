@@ -63,6 +63,14 @@ export interface CardAttack {
   difficulty?: number; // Fixed DC if applicable
   secondary_effects?: string[];
   combat_category?: CombatCategory; // Determines which buttons to show
+  additional_damage?: AdditionalDamage[];
+}
+
+export interface AdditionalDamage {
+  damage: string;
+  damage_type?: DamageType;
+  condition?: string;
+  label?: string; // Short label for the button, e.g. "Extra", "Hope"
 }
 
 /**

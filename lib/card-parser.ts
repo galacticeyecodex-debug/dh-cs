@@ -15,6 +15,7 @@
 import type { Character, CharacterCard } from '@/types/character';
 import type {
   ActionType,
+  AdditionalDamage,
   CardAttack,
   CardCosts,
   CardModifier,
@@ -1355,19 +1356,32 @@ export function parseAttack(text: string): CardAttack | undefined {
     /scratch\s+a\s+target/i.test(lowerText) ||
     /use\s+this\s+breath\s+against/i.test(lowerText);
 
+  // Parse additional/secondary damage
+  const additionalDamage = extractAdditionalDamage(text);
+
+  // Heuristic: Check if "Make an attack" is purely conditional (e.g. "When you make an attack")
+  // vs Imperative ("Make an attack"). used to filter false positives for buffs.
+  const allActionMentions = cleanText.match(/make\s+(?:an?\s+)?(?:attack|.*?\s+roll)/gi) || [];
+  const conditionalActionMentions = cleanText.match(/(?:if|when|whenever|after|before|until|and|first\s+time)\s+(?:[^.!?]*?\s+)?make\s+(?:an?\s+)?(?:attack|.*?\s+roll)/gi) || [];
+  const hasUnconditionalAction = allActionMentions.length > conditionalActionMentions.length;
+
   // Requirements for parsing as an attack:
   // 1. Has damage, OR
   // 2. Has trait roll against target, OR
   // 3. Is a weapon ability, OR
   // 4. Make a roll to affect target
+  // 5. Has additional damage (AND has explicit action initiation)
   if (!damage && !(trait && hasAgainst) && !isWeaponAbility && !hasMakeRollTo && !hasAttackTarget) {
-    return undefined;
+    if (additionalDamage.length === 0) return undefined;
+    // If relying solely on additional damage, ensure we have an unconditional action trigger
+    if (!hasUnconditionalAction) return undefined;
   }
 
   const attack: CardAttack = {
     trait: trait || 'Spellcast',
     range: range || 'Close',
     combat_category: parseCombatCategory(text),
+    additional_damage: additionalDamage.length > 0 ? additionalDamage : undefined,
   };
 
   if (damage) attack.damage = damage;
@@ -1387,6 +1401,92 @@ export function parseAttack(text: string): CardAttack | undefined {
   }
 
   return attack;
+}
+
+/**
+ * Extract additional/secondary damage instances from text
+ */
+function extractAdditionalDamage(text: string): AdditionalDamage[] {
+  const cleanText = stripMarkdown(text);
+  const results: AdditionalDamage[] = [];
+
+  // 1. "on a success (with Hope), add [dice] to your damage roll"
+  const addMatches = cleanText.matchAll(/([^\.]*?)\badd\s+(?:an?\s+)?(\d*d\d+)(?:\s+(?:magic|physical)\s+damage)?(?:\s+to\s+(?:your\s+)?damage\s+roll)/gi);
+  for (const match of addMatches) {
+    let condition = match[1].trim();
+    const damage = match[2];
+
+    // Clean up condition
+    if (condition.toLowerCase().startsWith('add')) condition = '';
+    condition = condition.replace(/^(?:and\s+|,\s*)/i, '');
+    if (condition.toLowerCase().includes('on a success')) condition = condition.replace(/on a success/i, '').trim();
+    if (condition.startsWith('with ')) condition = condition.replace('with ', '');
+    condition = condition.replace(/[,\s]+$/i, ''); // Strip trailing commas
+    condition = condition.trim() || 'On hit';
+
+    // Infer label
+    let label = 'Extra';
+    if (condition.toLowerCase().includes('hope')) label = 'Hope';
+    if (condition.toLowerCase().includes('crit')) label = 'Crit';
+
+    results.push({
+      damage,
+      condition,
+      label
+    });
+  }
+
+  // 2. "take(s) an extra/additional [dice] [type] damage (if/when...)"
+  const extraMatches = cleanText.matchAll(/([^\.]*?)\b(?:extra|additional)\s+(\d*d\d+(?:\+\d+)?)\s+(?:(magic|physical|true)\s+)?damage(.*?)(?:\.|$)/gi);
+  for (const match of extraMatches) {
+    const preContext = match[1].trim();
+    const damage = match[2];
+    const type = match[3] as DamageType | undefined;
+    const postContext = match[4].trim();
+
+    // Construct condition from context
+    let condition = '';
+
+    // Check if Pre-context has a strong trigger (When/If)
+    const PreLower = preContext.toLowerCase();
+    if (PreLower.includes('when ') || PreLower.includes('if ')) {
+      condition = preContext;
+    }
+    // Otherwise check post-context
+    else if (postContext.toLowerCase().startsWith(' if') || postContext.toLowerCase().startsWith(' when')) {
+      condition = postContext.trim();
+    }
+    // Fallback to pre-context
+    else if (preContext) {
+      condition = preContext;
+    }
+
+    // Clean condition
+    condition = condition.replace(/^(?:and\s+|,\s*)/i, '');
+
+    // Only strip "target takes" stuff if we didn't find a nice "When/If" clause
+    if (!condition.toLowerCase().startsWith('when') && !condition.toLowerCase().startsWith('if')) {
+      if (condition.toLowerCase().includes('must take')) condition = condition.replace(/.*?must take/i, 'target takes').trim();
+    }
+
+    // Final cleanup
+    condition = condition.replace(/,\s*they\s+must\s+take\s+an?$/i, '');
+    condition = condition.replace(/,\s*target\s+takes\s+an?$/i, '');
+
+    // Infer label
+    let label = 'Extra';
+    if (condition.toLowerCase().includes('on fire')) label = 'Fire';
+    if (condition.toLowerCase().includes('vulnerable')) label = 'Vuln';
+
+    results.push({
+      damage,
+      damage_type: type,
+      condition: condition || 'Secondary',
+      label
+    });
+  }
+
+  return results;
 }
 
 /**
