@@ -22,8 +22,7 @@
 import React from 'react';
 import { Target, Zap, MapPin, Skull } from 'lucide-react';
 import clsx from 'clsx';
-import MarkStressButton from '../combat/mark-stress-button';
-import SpendHopeButton from '../combat/spend-hope-button';
+import { DomainAbilityButton } from './domain-ability-button';
 import FrequencyCheckbox from '@/components/views/playmat/frequency-checkbox';
 import CardTokenTrack from '@/components/views/playmat/card-token-track';
 import { useCharacterStore } from '@/store/character-store';
@@ -57,9 +56,10 @@ export default function CardEnhancementPanel({
   const hasTargets = enhancement.attack?.targets;
   const hasRoll = enhancement.roll || enhancement.attack;
   const hasDamage = enhancement.attack?.damage;
+  const hasDuration = !!enhancement.duration;
 
   // If nothing to enhance, don't render
-  if (!hasCosts && !hasTokens && !hasFrequency && !hasActionInfo && !hasRange && !hasRoll) {
+  if (!hasCosts && !hasTokens && !hasFrequency && !hasActionInfo && !hasRange && !hasRoll && !hasDuration) {
     return null;
   }
 
@@ -195,10 +195,27 @@ export default function CardEnhancementPanel({
       <div className="flex flex-wrap gap-2 items-center">
         {/* Cost buttons */}
         {enhancement.costs?.stress && (
-          <MarkStressButton cost={enhancement.costs.stress} />
+          <DomainAbilityButton 
+            cardName={card.name}
+            costType="stress" 
+            costValue={enhancement.costs.stress} 
+          />
         )}
         {enhancement.costs?.hope && (
-          <SpendHopeButton cost={enhancement.costs.hope} />
+          <DomainAbilityButton 
+            cardName={card.name}
+            costType="hope" 
+            costValue={enhancement.costs.hope} 
+          />
+        )}
+
+        {/* Duration/Active button */}
+        {enhancement.duration && (
+          <DomainAbilityButton
+            cardName={card.name}
+            costType="duration"
+            label={enhancement.duration === 'scene' ? 'Active (Scene)' : 'Active'}
+          />
         )}
 
         {/* Roll button */}

@@ -22,8 +22,8 @@ import clsx from 'clsx';
 import { DomainCard } from '@/components/physical-cards/domain-card';
 import CardTokenTrack from '@/components/views/playmat/card-token-track';
 import FrequencyCheckbox from '@/components/views/playmat/frequency-checkbox';
-import ActiveEffectCheckbox from '@/components/views/playmat/active-effect-checkbox';
-import { AttackCard, MarkStressButton, SpendHopeButton } from '@/components/views/combat';
+import { DomainAbilityButton } from '@/components/views/playmat/domain-ability-button';
+import { AttackCard } from '@/components/views/combat';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { EnhancedAbilityCard } from '@/types/cards';
 import { getSystemModifiers, calculateWeaponDamage, parseDamageRoll } from '@/lib/utils';
@@ -236,10 +236,11 @@ export default function PlaymatCard({
         {/* Persistent Effect / Duration */}
         {showDuration && enhancement?.duration && (
           <div className="flex justify-center">
-            <ActiveEffectCheckbox
+            <DomainAbilityButton
               cardName={libraryItem.name}
-              duration={enhancement.duration}
-              className="bg-white/5 px-3 py-1.5 w-full justify-center"
+              costType="duration"
+              label={enhancement.duration === 'scene' ? 'Active (Scene)' : 'Active'}
+              className="w-full justify-center"
             />
           </div>
         )}
@@ -251,17 +252,17 @@ export default function PlaymatCard({
         {!hasAttackOrRoll && costs && (
           <div className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5">
             {costs.hope && (
-              <SpendHopeButton
-                cost={costs.hope}
-                onSpend={() => character && updateHope(character.hope - (costs.hope || 0))}
-                disabled={!character || character.hope < (costs.hope || 0)}
+              <DomainAbilityButton
+                cardName={libraryItem.name}
+                costType="hope"
+                costValue={costs.hope}
               />
             )}
             {costs.stress && (
-              <MarkStressButton
-                cost={costs.stress}
-                onMark={() => character && updateVitals('stress_current', character.vitals.stress_current + (costs.stress || 0))}
-                disabled={!character || character.vitals.stress_current + (costs.stress || 0) > character.vitals.stress_max}
+              <DomainAbilityButton
+                cardName={libraryItem.name}
+                costType="stress"
+                costValue={costs.stress}
               />
             )}
           </div>
