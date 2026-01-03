@@ -308,9 +308,11 @@
             "tokens",
             "ability"
           ],
-          "has_tokens": true,
-          "max_tokens": null,
-          "token_source": "spellcast",
+          "tokens": {
+            "has_tokens": true,
+            "max_tokens": null,
+            "token_source": "spellcast"
+          },
           "roll": {
             "type": "Spellcast Roll",
             "trait": "Spellcast",
@@ -372,9 +374,11 @@
               "source": "Circle of Power"
             }
           ],
-          "has_tokens": true,
-          "max_tokens": null,
-          "token_source": "spellcast",
+          "tokens": {
+            "has_tokens": true,
+            "max_tokens": null,
+            "token_source": "spellcast"
+          },
           "attack": {
             "trait": "None",
             "range": "Very Close"
@@ -696,9 +700,11 @@
               "source": "Focus"
             }
           ],
-          "has_tokens": true,
-          "max_tokens": null,
-          "token_source": "the",
+          "tokens": {
+            "has_tokens": true,
+            "max_tokens": null,
+            "token_source": "the"
+          },
           "attack": {
             "trait": "Spellcast",
             "range": "Close",
