@@ -62,11 +62,11 @@ describe('Playtest Transformations NLU Validation', () => {
             });
 
             it('should have has_tokens = true', () => {
-                expect(enhanced.enhancement.has_tokens).toBe(true);
+                expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
             });
 
             it('should have max_tokens = 5', () => {
-                expect(enhanced.enhancement.max_tokens).toBe(5);
+                expect(enhanced.enhancement.tokens?.max_tokens).toBe(5);
             });
 
             it('should have costs.stress = 1', () => {

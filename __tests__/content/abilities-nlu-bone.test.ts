@@ -87,11 +87,11 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should have token_source = knowledge', () => {
-            expect(enhanced.enhancement.token_source).toBe('knowledge');
+            expect(enhanced.enhancement.tokens?.token_source).toBe('knowledge');
         });
     });
 

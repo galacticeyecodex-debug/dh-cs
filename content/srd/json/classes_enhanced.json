@@ -191,8 +191,8 @@
         "name": "Unstoppable",
         "text": "Once per long rest, you can become Unstoppable. You gain an Unstoppable Die. At level 1, your Unstoppable Die is a **d4**. Place it on your character sheet in the space provided, starting with the 1 value facing up. After you make a damage roll that deals 1 or more Hit Points to a target, increase the Unstoppable Die value by one. When the die’s value would exceed its maximum value or when the scene ends, remove the die and drop out of Unstoppable. At level 5, your Unstoppable Die increases to a **d6**.\n\nWhile Unstoppable, you gain the following benefits:\n\n- You reduce the severity of physical damage by one threshold (Severe to Major, Major to Minor, Minor to None).\n- You add the current value of the Unstoppable Die to your damage roll.\n- You can’t be Restrained or Vulnerable.\n\n> ***Tip:*** *If your Unstoppable Die is a **d4** and the 4 is currently facing up, you remove the die the next time you would increase it. However, if your Unstoppable Die has increased to a **d6** and the 4 is currently facing up, you’ll turn it to 5 the next time you would increase it. In this case, you’ll remove the die after you would need to increase it higher than 6.*",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "action_type": "passive",
+          "timing": "free",
           "frequency": "once_per_long_rest",
           "keywords": [
             "damage",
@@ -439,7 +439,7 @@
         "name": "Prayer Dice",
         "text": "At the beginning of each session, roll a number of **d4s** equal to your subclass’s Spellcast trait and place them on your character sheet in the space provided. These are your Prayer Dice. You can spend any number of Prayer Dice to aid yourself or an ally within Far range. You can use a spent die’s value to reduce incoming damage, add to a roll’s result after the roll is made, or gain Hope equal to the result. At the end of each session, clear all unspent Prayer Dice.",
         "enhancement": {
-          "action_type": "attack",
+          "action_type": "buff",
           "timing": "reaction",
           "frequency": "at_will",
           "keywords": [
@@ -662,8 +662,8 @@
         "name": "Combat Training",
         "text": "You ignore burden when equipping weapons. When you deal physical damage, you gain a bonus to your damage roll equal to your level.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "action_type": "passive",
+          "timing": "free",
           "frequency": "at_will",
           "keywords": [
             "damage",
@@ -710,8 +710,8 @@
       "name": "No Mercy",
       "text": "**Spend 3 Hope** to gain a +1 bonus to your attack rolls until your next rest.",
       "enhancement": {
-        "action_type": "passive",
-        "timing": "free",
+        "action_type": "buff",
+        "timing": "action",
         "frequency": "at_will",
         "costs": {
           "hope": 3
@@ -767,8 +767,8 @@
         "name": "Strange Patterns",
         "text": "Choose a number between 1 and 12. When you roll that number on a Duality Die, gain a Hope or clear a Stress.\n\nYou can change this number when you take a long rest.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "action_type": "passive",
+          "timing": "free",
           "frequency": "at_will",
           "keywords": [
             "stress_relief",

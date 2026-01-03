@@ -99,8 +99,8 @@
         "name": "Courage",
         "text": "When you fail a roll with Fear, you gain a Hope.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "action_type": "passive",
+          "timing": "free",
           "frequency": "at_will",
           "keywords": [
             "hope_gain",
@@ -112,8 +112,8 @@
         "name": "Battle Ritual",
         "text": "Once per long rest, before you attempt something incredibly dangerous or face off against a foe who clearly outmatches you, describe what ritual you perform or preparations you make. When you do, clear 2 Stress and gain 2 Hope.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "action_type": "buff",
+          "timing": "action",
           "frequency": "once_per_long_rest",
           "keywords": [
             "stress_relief",
@@ -129,7 +129,7 @@
         "name": "Rise to the Challenge",
         "text": "You are vigilant in the face of mounting danger. While you have 2 or fewer Hit Points unmarked, you can roll a **d20** as your Hope Die.",
         "enhancement": {
-          "action_type": "attack",
+          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
@@ -300,8 +300,8 @@
         "name": "Elementalist",
         "text": "Choose one of the following elements at character creation: air, earth, fire, lightning, water.\n\nYou can shape this element into harmless effects. Additionally, **spend a Hope** and describe how your control over this element helps an **action roll** you’re about to make, then either gain a +2 bonus to the roll or a +3 bonus to the roll’s damage.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "action_type": "buff",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "hope": 1
@@ -548,8 +548,8 @@
         "name": "Arcane Charge",
         "text": "You can gather magical energy to enhance your capabilities. When you take magic damage, you become Charged. Alternatively, you can **spend 2 Hope** to become Charged. When you successfully make an attack that deals magic damage while Charged, you can clear your Charge to either gain a +10 bonus to the damage roll or gain a +3 bonus to the Difficulty of a **reaction roll** the spell causes the target to make. You stop being Charged at your next long rest.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "action_type": "buff",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "hope": 2
@@ -1275,8 +1275,8 @@
         "name": "Elemental Aura",
         "text": "Once per rest while Channeling, you can assume an aura matching your element. The aura affects targets within Close range until your Channeling ends.\n\n- **Fire:** When an adversary marks 1 or more Hit Points, they must also **mark a Stress**.\n- **Earth:** Your allies gain a +1 bonus to Strength.\n- **Water:** When an adversary deals damage to you, you can **mark a Stress** to move them anywhere within Very Close range of where they are.\n- **Air:** When you or an ally takes damage from an attack beyond Melee range, reduce the damage by **1d8**.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "action_type": "buff",
+          "timing": "action",
           "frequency": "once_per_rest",
           "costs": {
             "stress": 1
@@ -1318,7 +1318,7 @@
         "name": "Elemental Dominion",
         "text": "You further embody your element. While Channeling, you gain the following benefit:\n\n- **Fire:** You gain a +1 bonus to your Proficiency for attacks and spells that deal damage.\n- **Earth:** When you would mark Hit Points, roll a **d6** per Hit Point marked. For each result of 6, reduce the number of Hit Points you mark by 1.\n- **Water:** When an attack against you succeeds, you can **mark a Stress** to make the attacker temporarily Vulnerable.\n- **Air:** You gain a +1 bonus to your Evasion and can fly.",
         "enhancement": {
-          "action_type": "attack",
+          "action_type": "buff",
           "timing": "reaction",
           "frequency": "at_will",
           "costs": {
@@ -1571,8 +1571,8 @@
         "name": "Rousing Speech",
         "text": "Once per long rest, you can give a heartfelt, inspiring speech. All allies within Far range clear 2 Stress.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "action_type": "buff",
+          "timing": "action",
           "frequency": "once_per_long_rest",
           "keywords": [
             "stress_relief",
@@ -1627,7 +1627,7 @@
         "name": "Epic Poetry",
         "text": "Your Rally Die increases to a **d10**. Additionally, when you Help an Ally, you can narrate the moment as if you were writing the tale of their heroism in a memoir. When you do, roll a **d10** as your advantage die.",
         "enhancement": {
-          "action_type": "attack",
+          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [

@@ -81,6 +81,7 @@ export interface CardRoll {
   trait?: string; // The trait used for the roll
   difficulty?: number; // null for contested, number for fixed DC
   target_reaction?: boolean; // Does target get a reaction roll?
+  requires_cost_for_roll?: boolean; // If true, costs must be paid before rolling (e.g., "Spend a Hope to make a roll")
 }
 
 /**

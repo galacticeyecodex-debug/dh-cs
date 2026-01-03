@@ -70,7 +70,7 @@
         "name": "Spectral Form",
         "text": "You have another death move option: Spectral Form. When you choose this option, you clear a Hit Point, your body becomes spectral, you have resistance to physical damage, and you can pass through objects. This form ends if you clear any more Hit Points. It also ends if you mark your last Hit Point, which forces you to take a different death move. You're shunted to the nearest open space if you're inside an object when the form ends.",
         "enhancement": {
-          "action_type": "utility",
+          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
@@ -153,8 +153,8 @@
         "name": "Mastered Mutagens",
         "text": "The trait bonus and penalty you get from your Mutagens feature changes to +2 and −2, respectively. When you choose a mutagen benefit, your options also include the following:\n\n- Aetherblood: Within your line of sight, you can see creatures and objects that are invisible, and visual illusions appear transparent to you. If a creature or an object within your line of sight has been transformed by magic, you can see its true form.\n- Fury: When you make an attack roll, you can **mark a Stress** to gain a bonus to the roll equal to your Proficiency.\n- Steelflesh: Your Major damage threshold increases by a number equal to your Proficiency.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "action_type": "passive",
+          "timing": "free",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -204,8 +204,8 @@
         "name": "Feral Hide",
         "text": "While in your Wolf Form, you gain a bonus to your Damage Thresholds equal to your Tier.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "action_type": "passive",
+          "timing": "free",
           "frequency": "at_will",
           "keywords": [
             "damage",
@@ -396,7 +396,7 @@
         "name": "Night's Glamour",
         "text": "**Mark a Stress** to Glamour yourself in a magical facade that lasts until you mark a Hit Point, make an attack, or take a rest. While Glamoured, you can:\n\n- Disguise yourself to look like any creature of your approximate size that you've seen.\n- Enhance your own appearance. You gain advantage on **Presence Rolls** that leverage this change.",
         "enhancement": {
-          "action_type": "utility",
+          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -416,8 +416,8 @@
         "name": "Moonbeam",
         "text": "Once per session, you can conjure a column of moonlight that illuminates the area within Close range until the end of the scene. While bathed in this moonlight, you and any allies gain a +1 bonus to **Spellcast Rolls** and advantage on rolls to see through illusions.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "action_type": "buff",
+          "timing": "action",
           "frequency": "once_per_session",
           "keywords": [
             "buff",
@@ -466,7 +466,7 @@
         "name": "Lunar Phases",
         "text": "Your spirit ebbs and flows like the phases of the moon. At the beginning of each session, roll a **d4** and gain the matching effect until the end of the session:\n\n- 1: New - You can always **spend a Hope** to reduce Minor damage to None.\n- 2: Waxing - Gain a +2 bonus to your damage rolls.\n- 3: Full - Gain a +2 bonus to your damage thresholds.\n- 4: Waning - Gain a +1 bonus to your Evasion.",
         "enhancement": {
-          "action_type": "attack",
+          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -764,7 +764,7 @@
         "name": "Limit Breaker",
         "text": "Once per rest, you can perform an unbelievable feat such as running across water, leaping between distant rooftops, or scaling the side of a building without needing to roll. When you do, gain a Hope and clear a Stress.",
         "enhancement": {
-          "action_type": "utility",
+          "action_type": "buff",
           "timing": "action",
           "frequency": "once_per_rest",
           "keywords": [

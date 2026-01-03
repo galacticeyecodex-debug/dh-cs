@@ -92,6 +92,8 @@ export interface AttackCardProps {
     rollLabel?: string;
     /** Whether the card is currently used/exhausted */
     isUsed?: boolean;
+    /** Roll information - used to determine if costs are required for the roll */
+    roll?: { requires_cost_for_roll?: boolean };
 }
 
 const AttackCard = React.memo(function AttackCard({
@@ -124,6 +126,7 @@ const AttackCard = React.memo(function AttackCard({
     customActions,
     rollLabel,
     isUsed = false,
+    roll,
 }: AttackCardProps) {
     const [isCostPaid, setIsCostPaid] = useState(false);
     const [showDescription, setShowDescription] = useState(false);
@@ -157,8 +160,8 @@ const AttackCard = React.memo(function AttackCard({
     // Determine default roll label
     const finalRollLabel = rollLabel || (hasDamage ? 'Attack' : 'Roll');
 
-    // Cost activation logic
-    const needsActivation = !!(costs?.stress || costs?.hope);
+    // Cost activation logic - only require cost payment if the roll explicitly requires it
+    const needsActivation = !!(costs?.stress || costs?.hope) && roll?.requires_cost_for_roll === true;
     const canRoll = !needsActivation || isCostPaid;
 
     return (

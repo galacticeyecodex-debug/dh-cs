@@ -44,11 +44,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should have token_source = presence', () => {
-            expect(enhanced.enhancement.token_source).toBe('presence');
+            expect(enhanced.enhancement.tokens?.token_source).toBe('presence');
         });
 
         it('should be action_type passive or buff', () => {
@@ -108,11 +108,11 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should have token_source = spellcast', () => {
-            expect(enhanced.enhancement.token_source).toBe('spellcast');
+            expect(enhanced.enhancement.tokens?.token_source).toBe('spellcast');
         });
 
         it('should have roll.difficulty = 10', () => {
@@ -186,7 +186,7 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should have modifier for damage +5', () => {

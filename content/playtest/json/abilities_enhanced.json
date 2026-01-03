@@ -42,8 +42,8 @@
     "recall": "0",
     "text": "Mark a Hit Point to conjure a talisman infused with your life essence. The talisman appears in your hand, and whoever carries the talisman gains its benefit: Whenever the talisman's bearer marks 2 or more Hit Points, they can **spend a Hope** to reduce the number of Hit Points marked by 1. The talisman disappears if you have no Hit Points marked or you use this spell again.",
     "enhancement": {
-      "action_type": "utility",
-      "timing": "action",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "at_will",
       "costs": {
         "hope": 1,
@@ -63,8 +63,8 @@
     "recall": "1",
     "text": "If you have at least one Hit Point marked, you gain a bonus to your damage rolls. The bonus equals twice your number of marked Hit Points.",
     "enhancement": {
-      "action_type": "buff",
-      "timing": "action",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "at_will",
       "keywords": [
         "damage",
@@ -105,7 +105,7 @@
     "recall": "0",
     "text": "Make a **Spellcast Roll** against a target within Very Close range. If you cast this on an ally, make the roll with advantage. On a success, **mark a Stress**, and choose one of the following effects:\n\n• The target grows calmer and clears a Stress. On a success with Hope, they clear 2 Stress.\n• The target grows more anxious and marks a Stress. On a success with Hope, they **mark 2 Stress**.",
     "enhancement": {
-      "action_type": "attack",
+      "action_type": "buff",
       "timing": "action",
       "frequency": "at_will",
       "costs": {
@@ -331,8 +331,8 @@
     "recall": "1",
     "text": "Mark a Hit Point to trace a circle of blood around yourself at Very Close range. While in the circle, you have resistance to your choice of physical or magic damage (choose when you cast the spell). Allies also gain this benefit while in the circle. The circle disappears if you move out of it, mark 2 or more Hit Points, or cast this spell again.",
     "enhancement": {
-      "action_type": "utility",
-      "timing": "action",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "at_will",
       "costs": {
         "hit_points": 1
@@ -425,8 +425,8 @@
     "recall": "2",
     "text": "When you make a successful attack roll against an adversary and cause them to mark 2 or more Hit Points, you can **spend a Hope** to clear a Hit Point or Stress.",
     "enhancement": {
-      "action_type": "buff",
-      "timing": "action",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "at_will",
       "costs": {
         "hope": 1
@@ -499,7 +499,7 @@
     "recall": "2",
     "text": "Once per rest, **spend a Hope** to unleash waves of blood around yourself. Make a single **Spellcast Roll** against each adversary within Close range. On a success, a target marks a Hit Point and a Stress. On a failure, a target marks a Stress. Each ally within Close range marks a Stress but clears a Hit Point.",
     "enhancement": {
-      "action_type": "attack",
+      "action_type": "buff",
       "timing": "action",
       "frequency": "once_per_rest",
       "costs": {
@@ -552,7 +552,8 @@
       "roll": {
         "type": "Spellcast Roll",
         "trait": "Spellcast",
-        "target_reaction": false
+        "target_reaction": false,
+        "requires_cost_for_roll": true
       }
     }
   },
@@ -734,7 +735,7 @@
     "recall": "1",
     "text": "Make a **Spellcast Roll** against a target within Very Close range. On a success, once per long rest, the target takes **d20** magic damage using your Proficiency. You clear a number of Hit Points equal to the number of Hit Points the target marked from this attack. On a success with Fear, you gain a +1 bonus to your Proficiency for this attack.",
     "enhancement": {
-      "action_type": "attack",
+      "action_type": "buff",
       "timing": "action",
       "frequency": "once_per_long_rest",
       "keywords": [
@@ -918,8 +919,8 @@
     "recall": "1",
     "text": "After making a successful attack, you can **spend 2 Hope** to leach power from the target. For each Hit Point your target marked from this attack, the GM loses a Fear.",
     "enhancement": {
-      "action_type": "utility",
-      "timing": "action",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "at_will",
       "costs": {
         "hope": 2
@@ -1056,8 +1057,8 @@
     "recall": "2",
     "text": "Make a **Spellcast Roll (14)**. Once per long rest, on a success you can summon a group of fiends that surround and move with you. Place 8 tokens on this card. When you deal damage to a target within Very Close range, you can spend a token to increase it by +**1d8**. Additionally, when you take damage, you can spend a token to reduce it by **1d8**. Each time you spend a token, a fiend acts on your behalf, then disappears. Remove all tokens from this card on your next rest.",
     "enhancement": {
-      "action_type": "utility",
-      "timing": "action",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "once_per_long_rest",
       "keywords": [
         "damage",
@@ -1202,7 +1203,7 @@
     "recall": "1",
     "text": "**Mark a Stress** to transform into a creature fueled by fear. While in this form, your damage rolls gain a +**1d6** bonus for each Fear the GM has. Additionally, gain a Hope when the GM uses a Fear feature on an adversary within Close range.\n\nYou must **spend a Hope** to make an **action roll** while in this form. Otherwise, you drop out of this form.",
     "enhancement": {
-      "action_type": "utility",
+      "action_type": "buff",
       "timing": "action",
       "frequency": "at_will",
       "costs": {
