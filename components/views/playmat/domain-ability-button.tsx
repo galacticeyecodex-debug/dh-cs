@@ -135,7 +135,7 @@ export function DomainAbilityButton({
   if (isActive) {
     return (
       <div className={clsx(
-        "flex items-center gap-1 px-3 py-1.5 rounded text-xs font-bold border transition-colors cursor-default",
+        "flex items-center justify-center gap-1 px-3 py-1.5 rounded text-xs font-bold border transition-colors cursor-default",
         activeColor,
         className
       )}>
@@ -156,7 +156,7 @@ export function DomainAbilityButton({
       onClick={handleActivate}
       disabled={isActuallyDisabled}
       className={clsx(
-        "flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium border transition-colors",
+        "flex items-center justify-center gap-1 px-3 py-1.5 rounded text-xs font-medium border transition-colors",
         "bg-white/5 border-white/10 hover:bg-white/10",
         isActuallyDisabled ? "opacity-50 cursor-not-allowed grayscale" : costColor,
         className

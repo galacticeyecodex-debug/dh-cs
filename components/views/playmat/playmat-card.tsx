@@ -23,6 +23,7 @@ import { DomainCard } from '@/components/physical-cards/domain-card';
 import CardTokenTrack from '@/components/views/playmat/card-token-track';
 import FrequencyCheckbox from '@/components/views/playmat/frequency-checkbox';
 import { DomainAbilityButton } from '@/components/views/playmat/domain-ability-button';
+import { DomainCostsRow } from '@/components/views/playmat/domain-costs-row';
 import { AttackCard } from '@/components/views/combat';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { EnhancedAbilityCard } from '@/types/cards';
@@ -250,22 +251,11 @@ export default function PlaymatCard({
 
         {/* Action Costs (for non-attack cards) */}
         {!hasAttackOrRoll && costs && (
-          <div className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5">
-            {costs.hope && (
-              <DomainAbilityButton
-                cardName={libraryItem.name}
-                costType="hope"
-                costValue={costs.hope}
-              />
-            )}
-            {costs.stress && (
-              <DomainAbilityButton
-                cardName={libraryItem.name}
-                costType="stress"
-                costValue={costs.stress}
-              />
-            )}
-          </div>
+          <DomainCostsRow
+            cardName={libraryItem.name}
+            costs={costs}
+            className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5"
+          />
         )}
 
         {/* Actions Row */}
