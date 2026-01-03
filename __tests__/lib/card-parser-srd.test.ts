@@ -65,7 +65,7 @@ describe('Domain Card Parser - SRD Validation', () => {
       const card = createMockCard('Untouchable', cardDescription);
       const character = createMockCharacter({ stats: { agility: 3 } } as any);
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0]).toMatchObject({
@@ -82,15 +82,15 @@ describe('Domain Card Parser - SRD Validation', () => {
 
       // Agility 0 -> +0
       const char0 = createMockCharacter({ stats: { agility: 0 } } as any);
-      expect(parseCardPassiveModifiers(card, char0)[0].value).toBe(0);
+      expect(parseCardPassiveModifiers(card, char0, true)[0].value).toBe(0);
 
       // Agility 4 -> +2
       const char4 = createMockCharacter({ stats: { agility: 4 } } as any);
-      expect(parseCardPassiveModifiers(card, char4)[0].value).toBe(2);
+      expect(parseCardPassiveModifiers(card, char4, true)[0].value).toBe(2);
 
       // Agility 7 -> +3
       const char7 = createMockCharacter({ stats: { agility: 7 } } as any);
-      expect(parseCardPassiveModifiers(card, char7)[0].value).toBe(3);
+      expect(parseCardPassiveModifiers(card, char7, true)[0].value).toBe(3);
     });
   });
 
@@ -103,7 +103,7 @@ describe('Domain Card Parser - SRD Validation', () => {
         character_inventory: [{ location: 'equipped_armor' } as any]
       });
 
-      const mods = parseCardPassiveModifiers(card, armoredChar);
+      const mods = parseCardPassiveModifiers(card, armoredChar, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0]).toMatchObject({
@@ -119,7 +119,7 @@ describe('Domain Card Parser - SRD Validation', () => {
       const card = createMockCard('Armorer', cardDescription);
       const unarmoredChar = createMockCharacter({ character_inventory: [] });
 
-      const mods = parseCardPassiveModifiers(card, unarmoredChar);
+      const mods = parseCardPassiveModifiers(card, unarmoredChar, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0].isActive).toBe(false);
@@ -204,7 +204,7 @@ describe('Domain Card Parser - SRD Validation', () => {
         ]
       });
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0]).toMatchObject({
@@ -230,7 +230,7 @@ describe('Domain Card Parser - SRD Validation', () => {
         ]
       });
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0].isActive).toBe(false);
@@ -252,7 +252,7 @@ describe('Domain Card Parser - SRD Validation', () => {
         ]
       });
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0].isActive).toBe(false); // Only 2 in loadout, need 4

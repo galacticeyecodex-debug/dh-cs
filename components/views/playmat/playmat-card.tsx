@@ -53,7 +53,7 @@ export default function PlaymatCard({
   onEditArt,
   onManageModifiers,
 }: PlaymatCardProps) {
-  const { character, prepareRoll, updateHope, updateVitals } = useCharacterStore();
+  const { character, cardStates, prepareRoll, updateHope, updateVitals } = useCharacterStore();
   const libraryItem = card.library_item;
 
   if (!libraryItem) return null;
@@ -74,7 +74,7 @@ export default function PlaymatCard({
   if (character && hasAttackOrRoll && enhancedData && enhancement) {
     // 1. Calculate Proficiency
     const baseProficiency = character.proficiency || 1;
-    const systemProfMods = getSystemModifiers(character, 'proficiency');
+    const systemProfMods = getSystemModifiers(character, 'proficiency', cardStates);
     const userProfMods = character.modifiers?.['proficiency'] || [];
     const totalProficiency = Math.max(1, baseProficiency + [...systemProfMods, ...userProfMods].reduce((acc, mod) => acc + mod.value, 0));
 
@@ -94,20 +94,20 @@ export default function PlaymatCard({
         let traitModSum = 0;
         if (spellcastTraitName) {
           const tKey = spellcastTraitName.toLowerCase();
-          const tSystem = getSystemModifiers(character, tKey);
+          const tSystem = getSystemModifiers(character, tKey, cardStates);
           const tUser = character.modifiers?.[tKey] || [];
           traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
         }
 
         const spellcastBase = rawTraitValue + traitModSum;
-        const spellcastMods = getSystemModifiers(character, 'spellcast');
+        const spellcastMods = getSystemModifiers(character, 'spellcast', cardStates);
         const userSpellcastMods = character.modifiers?.['spellcast'] || [];
         rollBonus = spellcastBase + [...spellcastMods, ...userSpellcastMods].reduce((acc, mod) => acc + mod.value, 0);
         rollLabel = 'Spellcast';
       } else {
         const traitKey = rollTrait.toLowerCase();
         const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-        const systemTraitMods = getSystemModifiers(character, traitKey);
+        const systemTraitMods = getSystemModifiers(character, traitKey, cardStates);
         const userTraitMods = character.modifiers?.[traitKey] || [];
         rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
         rollLabel = rollTrait;

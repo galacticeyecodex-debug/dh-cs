@@ -56,7 +56,7 @@ export function parseDamageRoll(input: string): { dice: string; modifier: number
 }
 
 // Helper to extract System Modifiers from Equipment AND Domain Cards
-export function getSystemModifiers(character: any, stat: string): any[] {
+export function getSystemModifiers(character: any, stat: string, cardStates: Record<string, any> = {}): any[] {
   if (!character) return [];
 
   const systemModifiers: any[] = [];
@@ -119,10 +119,11 @@ export function getSystemModifiers(character: any, stat: string): any[] {
     );
 
     loadoutCards.forEach((card: any) => {
-      if (!card.library_item?.data) return;
+      const cardName = card.library_item?.name;
+      if (!cardName || !card.library_item?.data) return;
 
       // Special case: Bare Bones (complex tier-based thresholds)
-      if (card.library_item.name === 'Bare Bones') {
+      if (cardName === 'Bare Bones') {
         const bareBonesModifiers = getBareBonesBonuses(character);
         bareBonesModifiers
           .filter((mod: any) => mod.stat === stat && mod.isActive)
@@ -139,7 +140,8 @@ export function getSystemModifiers(character: any, stat: string): any[] {
       }
 
       // General card parsing
-      const cardModifiers = parseCardPassiveModifiers(card, character);
+      const isCardActive = cardStates[cardName]?.is_active ?? false;
+      const cardModifiers = parseCardPassiveModifiers(card, character, isCardActive);
 
       cardModifiers
         .filter((mod: any) => mod.stat === stat && mod.isActive)
@@ -174,7 +176,7 @@ export function getClassBaseStat(character: any, stat: string): number {
   return 0;
 }
 
-export function calculateBaseEvasion(character: any): number {
+export function calculateBaseEvasion(character: any, cardStates: Record<string, any> = {}): number {
   if (!character) return 10;
 
   // 1. Class Base
@@ -183,17 +185,17 @@ export function calculateBaseEvasion(character: any): number {
   // 2. Ancestry Modifiers (TODO: Fetch and parse ancestry features if needed)
 
   // 3. Item Modifiers
-  const systemMods = getSystemModifiers(character, 'evasion');
+  const systemMods = getSystemModifiers(character, 'evasion', cardStates);
   const itemBonus = systemMods.reduce((acc, mod) => acc + mod.value, 0);
 
   return base + itemBonus;
 }
 
 // Helper to calculate total attack modifier from equipped items
-export function calculateAttackModifier(character: any): number {
+export function calculateAttackModifier(character: any, cardStates: Record<string, any> = {}): number {
   if (!character) return 0;
 
-  const systemMods = getSystemModifiers(character, 'attack');
+  const systemMods = getSystemModifiers(character, 'attack', cardStates);
   const userMods = character.modifiers?.['attack'] || [];
   const allMods = [...systemMods, ...userMods];
 
@@ -201,10 +203,10 @@ export function calculateAttackModifier(character: any): number {
 }
 
 // Helper to calculate total damage modifier from equipped items
-export function calculateDamageModifier(character: any): number {
+export function calculateDamageModifier(character: any, cardStates: Record<string, any> = {}): number {
   if (!character) return 0;
 
-  const systemMods = getSystemModifiers(character, 'damage');
+  const systemMods = getSystemModifiers(character, 'damage', cardStates);
   const userMods = character.modifiers?.['damage'] || [];
   const allMods = [...systemMods, ...userMods];
 

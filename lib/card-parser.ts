@@ -134,9 +134,9 @@ export function stripMarkdown(text: string): string {
 export function parseCardPassiveModifiers(
   card: CharacterCard,
   character: Character,
-  isCardActive: boolean = true
+  isCardActive: boolean = false
 ): PassiveModifier[] {
-  const description = card.library_item?.data?.description || '';
+  const description = card.library_item?.data?.description || card.library_item?.data?.text || '';
   const cardName = card.library_item?.name || 'Unknown Card';
   const modifiers: PassiveModifier[] = [];
 

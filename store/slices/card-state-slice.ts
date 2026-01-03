@@ -226,7 +226,7 @@ export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStat
     const newCardState = { ...cardState, is_active: !cardState.is_active };
     const newCardStates = { ...currentCardStates, [cardName]: newCardState };
 
-    await withOptimisticUpdate(
+    const { success } = await withOptimisticUpdate(
       () => {
         const previousStates = { ...((get() as CharacterStore).cardStates || {}) };
         set({ cardStates: newCardStates });
@@ -237,5 +237,9 @@ export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStat
       async () => dataService.character.update(characterId, { card_states: newCardStates }),
       'Failed to toggle card active state'
     );
+
+    if (success) {
+      await state.recalculateDerivedStats();
+    }
   },
 });

@@ -66,7 +66,7 @@ describe('parseCardPassiveModifiers', () => {
       const card = createMockCard('Graceful Movement', 'You gain a +1 bonus to your Agility.');
       const character = createMockCharacter();
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0]).toMatchObject({
@@ -81,7 +81,7 @@ describe('parseCardPassiveModifiers', () => {
       const card = createMockCard('Determined', '+2 to your Proficiency');
       const character = createMockCharacter();
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0]).toMatchObject({
@@ -97,7 +97,7 @@ describe('parseCardPassiveModifiers', () => {
         character_inventory: [{ location: 'equipped_armor' } as any]
       });
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0]).toMatchObject({
@@ -113,7 +113,7 @@ describe('parseCardPassiveModifiers', () => {
       const card = createMockCard('Words of Discord', 'You gain a -2 penalty to attack rolls.');
       const character = createMockCharacter();
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0]).toMatchObject({
@@ -128,7 +128,7 @@ describe('parseCardPassiveModifiers', () => {
       const card = createMockCard('Cursed', 'You take a -1 penalty to Spellcast.');
       const character = createMockCharacter();
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0]).toMatchObject({
@@ -142,7 +142,7 @@ describe('parseCardPassiveModifiers', () => {
       const card = createMockCard('Heavy Burden', '-3 to your Evasion while carrying.');
       const character = createMockCharacter();
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0]).toMatchObject({
@@ -159,7 +159,7 @@ describe('parseCardPassiveModifiers', () => {
       );
       const character = createMockCharacter();
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(2);
       expect(mods[0]).toMatchObject({
@@ -181,7 +181,7 @@ describe('parseCardPassiveModifiers', () => {
       );
       const character = createMockCharacter({ stats: { agility: 3 } } as any);
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0]).toMatchObject({
@@ -199,7 +199,7 @@ describe('parseCardPassiveModifiers', () => {
       );
       const character = createMockCharacter({ stats: { agility: 4 } } as any);
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods[0].value).toBe(2); // floor(4 / 2) = 2
     });
@@ -213,7 +213,7 @@ describe('parseCardPassiveModifiers', () => {
       );
       const character = createMockCharacter({ stats: { strength: 2 } } as any);
 
-      const mods = parseCardPassiveModifiers(card, character);
+      const mods = parseCardPassiveModifiers(card, character, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0]).toMatchObject({
@@ -232,7 +232,7 @@ describe('parseCardPassiveModifiers', () => {
         character_inventory: [{ location: 'equipped_armor' } as any]
       });
 
-      const mods = parseCardPassiveModifiers(card, armoredChar);
+      const mods = parseCardPassiveModifiers(card, armoredChar, true);
 
       expect(mods[0].isActive).toBe(true);
       expect(mods[0].condition).toMatchObject({ type: 'when_armored' });
@@ -242,7 +242,7 @@ describe('parseCardPassiveModifiers', () => {
       const card = createMockCard('Armorer', 'While wearing armor, you gain +1 to your Armor Score.');
       const unarmoredChar = createMockCharacter({ character_inventory: [] });
 
-      const mods = parseCardPassiveModifiers(card, unarmoredChar);
+      const mods = parseCardPassiveModifiers(card, unarmoredChar, true);
 
       expect(mods[0].isActive).toBe(false);
     });
@@ -254,7 +254,7 @@ describe('parseCardPassiveModifiers', () => {
       );
       const unarmoredChar = createMockCharacter({ character_inventory: [] });
 
-      const mods = parseCardPassiveModifiers(card, unarmoredChar);
+      const mods = parseCardPassiveModifiers(card, unarmoredChar, true);
 
       expect(mods).toHaveLength(1);
       expect(mods[0].condition).toMatchObject({ type: 'when_unarmored' });
