@@ -46,8 +46,8 @@ describe('Enhanced Abilities JSON - Schema Validation', () => {
     it('should have valid action_type values', () => {
         const validTypes = ['attack', 'reaction', 'passive', 'downtime', 'buff', 'utility'];
         allAbilities.forEach((card) => {
-            if (card.action_type) {
-                expect(validTypes).toContain(card.action_type);
+            if (card.enhancement?.action_type) {
+                expect(validTypes).toContain(card.enhancement.action_type);
             }
         });
     });
@@ -55,8 +55,8 @@ describe('Enhanced Abilities JSON - Schema Validation', () => {
     it('should have valid timing values', () => {
         const validTimings = ['action', 'reaction', 'free', 'downtime'];
         allAbilities.forEach((card) => {
-            if (card.timing) {
-                expect(validTimings).toContain(card.timing);
+            if (card.enhancement?.timing) {
+                expect(validTimings).toContain(card.enhancement.timing);
             }
         });
     });
@@ -64,8 +64,8 @@ describe('Enhanced Abilities JSON - Schema Validation', () => {
     it('should have valid frequency values', () => {
         const validFrequencies = ['at_will', 'once_per_rest', 'once_per_long_rest', 'once_per_session'];
         allAbilities.forEach((card) => {
-            if (card.frequency) {
-                expect(validFrequencies).toContain(card.frequency);
+            if (card.enhancement?.frequency) {
+                expect(validFrequencies).toContain(card.enhancement.frequency);
             }
         });
     });
@@ -91,43 +91,43 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
 
         // Action classification
         it('should be classified as utility (defensive)', () => {
-            expect(runeWard?.action_type).toBe('utility');
+            expect(runeWard?.enhancement?.action_type).toBe('utility');
         });
 
         it('should have reaction timing', () => {
-            expect(runeWard?.timing).toBe('reaction');
+            expect(runeWard?.enhancement?.timing).toBe('reaction');
         });
 
         it('should be at_will frequency', () => {
-            expect(runeWard?.frequency).toBe('at_will');
+            expect(runeWard?.enhancement?.frequency).toBe('at_will');
         });
 
         // Costs
         it('should have hope cost of 1', () => {
-            expect(runeWard?.costs).toBeDefined();
-            expect(runeWard?.costs?.hope).toBe(1);
-            expect(runeWard?.costs?.stress).toBeUndefined();
-            expect(runeWard?.costs?.hit_points).toBeUndefined();
+            expect(runeWard?.enhancement?.costs).toBeDefined();
+            expect(runeWard?.enhancement?.costs?.hope).toBe(1);
+            expect(runeWard?.enhancement?.costs?.stress).toBeUndefined();
+            expect(runeWard?.enhancement?.costs?.hit_points).toBeUndefined();
         });
 
         // Keywords
         it('should have damage_reduction keyword (not damage)', () => {
-            expect(runeWard?.keywords).toBeDefined();
-            expect(runeWard?.keywords).toContain('damage_reduction');
-            expect(runeWard?.keywords).toContain('hope_cost');
-            expect(runeWard?.keywords).toContain('spell');
+            expect(runeWard?.enhancement?.keywords).toBeDefined();
+            expect(runeWard?.enhancement?.keywords).toContain('damage_reduction');
+            expect(runeWard?.enhancement?.keywords).toContain('hope_cost');
+            expect(runeWard?.enhancement?.keywords).toContain('spell');
             // Should NOT have offensive damage keyword
-            expect(runeWard?.keywords).not.toContain('damage');
+            expect(runeWard?.enhancement?.keywords).not.toContain('damage');
         });
 
         // Modifiers
         it('should have exactly one modifier', () => {
-            expect(runeWard?.modifiers).toBeDefined();
-            expect(runeWard?.modifiers?.length).toBe(1);
+            expect(runeWard?.enhancement?.modifiers).toBeDefined();
+            expect(runeWard?.enhancement?.modifiers?.length).toBe(1);
         });
 
         it('should have damage_reduction modifier with 1d8 formula', () => {
-            const modifier = runeWard?.modifiers?.find((m) => m.stat === 'damage_reduction');
+            const modifier = runeWard?.enhancement?.modifiers?.find((m) => m.stat === 'damage_reduction');
             expect(modifier).toBeDefined();
             expect(modifier?.stat).toBe('damage_reduction');
             expect(modifier?.value).toBe(0); // Dynamic - rolled at runtime
@@ -138,29 +138,27 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
 
         // What it should NOT have
         it('should NOT have attack data', () => {
-            expect(runeWard?.attack).toBeUndefined();
+            expect(runeWard?.enhancement?.attack).toBeUndefined();
         });
 
         it('should NOT have roll data', () => {
-            expect(runeWard?.roll).toBeUndefined();
+            expect(runeWard?.enhancement?.roll).toBeUndefined();
         });
 
         it('should NOT have token mechanics', () => {
-            expect(runeWard?.has_tokens).toBeUndefined();
-            expect(runeWard?.max_tokens).toBeUndefined();
-            expect(runeWard?.token_source).toBeUndefined();
+            expect(runeWard?.enhancement?.tokens).toBeUndefined();
         });
 
         it('should NOT have threshold modifiers', () => {
-            expect(runeWard?.threshold_modifiers).toBeUndefined();
+            expect(runeWard?.enhancement?.threshold_modifiers).toBeUndefined();
         });
 
         // Edge case validation
         it('should not be misclassified as an attack', () => {
             // This is a defensive ability that reduces damage
             // It should never be classified as an attack
-            expect(runeWard?.action_type).not.toBe('attack');
-            expect(runeWard?.timing).not.toBe('action');
+            expect(runeWard?.enhancement?.action_type).not.toBe('attack');
+            expect(runeWard?.enhancement?.timing).not.toBe('action');
         });
 
         it('should have consistent defensive classification', () => {
@@ -169,10 +167,10 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
             // - timing: reaction
             // - damage_reduction keyword
             // - damage_reduction modifier
-            expect(['utility', 'reaction']).toContain(runeWard?.action_type);
-            expect(runeWard?.timing).toBe('reaction');
-            expect(runeWard?.keywords).toContain('damage_reduction');
-            expect(runeWard?.modifiers?.some((m) => m.stat === 'damage_reduction')).toBe(true);
+            expect(['utility', 'reaction']).toContain(runeWard?.enhancement?.action_type);
+            expect(runeWard?.enhancement?.timing).toBe('reaction');
+            expect(runeWard?.enhancement?.keywords).toContain('damage_reduction');
+            expect(runeWard?.enhancement?.modifiers?.some((m) => m.stat === 'damage_reduction')).toBe(true);
         });
     });
 
@@ -183,24 +181,26 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
             expect(frenzy).toBeDefined();
         });
 
-        it('should be classified as passive', () => {
-            expect(frenzy?.action_type).toBe('passive');
+        it('should be classified as buff (self-enhancement)', () => {
+            // Frenzy is actively chosen ("you can go into a Frenzy")
+            // making it a buff rather than a passive trigger
+            expect(frenzy?.enhancement?.action_type).toBe('buff');
         });
 
         it('should have modifiers array', () => {
-            expect(frenzy?.modifiers).toBeDefined();
-            expect(Array.isArray(frenzy?.modifiers)).toBe(true);
+            expect(frenzy?.enhancement?.modifiers).toBeDefined();
+            expect(Array.isArray(frenzy?.enhancement?.modifiers)).toBe(true);
         });
 
         it('should have +10 damage modifier', () => {
-            const damageModifier = frenzy?.modifiers?.find((m) => m.stat === 'damage');
+            const damageModifier = frenzy?.enhancement?.modifiers?.find((m) => m.stat === 'damage');
             expect(damageModifier).toBeDefined();
             expect(damageModifier?.value).toBe(10);
             expect(damageModifier?.condition?.type).toBe('always');
         });
 
         it('should have +8 severe threshold modifier', () => {
-            const thresholdModifier = frenzy?.modifiers?.find((m) => m.stat === 'damage_threshold_severe');
+            const thresholdModifier = frenzy?.enhancement?.modifiers?.find((m) => m.stat === 'damage_threshold_severe');
             expect(thresholdModifier).toBeDefined();
             expect(thresholdModifier?.value).toBe(8);
         });
@@ -226,74 +226,74 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
 
         // Action classification
         it('should be classified as attack', () => {
-            expect(unleashChaos?.action_type).toBe('attack');
+            expect(unleashChaos?.enhancement?.action_type).toBe('attack');
         });
 
         it('should have action timing', () => {
-            expect(unleashChaos?.timing).toBe('action');
+            expect(unleashChaos?.enhancement?.timing).toBe('action');
         });
 
         it('should be at_will frequency', () => {
-            expect(unleashChaos?.frequency).toBe('at_will');
+            expect(unleashChaos?.enhancement?.frequency).toBe('at_will');
         });
 
         // Costs - NO activation costs (uses tokens instead)
         it('should NOT have activation costs', () => {
             // Stress is for replenishment, not activation
-            expect(unleashChaos?.costs).toBeUndefined();
+            expect(unleashChaos?.enhancement?.costs).toBeUndefined();
         });
 
         // Keywords
         it('should have correct keywords', () => {
-            expect(unleashChaos?.keywords).toBeDefined();
-            expect(unleashChaos?.keywords).toContain('damage');
-            expect(unleashChaos?.keywords).toContain('magic');
-            expect(unleashChaos?.keywords).toContain('tokens');
-            expect(unleashChaos?.keywords).toContain('spell');
+            expect(unleashChaos?.enhancement?.keywords).toBeDefined();
+            expect(unleashChaos?.enhancement?.keywords).toContain('damage');
+            expect(unleashChaos?.enhancement?.keywords).toContain('magic');
+            expect(unleashChaos?.enhancement?.keywords).toContain('tokens');
+            expect(unleashChaos?.enhancement?.keywords).toContain('spell');
             // Has stress_cost keyword (for replenishment mechanic)
-            expect(unleashChaos?.keywords).toContain('stress_cost');
+            expect(unleashChaos?.enhancement?.keywords).toContain('stress_cost');
             // Should NOT have stress_relief
-            expect(unleashChaos?.keywords).not.toContain('stress_relief');
+            expect(unleashChaos?.enhancement?.keywords).not.toContain('stress_relief');
         });
 
         // Token mechanics
         it('should have token mechanics', () => {
-            expect(unleashChaos?.has_tokens).toBe(true);
-            expect(unleashChaos?.max_tokens).toBeNull(); // Dynamic based on Spellcast
-            expect(unleashChaos?.token_source).toBe('spellcast');
+            expect(unleashChaos?.enhancement?.tokens?.has_tokens).toBe(true);
+            expect(unleashChaos?.enhancement?.tokens?.max_tokens).toBeNull(); // Dynamic based on Spellcast
+            expect(unleashChaos?.enhancement?.tokens?.token_source).toBe('spellcast');
         });
 
         // Attack data
         it('should have complete attack data', () => {
-            expect(unleashChaos?.attack).toBeDefined();
-            expect(unleashChaos?.attack?.trait).toBe('Spellcast');
-            expect(unleashChaos?.attack?.range).toBe('Far');
-            expect(unleashChaos?.attack?.combat_category).toBe('standalone_attack');
-            expect(unleashChaos?.attack?.damage_type).toBe('magic');
-            expect(unleashChaos?.attack?.targets).toBe('single');
+            expect(unleashChaos?.enhancement?.attack).toBeDefined();
+            expect(unleashChaos?.enhancement?.attack?.trait).toBe('Spellcast');
+            expect(unleashChaos?.enhancement?.attack?.range).toBe('Far');
+            expect(unleashChaos?.enhancement?.attack?.combat_category).toBe('standalone_attack');
+            expect(unleashChaos?.enhancement?.attack?.damage_type).toBe('magic');
+            expect(unleashChaos?.enhancement?.attack?.targets).toBe('single');
         });
 
         it('should have variable damage notation', () => {
             // Variable damage based on tokens spent
-            expect(unleashChaos?.attack?.damage).toBe('d10');
+            expect(unleashChaos?.enhancement?.attack?.damage).toBe('d10');
         });
 
         // Roll data
         it('should have roll data', () => {
-            expect(unleashChaos?.roll).toBeDefined();
-            expect(unleashChaos?.roll?.type).toBe('Spellcast Roll');
-            expect(unleashChaos?.roll?.trait).toBe('Spellcast');
-            expect(unleashChaos?.roll?.target_reaction).toBe(false);
+            expect(unleashChaos?.enhancement?.roll).toBeDefined();
+            expect(unleashChaos?.enhancement?.roll?.type).toBe('Spellcast Roll');
+            expect(unleashChaos?.enhancement?.roll?.trait).toBe('Spellcast');
+            expect(unleashChaos?.enhancement?.roll?.target_reaction).toBe(false);
         });
 
         // What it should NOT have
         it('should NOT have modifiers', () => {
             // Token-based damage, not modifier-based
-            expect(unleashChaos?.modifiers).toBeUndefined();
+            expect(unleashChaos?.enhancement?.modifiers).toBeUndefined();
         });
 
         it('should NOT have threshold modifiers', () => {
-            expect(unleashChaos?.threshold_modifiers).toBeUndefined();
+            expect(unleashChaos?.enhancement?.threshold_modifiers).toBeUndefined();
         });
 
         // Edge case validation
@@ -302,22 +302,22 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
             // - Damage scales with tokens spent (variable)
             // - Stress is for replenishment, not activation
             // - Max tokens = Spellcast trait (dynamic)
-            expect(unleashChaos?.has_tokens).toBe(true);
-            expect(unleashChaos?.attack?.damage).toBe('d10');
-            expect(unleashChaos?.costs).toBeUndefined();
-            expect(unleashChaos?.keywords).toContain('tokens');
+            expect(unleashChaos?.enhancement?.tokens?.has_tokens).toBe(true);
+            expect(unleashChaos?.enhancement?.attack?.damage).toBe('d10');
+            expect(unleashChaos?.enhancement?.costs).toBeUndefined();
+            expect(unleashChaos?.enhancement?.keywords).toContain('tokens');
         });
 
         it('should have consistent token-based attack classification', () => {
             // All token-based variable damage attacks should have:
             // - action_type: attack
-            // - has_tokens: true
+            // - tokens.has_tokens: true
             // - damage notation (d10, d8, etc.)
             // - no activation costs (uses tokens)
-            expect(unleashChaos?.action_type).toBe('attack');
-            expect(unleashChaos?.has_tokens).toBe(true);
-            expect(unleashChaos?.attack?.damage).toBeDefined();
-            expect(unleashChaos?.costs).toBeUndefined();
+            expect(unleashChaos?.enhancement?.action_type).toBe('attack');
+            expect(unleashChaos?.enhancement?.tokens?.has_tokens).toBe(true);
+            expect(unleashChaos?.enhancement?.attack?.damage).toBeDefined();
+            expect(unleashChaos?.enhancement?.costs).toBeUndefined();
         });
     });
 
@@ -338,25 +338,25 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
 
         // Duration parsing
         it('should have scene duration', () => {
-            expect(wallWalk?.duration).toBe('scene');
+            expect(wallWalk?.enhancement?.duration).toBe('scene');
         });
 
         // Costs
         it('should have hope cost of 1', () => {
-            expect(wallWalk?.costs?.hope).toBe(1);
+            expect(wallWalk?.enhancement?.costs?.hope).toBe(1);
         });
 
         // Keywords
         it('should have correct keywords', () => {
-            expect(wallWalk?.keywords).toContain('hope_cost');
-            expect(wallWalk?.keywords).toContain('spell');
-            expect(wallWalk?.keywords).not.toContain('hope_gain');
+            expect(wallWalk?.enhancement?.keywords).toContain('hope_cost');
+            expect(wallWalk?.enhancement?.keywords).toContain('spell');
+            expect(wallWalk?.enhancement?.keywords).not.toContain('hope_gain');
         });
 
         // Classification
         it('should be utility action', () => {
-            expect(wallWalk?.action_type).toBe('utility');
-            expect(wallWalk?.timing).toBe('action');
+            expect(wallWalk?.enhancement?.action_type).toBe('utility');
+            expect(wallWalk?.enhancement?.timing).toBe('action');
         });
     });
 
@@ -368,22 +368,22 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
         });
 
         it('should have action timing (not reaction)', () => {
-            expect(cinderGrasp?.timing).toBe('action');
+            expect(cinderGrasp?.enhancement?.timing).toBe('action');
         });
 
         it('should be classified as attack', () => {
-            expect(cinderGrasp?.action_type).toBe('attack');
+            expect(cinderGrasp?.enhancement?.action_type).toBe('attack');
         });
     });
 });
 
 describe('Enhanced Abilities JSON - Modifier Parsing', () => {
     it('should parse static modifiers correctly', () => {
-        const cardsWithModifiers = allAbilities.filter((c) => c.modifiers && c.modifiers.length > 0);
+        const cardsWithModifiers = allAbilities.filter((c) => c.enhancement?.modifiers && c.enhancement.modifiers.length > 0);
         expect(cardsWithModifiers.length).toBeGreaterThan(0);
 
         cardsWithModifiers.forEach((card) => {
-            card.modifiers?.forEach((modifier) => {
+            card.enhancement?.modifiers?.forEach((modifier) => {
                 expect(modifier.stat).toBeDefined();
                 expect(typeof modifier.value).toBe('number');
                 expect(modifier.condition).toBeDefined();
@@ -394,11 +394,11 @@ describe('Enhanced Abilities JSON - Modifier Parsing', () => {
 
     it('should parse dynamic modifiers with formulas', () => {
         const cardsWithFormulas = allAbilities.filter((c) =>
-            c.modifiers?.some((m) => m.formula)
+            c.enhancement?.modifiers?.some((m) => m.formula)
         );
 
         cardsWithFormulas.forEach((card) => {
-            card.modifiers?.forEach((modifier) => {
+            card.enhancement?.modifiers?.forEach((modifier) => {
                 if (modifier.formula) {
                     // Formula should be in expected format:
                     // - "half_agility" (dynamic stat)
@@ -426,7 +426,7 @@ describe('Enhanced Abilities JSON - Modifier Parsing', () => {
         ];
 
         allAbilities.forEach((card) => {
-            card.modifiers?.forEach((modifier) => {
+            card.enhancement?.modifiers?.forEach((modifier) => {
                 if (modifier.condition) {
                     expect(validConditionTypes).toContain(modifier.condition.type);
                 }
@@ -437,13 +437,13 @@ describe('Enhanced Abilities JSON - Modifier Parsing', () => {
 
 describe('Enhanced Abilities JSON - Attack Parsing', () => {
     it('should have attack data for attack-type cards', () => {
-        const attackCards = allAbilities.filter((c) => c.action_type === 'attack');
+        const attackCards = allAbilities.filter((c) => c.enhancement?.action_type === 'attack');
 
         attackCards.forEach((card) => {
             // Most attacks should have attack data (some edge cases may not)
-            if (card.attack) {
-                expect(card.attack.trait).toBeDefined();
-                expect(card.attack.range).toBeDefined();
+            if (card.enhancement?.attack) {
+                expect(card.enhancement.attack.trait).toBeDefined();
+                expect(card.enhancement.attack.range).toBeDefined();
             }
         });
     });
@@ -452,8 +452,8 @@ describe('Enhanced Abilities JSON - Attack Parsing', () => {
         const validCategories = ['standalone_attack', 'damage_bonus', 'roll_only', 'passive_triggered'];
 
         allAbilities.forEach((card) => {
-            if (card.attack?.combat_category) {
-                expect(validCategories).toContain(card.attack.combat_category);
+            if (card.enhancement?.attack?.combat_category) {
+                expect(validCategories).toContain(card.enhancement.attack.combat_category);
             }
         });
     });
@@ -462,8 +462,8 @@ describe('Enhanced Abilities JSON - Attack Parsing', () => {
         const validTypes = ['magic', 'physical'];
 
         allAbilities.forEach((card) => {
-            if (card.attack?.damage_type) {
-                expect(validTypes).toContain(card.attack.damage_type);
+            if (card.enhancement?.attack?.damage_type) {
+                expect(validTypes).toContain(card.enhancement.attack.damage_type);
             }
         });
     });
@@ -472,24 +472,24 @@ describe('Enhanced Abilities JSON - Attack Parsing', () => {
 describe('Enhanced Abilities JSON - Keyword Extraction', () => {
     it('should not have false positive hope_gain keywords', () => {
         // Cards that spend hope should not have hope_gain
-        const hopeSpenders = allAbilities.filter((c) => c.costs?.hope);
+        const hopeSpenders = allAbilities.filter((c) => c.enhancement?.costs?.hope);
 
         hopeSpenders.forEach((card) => {
             // Unless the card explicitly grants hope back
             if (!card.text.toLowerCase().includes('gain') || !card.text.toLowerCase().includes('hope')) {
-                expect(card.keywords).not.toContain('hope_gain');
+                expect(card.enhancement?.keywords).not.toContain('hope_gain');
             }
         });
     });
 
     it('should not have false positive stress_relief keywords', () => {
         // Cards that mark stress should not have stress_relief
-        const stressMarkers = allAbilities.filter((c) => c.costs?.stress);
+        const stressMarkers = allAbilities.filter((c) => c.enhancement?.costs?.stress);
 
         stressMarkers.forEach((card) => {
             // Unless the card explicitly clears stress
             if (!card.text.toLowerCase().includes('clear') || !card.text.toLowerCase().includes('stress')) {
-                expect(card.keywords).not.toContain('stress_relief');
+                expect(card.enhancement?.keywords).not.toContain('stress_relief');
             }
         });
     });
@@ -497,7 +497,7 @@ describe('Enhanced Abilities JSON - Keyword Extraction', () => {
 
 describe('Enhanced Abilities JSON - Statistics', () => {
     it('should have expected distribution of action types', () => {
-        const counts = {
+        const counts: Record<string, number> = {
             attack: 0,
             reaction: 0,
             passive: 0,
@@ -507,8 +507,8 @@ describe('Enhanced Abilities JSON - Statistics', () => {
         };
 
         allAbilities.forEach((card) => {
-            if (card.action_type) {
-                counts[card.action_type]++;
+            if (card.enhancement?.action_type) {
+                counts[card.enhancement.action_type]++;
             }
         });
 
@@ -519,12 +519,12 @@ describe('Enhanced Abilities JSON - Statistics', () => {
     });
 
     it('should have cards with modifiers', () => {
-        const withModifiers = allAbilities.filter((c) => c.modifiers && c.modifiers.length > 0);
+        const withModifiers = allAbilities.filter((c) => c.enhancement?.modifiers && c.enhancement.modifiers.length > 0);
         expect(withModifiers.length).toBeGreaterThan(10); // Should have at least 10 cards with modifiers
     });
 
     it('should have cards with token mechanics', () => {
-        const withTokens = allAbilities.filter((c) => c.has_tokens);
+        const withTokens = allAbilities.filter((c) => c.enhancement?.tokens?.has_tokens);
         expect(withTokens.length).toBeGreaterThan(10); // Should have at least 10 cards with tokens
     });
 });

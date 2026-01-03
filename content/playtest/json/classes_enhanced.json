@@ -20,7 +20,7 @@
         "name": "Crimson Rite",
         "text": "You can enchant your strikes with bloodthirsty power at the cost of your vitality. Mark a Hit Point to enchant one of your active weapons. Until you finish your next rest, that weapon deals physical or magic damage (choose when you use this feature) and an extra **1d6** damage when you hit with it. This extra damage increases to **2d6** at level 5 and **3d6** at level 8.",
         "enhancement": {
-          "action_type": "buff",
+          "action_type": "attack",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -103,8 +103,8 @@
       "name": "Blood Maledict",
       "text": "**Spend 3 Hope** to target a creature within Far range or in a vision from your Grim Psychometry. Until you finish a rest, take Severe damage, or use this feature again, you have advantage on all **action rolls** against the target.",
       "enhancement": {
-        "action_type": "buff",
-        "timing": "action",
+        "action_type": "passive",
+        "timing": "free",
         "frequency": "at_will",
         "costs": {
           "hope": 3
@@ -242,7 +242,7 @@
         "name": "I Am The Weapon",
         "text": "While you don't have any equipped weapons:\n- You gain a +1 bonus to Evasion.\n- Your unarmed strikes are considered a Melee weapon, use the trait of your choice, and deal **d8**+**d6** phy damage using your Proficiency.",
         "enhancement": {
-          "action_type": "attack",
+          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
