@@ -976,7 +976,7 @@
           "stat": "damage",
           "value": 10,
           "condition": {
-            "type": "always"
+            "type": "when_active"
           },
           "source": "Frenzy"
         },
@@ -984,7 +984,7 @@
           "stat": "damage_threshold_severe",
           "value": 8,
           "condition": {
-            "type": "always"
+            "type": "when_active"
           },
           "source": "Frenzy"
         }
@@ -4040,7 +4040,7 @@
           "stat": "damage",
           "value": 10,
           "condition": {
-            "type": "always"
+            "type": "when_active"
           },
           "source": "Force of Nature"
         }
