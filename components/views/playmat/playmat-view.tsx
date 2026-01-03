@@ -41,7 +41,7 @@ import { getAttack, getRoll } from '@/lib/enhancement-utils';
 import useContentAccess from '@/hooks/useContentAccess';
 
 export default function PlaymatView() {
-  const { character, moveCard, addCardToCollection, updateCardImage, updateCardImagePosition, updateModifiers, user } = useCharacterStore();
+  const { character, cardStates, moveCard, addCardToCollection, updateCardImage, updateCardImagePosition, updateModifiers, user } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'loadout' | 'vault'>('loadout');
@@ -220,7 +220,9 @@ export default function PlaymatView() {
               // Collect all active modifiers from loadout cards
               const allModifiers: PassiveModifier[] = [];
               loadoutCards.forEach(card => {
-                const mods = parseCardPassiveModifiers(card, character, card.state?.is_active ?? false);
+                const cardName = card.library_item?.name || '';
+                const isCardActive = cardStates?.[cardName]?.is_active ?? false;
+                const mods = parseCardPassiveModifiers(card, character, isCardActive);
                 allModifiers.push(...mods.filter(m => m.isActive));
               });
 
@@ -443,7 +445,7 @@ export default function PlaymatView() {
 
 
 function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: CharacterCard, onClose: () => void, mode?: 'full' | 'art-only' }) {
-  const { character, updateCardImage, updateCardImagePosition, user } = useCharacterStore();
+  const { character, cardStates, updateCardImage, updateCardImagePosition, user } = useCharacterStore();
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown', domain: '', tier: 0, type: '', data: {} };
   const recallCost = data?.recall || '0';
   const theme = getDomainTheme(domain);
@@ -459,7 +461,9 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
   const positionSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Parse card mechanics
-  const passiveModifiers = character ? parseCardPassiveModifiers(charCard, character, charCard.state?.is_active ?? false) : [];
+  const cardName = charCard.library_item?.name || '';
+  const isCardActive = cardStates?.[cardName]?.is_active ?? false;
+  const passiveModifiers = character ? parseCardPassiveModifiers(charCard, character, isCardActive) : [];
   const combatAbility = parseCombatAbility(charCard);
 
   // Handle image upload
