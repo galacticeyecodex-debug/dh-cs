@@ -152,7 +152,7 @@
       },
       "attack": {
         "trait": "None",
-        "range": "Very Close"
+        "range": "Far"
       }
     }
   },
@@ -265,7 +265,7 @@
     "recall": "1",
     "text": "When an attack from a creature causes you to mark one or more Hit Points, you can make a **Reaction Roll** using your Spellcast trait against the creature. On a success, the creature marks the same number of Hit Points as you did, and you can't use this spell again until you finish a rest.",
     "enhancement": {
-      "timing": "action",
+      "timing": "reaction",
       "frequency": "at_will",
       "keywords": [
         "spell"
@@ -836,7 +836,7 @@
     "text": "Make a **Spellcast Roll** against a target within Far range. On a success, **spend a Hope** to call forth an otherworldly creature to attack them and deal **d10** magic damage using your Proficiency. The target must succeed on a **Reaction Roll (12)** to steel themselves from the horror or **mark **1d4** Stress**. After making the attack, the creature dissipates.",
     "enhancement": {
       "action_type": "attack",
-      "timing": "action",
+      "timing": "reaction",
       "frequency": "at_will",
       "costs": {
         "hope": 1
@@ -919,7 +919,7 @@
     "text": "Make a **Spellcast Roll** against all adversaries within Close range. You can **spend a Hope** for any you succeed against, and they must make a **Reaction Roll (14)**. On a failure, they take **d8+6** magic damage using your Proficiency as they are engulfed in dark fire. On a success, they take half damage.",
     "enhancement": {
       "action_type": "attack",
-      "timing": "action",
+      "timing": "reaction",
       "frequency": "at_will",
       "costs": {
         "hope": 1
@@ -1002,7 +1002,7 @@
     "recall": "2",
     "text": "Succeed on a **Spellcast Roll (13)** to create a visible wall of writhing, necrotic energy in a line between two points within Far range that lasts until you mark a Hit Point or cast this spell again. Any creatures inside the wall when it appears or who try to pass through the wall must **mark 2 Stress**, then make a **Reaction Roll (16)**. On a failure, they are temporarily Restrained by the wall.",
     "enhancement": {
-      "timing": "action",
+      "timing": "reaction",
       "frequency": "at_will",
       "costs": {
         "stress": 2,

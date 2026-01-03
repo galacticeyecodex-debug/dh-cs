@@ -20,7 +20,6 @@
         "name": "Crimson Rite",
         "text": "You can enchant your strikes with bloodthirsty power at the cost of your vitality. Mark a Hit Point to enchant one of your active weapons. Until you finish your next rest, that weapon deals physical or magic damage (choose when you use this feature) and an extra **1d6** damage when you hit with it. This extra damage increases to **2d6** at level 5 and **3d6** at level 8.",
         "enhancement": {
-          "action_type": "attack",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -31,20 +30,6 @@
             "magic",
             "ability"
           ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "additional_damage": [
-              {
-                "damage": "1d6",
-                "condition": "Until you finish your next rest, that weapon deals physical or magic damage (choose when you use this feature) and an",
-                "label": "Extra"
-              }
-            ],
-            "damage": "1d6",
-            "damage_type": "magic"
-          },
           "duration": "rest"
         }
       },
@@ -52,7 +37,6 @@
         "name": "Grim Psychometry",
         "text": "While inspecting a creature, a location, or an object within Very Close range, make a **Spellcast Roll (12)**. On a success, **mark a Stress** to have a vision of the most recent violence involving the target, and until you finish a rest, you have advantage on any **action roll** to recall lore about things in the vision.",
         "enhancement": {
-          "action_type": "passive",
           "timing": "free",
           "frequency": "at_will",
           "costs": {
@@ -103,7 +87,6 @@
       "name": "Blood Maledict",
       "text": "**Spend 3 Hope** to target a creature within Far range or in a vision from your Grim Psychometry. Until you finish a rest, take Severe damage, or use this feature again, you have advantage on all **action rolls** against the target.",
       "enhancement": {
-        "action_type": "passive",
         "timing": "free",
         "frequency": "at_will",
         "costs": {
@@ -143,7 +126,6 @@
         "name": "Hex",
         "text": "When a creature causes you or an ally within Close range to mark any number of Hit Points, you can **mark a Stress** to Hex them. Action and damage rolls against a Hexed creature gain a bonus equal to your tier. This condition lasts until the GM spends a number of Fear equal to your Spellcast trait to remove it or you Hex another creature. Otherwise, remove it when the scene ends.",
         "enhancement": {
-          "action_type": "reaction",
           "timing": "reaction",
           "frequency": "at_will",
           "costs": {
@@ -164,18 +146,11 @@
         "name": "Commune",
         "text": "Once per long rest, during a moment of calm, you can commune with an ancestor, deity, nature spirit, or otherworldly being. Ask them a question, then roll a number of **d6s** equal to your Spellcast trait. Choose one value from the rolled results and reference the chart below for the effect:\n\n1-3: You taste a flavor, smell a scent, or feel a sensation relevant to the answer.\n4-5: You hear sounds or see a vision relevant to the answer.\n6: You psychically experience a scene relevant to the answer as if you were there.",
         "enhancement": {
-          "action_type": "attack",
           "timing": "action",
           "frequency": "once_per_long_rest",
           "keywords": [
             "ability"
-          ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "damage": "d6"
-          }
+          ]
         }
       }
     ],
@@ -205,8 +180,7 @@
       "name": "Witch's Charm",
       "text": "When you or an ally within Far range rolls a failure on an **action roll**, you can **spend 3 Hope** to change it into a success with Fear instead.",
       "enhancement": {
-        "action_type": "reaction",
-        "timing": "reaction",
+        "timing": "action",
         "frequency": "at_will",
         "costs": {
           "hope": 3
@@ -242,7 +216,6 @@
         "name": "I Am The Weapon",
         "text": "While you don't have any equipped weapons:\n- You gain a +1 bonus to Evasion.\n- Your unarmed strikes are considered a Melee weapon, use the trait of your choice, and deal **d8**+**d6** phy damage using your Proficiency.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
@@ -271,8 +244,7 @@
         "name": "Combo Strikes",
         "text": "After making a damage roll with a Melee weapon but before dealing that damage to the target, **mark a Stress** to start a combo strike. When you do, roll your Combo Die and note its value. Then, roll your Combo Die again. If the value of the second roll is equal to or greater than your first roll, continue rolling until the latest Combo Die's roll is less than the roll that preceded it. Total all rolled values and add that amount to your weapon's damage. These values cannot be adjusted by features that affect damage dice.\n\nYour Combo Die starts as a **d4**. When you level up, once per tier you may use one of your advancement options to increase your Combo Die instead.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -312,8 +284,7 @@
       "name": "Staggering Strike",
       "text": "**Spend 3 Hope** when you succeed on an attack to temporarily Stagger your target and force them to **mark a Stress**. While Staggered, they have disadvantage on attack rolls.",
       "enhancement": {
-        "action_type": "passive",
-        "timing": "free",
+        "timing": "reaction",
         "frequency": "at_will",
         "costs": {
           "stress": 1,

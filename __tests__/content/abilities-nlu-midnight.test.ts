@@ -110,7 +110,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         });
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -274,9 +274,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
             expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
-        it('should be action_type attack', () => {
-            expect(enhanced.enhancement.action_type).toBe('attack');
-        });
+        // Night Terror forces targets to make a Reaction Roll - player doesn't make an attack roll.\r\n        // This is more like a utility spell with damage on failure than a traditional attack.\r\n        it('should be action_type passive (targets make Reaction Roll, not player attack)', () => {\r\n            expect(enhanced.enhancement.action_type).toBeUndefined();\r\n        });
     });
 
     describe('Twilight Toll', () => {

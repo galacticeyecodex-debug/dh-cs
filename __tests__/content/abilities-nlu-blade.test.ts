@@ -101,8 +101,8 @@ describe('Abilities Schema Validation - Blade Domain', () => {
             expect(enhanced.enhancement.frequency).toBe('once_per_rest');
         });
 
-        it('should be action_type passive or reaction', () => {
-            expect(['passive', 'reaction']).toContain(enhanced.enhancement.action_type);
+        it('should be action_type passive (triggered by taking damage)', () => {
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -263,6 +263,10 @@ describe('Abilities Schema Validation - Blade Domain', () => {
             expect(enhanced.enhancement.frequency).toBe('once_per_long_rest');
         });
 
+        it('should have duration conditional (until there are no more adversaries)', () => {
+            expect(enhanced.enhancement.duration).toBe('conditional');
+        });
+
         it('should have modifier for damage +10', () => {
             const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage');
             expect(mod?.value).toBe(10);
@@ -274,8 +278,8 @@ describe('Abilities Schema Validation - Blade Domain', () => {
             'When you critically succeed on a weapon attack, gain an additional Hope or clear an additional Stress.\n\nAdditionally, when you deal enough damage to defeat an enemy, gain a Hope or clear a Stress.');
         const enhanced = enhanceAbilityCard(ability);
 
-        it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
+        it('should be action_type passive (triggered by crit or kill)', () => {
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
