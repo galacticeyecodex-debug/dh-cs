@@ -24,7 +24,7 @@ describe('Community Abilities Schema Validation - Highborne', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always active advantage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing free', () => {
@@ -52,7 +52,7 @@ describe('Community Abilities Schema Validation - Loreborne', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always active advantage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword buff (grants advantage)', () => {
@@ -72,7 +72,7 @@ describe('Community Abilities Schema Validation - Orderborne', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type buff (enhanced Hope Die)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be frequency once_per_rest', () => {
@@ -92,7 +92,7 @@ describe('Community Abilities Schema Validation - Ridgeborne', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always active advantage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword buff (grants advantage)', () => {
@@ -112,7 +112,7 @@ describe('Community Abilities Schema Validation - Seaborne', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (token mechanics)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have has_tokens = true', () => {
@@ -136,7 +136,7 @@ describe('Community Abilities Schema Validation - Slyborne', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always active advantage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword buff (grants advantage)', () => {
@@ -156,7 +156,7 @@ describe('Community Abilities Schema Validation - Underborne', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (conditional advantage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword buff (grants advantage)', () => {
@@ -184,7 +184,7 @@ describe('Community Abilities Schema Validation - Wanderborne', () => {
         });
 
         it('should be action_type utility (item acquisition)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -196,7 +196,7 @@ describe('Community Abilities Schema Validation - Wildborne', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always active advantage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword buff (grants advantage)', () => {

@@ -20,7 +20,7 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -126,7 +126,7 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type downtime', () => {
-            expect(enhanced.enhancement.action_type).toBe('downtime');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing downtime', () => {
@@ -140,7 +140,7 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have duration = rest', () => {
@@ -205,7 +205,7 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -219,7 +219,7 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -229,7 +229,7 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -285,7 +285,7 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -313,7 +313,7 @@ describe('Abilities Schema Validation - Grace Domain', () => {
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });

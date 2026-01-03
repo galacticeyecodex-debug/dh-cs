@@ -13,7 +13,7 @@
  */
 
 // Action type categorization
-export type ActionType = 'attack' | 'reaction' | 'passive' | 'downtime' | 'buff' | 'utility';
+export type ActionType = 'attack' | undefined;
 
 // Timing for when ability can be used
 export type Timing = 'action' | 'reaction' | 'free' | 'downtime';

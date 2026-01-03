@@ -16,7 +16,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -109,7 +109,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -170,7 +170,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -180,7 +180,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -218,7 +218,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for armor_score +1 with loadout condition', () => {

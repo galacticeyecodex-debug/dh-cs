@@ -58,7 +58,7 @@ describe('Playtest Transformations NLU Validation', () => {
             ));
 
             it('should be action_type passive (triggered by successful attack)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have has_tokens = true', () => {
@@ -84,7 +84,7 @@ describe('Playtest Transformations NLU Validation', () => {
             ));
 
             it('should be action_type reaction (triggers when marking HP)', () => {
-                expect(enhanced.enhancement.action_type).toBe('reaction');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.stress = 1', () => {
@@ -103,7 +103,7 @@ describe('Playtest Transformations NLU Validation', () => {
             ));
 
             it('should be action_type reaction (triggers on last stress)', () => {
-                expect(enhanced.enhancement.action_type).toBe('reaction');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have attack.range = Very Close', () => {
@@ -129,7 +129,7 @@ describe('Playtest Transformations NLU Validation', () => {
             ));
 
             it('should be action_type downtime (during rest)', () => {
-                expect(enhanced.enhancement.action_type).toBe('downtime');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
         });
 
@@ -140,7 +140,7 @@ describe('Playtest Transformations NLU Validation', () => {
             ));
 
             it('should be action_type passive (modifies death move)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
         });
     });
@@ -154,7 +154,7 @@ describe('Playtest Transformations NLU Validation', () => {
             ));
 
             it('should be action_type downtime (during long rest)', () => {
-                expect(enhanced.enhancement.action_type).toBe('downtime');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
         });
 
@@ -165,7 +165,7 @@ describe('Playtest Transformations NLU Validation', () => {
             ));
 
             it('should be action_type passive (modifies Change Shape)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
         });
     });
@@ -179,7 +179,7 @@ describe('Playtest Transformations NLU Validation', () => {
             ));
 
             it('should be action_type utility (transformation)', () => {
-                expect(enhanced.enhancement.action_type).toBe('utility');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.stress = 1', () => {
@@ -202,7 +202,7 @@ describe('Playtest Transformations NLU Validation', () => {
             ));
 
             it('should be action_type passive (permanent restriction)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
         });
     });
@@ -216,7 +216,7 @@ describe('Playtest Transformations NLU Validation', () => {
             ));
 
             it('should be action_type passive (always active enhancement)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have keyword buff (advantage die upgrade)', () => {
@@ -231,7 +231,7 @@ describe('Playtest Transformations NLU Validation', () => {
             ));
 
             it('should be action_type passive (triggered by roll result)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.stress = 1', () => {

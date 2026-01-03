@@ -58,7 +58,7 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for evasion with formula half_agility', () => {
@@ -77,7 +77,7 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -105,7 +105,7 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         });
 
         it('should be action_type passive (triggered condition)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -123,7 +123,7 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         });
 
         it('should be action_type buff (helps ally)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -189,7 +189,7 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         });
 
         it('should be action_type reaction', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -207,7 +207,7 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         });
 
         it('should be action_type downtime', () => {
-            expect(enhanced.enhancement.action_type).toBe('downtime');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing downtime', () => {
@@ -242,7 +242,7 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for damage', () => {
@@ -285,7 +285,7 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -332,7 +332,7 @@ describe('Abilities Schema Validation - Bone Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type reaction', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {

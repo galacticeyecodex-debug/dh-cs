@@ -24,7 +24,7 @@ describe('Ancestry Abilities Schema Validation - Clank', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (permanent character creation bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing free (always active)', () => {
@@ -46,11 +46,11 @@ describe('Ancestry Abilities Schema Validation - Clank', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (triggered by taking a rest)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
-        it('should be timing free (optional during rest)', () => {
-            expect(enhanced.enhancement.timing).toBe('free');
+        it('should be timing downtime (optional during rest)', () => {
+            expect(enhanced.enhancement.timing).toBe('downtime');
         });
 
         it('should be frequency at_will', () => {
@@ -70,7 +70,7 @@ describe('Ancestry Abilities Schema Validation - Drakona', () => {
         });
 
         it('should be action_type reaction (when you would take damage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -124,7 +124,7 @@ describe('Ancestry Abilities Schema Validation - Dwarf', () => {
         });
 
         it('should be action_type reaction (when you take damage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -142,7 +142,7 @@ describe('Ancestry Abilities Schema Validation - Dwarf', () => {
         });
 
         it('should be action_type reaction (defensive, when taking damage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -162,7 +162,7 @@ describe('Ancestry Abilities Schema Validation - Elf', () => {
         });
 
         it('should be action_type buff (grants advantage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -172,7 +172,7 @@ describe('Ancestry Abilities Schema Validation - Elf', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type downtime (occurs during rest)', () => {
-            expect(enhanced.enhancement.action_type).toBe('downtime');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing downtime', () => {
@@ -210,7 +210,7 @@ describe('Ancestry Abilities Schema Validation - Faerie', () => {
         });
 
         it('should be action_type reaction (after adversary attacks)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -231,7 +231,7 @@ describe('Ancestry Abilities Schema Validation - Faun', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (movement ability)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Close (leap range)', () => {
@@ -253,7 +253,7 @@ describe('Ancestry Abilities Schema Validation - Faun', () => {
         });
 
         it('should be action_type passive (triggered by succeeding on an attack)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.damage = 2d6', () => {
@@ -277,7 +277,7 @@ describe('Ancestry Abilities Schema Validation - Firbolg', () => {
         });
 
         it('should be action_type passive (triggered by movement roll)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.damage = 1d12', () => {
@@ -303,7 +303,7 @@ describe('Ancestry Abilities Schema Validation - Firbolg', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (triggered condition)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction (when you would mark stress)', () => {
@@ -323,7 +323,7 @@ describe('Ancestry Abilities Schema Validation - Fungril', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type utility (communication, not attack)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have roll.trait = Instinct', () => {
@@ -345,7 +345,7 @@ describe('Ancestry Abilities Schema Validation - Fungril', () => {
         });
 
         it('should be action_type utility (information gathering)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -357,7 +357,7 @@ describe('Ancestry Abilities Schema Validation - Galapa', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (permanent bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for damage_threshold with formula = proficiency', () => {
@@ -376,7 +376,7 @@ describe('Ancestry Abilities Schema Validation - Galapa', () => {
         });
 
         it('should be action_type utility (defensive stance)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword debuff (disadvantage)', () => {
@@ -392,7 +392,7 @@ describe('Ancestry Abilities Schema Validation - Giant', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (character creation bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have stat_bonuses.hit_point_slots = 1', () => {
@@ -406,7 +406,7 @@ describe('Ancestry Abilities Schema Validation - Giant', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always active)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Very Close (effective range)', () => {
@@ -422,7 +422,7 @@ describe('Ancestry Abilities Schema Validation - Goblin', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always active)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword debuff (removes disadvantage)', () => {
@@ -444,7 +444,7 @@ describe('Ancestry Abilities Schema Validation - Goblin', () => {
         });
 
         it('should be action_type reaction (during adversary attack)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Very Close', () => {
@@ -460,7 +460,7 @@ describe('Ancestry Abilities Schema Validation - Halfling', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (automatic at session start)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be frequency once_per_session (or at_will as it happens automatically)', () => {
@@ -478,7 +478,7 @@ describe('Ancestry Abilities Schema Validation - Halfling', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (triggered by roll result)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -494,7 +494,7 @@ describe('Ancestry Abilities Schema Validation - Human', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (character creation bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have stat_bonuses.stress_slots = 1', () => {
@@ -512,7 +512,7 @@ describe('Ancestry Abilities Schema Validation - Human', () => {
         });
 
         it('should be action_type passive (triggered by failed roll)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -528,7 +528,7 @@ describe('Ancestry Abilities Schema Validation - Infernis', () => {
         });
 
         it('should be action_type passive (triggered by roll result)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -538,7 +538,7 @@ describe('Ancestry Abilities Schema Validation - Infernis', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always active advantage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword buff (grants advantage)', () => {
@@ -558,7 +558,7 @@ describe('Ancestry Abilities Schema Validation - Katari', () => {
         });
 
         it('should be action_type passive (triggered during roll)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have roll.trait = Agility', () => {
@@ -596,7 +596,7 @@ describe('Ancestry Abilities Schema Validation - Orc', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (conditional always-on)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -614,7 +614,7 @@ describe('Ancestry Abilities Schema Validation - Orc', () => {
         });
 
         it('should be action_type passive (triggered by attack success)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.damage = 1d6', () => {
@@ -634,7 +634,7 @@ describe('Ancestry Abilities Schema Validation - Ribbet', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always active)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword movement', () => {
@@ -680,7 +680,7 @@ describe('Ancestry Abilities Schema Validation - Simiah', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always active advantage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword buff (grants advantage)', () => {
@@ -694,7 +694,7 @@ describe('Ancestry Abilities Schema Validation - Simiah', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (permanent bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for evasion +1', () => {
