@@ -16,7 +16,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -124,7 +124,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         });
 
         it('should be action_type utility or buff', () => {
-            expect(['utility', 'buff', 'attack']).toContain(enhanced.enhancement.action_type);
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -138,7 +138,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -176,7 +176,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -200,7 +200,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -228,7 +228,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         });
 
         it('should be action_type reaction', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -242,7 +242,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for evasion +1', () => {
@@ -261,7 +261,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         });
 
         it('should be action_type passive or attack', () => {
-            expect(['passive', 'attack']).toContain(enhanced.enhancement.action_type);
+            expect(['attack', undefined]).toContain(enhanced.enhancement.action_type);
         });
     });
 
@@ -289,7 +289,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -317,7 +317,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });

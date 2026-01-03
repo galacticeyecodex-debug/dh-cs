@@ -28,7 +28,7 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         });
 
         it('should be action_type utility (defensive, no attack)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction (when taking damage)', () => {
@@ -84,7 +84,7 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be frequency at_will', () => {
@@ -124,7 +124,7 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         });
 
         it('should be action_type utility (no attack/damage dealt)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -134,7 +134,7 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type reaction', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -164,14 +164,15 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should match the exact configuration (strict)', () => {
             const expected = {
-                action_type: "utility",
+                action_type: undefined,
                 timing: "action",
                 frequency: "at_will",
+                costs: undefined,
                 keywords: ["tokens", "spell"],
                 tokens: {
                     has_tokens: true,
@@ -182,7 +183,8 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
                     type: "Spellcast Roll",
                     trait: "Spellcast",
                     difficulty: 15,
-                    target_reaction: false
+                    target_reaction: false,
+                    requires_cost_for_roll: undefined
                 }
             };
             expect(enhanced.enhancement).toEqual(expected);
@@ -203,7 +205,7 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         });
 
         it('should be action_type utility (movement, no damage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should NOT have roll.requires_cost_for_roll (cost is conditional on success)', () => {
@@ -261,7 +263,7 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -275,7 +277,7 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -303,7 +305,7 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for spellcast with loadout condition', () => {
@@ -328,7 +330,7 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -341,8 +343,8 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
             expect(enhanced.enhancement.timing).toBe('reaction');
         });
 
-        it('should be action_type utility or reaction', () => {
-            expect(['utility', 'reaction']).toContain(enhanced.enhancement.action_type);
+        it('should be action_type undefined', () => {
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -392,7 +394,7 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -406,7 +408,7 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 

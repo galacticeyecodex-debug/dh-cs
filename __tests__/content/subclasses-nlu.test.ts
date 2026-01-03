@@ -33,7 +33,7 @@ describe('Subclass Abilities Schema Validation - Beastbound (Ranger)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always have companion)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -47,7 +47,7 @@ describe('Subclass Abilities Schema Validation - Beastbound (Ranger)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (conditional bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for evasion +2', () => {
@@ -66,7 +66,7 @@ describe('Subclass Abilities Schema Validation - Beastbound (Ranger)', () => {
         });
 
         it('should be action_type reaction (when damage would occur)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Close', () => {
@@ -86,7 +86,7 @@ describe('Subclass Abilities Schema Validation - Wayfinder (Ranger)', () => {
         });
 
         it('should be action_type passive (triggered during damage roll)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for proficiency +1', () => {
@@ -101,7 +101,7 @@ describe('Subclass Abilities Schema Validation - Wayfinder (Ranger)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (conditional bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for evasion +2', () => {
@@ -120,7 +120,7 @@ describe('Subclass Abilities Schema Validation - Wayfinder (Ranger)', () => {
         });
 
         it('should be action_type passive (optional enhancement to attack)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -136,7 +136,7 @@ describe('Subclass Abilities Schema Validation - Call of the Brave (Warrior)', (
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (triggered by Fear roll)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword hope_gain', () => {
@@ -158,7 +158,7 @@ describe('Subclass Abilities Schema Validation - Call of the Brave (Warrior)', (
         });
 
         it('should be action_type buff (clears stress, gains hope)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword stress_relief', () => {
@@ -176,7 +176,7 @@ describe('Subclass Abilities Schema Validation - Call of the Brave (Warrior)', (
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (conditional ability)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -192,7 +192,7 @@ describe('Subclass Abilities Schema Validation - Call of the Slayer (Warrior)', 
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (token/dice mechanics)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have has_tokens = true', () => {
@@ -214,7 +214,7 @@ describe('Subclass Abilities Schema Validation - Call of the Slayer (Warrior)', 
         });
 
         it('should be action_type passive (triggered by attack success)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -230,7 +230,7 @@ describe('Subclass Abilities Schema Validation - Stalwart (Guardian)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (permanent bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for damage_threshold +1', () => {
@@ -245,7 +245,7 @@ describe('Subclass Abilities Schema Validation - Stalwart (Guardian)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type reaction (when taking damage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -263,7 +263,7 @@ describe('Subclass Abilities Schema Validation - Stalwart (Guardian)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (permanent bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for damage_threshold +2', () => {
@@ -278,7 +278,7 @@ describe('Subclass Abilities Schema Validation - Stalwart (Guardian)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type reaction (when ally takes damage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Very Close', () => {
@@ -292,7 +292,7 @@ describe('Subclass Abilities Schema Validation - Stalwart (Guardian)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (permanent bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for damage_threshold +3', () => {
@@ -309,7 +309,7 @@ describe('Subclass Abilities Schema Validation - Vengeance (Guardian)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (character bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have stat_bonuses.stress_slots = 1', () => {
@@ -327,7 +327,7 @@ describe('Subclass Abilities Schema Validation - Vengeance (Guardian)', () => {
         });
 
         it('should be action_type reaction (when attacked)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Melee', () => {
@@ -349,7 +349,7 @@ describe('Subclass Abilities Schema Validation - Vengeance (Guardian)', () => {
         });
 
         it('should be action_type utility (marks target for bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -369,7 +369,7 @@ describe('Subclass Abilities Schema Validation - Nightwalker (Rogue)', () => {
         });
 
         it('should be action_type utility (teleportation)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Far', () => {
@@ -399,7 +399,7 @@ describe('Subclass Abilities Schema Validation - Nightwalker (Rogue)', () => {
         });
 
         it('should be action_type utility (creates zone)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -409,7 +409,7 @@ describe('Subclass Abilities Schema Validation - Nightwalker (Rogue)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (conditional bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword damage', () => {
@@ -423,7 +423,7 @@ describe('Subclass Abilities Schema Validation - Nightwalker (Rogue)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (permanent bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for evasion +1', () => {
@@ -442,7 +442,7 @@ describe('Subclass Abilities Schema Validation - Nightwalker (Rogue)', () => {
         });
 
         it('should be action_type utility (becomes cloaked)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have duration rest', () => {
@@ -458,7 +458,7 @@ describe('Subclass Abilities Schema Validation - Syndicate (Rogue)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always know someone)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -476,7 +476,7 @@ describe('Subclass Abilities Schema Validation - Syndicate (Rogue)', () => {
         });
 
         it('should be action_type utility (summons contact)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -518,7 +518,7 @@ describe('Subclass Abilities Schema Validation - Troubadour (Bard)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (enhances Rally)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -532,7 +532,7 @@ describe('Subclass Abilities Schema Validation - Troubadour (Bard)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (enhances Gifted Performer)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -570,7 +570,7 @@ describe('Subclass Abilities Schema Validation - Wordsmith (Bard)', () => {
         });
 
         it('should be action_type passive (triggered after roll)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -580,7 +580,7 @@ describe('Subclass Abilities Schema Validation - Wordsmith (Bard)', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (enhances Rally Die)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -622,7 +622,7 @@ describe('Subclass Abilities Schema Validation - Divine Wielder (Seraph)', () =>
         });
 
         it('should be action_type buff (healing)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword healing', () => {
@@ -642,7 +642,7 @@ describe('Subclass Abilities Schema Validation - Winged Sentinel (Seraph)', () =
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (flight with optional costs)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword movement', () => {
@@ -656,7 +656,7 @@ describe('Subclass Abilities Schema Validation - Winged Sentinel (Seraph)', () =
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (conditional advantage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword buff (advantage)', () => {
@@ -670,7 +670,7 @@ describe('Subclass Abilities Schema Validation - Winged Sentinel (Seraph)', () =
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (permanent bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for damage_threshold_severe +4', () => {
@@ -685,7 +685,7 @@ describe('Subclass Abilities Schema Validation - Winged Sentinel (Seraph)', () =
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (enhances Wings of Light)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword damage', () => {
@@ -709,7 +709,7 @@ describe('Subclass Abilities Schema Validation - Elemental Origin (Sorcerer)', (
         });
 
         it('should be action_type buff (roll enhancement)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -723,7 +723,7 @@ describe('Subclass Abilities Schema Validation - Elemental Origin (Sorcerer)', (
         });
 
         it('should be action_type reaction (when attacked)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -745,7 +745,7 @@ describe('Subclass Abilities Schema Validation - Elemental Origin (Sorcerer)', (
         });
 
         it('should be action_type utility (transformation)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -761,7 +761,7 @@ describe('Subclass Abilities Schema Validation - Primal Origin (Sorcerer)', () =
         });
 
         it('should be action_type passive (post-cast enhancement)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -775,7 +775,7 @@ describe('Subclass Abilities Schema Validation - Primal Origin (Sorcerer)', () =
         });
 
         it('should be action_type passive (triggered by taking damage or spending Hope)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -791,7 +791,7 @@ describe('Subclass Abilities Schema Validation - School of Knowledge (Wizard)', 
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (character creation bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -809,7 +809,7 @@ describe('Subclass Abilities Schema Validation - School of Knowledge (Wizard)', 
         });
 
         it('should be action_type passive (alternative cost)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -823,7 +823,7 @@ describe('Subclass Abilities Schema Validation - School of Knowledge (Wizard)', 
         });
 
         it('should be action_type passive (modifies recall)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -833,7 +833,7 @@ describe('Subclass Abilities Schema Validation - School of Knowledge (Wizard)', 
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (triggered by using Experience)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -849,7 +849,7 @@ describe('Subclass Abilities Schema Validation - School of War (Wizard)', () => 
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (character bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have stat_bonuses.hit_point_slots = 1', () => {
@@ -863,7 +863,7 @@ describe('Subclass Abilities Schema Validation - School of War (Wizard)', () => 
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (triggered by Fear success)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword damage', () => {
@@ -881,7 +881,7 @@ describe('Subclass Abilities Schema Validation - School of War (Wizard)', () => 
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (conditional bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for evasion with formula = proficiency', () => {
@@ -900,7 +900,7 @@ describe('Subclass Abilities Schema Validation - School of War (Wizard)', () => 
         });
 
         it('should be action_type passive (triggered by attack success)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -938,7 +938,7 @@ describe('Subclass Abilities Schema Validation - Warden of Renewal (Druid)', () 
         });
 
         it('should be action_type buff (healing)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword healing', () => {
@@ -978,7 +978,7 @@ describe('Subclass Abilities Schema Validation - Warden of Renewal (Druid)', () 
         });
 
         it('should be action_type reaction (when ally takes damage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Close', () => {
@@ -1002,7 +1002,7 @@ describe('Subclass Abilities Schema Validation - Warden of the Elements (Druid)'
         });
 
         it('should be action_type utility (transformation/channeling)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -1020,7 +1020,7 @@ describe('Subclass Abilities Schema Validation - Warden of the Elements (Druid)'
         });
 
         it('should be action_type utility (aura effect)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });

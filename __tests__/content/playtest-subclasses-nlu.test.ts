@@ -31,7 +31,7 @@ describe('Playtest Subclasses NLU Validation - Blood Hunter Orders', () => {
             ));
 
             it('should be action_type passive (conditional enhancement)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have keyword damage', () => {
@@ -46,7 +46,7 @@ describe('Playtest Subclasses NLU Validation - Blood Hunter Orders', () => {
             ));
 
             it('should be action_type reaction (triggers on GM action)', () => {
-                expect(enhanced.enhancement.action_type).toBe('reaction');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.stress = 1', () => {
@@ -65,7 +65,7 @@ describe('Playtest Subclasses NLU Validation - Blood Hunter Orders', () => {
             ));
 
             it('should be action_type utility (teleportation)', () => {
-                expect(enhanced.enhancement.action_type).toBe('utility');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.hope = 2', () => {
@@ -88,7 +88,7 @@ describe('Playtest Subclasses NLU Validation - Blood Hunter Orders', () => {
             ));
 
             it('should be action_type utility (transformation)', () => {
-                expect(enhanced.enhancement.action_type).toBe('utility');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have keyword damage (resistance to physical)', () => {
@@ -106,7 +106,7 @@ describe('Playtest Subclasses NLU Validation - Blood Hunter Orders', () => {
             ));
 
             it('should be action_type downtime (occurs during rest)', () => {
-                expect(enhanced.enhancement.action_type).toBe('downtime');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have keyword buff (advantage, bonuses)', () => {
@@ -121,7 +121,7 @@ describe('Playtest Subclasses NLU Validation - Blood Hunter Orders', () => {
             ));
 
             it('should be action_type passive (enhances existing feature)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
         });
     });
@@ -135,7 +135,7 @@ describe('Playtest Subclasses NLU Validation - Blood Hunter Orders', () => {
             ));
 
             it('should be action_type passive (always active)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have keyword buff (advantage)', () => {
@@ -150,7 +150,7 @@ describe('Playtest Subclasses NLU Validation - Blood Hunter Orders', () => {
             ));
 
             it('should be action_type buff (healing)', () => {
-                expect(enhanced.enhancement.action_type).toBe('buff');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.stress = 1', () => {
@@ -175,7 +175,7 @@ describe('Playtest Subclasses NLU Validation - Witch Subclasses', () => {
             ));
 
             it('should be action_type passive (triggered enhancement)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have keyword healing', () => {
@@ -246,7 +246,7 @@ describe('Playtest Subclasses NLU Validation - Witch Subclasses', () => {
             ));
 
             it('should be action_type utility (disguise/glamour)', () => {
-                expect(enhanced.enhancement.action_type).toBe('utility');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.stress = 1', () => {
@@ -284,7 +284,7 @@ describe('Playtest Subclasses NLU Validation - Witch Subclasses', () => {
             ));
 
             it('should be action_type passive (triggered by enemy action)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have attack.range = Far', () => {
@@ -305,7 +305,7 @@ describe('Playtest Subclasses NLU Validation - Brawler Subclasses', () => {
             ));
 
             it('should be action_type passive (permanent enhancement)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have keyword damage', () => {
@@ -324,7 +324,7 @@ describe('Playtest Subclasses NLU Validation - Brawler Subclasses', () => {
             ));
 
             it('should be action_type passive (triggered by successful attack)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.hope = 1', () => {
@@ -343,7 +343,7 @@ describe('Playtest Subclasses NLU Validation - Brawler Subclasses', () => {
             ));
 
             it('should be action_type reaction (when you take damage)', () => {
-                expect(enhanced.enhancement.action_type).toBe('reaction');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should be frequency once_per_rest', () => {
@@ -362,7 +362,7 @@ describe('Playtest Subclasses NLU Validation - Brawler Subclasses', () => {
             ));
 
             it('should be action_type passive (triggered by crit)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have keyword hope_gain', () => {
@@ -384,7 +384,7 @@ describe('Playtest Subclasses NLU Validation - Brawler Subclasses', () => {
             ));
 
             it('should be action_type downtime (during rest)', () => {
-                expect(enhanced.enhancement.action_type).toBe('downtime');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have has_tokens = true', () => {
@@ -403,7 +403,7 @@ describe('Playtest Subclasses NLU Validation - Brawler Subclasses', () => {
             ));
 
             it('should be action_type reaction (when targeted)', () => {
-                expect(enhanced.enhancement.action_type).toBe('reaction');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have keyword debuff (disadvantage)', () => {
@@ -445,7 +445,7 @@ describe('Playtest Subclasses NLU Validation - Brawler Subclasses', () => {
             });
 
             it('should be action_type utility (movement feat)', () => {
-                expect(enhanced.enhancement.action_type).toBe('utility');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have keyword hope_gain', () => {

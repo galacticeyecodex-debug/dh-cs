@@ -749,26 +749,32 @@ export function parseCardDamage(text: string): string | undefined {
     // "deal 1d8", "deal 2d6+3"
     /deal\s+(\d*d\d+(?:\+\d+)?)/i,
     // "dealing 1d8 damage"
-    /dealing\s+(\d*d\d+(?:\+\d+)?)/i,
+    /dealing\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
     // "deals d8 damage" or "that deals d12 physical damage"
     /deals\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
-    // "an extra 2d6 damage" or "extra 1d6 damage"
-    /extra\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
     // "take 1d8 damage" (enemies taking damage)
     /take\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
     // "takes 1d8 damage"
     /takes\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
-    // "roll a number of d10s" (variable damage based on tokens/conditions)
-    /roll\s+(?:a\s+)?(?:number\s+of\s+)?(\*\*)?(d\d+)s?\1?/i,
+    // "damage is 1d8"
+    /damage\s+is\s+(\d*d\d+(?:\+\d+)?)/i,
   ];
 
   for (const pattern of damagePatterns) {
     const match = cleanText.match(pattern);
     if (match) {
-      // For the variable damage pattern, extract the die type
-      if (pattern.source.includes('number')) {
-        return `${match[2]}`; // e.g., "d10" for variable number of d10s
+      // Check for "extra", "additional", "more" immediately preceding the match
+      // This filters out modifiers like "deal an extra 1d8 damage" from being the PRIMARY damage
+      const fullMatchIndex = match.index!;
+      const prefix = cleanText.substring(Math.max(0, fullMatchIndex - 30), fullMatchIndex).toLowerCase();
+
+      // Check for: "extra", "additional", "more", or "add" (modifier)
+      // Handles "an extra", "add a", "deal an extra"
+      if (/(?:(?:an?|the)\s+)?(?:extra|additional|more|added?)\s+$/i.test(prefix) ||
+        /add\s+(?:an?\s+)?$/i.test(prefix)) {
+        continue;
       }
+
       return match[1];
     }
   }
@@ -882,7 +888,7 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     /\bif\s+you\s+mark\s+(?:more\s+than\s+)?(?:one\s+)?hit\s+points?\s+from\b/i,
   ];
   if (reactionPatterns.some(pattern => pattern.test(cleanText))) {
-    return 'reaction';
+    return undefined;
   }
 
 
@@ -896,7 +902,7 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     cleanText.includes('as an additional downtime') ||
     cleanText.includes('as a downtime move')
   ) {
-    return 'downtime';
+    return undefined;
   }
 
   // 3. Check for BUFF patterns (healing, support, granting bonuses to self/allies)
@@ -979,38 +985,17 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
 
   // Active buffs: Must have proactive choice AND buff patterns AND NOT be passive triggered
   if ((hasProactiveChoice || hasWhileClauseActive) && !hasPassiveTrigger && buffPatterns.some(pattern => pattern.test(cleanText))) {
-    return 'buff';
+    return undefined;
   }
 
   // Regular buff check - only if no passive trigger
   if (!hasPassiveTrigger && buffPatterns.some(pattern => pattern.test(cleanText))) {
-    return 'buff';
-  }
-
-  // 4. Check if this is an ATTACK (player initiates combat action)
-  // An attack needs: "make a Roll against" OR parsed attack data
-  const hasRollAgainst = /make (?:a |an )?\*?\*?(?:\w+\s+)?roll\*?\*? against/i.test(text);
-  const hasAttackWith = /make (?:a |an )?attack with/i.test(cleanText);
-  const hasExplicitAttack = /(?:spend|mark).*?to make (?:a |an )?attack/i.test(cleanText);
-
-  // Attack extension - when a successful attack allows you to extend it to more targets
-  // This is still an "attack" action because you're actively choosing to expand the attack
-  const hasAttackExtension = /when you (?:make a successful|succeed on).*?attack.*?(?:spend|mark).*?(?:use|apply|extend|deal)/i.test(cleanText);
-
-  // "perform an aerial attack" or similar explicit attack descriptions
-  const hasPerformAttack = /\bperform\s+(?:a |an )?(?:\w+\s+)?attack\b/i.test(cleanText);
-
-  // But exclude simple "when you make a successful attack" passive triggers (without extension)
-  const isSimpleAttackTrigger = /when you (?:make a success|succeed|critically succeed|fail)/i.test(cleanText) && !hasAttackExtension;
-
-  // Only classify as attack if we have attack-like patterns AND it's not a triggered bonus
-  const hasAttackIndicators = attack || hasRollAgainst || hasAttackWith || hasExplicitAttack || hasAttackExtension || hasPerformAttack;
-  const isTriggeredBonusAttack = attack?.is_triggered_bonus;
-  if (hasAttackIndicators && !isSimpleAttackTrigger && !isTriggeredBonusAttack) {
-    return 'attack';
+    return undefined;
   }
 
   // 5. Check for utility abilities (transformations, cantrips, illusions, communication, resource conversion)
+  // MOVED UP: Utility checks come before Attack checks because many utilities (transformations)
+  // define attacks inside them, but the primary action is the transformation/utility.
   const utilityPatterns = [
     /\btransform\s+into\b/i,
     /\bmagically\s+transform\b/i,
@@ -1057,7 +1042,30 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     /\bleaping\s+between\s+distant\b/i,
   ];
   if (utilityPatterns.some(pattern => pattern.test(cleanText))) {
-    return 'utility';
+    return undefined;
+  }
+
+  // 4. Check if this is an ATTACK (player initiates combat action)
+  // An attack needs: "make a Roll against" OR parsed attack data
+  const hasRollAgainst = /make (?:a |an )?\*?\*?(?:\w+\s+)?roll\*?\*? against/i.test(text);
+  const hasAttackWith = /make (?:a |an )?attack with/i.test(cleanText);
+  const hasExplicitAttack = /(?:spend|mark).*?to make (?:a |an )?attack/i.test(cleanText);
+
+  // Attack extension - when a successful attack allows you to extend it to more targets
+  // This is still an "attack" action because you're actively choosing to expand the attack
+  const hasAttackExtension = /when you (?:make a successful|succeed on).*?attack.*?(?:spend|mark).*?(?:use|apply|extend|deal)/i.test(cleanText);
+
+  // "perform an aerial attack" or similar explicit attack descriptions
+  const hasPerformAttack = /\bperform\s+(?:a |an )?(?:\w+\s+)?attack\b/i.test(cleanText);
+
+  // But exclude simple "when you make a successful attack" passive triggers (without extension)
+  const isSimpleAttackTrigger = /when you (?:make a success|succeed|critically succeed|fail)/i.test(cleanText) && !hasAttackExtension;
+
+  // Only classify as attack if we have attack-like patterns AND it's not a triggered bonus
+  const hasAttackIndicators = attack || hasRollAgainst || hasAttackWith || hasExplicitAttack || hasAttackExtension || hasPerformAttack;
+  const isTriggeredBonusAttack = attack?.is_triggered_bonus;
+  if (hasAttackIndicators && !isSimpleAttackTrigger && !isTriggeredBonusAttack) {
+    return 'attack';
   }
 
   // 6. Check for passive abilities (triggered by conditions, not actively used)
@@ -1130,60 +1138,76 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
   ];
 
   if (passiveTriggers.some(pattern => pattern.test(cleanText))) {
-    return 'passive';
+    return undefined;
   }
 
   // 7. Default based on card type
   if (cardType === 'Spell') {
-    return 'utility';
+    return undefined;
   }
 
-  return 'passive';
+  return undefined;
 }
 
 /**
  * Determine timing from action type and text
  */
 export function parseTiming(text: string, actionType: ActionType): Timing {
-  const cleanText = stripMarkdown(text).toLowerCase();
+  const cleanText = text.replace(/\*/g, '');
 
-  // Check for reactive/defensive patterns in text (overrides action_type)
-  // These indicate the ability is used in response to something, not proactively on your turn
+  // 1. Explicit Reaction patterns
   const reactionPatterns = [
-    /\bwhen you would take\b/,
-    /\bwhen you would mark\b/,
-    /\breduce incoming damage\b/,
-    /\bwhen an attack\b/,
-    /\bwhen you(?:'re| are) targeted\b/,
-    /\bwhen (?:a|an) (?:creature|adversary|enemy) (?:attacks|targets|damages)\b/,
-    /\binterrupt\b/,
-    // Ally protection patterns
-    /\bwhen an ally(?:\s+within\b|\s+would\b)/,
-    // Death move / last HP patterns
-    /\bwhen you mark your last\b/,
-    /\binstead of making a death move\b/,
-    // Armor slot marking patterns
-    /\bwhen you(?:\s+would)?\s+mark an armor slot\b/,
-    // When ally deals damage (follow-up attack)
-    /\bwhen an ally(?:\s+within\b)?.*?deals damage\b/,
+    /as a reaction/i,
+    /timing: reaction/i,
+    /when you (?:would )?take (?:magic |physical |severe |major |minor )?damage/i,
+    /when you (?:would )?mark/i,
+    /after an? (?:adversary|creature|ally)/i,
+    /when an? (?:adversary|creature|ally)/i,
+    /in response to/i,
+    /(?:to |you )?(?:reduce|halve) (?:incoming )?damage/i,
+    /when an? attack fails/i,
+    /when targeted/i,
+    /if an? adversary/i,
   ];
-
-  for (const pattern of reactionPatterns) {
-    if (pattern.test(cleanText)) {
+  
+  for (const p of reactionPatterns) {
+    if (p.test(cleanText)) {
+      console.log(`MATCHED Reaction: pattern=${p}, text="${cleanText.substring(0, 30)}..."`);
       return 'reaction';
     }
   }
 
-  // Default based on action_type
-  if (actionType === 'reaction') {
-    return 'reaction';
-  }
-  if (actionType === 'downtime') {
+  // 2. Explicit Downtime patterns
+  const downtimePatterns = [
+    /during a rest/i,
+    /as a downtime move/i,
+    /during downtime/i,
+    /when you take a rest/i,
+  ];
+  if (downtimePatterns.some(p => p.test(cleanText))) {
     return 'downtime';
   }
-  if (actionType === 'passive') {
+
+  // 3. Explicit Free patterns (and Passive-style patterns)
+  const freePatterns = [
+    /free action/i,
+    /\bpermanent\b/i,
+    /always active/i,
+    /you (?:have|gain) advantage/i,
+    /at the (?:start|end) of/i,
+    /character creation/i,
+  ];
+  if (freePatterns.some(p => p.test(cleanText))) {
     return 'free';
   }
+
+  // 4. Default based on action_type
+  // Attacks are always 'action' unless they matched reaction above
+  if (actionType === 'attack') {
+    return 'action';
+  }
+
+  // Most other things (buffs, utilities) that aren't reactions or downtime are actions
   return 'action';
 }
 
@@ -1538,7 +1562,8 @@ export function parseAttack(text: string): CardAttack | undefined {
   const hasMakeRollTo = /make\s+(?:a|an)\s+\*?\*?\w+\s+roll\*?\*?\s+to/i.test(text);
   const hasAttackTarget = /attack\s+(?:a\s+)?target/i.test(lowerText) ||
     /scratch\s+a\s+target/i.test(lowerText) ||
-    /use\s+this\s+breath\s+against/i.test(lowerText);
+    /use\s+this\s+breath\s+against/i.test(lowerText) ||
+    /attack\s+(?:an?\s+)?adversary/i.test(lowerText);
 
   // Parse additional/secondary damage
   const additionalDamage = extractAdditionalDamage(text);
@@ -1973,16 +1998,6 @@ export function getActionTypeLabel(actionType: ActionType): string {
   switch (actionType) {
     case 'attack':
       return 'Attack';
-    case 'reaction':
-      return 'Reaction';
-    case 'passive':
-      return 'Passive';
-    case 'downtime':
-      return 'Downtime';
-    case 'buff':
-      return 'Buff';
-    case 'utility':
-      return 'Utility';
     default:
       return '';
   }

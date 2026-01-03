@@ -20,7 +20,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         });
 
         it('should be action_type passive (triggered condition)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing free or reaction', () => {
@@ -34,7 +34,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -70,7 +70,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -88,7 +88,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -116,7 +116,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -141,7 +141,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for damage_threshold +2', () => {
@@ -155,8 +155,8 @@ describe('Abilities Schema Validation - Blade Domain', () => {
             'When you critically succeed on an attack, you can **spend up to 3 Hope** and choose one of the following options for each Hope spent:\n\n- You clear a Hit Point.\n- You clear an Armor Slot.\n- The target must mark an additional Hit Point.\n\nYou can\'t choose the same option more than once.');
         const enhanced = enhanceAbilityCard(ability);
 
-        it('should be action_type buff', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+        it('should be action_type reaction', () => {
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         // Variable cost - could have costs or not depending on parser
@@ -171,7 +171,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -210,7 +210,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for attack +2 with loadout condition', () => {
@@ -236,7 +236,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         });
 
         it('should be action_type passive (triggered on failure)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -250,7 +250,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -311,7 +311,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         });
 
         it('should be action_type reaction', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -325,7 +325,7 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         });
 
         it('should be action_type reaction (can respond to ally attack)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });

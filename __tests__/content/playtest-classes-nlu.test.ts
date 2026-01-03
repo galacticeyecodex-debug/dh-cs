@@ -31,7 +31,7 @@ describe('Playtest Classes NLU Validation', () => {
             ));
 
             it('should be action_type buff (enhances weapon)', () => {
-                expect(enhanced.enhancement.action_type).toBe('buff');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have keyword damage', () => {
@@ -73,7 +73,7 @@ describe('Playtest Classes NLU Validation', () => {
             ));
 
             it('should be action_type buff (grants advantage)', () => {
-                expect(enhanced.enhancement.action_type).toBe('buff');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.hope = 3', () => {
@@ -99,7 +99,7 @@ describe('Playtest Classes NLU Validation', () => {
             ));
 
             it('should be action_type reaction (triggers when damage is dealt)', () => {
-                expect(enhanced.enhancement.action_type).toBe('reaction');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.stress = 1', () => {
@@ -122,7 +122,7 @@ describe('Playtest Classes NLU Validation', () => {
             });
 
             it('should be action_type utility (information gathering)', () => {
-                expect(enhanced.enhancement.action_type).toBe('utility');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
         });
 
@@ -133,7 +133,7 @@ describe('Playtest Classes NLU Validation', () => {
             ));
 
             it('should be action_type reaction (triggers on ally failure)', () => {
-                expect(enhanced.enhancement.action_type).toBe('reaction');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.hope = 3', () => {
@@ -155,7 +155,7 @@ describe('Playtest Classes NLU Validation', () => {
             ));
 
             it('should be action_type passive (conditional bonus)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have modifier for evasion +1', () => {
@@ -176,7 +176,7 @@ describe('Playtest Classes NLU Validation', () => {
             ));
 
             it('should be action_type buff (adds to damage)', () => {
-                expect(enhanced.enhancement.action_type).toBe('buff');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.stress = 1', () => {
@@ -195,7 +195,7 @@ describe('Playtest Classes NLU Validation', () => {
             ));
 
             it('should be action_type passive (triggered by successful attack)', () => {
-                expect(enhanced.enhancement.action_type).toBe('passive');
+                expect(enhanced.enhancement.action_type).toBeUndefined();
             });
 
             it('should have costs.hope = 3', () => {

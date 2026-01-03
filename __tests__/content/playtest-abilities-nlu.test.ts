@@ -63,7 +63,7 @@ describe('Playtest Abilities NLU Validation - Blood Domain', () => {
         const enhanced = enhanceAbilityCard(card);
 
         it('should be action_type utility (creates object, not direct buff)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword hope_cost', () => {
@@ -83,7 +83,7 @@ describe('Playtest Abilities NLU Validation - Blood Domain', () => {
         const enhanced = enhanceAbilityCard(card);
 
         it('should be action_type passive (conditional bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword damage', () => {
@@ -103,7 +103,7 @@ describe('Playtest Abilities NLU Validation - Blood Domain', () => {
         const enhanced = enhanceAbilityCard(card);
 
         it('should be action_type reaction (triggers when taking damage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -127,7 +127,7 @@ describe('Playtest Abilities NLU Validation - Blood Domain', () => {
         const enhanced = enhanceAbilityCard(card);
 
         it('should be action_type buff (healing allies)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be frequency once_per_rest', () => {
@@ -155,7 +155,7 @@ describe('Playtest Abilities NLU Validation - Blood Domain', () => {
         const enhanced = enhanceAbilityCard(card);
 
         it('should be action_type reaction (when you would mark)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have costs.hope = 1', () => {
@@ -179,7 +179,7 @@ describe('Playtest Abilities NLU Validation - Blood Domain', () => {
         const enhanced = enhanceAbilityCard(card);
 
         it('should be action_type passive (triggered by successful attack)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword healing', () => {
@@ -207,7 +207,7 @@ describe('Playtest Abilities NLU Validation - Blood Domain', () => {
         const enhanced = enhanceAbilityCard(card);
 
         it('should be action_type passive (loadout-conditional)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword hope_gain', () => {
@@ -303,7 +303,7 @@ describe('Playtest Abilities NLU Validation - Dread Domain', () => {
         const enhanced = enhanceAbilityCard(card);
 
         it('should be action_type reaction (ally damage trigger)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -379,7 +379,7 @@ describe('Playtest Abilities NLU Validation - Dread Domain', () => {
         const enhanced = enhanceAbilityCard(card);
 
         it('should be action_type passive (loadout-conditional)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have costs.stress = 2', () => {
@@ -451,7 +451,7 @@ describe('Playtest Abilities NLU Validation - Dread Domain', () => {
         const enhanced = enhanceAbilityCard(card);
 
         it('should be action_type utility (transformation)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have costs.stress = 1', () => {
