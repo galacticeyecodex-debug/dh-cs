@@ -705,6 +705,7 @@ export default function CombatView() {
                   costs={enhancement.costs ?? undefined}
                   onSpendHope={() => character && updateHope(character.hope - (enhancement.costs?.hope || 0))}
                   onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (enhancement.costs?.stress || 0))}
+                  roll={enhancement.roll ?? undefined}
                 />
               );
             })}

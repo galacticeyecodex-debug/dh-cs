@@ -56,11 +56,11 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should have token_source = spellcast', () => {
-            expect(enhanced.enhancement.token_source).toBe('spellcast');
+            expect(enhanced.enhancement.tokens?.token_source).toBe('spellcast');
         });
     });
 
@@ -257,7 +257,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should be action_type passive or attack', () => {
@@ -285,7 +285,7 @@ describe('Abilities Schema Validation - Midnight Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should be action_type passive', () => {

@@ -150,6 +150,7 @@ export default function PlaymatCard({
           costs={costs || undefined}
           onSpendHope={() => character && updateHope(character.hope - (costs?.hope || 0))}
           onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (costs?.stress || 0))}
+          roll={roll || undefined}
         />
       </div>
     );

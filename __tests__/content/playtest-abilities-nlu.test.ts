@@ -283,7 +283,7 @@ describe('Playtest Abilities NLU Validation - Dread Domain', () => {
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should have keyword tokens', () => {
@@ -403,11 +403,11 @@ describe('Playtest Abilities NLU Validation - Dread Domain', () => {
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should have max_tokens = 8', () => {
-            expect(enhanced.enhancement.max_tokens).toBe(8);
+            expect(enhanced.enhancement.tokens?.max_tokens).toBe(8);
         });
 
         it('should have roll.difficulty = 14', () => {
