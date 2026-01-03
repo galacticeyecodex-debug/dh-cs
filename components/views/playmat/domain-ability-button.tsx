@@ -43,6 +43,16 @@ export function DomainAbilityButton({
     ? isActiveOverride 
     : (cardStates[cardName]?.is_active || false);
 
+  // Resource Tracking Logic
+  let resourceInfo = '';
+  if (character) {
+    if (costType === 'hope') {
+      resourceInfo = `(${character.hope}/6)`;
+    } else if (costType === 'stress') {
+      resourceInfo = `(${character.vitals.stress_current}/${character.vitals.stress_max})`;
+    }
+  }
+
   // Determine effective label and icon
   let displayLabel = label;
   let Icon = Zap;
@@ -52,7 +62,7 @@ export function DomainAbilityButton({
   if (costType === 'hope') {
     displayLabel = label || `Spend ${costValue > 0 ? costValue : 'a'} Hope`;
     Icon = Zap;
-    costColor = 'text-dagger-gold'; // Harmonized to dagger-gold for Hope
+    costColor = 'text-dagger-gold'; 
     activeColor = 'bg-dagger-gold/20 text-dagger-gold border-dagger-gold/50';
   } else if (costType === 'stress') {
     displayLabel = label || `Mark ${costValue > 0 ? costValue : 'a'} Stress`;
@@ -110,17 +120,26 @@ export function DomainAbilityButton({
 
   const isActuallyDisabled = disabled || (!isActive && !canAfford);
 
+  // Unified visual style for both active and inactive states
+  // We use flex-wrap to handle the extra resource text gracefully on small screens
+  const buttonContent = (
+    <span className="flex items-center gap-1.5 whitespace-nowrap">
+      {isActive ? <Check size={12} /> : <Icon size={12} />}
+      <span>{displayLabel}</span>
+      {resourceInfo && !isActive && (
+        <span className="opacity-70 font-normal ml-0.5 text-[10px]">{resourceInfo}</span>
+      )}
+    </span>
+  );
+
   if (isActive) {
     return (
       <div className={clsx(
-        "flex items-center gap-1 px-2 py-1.5 rounded text-xs font-bold border transition-colors",
+        "flex items-center gap-1 px-3 py-1.5 rounded text-xs font-bold border transition-colors cursor-default",
         activeColor,
         className
       )}>
-        <span className="flex items-center gap-1.5">
-          <Check size={12} />
-          {displayLabel}
-        </span>
+        {buttonContent}
         <button
           onClick={handleReset}
           className="ml-1 p-0.5 hover:bg-black/20 rounded-full transition-colors group"
@@ -137,14 +156,13 @@ export function DomainAbilityButton({
       onClick={handleActivate}
       disabled={isActuallyDisabled}
       className={clsx(
-        "flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors",
+        "flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium border transition-colors",
         "bg-white/5 border-white/10 hover:bg-white/10",
         isActuallyDisabled ? "opacity-50 cursor-not-allowed grayscale" : costColor,
         className
       )}
     >
-      <Icon size={12} />
-      {displayLabel}
+      {buttonContent}
     </button>
   );
 }
