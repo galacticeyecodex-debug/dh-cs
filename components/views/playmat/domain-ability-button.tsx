@@ -126,7 +126,7 @@ export function DomainAbilityButton({
     <span className="flex items-center gap-1.5 whitespace-nowrap">
       {isActive ? <Check size={12} /> : <Icon size={12} />}
       <span>{displayLabel}</span>
-      {resourceInfo && !isActive && (
+      {resourceInfo && (
         <span className="opacity-70 font-normal ml-0.5 text-[10px]">{resourceInfo}</span>
       )}
     </span>
