@@ -57,7 +57,11 @@
             "buff",
             "movement",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Far"
+          }
         }
       }
     ],
@@ -102,7 +106,8 @@
             "control",
             "buff",
             "ability"
-          ]
+          ],
+          "duration": "rest"
         }
       }
     ],
@@ -138,7 +143,8 @@
           },
           "keywords": [
             "ability"
-          ]
+          ],
+          "duration": "rest"
         }
       }
     ],
@@ -368,7 +374,11 @@
           ],
           "has_tokens": true,
           "max_tokens": null,
-          "token_source": "spellcast"
+          "token_source": "spellcast",
+          "attack": {
+            "trait": "None",
+            "range": "Very Close"
+          }
         }
       }
     ]
@@ -418,7 +428,12 @@
               },
               "source": "Moonbeam"
             }
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          },
+          "duration": "scene"
         }
       },
       {
@@ -434,7 +449,11 @@
           "keywords": [
             "stress_cost",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Far"
+          }
         }
       }
     ],
@@ -535,7 +554,11 @@
             "hope_cost",
             "movement",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
         }
       }
     ],
@@ -578,6 +601,10 @@
             "trait": "Spellcast",
             "difficulty": 13,
             "target_reaction": true
+          },
+          "attack": {
+            "trait": "None",
+            "range": "Melee"
           }
         }
       }
@@ -604,7 +631,11 @@
               },
               "source": "Pummeljoy"
             }
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Melee"
+          }
         }
       },
       {

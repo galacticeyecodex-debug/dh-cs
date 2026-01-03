@@ -45,12 +45,12 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
             'At the beginning of a session, place a number of tokens equal to your Spellcast trait on this card.\n\nMake a **Spellcast Roll** against a target within Far range and spend any number of tokens to channel raw energy from within yourself to unleash against them. On a success, roll a number of **d10s** equal to the tokens you spent and deal that much magic damage to the target. **Mark a Stress** to replenish this card with tokens (up to your Spellcast trait).\n\nAt the end of each session, clear all unspent tokens.');
         const enhanced = enhanceAbilityCard(ability);
 
-        it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+        it('should have tokens.has_tokens = true', () => {
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
-        it('should have token_source = spellcast', () => {
-            expect(enhanced.enhancement.token_source).toBe('spellcast');
+        it('should have tokens.token_source = spellcast', () => {
+            expect(enhanced.enhancement.tokens?.token_source).toBe('spellcast');
         });
 
         it('should be action_type attack (deals magic damage)', () => {
@@ -151,12 +151,12 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
             'Make a **Spellcast Roll (15)**. On a success, place a number of tokens equal to your Agility on this card (minimum 1). When you make an **action roll** while flying, spend a token from this card. After the action that spends the last token is resolved, you descend to the ground directly below you.');
         const enhanced = enhanceAbilityCard(ability);
 
-        it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+        it('should have tokens.has_tokens = true', () => {
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
-        it('should have token_source = agility', () => {
-            expect(enhanced.enhancement.token_source).toBe('agility');
+        it('should have tokens.token_source = agility', () => {
+            expect(enhanced.enhancement.tokens?.token_source).toBe('agility');
         });
 
         it('should have roll.difficulty = 15', () => {
@@ -165,6 +165,27 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
 
         it('should be action_type utility', () => {
             expect(enhanced.enhancement.action_type).toBe('utility');
+        });
+
+        it('should match the exact configuration (strict)', () => {
+            const expected = {
+                action_type: "utility",
+                timing: "action",
+                frequency: "at_will",
+                keywords: ["tokens", "spell"],
+                tokens: {
+                    has_tokens: true,
+                    max_tokens: null,
+                    token_source: "agility",
+                },
+                roll: {
+                    type: "Spellcast Roll",
+                    trait: "Spellcast",
+                    difficulty: 15,
+                    target_reaction: false
+                }
+            };
+            expect(enhanced.enhancement).toEqual(expected);
         });
     });
 

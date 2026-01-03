@@ -203,8 +203,8 @@ export default function PlaymatCard({
         {showTokenTrack && enhancement && (
           <CardTokenTrack
             cardName={libraryItem.name}
-            maxTokens={enhancement.max_tokens ?? null}
-            tokenSource={enhancement.token_source}
+            maxTokens={enhancement.tokens?.max_tokens ?? null}
+            tokenSource={enhancement.tokens?.token_source}
           />
         )}
 

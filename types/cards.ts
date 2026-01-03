@@ -108,7 +108,10 @@ export interface ThresholdModifiers {
 /**
  * Token tracking configuration
  */
-export interface TokenConfig {
+/**
+ * Token tracking configuration
+ */
+export interface CardTokens {
   has_tokens: boolean;
   max_tokens?: number | null; // null = dynamic based on trait
   token_source?: string; // Which trait determines token count (e.g., "Agility")
@@ -129,10 +132,7 @@ export interface EnhancementBlock {
   frequency: Frequency;
   costs?: CardCosts | null;
   keywords?: string[];
-  has_tokens?: boolean;
-  max_tokens?: number | null;
-  token_source?: string;
-  token_replenish?: TokenReplenish;
+  tokens?: CardTokens;
   attack?: CardAttack | null;
   roll?: CardRoll | null;
   uses_proficiency?: boolean;
@@ -262,9 +262,7 @@ export interface EnhancedFeature {
   costs?: CardCosts;
 
   // Token tracking
-  has_tokens?: boolean;
-  max_tokens?: number | null;
-  token_source?: string;
+  tokens?: CardTokens;
 
   // Combat mechanics
   attack?: CardAttack;

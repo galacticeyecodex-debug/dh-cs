@@ -90,7 +90,11 @@
         "damage",
         "stress_cost",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Very Close"
+      }
     }
   },
   {
@@ -150,6 +154,10 @@
         "trait": "Spellcast",
         "difficulty": 12,
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Very Close"
       }
     }
   },
@@ -248,7 +256,11 @@
         "stress_relief",
         "stress_cost",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -330,7 +342,11 @@
         "magic",
         "movement",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Very Close"
+      }
     }
   },
   {
@@ -443,7 +459,11 @@
         "hope_cost",
         "spell"
       ],
-      "duration": "rest"
+      "duration": "rest",
+      "attack": {
+        "trait": "None",
+        "range": "Far"
+      }
     }
   },
   {
@@ -791,7 +811,11 @@
       "keywords": [
         "healing",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Melee"
+      }
     }
   },
   {
@@ -812,7 +836,11 @@
         "damage",
         "stress_cost",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -873,7 +901,11 @@
         "stress_cost",
         "movement",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -955,7 +987,11 @@
         "debuff",
         "movement",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Melee"
+      }
     }
   },
   {
@@ -1003,6 +1039,10 @@
         "trait": "Spellcast",
         "difficulty": 13,
         "target_reaction": true
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Far"
       }
     }
   },
@@ -1030,6 +1070,10 @@
         "trait": "Spellcast",
         "difficulty": 14,
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Very Close"
       }
     }
   },
@@ -1120,7 +1164,11 @@
         "stress_relief",
         "hope_cost",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -1163,7 +1211,11 @@
         "stress_cost",
         "hope_cost",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   }
 ]

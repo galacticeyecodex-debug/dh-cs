@@ -77,7 +77,11 @@
         "keywords": [
           "hope_cost",
           "ability"
-        ]
+        ],
+        "attack": {
+          "trait": "None",
+          "range": "Close"
+        }
       }
     }
   },
@@ -355,7 +359,11 @@
           "keywords": [
             "damage",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Melee"
+          }
         }
       }
     ],
@@ -405,7 +413,8 @@
             },
             "source": "Rogue’s Dodge"
           }
-        ]
+        ],
+        "duration": "rest"
       }
     }
   },
@@ -486,7 +495,11 @@
           "healing",
           "hope_cost",
           "ability"
-        ]
+        ],
+        "attack": {
+          "trait": "None",
+          "range": "Close"
+        }
       }
     }
   },
@@ -515,7 +528,11 @@
           "frequency": "at_will",
           "keywords": [
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
         }
       },
       {
@@ -533,6 +550,10 @@
             "trait": "Spellcast",
             "difficulty": 10,
             "target_reaction": false
+          },
+          "attack": {
+            "trait": "None",
+            "range": "Close"
           }
         }
       },
@@ -630,7 +651,11 @@
             "damage",
             "movement",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Melee"
+          }
         }
       },
       {
@@ -705,7 +730,8 @@
             },
             "source": "No Mercy"
           }
-        ]
+        ],
+        "duration": "rest"
       }
     }
   },
@@ -789,7 +815,11 @@
           "damage",
           "hope_cost",
           "ability"
-        ]
+        ],
+        "attack": {
+          "trait": "None",
+          "range": "Far"
+        }
       }
     }
   }

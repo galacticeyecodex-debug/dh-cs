@@ -37,7 +37,8 @@
             "combat_category": "passive_triggered",
             "damage": "1d6",
             "damage_type": "magic"
-          }
+          },
+          "duration": "rest"
         }
       },
       {
@@ -61,7 +62,11 @@
             "difficulty": 12,
             "target_reaction": false
           },
-          "duration": "rest"
+          "duration": "rest",
+          "attack": {
+            "trait": "None",
+            "range": "Very Close"
+          }
         }
       }
     ],
@@ -103,7 +108,11 @@
           "buff",
           "ability"
         ],
-        "duration": "rest"
+        "duration": "rest",
+        "attack": {
+          "trait": "None",
+          "range": "Far"
+        }
       }
     }
   },
@@ -137,7 +146,11 @@
             "damage",
             "stress_cost",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
         }
       },
       {
@@ -194,7 +207,11 @@
         "keywords": [
           "hope_cost",
           "ability"
-        ]
+        ],
+        "attack": {
+          "trait": "None",
+          "range": "Far"
+        }
       }
     }
   },

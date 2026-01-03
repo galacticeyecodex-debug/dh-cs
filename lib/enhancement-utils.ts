@@ -144,7 +144,7 @@ export function getRoll<T extends WithEnhancement>(
  * @returns true if has_tokens is true in the effective enhancement
  */
 export function hasTokens<T extends WithEnhancement>(item: T): boolean {
-    return getEnhancement(item)?.has_tokens ?? false;
+    return getEnhancement(item)?.tokens?.has_tokens ?? false;
 }
 
 /**
@@ -198,9 +198,11 @@ export function migrateToBlockStructure(
         frequency: (card.frequency as Frequency) ?? 'at_will',
         costs: card.costs as unknown as CardCosts,
         keywords: card.keywords,
-        has_tokens: card.has_tokens,
-        max_tokens: card.max_tokens,
-        token_source: card.token_source,
+        tokens: {
+            has_tokens: card.has_tokens ?? false,
+            max_tokens: card.max_tokens,
+            token_source: card.token_source
+        },
         attack: card.attack as unknown as CardAttack,
         roll: card.roll as unknown as CardRoll,
         modifiers: card.modifiers as unknown as CardModifier[],
