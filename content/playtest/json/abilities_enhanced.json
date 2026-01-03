@@ -690,8 +690,10 @@
         "tokens",
         "spell"
       ],
-      "has_tokens": true,
-      "max_tokens": null
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null
+      }
     }
   },
   {
@@ -1063,8 +1065,10 @@
         "tokens",
         "spell"
       ],
-      "has_tokens": true,
-      "max_tokens": 8,
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": 8
+      },
       "roll": {
         "type": "Spellcast Roll",
         "trait": "Spellcast",

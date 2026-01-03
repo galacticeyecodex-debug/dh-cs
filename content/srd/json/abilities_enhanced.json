@@ -49,9 +49,11 @@
         "tokens",
         "spell"
       ],
-      "has_tokens": true,
-      "max_tokens": null,
-      "token_source": "spellcast",
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "spellcast"
+      },
       "attack": {
         "trait": "Spellcast",
         "range": "Far",
@@ -181,9 +183,11 @@
         "tokens",
         "spell"
       ],
-      "has_tokens": true,
-      "max_tokens": null,
-      "token_source": "agility",
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "agility"
+      },
       "roll": {
         "type": "Spellcast Roll",
         "trait": "Spellcast",
@@ -1263,9 +1267,11 @@
         "tokens",
         "ability"
       ],
-      "has_tokens": true,
-      "max_tokens": null,
-      "token_source": "knowledge",
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "knowledge"
+      },
       "attack": {
         "trait": "None",
         "range": "Close"
@@ -2425,9 +2431,11 @@
         "tokens",
         "ability"
       ],
-      "has_tokens": true,
-      "max_tokens": null,
-      "token_source": "presence"
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "presence"
+      }
     }
   },
   {
@@ -2543,9 +2551,11 @@
         "tokens",
         "spell"
       ],
-      "has_tokens": true,
-      "max_tokens": null,
-      "token_source": "spellcast",
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "spellcast"
+      },
       "attack": {
         "trait": "Spellcast",
         "range": "Melee",
@@ -2696,9 +2706,11 @@
           "source": "Never Upstaged"
         }
       ],
-      "has_tokens": true,
-      "max_tokens": null,
-      "token_source": "the"
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "the"
+      }
     }
   },
   {
@@ -2977,9 +2989,11 @@
         "tokens",
         "spell"
       ],
-      "has_tokens": true,
-      "max_tokens": null,
-      "token_source": "spellcast"
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "spellcast"
+      }
     }
   },
   {
@@ -3365,9 +3379,11 @@
         "tokens",
         "spell"
       ],
-      "has_tokens": true,
-      "max_tokens": null,
-      "token_source": "the"
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "the"
+      }
     }
   },
   {
@@ -3420,8 +3436,10 @@
         "tokens",
         "ability"
       ],
-      "has_tokens": true,
-      "max_tokens": null,
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null
+      },
       "attack": {
         "trait": "None",
         "range": "Far"
@@ -3797,9 +3815,11 @@
         "tokens",
         "spell"
       ],
-      "has_tokens": true,
-      "max_tokens": null,
-      "token_source": "spellcast",
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "spellcast"
+      },
       "attack": {
         "trait": "None",
         "range": "Melee"
@@ -3826,8 +3846,10 @@
         "tokens",
         "spell"
       ],
-      "has_tokens": true,
-      "max_tokens": null,
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null
+      },
       "attack": {
         "trait": "Spellcast",
         "range": "Close",
@@ -4043,9 +4065,11 @@
         "tokens",
         "ability"
       ],
-      "has_tokens": true,
-      "max_tokens": null,
-      "token_source": "the",
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "the"
+      },
       "roll": {
         "type": "Spellcast Roll",
         "trait": "Spellcast",
@@ -4457,9 +4481,11 @@
         "tokens",
         "spell"
       ],
-      "has_tokens": true,
-      "max_tokens": null,
-      "token_source": "spellcast"
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "spellcast"
+      }
     }
   },
   {
