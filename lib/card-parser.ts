@@ -1456,9 +1456,11 @@ export function enhanceAbilityCard(card: {
 
   // Add token info if applicable
   if (hasTokens) {
-    enhanced.enhancement.has_tokens = true;
-    enhanced.enhancement.max_tokens = parseMaxTokens(text);
-    enhanced.enhancement.token_source = parseTokenSource(text);
+    enhanced.enhancement.tokens = {
+      has_tokens: true,
+      max_tokens: parseMaxTokens(text),
+      token_source: parseTokenSource(text)
+    };
   }
 
   // Add attack/roll info
@@ -1575,9 +1577,11 @@ export function enhanceFeature(feature: {
 
   // Add token info if applicable
   if (hasTokens) {
-    enhanced.has_tokens = true;
-    enhanced.max_tokens = parseMaxTokens(text);
-    enhanced.token_source = parseTokenSource(text);
+    enhanced.tokens = {
+      has_tokens: true,
+      max_tokens: parseMaxTokens(text),
+      token_source: parseTokenSource(text)
+    };
   }
 
   // Add attack info if applicable
@@ -1594,7 +1598,7 @@ export function enhanceFeature(feature: {
  */
 export function hasCombatRelevance(card: {
   action_type?: ActionType;
-  attack?: CardAttack;
+  attack?: CardAttack | null;
   keywords?: string[];
 }): boolean {
   if (card.action_type === 'attack') return true;

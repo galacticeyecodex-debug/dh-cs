@@ -174,7 +174,11 @@
           "keywords": [
             "hope_cost",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
         }
       },
       {
@@ -220,7 +224,11 @@
           "keywords": [
             "movement",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
         }
       },
       {
@@ -425,7 +433,11 @@
           "frequency": "at_will",
           "keywords": [
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Very Close"
+          }
         }
       }
     ]
@@ -460,7 +472,11 @@
           "keywords": [
             "stress_cost",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Very Close"
+          }
         }
       }
     ]

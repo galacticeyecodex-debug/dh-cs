@@ -50,7 +50,11 @@
               },
               "source": "Battle-Bonded"
             }
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Melee"
+          }
         }
       }
     ],
@@ -78,7 +82,11 @@
             "damage",
             "stress_cost",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
         }
       }
     ]
@@ -230,7 +238,11 @@
             "stress_cost",
             "movement",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
         }
       },
       {
@@ -355,7 +367,8 @@
               },
               "source": "Transcendence"
             }
-          ]
+          ],
+          "duration": "rest"
         }
       }
     ]
@@ -379,7 +392,11 @@
             "stress_cost",
             "movement",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Far"
+          }
         }
       }
     ],
@@ -399,6 +416,10 @@
             "trait": "Spellcast",
             "difficulty": 15,
             "target_reaction": false
+          },
+          "attack": {
+            "trait": "None",
+            "range": "Close"
           }
         }
       },
@@ -438,7 +459,11 @@
               },
               "source": "Fleeting Shadow"
             }
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Very Far"
+          }
         }
       },
       {
@@ -456,7 +481,8 @@
             "stress_cost",
             "control",
             "ability"
-          ]
+          ],
+          "duration": "rest"
         }
       }
     ]
@@ -819,7 +845,11 @@
           "keywords": [
             "damage",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Very Close"
+          }
         }
       }
     ],
@@ -861,7 +891,11 @@
             "damage",
             "stress_cost",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
         }
       }
     ]
@@ -953,7 +987,11 @@
             "hope_gain",
             "debuff",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
         }
       }
     ],
@@ -1019,7 +1057,11 @@
           "keywords": [
             "stress_cost",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Melee"
+          }
         }
       }
     ],
@@ -1043,7 +1085,11 @@
               },
               "source": "Act of Reprisal"
             }
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Melee"
+          }
         }
       }
     ],
@@ -1061,7 +1107,8 @@
           "keywords": [
             "hope_cost",
             "ability"
-          ]
+          ],
+          "duration": "rest"
         }
       }
     ]
@@ -1082,7 +1129,11 @@
             "stress_relief",
             "stress_relief",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
         }
       },
       {
@@ -1112,7 +1163,11 @@
           "frequency": "at_will",
           "keywords": [
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Very Close"
+          }
         }
       },
       {
@@ -1130,7 +1185,11 @@
             "healing",
             "hope_cost",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
         }
       }
     ],
@@ -1149,7 +1208,11 @@
             "damage_reduction",
             "stress_cost",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
         }
       }
     ]
@@ -1194,7 +1257,8 @@
             "combat_category": "passive_triggered",
             "damage": "1d10",
             "damage_type": "magic"
-          }
+          },
+          "duration": "rest"
         }
       }
     ],
@@ -1233,7 +1297,11 @@
               },
               "source": "Elemental Aura"
             }
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Very Close"
+          }
         }
       }
     ],
@@ -1488,7 +1556,11 @@
             "stress_relief",
             "stress_relief",
             "ability"
-          ]
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Far"
+          }
         }
       },
       {

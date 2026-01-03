@@ -44,15 +44,19 @@ export default function CardEnhancementPanel({
 
   if (!character) return null;
 
+  const { enhancement } = card;
+  // Fallback if enhancement is missing (shouldn't happen for valid cards)
+  if (!enhancement) return null;
+
   // Check if there's anything to show
-  const hasCosts = card.costs?.stress || card.costs?.hope;
-  const hasTokens = card.has_tokens;
-  const hasFrequency = card.frequency && card.frequency !== 'at_will';
-  const hasActionInfo = card.action_type && card.action_type !== 'passive';
-  const hasRange = card.attack?.range;
-  const hasTargets = card.attack?.targets;
-  const hasRoll = card.roll || card.attack;
-  const hasDamage = card.attack?.damage;
+  const hasCosts = enhancement.costs?.stress || enhancement.costs?.hope;
+  const hasTokens = enhancement.tokens?.has_tokens;
+  const hasFrequency = enhancement.frequency && enhancement.frequency !== 'at_will';
+  const hasActionInfo = enhancement.action_type && enhancement.action_type !== 'passive';
+  const hasRange = enhancement.attack?.range;
+  const hasTargets = enhancement.attack?.targets;
+  const hasRoll = enhancement.roll || enhancement.attack;
+  const hasDamage = enhancement.attack?.damage;
 
   // If nothing to enhance, don't render
   if (!hasCosts && !hasTokens && !hasFrequency && !hasActionInfo && !hasRange && !hasRoll) {
@@ -88,8 +92,8 @@ export default function CardEnhancementPanel({
   let rollBonus = 0;
   let rollLabel = '';
 
-  if (card.roll?.trait) {
-    const traitKey = card.roll.trait.toLowerCase();
+  if (enhancement.roll?.trait) {
+    const traitKey = enhancement.roll.trait.toLowerCase();
     if (traitKey === 'spellcast') {
       rollBonus = totalSpellcast;
       rollLabel = 'Spellcast';
@@ -98,10 +102,10 @@ export default function CardEnhancementPanel({
       const systemTraitMods = getSystemModifiers(character, traitKey);
       const userTraitMods = character.modifiers?.[traitKey] || [];
       rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
-      rollLabel = card.roll.trait;
+      rollLabel = enhancement.roll.trait;
     }
-  } else if (card.attack?.trait) {
-    const traitKey = card.attack.trait.toLowerCase();
+  } else if (enhancement.attack?.trait) {
+    const traitKey = enhancement.attack.trait.toLowerCase();
     if (traitKey === 'spellcast') {
       rollBonus = totalSpellcast;
       rollLabel = 'Spellcast';
@@ -110,47 +114,47 @@ export default function CardEnhancementPanel({
       const systemTraitMods = getSystemModifiers(character, traitKey);
       const userTraitMods = character.modifiers?.[traitKey] || [];
       rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
-      rollLabel = card.attack.trait;
+      rollLabel = enhancement.attack.trait;
     }
   }
 
   // Calculate damage
-  const baseDamage = card.attack?.damage;
+  const baseDamage = enhancement.attack?.damage;
   const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
 
   // Target type labels
-  const targetLabel = card.attack?.targets === 'all_in_range'
+  const targetLabel = enhancement.attack?.targets === 'all_in_range'
     ? 'All in Range'
-    : card.attack?.targets === 'allies_in_range'
+    : enhancement.attack?.targets === 'allies_in_range'
       ? 'All Allies'
-      : card.attack?.targets === 'single'
+      : enhancement.attack?.targets === 'single'
         ? 'Single Target'
-        : card.attack?.targets === 'self'
+        : enhancement.attack?.targets === 'self'
           ? 'Self'
           : undefined;
 
   return (
     <div className={clsx('border-t border-white/10 pt-4 space-y-3', className)}>
       {/* Info Bar: Action Type, Range, Targets */}
-      {(hasActionInfo || hasRange || hasTargets || card.roll?.difficulty) && (
+      {(hasActionInfo || hasRange || hasTargets || enhancement.roll?.difficulty) && (
         <div className="flex flex-wrap gap-2 text-xs">
           {hasActionInfo && (
             <span className={clsx(
               'flex items-center gap-1 px-2 py-1 rounded font-medium',
-              card.action_type === 'attack' && 'bg-red-900/30 text-red-400 border border-red-500/30',
-              card.action_type === 'reaction' && 'bg-orange-900/30 text-orange-400 border border-orange-500/30',
-              card.action_type === 'buff' && 'bg-green-900/30 text-green-400 border border-green-500/30',
-              card.action_type === 'utility' && 'bg-blue-900/30 text-blue-400 border border-blue-500/30',
-              card.action_type === 'downtime' && 'bg-gray-700/50 text-gray-300 border border-gray-500/30'
+              enhancement.action_type === 'attack' && 'bg-red-900/30 text-red-400 border border-red-500/30',
+              enhancement.action_type === 'reaction' && 'bg-orange-900/30 text-orange-400 border border-orange-500/30',
+              enhancement.action_type === 'buff' && 'bg-green-900/30 text-green-400 border border-green-500/30',
+              enhancement.action_type === 'utility' && 'bg-blue-900/30 text-blue-400 border border-blue-500/30',
+              enhancement.action_type === 'downtime' && 'bg-gray-700/50 text-gray-300 border border-gray-500/30'
             )}>
               <Zap size={12} />
-              {getActionTypeLabel(card.action_type!)}
+              {getActionTypeLabel(enhancement.action_type!)}
             </span>
           )}
           {hasRange && (
             <span className="flex items-center gap-1 px-2 py-1 bg-white/10 rounded font-medium text-gray-300">
               <MapPin size={12} />
-              {card.attack?.range}
+              {enhancement.attack?.range}
             </span>
           )}
           {targetLabel && (
@@ -159,14 +163,14 @@ export default function CardEnhancementPanel({
               {targetLabel}
             </span>
           )}
-          {card.roll?.difficulty && (
+          {enhancement.roll?.difficulty && (
             <span className="flex items-center gap-1 px-2 py-1 bg-purple-900/30 text-purple-400 border border-purple-500/30 rounded font-medium">
-              DC {card.roll.difficulty}
+              DC {enhancement.roll.difficulty}
             </span>
           )}
           {hasFrequency && (
             <span className="flex items-center gap-1 px-2 py-1 bg-white/5 rounded font-medium text-gray-400">
-              {getFrequencyLabel(card.frequency!)}
+              {getFrequencyLabel(enhancement.frequency!)}
             </span>
           )}
         </div>
@@ -177,7 +181,7 @@ export default function CardEnhancementPanel({
         <div className="flex items-center gap-2 text-xs">
           <span className="flex items-center gap-1 px-2 py-1 bg-red-900/30 text-red-400 border border-red-500/30 rounded font-medium">
             <Skull size={12} />
-            {finalDamage} {card.attack?.damage_type || 'damage'}
+            {finalDamage} {enhancement.attack?.damage_type || 'damage'}
           </span>
         </div>
       )}
@@ -186,19 +190,19 @@ export default function CardEnhancementPanel({
       {hasTokens && (
         <CardTokenTrack
           cardName={card.name}
-          maxTokens={card.max_tokens ?? null}
-          tokenSource={card.token_source}
+          maxTokens={enhancement.tokens?.max_tokens ?? null}
+          tokenSource={enhancement.tokens?.token_source}
         />
       )}
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2 items-center">
         {/* Cost buttons */}
-        {card.costs?.stress && (
-          <MarkStressButton cost={card.costs.stress} />
+        {enhancement.costs?.stress && (
+          <MarkStressButton cost={enhancement.costs.stress} />
         )}
-        {card.costs?.hope && (
-          <SpendHopeButton cost={card.costs.hope} />
+        {enhancement.costs?.hope && (
+          <SpendHopeButton cost={enhancement.costs.hope} />
         )}
 
         {/* Roll button */}
@@ -230,7 +234,7 @@ export default function CardEnhancementPanel({
         {hasFrequency && (
           <FrequencyCheckbox
             cardName={card.name}
-            frequency={card.frequency!}
+            frequency={enhancement.frequency!}
           />
         )}
       </div>

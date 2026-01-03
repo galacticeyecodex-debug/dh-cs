@@ -144,7 +144,7 @@ export default function CombatView() {
         // Find enhanced data for this card
         const enhanced = enhancedAbilities.find(a => a.name === cardName);
 
-        if (enhanced && hasCombatRelevance(enhanced)) {
+        if (enhanced && hasCombatRelevance(enhanced.enhancement)) {
           return enhanced;
         }
         return null;
@@ -584,6 +584,8 @@ export default function CombatView() {
             </div>
 
             {showSpells && combatAbilities.map((ability) => {
+              const { enhancement } = ability;
+
               // Calculate spellcast modifier
               const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
               const rawTraitValue = spellcastTraitName
@@ -607,8 +609,8 @@ export default function CombatView() {
               let rollBonus = 0;
               let rollLabel = '';
 
-              if (ability.roll?.trait) {
-                const traitKey = ability.roll.trait.toLowerCase();
+              if (enhancement.roll?.trait) {
+                const traitKey = enhancement.roll.trait.toLowerCase();
                 if (traitKey === 'spellcast') {
                   rollBonus = totalSpellcast;
                   rollLabel = 'Spellcast';
@@ -617,10 +619,10 @@ export default function CombatView() {
                   const systemTraitMods = getSystemModifiers(character, traitKey);
                   const userTraitMods = character.modifiers?.[traitKey] || [];
                   rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
-                  rollLabel = ability.roll.trait;
+                  rollLabel = enhancement.roll.trait;
                 }
-              } else if (ability.attack?.trait) {
-                const traitKey = ability.attack.trait.toLowerCase();
+              } else if (enhancement.attack?.trait) {
+                const traitKey = enhancement.attack.trait.toLowerCase();
                 if (traitKey === 'spellcast') {
                   rollBonus = totalSpellcast;
                   rollLabel = 'Spellcast';
@@ -629,29 +631,29 @@ export default function CombatView() {
                   const systemTraitMods = getSystemModifiers(character, traitKey);
                   const userTraitMods = character.modifiers?.[traitKey] || [];
                   rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
-                  rollLabel = ability.attack.trait;
+                  rollLabel = enhancement.attack.trait;
                 }
               }
 
               // Calculate damage
-              const baseDamage = ability.attack?.damage;
+              const baseDamage = enhancement.attack?.damage;
               const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
 
               // Check if ability is used
               const cardState = cardStates?.[ability.name];
-              const isUsed = getIsUsed(cardState, ability.frequency);
+              const isUsed = getIsUsed(cardState, enhancement.frequency);
 
               // Prepare custom badges
               const badges = [];
-              if (ability.roll?.difficulty) {
-                badges.push({ label: `DC ${ability.roll.difficulty}` });
+              if (enhancement.roll?.difficulty) {
+                badges.push({ label: `DC ${enhancement.roll.difficulty}` });
               }
 
               // Determine border variant
-              const borderVariant = ability.action_type === 'reaction' ? 'reaction' : 'spell';
+              const borderVariant = enhancement.action_type === 'reaction' ? 'reaction' : 'spell';
 
               // Determine combat category for button visibility
-              const combatCategory = ability.attack?.combat_category || 'passive_triggered';
+              const combatCategory = enhancement.attack?.combat_category || 'passive_triggered';
               const showAttackButton = combatCategory === 'standalone_attack' || combatCategory === 'roll_only';
 
               // Prepare callbacks
@@ -670,7 +672,7 @@ export default function CombatView() {
                   id={ability.name}
                   name={ability.name}
                   trait={rollLabel || 'No Roll'}
-                  range={ability.attack?.range || ''}
+                  range={enhancement.attack?.range || ''}
                   baseDamage={baseDamage}
                   calculatedDamage={finalDamage}
                   totalAttackBonus={rollBonus}
@@ -680,29 +682,29 @@ export default function CombatView() {
                   onAttackRoll={handleAttackRoll}
                   onDamageRoll={handleDamageRoll}
                   onManageModifiers={() => setActiveAbilityId(ability.name)}
-                  damageType={ability.attack?.damage_type}
+                  damageType={enhancement.attack?.damage_type}
                   badges={badges}
                   borderVariant={borderVariant}
-                  actionType={ability.action_type}
+                  actionType={enhancement.action_type}
                   rollLabel={combatCategory === 'damage_bonus' ? undefined : (combatCategory === 'roll_only' ? 'Roll' : rollLabel)}
                   isUsed={isUsed}
                   description={ability.text}
-                  tokenTrack={ability.has_tokens ? (
+                  tokenTrack={enhancement.tokens?.has_tokens ? (
                     <CardTokenTrack
                       cardName={ability.name}
-                      maxTokens={ability.max_tokens ?? null}
-                      tokenSource={ability.token_source}
+                      maxTokens={enhancement.tokens.max_tokens ?? null}
+                      tokenSource={enhancement.tokens.token_source}
                     />
                   ) : undefined}
-                  frequency={ability.frequency && ability.frequency !== 'at_will' ? (
+                  frequency={enhancement.frequency && enhancement.frequency !== 'at_will' ? (
                     <FrequencyCheckbox
                       cardName={ability.name}
-                      frequency={ability.frequency}
+                      frequency={enhancement.frequency}
                     />
                   ) : undefined}
-                  costs={ability.costs}
-                  onSpendHope={() => character && updateHope(character.hope - (ability.costs?.hope || 0))}
-                  onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (ability.costs?.stress || 0))}
+                  costs={enhancement.costs ?? undefined}
+                  onSpendHope={() => character && updateHope(character.hope - (enhancement.costs?.hope || 0))}
+                  onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (enhancement.costs?.stress || 0))}
                 />
               );
             })}
@@ -817,7 +819,7 @@ export default function CombatView() {
           const tabs = [];
 
           // 1. Roll Tab (Spellcast or Trait)
-          const rollTrait = ability.roll?.trait || ability.attack?.trait;
+          const rollTrait = ability.enhancement.roll?.trait || ability.enhancement.attack?.trait;
           if (rollTrait) {
             if (rollTrait.toLowerCase() === 'spellcast') {
               const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
@@ -860,7 +862,7 @@ export default function CombatView() {
           }
 
           // 2. Damage Tab
-          if (ability.attack?.damage) {
+          if (ability.enhancement.attack?.damage) {
             const systemDamageMods = getSystemModifiers(character, 'damage');
             const userDamageMods = character.modifiers?.['damage'] || [];
 
