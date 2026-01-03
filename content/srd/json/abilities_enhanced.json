@@ -84,7 +84,8 @@
       "keywords": [
         "hope_cost",
         "spell"
-      ]
+      ],
+      "duration": "scene"
     }
   },
   {
@@ -137,7 +138,11 @@
         "hope_cost",
         "movement",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Very Far"
+      }
     }
   },
   {
@@ -211,6 +216,10 @@
         "trait": "Spellcast",
         "difficulty": 12,
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Very Close"
       }
     }
   },
@@ -630,7 +639,11 @@
         "damage",
         "hope_cost",
         "ability"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Very Close"
+      }
     }
   },
   {
@@ -686,7 +699,11 @@
         "damage",
         "movement",
         "ability"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Melee"
+      }
     }
   },
   {
@@ -1248,7 +1265,11 @@
       ],
       "has_tokens": true,
       "max_tokens": null,
-      "token_source": "knowledge"
+      "token_source": "knowledge",
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -1319,7 +1340,11 @@
         "buff",
         "movement",
         "ability"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Far"
+      }
     }
   },
   {
@@ -1425,7 +1450,11 @@
         "damage",
         "stress_cost",
         "ability"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Melee"
+      }
     }
   },
   {
@@ -1638,7 +1667,11 @@
           },
           "source": "Deathrun"
         }
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Far"
+      }
     }
   },
   {
@@ -1738,7 +1771,8 @@
         "type": "Spellcast Roll",
         "trait": "Spellcast",
         "target_reaction": false
-      }
+      },
+      "duration": "rest"
     }
   },
   {
@@ -1830,6 +1864,10 @@
         "trait": "Spellcast",
         "difficulty": 15,
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Far"
       }
     }
   },
@@ -1977,7 +2015,8 @@
         "trait": "Spellcast",
         "difficulty": 15,
         "target_reaction": false
-      }
+      },
+      "duration": "rest"
     }
   },
   {
@@ -2003,6 +2042,11 @@
         "trait": "Spellcast",
         "difficulty": 15,
         "target_reaction": false
+      },
+      "duration": "rest",
+      "attack": {
+        "trait": "None",
+        "range": "Far"
       }
     }
   },
@@ -2026,6 +2070,10 @@
         "trait": "Spellcast",
         "difficulty": 16,
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Close"
       }
     }
   },
@@ -2075,7 +2123,11 @@
       "keywords": [
         "damage",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -2095,6 +2147,11 @@
         "trait": "Spellcast",
         "difficulty": 13,
         "target_reaction": false
+      },
+      "duration": "rest",
+      "attack": {
+        "trait": "None",
+        "range": "Close"
       }
     }
   },
@@ -2172,7 +2229,11 @@
         "hope_cost",
         "movement",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -2231,6 +2292,10 @@
         "trait": "Spellcast",
         "difficulty": 18,
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Far"
       }
     }
   },
@@ -2258,6 +2323,11 @@
         "trait": "Spellcast",
         "difficulty": 18,
         "target_reaction": false
+      },
+      "duration": "rest",
+      "attack": {
+        "trait": "None",
+        "range": "Far"
       }
     }
   },
@@ -2279,7 +2349,8 @@
         "stress_cost",
         "hope_cost",
         "spell"
-      ]
+      ],
+      "duration": "rest"
     }
   },
   {
@@ -2522,7 +2593,12 @@
       "frequency": "at_will",
       "keywords": [
         "spell"
-      ]
+      ],
+      "duration": "rest",
+      "attack": {
+        "trait": "None",
+        "range": "Very Far"
+      }
     }
   },
   {
@@ -2639,7 +2715,11 @@
       "keywords": [
         "hope_gain",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Melee"
+      }
     }
   },
   {
@@ -2702,7 +2782,8 @@
         "damage",
         "stress_cost",
         "spell"
-      ]
+      ],
+      "duration": "rest"
     }
   },
   {
@@ -2752,7 +2833,8 @@
         "hope_gain",
         "hope_cost",
         "spell"
-      ]
+      ],
+      "duration": "rest"
     }
   },
   {
@@ -2933,7 +3015,8 @@
         "type": "Spellcast Roll",
         "trait": "Spellcast",
         "target_reaction": false
-      }
+      },
+      "duration": "rest"
     }
   },
   {
@@ -3018,6 +3101,10 @@
         "trait": "Spellcast",
         "difficulty": 13,
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Far"
       }
     }
   },
@@ -3039,7 +3126,11 @@
         "stress_cost",
         "movement",
         "ability"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -3175,7 +3266,11 @@
         "stress_cost",
         "buff",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -3219,7 +3314,11 @@
         "physical",
         "hope_cost",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -3322,7 +3421,11 @@
         "ability"
       ],
       "has_tokens": true,
-      "max_tokens": null
+      "max_tokens": null,
+      "attack": {
+        "trait": "None",
+        "range": "Far"
+      }
     }
   },
   {
@@ -3539,7 +3642,8 @@
         "type": "Spellcast Roll",
         "trait": "Spellcast",
         "target_reaction": false
-      }
+      },
+      "duration": "rest"
     }
   },
   {
@@ -3666,7 +3770,11 @@
         "healing",
         "hope_cost",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -3691,7 +3799,11 @@
       ],
       "has_tokens": true,
       "max_tokens": null,
-      "token_source": "spellcast"
+      "token_source": "spellcast",
+      "attack": {
+        "trait": "None",
+        "range": "Melee"
+      }
     }
   },
   {
@@ -3757,7 +3869,11 @@
           },
           "source": "Conjured Steeds"
         }
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Far"
+      }
     }
   },
   {
@@ -3905,6 +4021,10 @@
         "trait": "Spellcast",
         "difficulty": 15,
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Very Close"
       }
     }
   },
@@ -3952,6 +4072,10 @@
         "trait": "Spellcast",
         "difficulty": 18,
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Far"
       }
     }
   },
@@ -3992,6 +4116,10 @@
         "type": "Spellcast Roll",
         "trait": "Spellcast",
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Close"
       }
     }
   },
@@ -4159,6 +4287,10 @@
         "trait": "Spellcast",
         "difficulty": 13,
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Melee"
       }
     }
   },
@@ -4178,7 +4310,11 @@
         "stress_relief",
         "stress_relief",
         "ability"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -4249,7 +4385,11 @@
         "hope_cost",
         "movement",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -4269,7 +4409,11 @@
       "keywords": [
         "hope_cost",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -4338,6 +4482,10 @@
         "trait": "Spellcast",
         "difficulty": 16,
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Very Close"
       }
     }
   },
@@ -4361,7 +4509,11 @@
         "healing",
         "hope_cost",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -4413,7 +4565,11 @@
       "keywords": [
         "stress_cost",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Very Close"
+      }
     }
   },
   {
@@ -4513,6 +4669,10 @@
         "trait": "Spellcast",
         "difficulty": 16,
         "target_reaction": false
+      },
+      "attack": {
+        "trait": "None",
+        "range": "Far"
       }
     }
   },
@@ -4530,7 +4690,11 @@
       "keywords": [
         "hope_cost",
         "spell"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -4598,7 +4762,11 @@
         "hope_cost",
         "debuff",
         "ability"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -4619,7 +4787,11 @@
         "damage",
         "stress_cost",
         "ability"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Very Close"
+      }
     }
   },
   {
@@ -4647,7 +4819,11 @@
           },
           "source": "Body Basher"
         }
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Melee"
+      }
     }
   },
   {
@@ -4692,7 +4868,11 @@
         "stress_relief",
         "hope_gain",
         "ability"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Very Close"
+      }
     }
   },
   {
@@ -4762,7 +4942,11 @@
       "keywords": [
         "hope_cost",
         "ability"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Close"
+      }
     }
   },
   {
@@ -4921,7 +5105,8 @@
       "keywords": [
         "stress_cost",
         "ability"
-      ]
+      ],
+      "duration": "rest"
     }
   },
   {
@@ -4979,7 +5164,11 @@
         "control",
         "movement",
         "ability"
-      ]
+      ],
+      "attack": {
+        "trait": "None",
+        "range": "Very Close"
+      }
     }
   },
   {
