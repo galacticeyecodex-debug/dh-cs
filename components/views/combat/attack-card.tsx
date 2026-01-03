@@ -22,6 +22,7 @@ import { Zap, Skull, Dices, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { getValueColor } from '@/lib/styles';
 import { DomainAbilityButton } from '@/components/views/playmat/domain-ability-button';
+import { DomainCostsRow } from '@/components/views/playmat/domain-costs-row';
 
 import { AdditionalDamage } from '@/types/cards';
 
@@ -284,36 +285,20 @@ const AttackCard = React.memo(function AttackCard({
             {/* Costs Bar */}
             {needsActivation && (
                 <div className="px-4 py-2 border-t border-white/5 bg-black/20 flex flex-wrap gap-2 items-center justify-between">
-                    <div className="flex flex-wrap gap-2">
-                        {costs?.stress && (
-                            <DomainAbilityButton
-                                cardName={name}
-                                costType="stress"
-                                costValue={costs.stress}
-                                disabled={isCostPaid || isUsed}
-                                isActiveOverride={isCostPaid}
-                                onActivate={() => {
-                                    setIsCostPaid(true);
-                                    onMarkStress?.();
-                                }}
-                                onDeactivate={() => setIsCostPaid(false)}
-                            />
-                        )}
-                        {costs?.hope && (
-                            <DomainAbilityButton
-                                cardName={name}
-                                costType="hope"
-                                costValue={costs.hope}
-                                disabled={isCostPaid || isUsed}
-                                isActiveOverride={isCostPaid}
-                                onActivate={() => {
-                                    setIsCostPaid(true);
-                                    onSpendHope?.();
-                                }}
-                                onDeactivate={() => setIsCostPaid(false)}
-                            />
-                        )}
-                    </div>
+                    <DomainCostsRow
+                        cardName={name}
+                        costs={costs}
+                        isActiveOverride={isCostPaid}
+                        onActivate={() => {
+                            setIsCostPaid(true);
+                            // Call optional callbacks if provided
+                            if (costs?.stress && onMarkStress) onMarkStress();
+                            if (costs?.hope && onSpendHope) onSpendHope();
+                        }}
+                        onDeactivate={() => setIsCostPaid(false)}
+                        disabled={isCostPaid || isUsed}
+                        className="flex flex-wrap gap-2"
+                    />
                 </div>
             )}
 
