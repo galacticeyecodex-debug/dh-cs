@@ -18,11 +18,13 @@
 
 import React, { useState } from 'react';
 import { MarkdownText } from '@/components/shared/markdown-text';
-import { Zap, Skull, Dices, RotateCcw, Info } from 'lucide-react';
+import { Zap, Skull, Dices, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { getValueColor } from '@/lib/styles';
-import MarkStressButton from './mark-stress-button';
-import SpendHopeButton from './spend-hope-button';
+import { DomainAbilityButton } from '@/components/views/playmat/domain-ability-button';
+import { DomainCostsRow } from '@/components/views/playmat/domain-costs-row';
+
+import { AdditionalDamage } from '@/types/cards';
 
 export interface AttackCardCosts {
     stress?: number;
@@ -56,6 +58,10 @@ export interface AttackCardProps {
     onDamageRoll?: () => void;
     /** Optional callback for gear button - if provided, gear button is shown */
     onManageModifiers?: () => void;
+    /** Optional additional damage instances */
+    additionalDamage?: AdditionalDamage[];
+    /** Callback for rolling additional damage */
+    onAdditionalDamageRoll?: (damage: string, label: string) => void;
     /** Optional damage type (e.g., "Physical", "Magic") */
     damageType?: string;
     /** Optional icon to display next to the name */
@@ -86,6 +92,8 @@ export interface AttackCardProps {
     rollLabel?: string;
     /** Whether the card is currently used/exhausted */
     isUsed?: boolean;
+    /** Roll information - used to determine if costs are required for the roll */
+    roll?: { requires_cost_for_roll?: boolean };
 }
 
 const AttackCard = React.memo(function AttackCard({
@@ -102,6 +110,8 @@ const AttackCard = React.memo(function AttackCard({
     onAttackRoll,
     onDamageRoll,
     onManageModifiers,
+    additionalDamage,
+    onAdditionalDamageRoll,
     damageType,
     icon,
     description,
@@ -116,6 +126,7 @@ const AttackCard = React.memo(function AttackCard({
     customActions,
     rollLabel,
     isUsed = false,
+    roll,
 }: AttackCardProps) {
     const [isCostPaid, setIsCostPaid] = useState(false);
     const [showDescription, setShowDescription] = useState(false);
@@ -149,8 +160,13 @@ const AttackCard = React.memo(function AttackCard({
     // Determine default roll label
     const finalRollLabel = rollLabel || (hasDamage ? 'Attack' : 'Roll');
 
-    // Cost activation logic
-    const needsActivation = !!(costs?.stress || costs?.hope);
+    // Cost activation logic:
+    // 1. If roll?.requires_cost_for_roll is true, costs are prerequisites for rolling
+    // 2. If there are costs but NO roll (e.g., Deft Maneuvers), always show costs
+    // 3. If roll exists but requires_cost_for_roll is false/undefined, costs are post-roll (don't gate the roll)
+    const hasCosts = !!(costs?.stress || costs?.hope);
+    const hasRoll = !!onAttackRoll;
+    const needsActivation = hasCosts && (roll?.requires_cost_for_roll === true || !hasRoll);
     const canRoll = !needsActivation || isCostPaid;
 
     return (
@@ -269,39 +285,20 @@ const AttackCard = React.memo(function AttackCard({
             {/* Costs Bar */}
             {needsActivation && (
                 <div className="px-4 py-2 border-t border-white/5 bg-black/20 flex flex-wrap gap-2 items-center justify-between">
-                    <div className="flex flex-wrap gap-2">
-                        {costs?.stress && (
-                            <MarkStressButton
-                                cost={costs.stress}
-                                size="sm"
-                                onMark={() => setIsCostPaid(true)}
-                                disabled={isCostPaid || isUsed}
-                                className={isCostPaid ? 'opacity-50' : ''}
-                            />
-                        )}
-                        {costs?.hope && (
-                            <SpendHopeButton
-                                cost={costs.hope}
-                                size="sm"
-                                onSpend={() => setIsCostPaid(true)}
-                                disabled={isCostPaid || isUsed}
-                                className={isCostPaid ? 'opacity-50' : ''}
-                            />
-                        )}
-                    </div>
-                    {isCostPaid && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsCostPaid(false);
-                            }}
-                            className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider font-bold flex items-center gap-1 transition-colors"
-                            title="Reset cost activation"
-                        >
-                            <RotateCcw size={10} />
-                            Reset
-                        </button>
-                    )}
+                    <DomainCostsRow
+                        cardName={name}
+                        costs={costs}
+                        isActiveOverride={isCostPaid}
+                        onActivate={() => {
+                            setIsCostPaid(true);
+                            // Call optional callbacks if provided
+                            if (costs?.stress && onMarkStress) onMarkStress();
+                            if (costs?.hope && onSpendHope) onSpendHope();
+                        }}
+                        onDeactivate={() => setIsCostPaid(false)}
+                        disabled={isCostPaid || isUsed}
+                        className="flex flex-wrap gap-2"
+                    />
                 </div>
             )}
 
@@ -363,6 +360,35 @@ const AttackCard = React.memo(function AttackCard({
                         Damage {damageModifier !== 0 && `(${damageModifier >= 0 ? `+${damageModifier}` : damageModifier})`}
                     </button>
                 )}
+
+                {/* Additional Damage Buttons */}
+                {additionalDamage?.map((extra, idx) => (
+                    <button
+                        key={idx}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra');
+                        }}
+                        disabled={isUsed || !canRoll}
+                        className={clsx(
+                            'relative py-2 px-3 bg-white/5 hover:bg-white/15 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors',
+                            (isUsed || !canRoll) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-opacity-60',
+                        )}
+                        title={extra.condition}
+                    >
+                        <div
+                            className="absolute top-0.5 right-0.5 text-gray-600 transition-colors pointer-events-none"
+                            aria-hidden="true"
+                        >
+                            <Dices size={8} />
+                        </div>
+                        <Skull size={12} className="text-red-400/70" />
+                        <div className="flex flex-col items-start leading-none gap-0.5">
+                            <span>{extra.damage}</span>
+                            <span className="text-[9px] text-gray-400 font-normal uppercase">{extra.label}</span>
+                        </div>
+                    </button>
+                ))}
 
                 {/* Frequency Checkbox */}
                 {frequency}

@@ -13,7 +13,7 @@
  */
 
 // Action type categorization
-export type ActionType = 'attack' | 'reaction' | 'passive' | 'downtime' | 'buff' | 'utility';
+export type ActionType = 'attack' | undefined;
 
 // Timing for when ability can be used
 export type Timing = 'action' | 'reaction' | 'free' | 'downtime';
@@ -63,6 +63,15 @@ export interface CardAttack {
   difficulty?: number; // Fixed DC if applicable
   secondary_effects?: string[];
   combat_category?: CombatCategory; // Determines which buttons to show
+  additional_damage?: AdditionalDamage[];
+  is_triggered_bonus?: boolean; // True if this is bonus damage on a triggered ability, not a standalone attack
+}
+
+export interface AdditionalDamage {
+  damage: string;
+  damage_type?: DamageType;
+  condition?: string;
+  label?: string; // Short label for the button, e.g. "Extra", "Hope"
 }
 
 /**
@@ -73,16 +82,30 @@ export interface CardRoll {
   trait?: string; // The trait used for the roll
   difficulty?: number; // null for contested, number for fixed DC
   target_reaction?: boolean; // Does target get a reaction roll?
+  requires_cost_for_roll?: boolean; // If true, costs must be paid before rolling (e.g., "Spend a Hope to make a roll")
 }
 
 /**
  * Stat modifier applied by a card
  */
 export interface CardModifier {
-  stat: string;
-  value: number;
-  condition?: string;
+  stat: string;           // Target stat: "agility", "evasion", "damage", etc.
+  value: number;          // Calculated numeric value
+  formula?: string;       // Dynamic formula if applicable: "half_agility", "3_plus_strength"
+  condition?: ModifierCondition; // Activation condition
+  source?: string;        // Card name (for debugging)
 }
+
+/**
+ * Condition types for modifier activation
+ */
+export type ModifierCondition =
+  | { type: 'always' }
+  | { type: 'when_armored' }
+  | { type: 'when_unarmored' }
+  | { type: 'when_active' }
+  | { type: 'loadout_domain_count'; domain: string; minCount: number }
+  | { type: 'environment'; requirement: string };
 
 /**
  * Threshold modifiers (for damage thresholds)
@@ -96,12 +119,38 @@ export interface ThresholdModifiers {
 /**
  * Token tracking configuration
  */
-export interface TokenConfig {
+/**
+ * Token tracking configuration
+ */
+export interface CardTokens {
   has_tokens: boolean;
   max_tokens?: number | null; // null = dynamic based on trait
   token_source?: string; // Which trait determines token count (e.g., "Agility")
   token_replenish?: TokenReplenish;
   tokens_per_use?: number; // How many tokens spent per use
+}
+
+/**
+ * Enhanced Ability/Spell Card interface
+ * Extends the base JSON structure with interactive metadata
+ */
+/**
+ * The enhancement block structure containing all parser-derived fields
+ */
+export interface EnhancementBlock {
+  action_type: ActionType;
+  timing: Timing;
+  frequency: Frequency;
+  costs?: CardCosts | null;
+  keywords?: string[];
+  tokens?: CardTokens;
+  attack?: CardAttack | null;
+  roll?: CardRoll | null;
+  uses_proficiency?: boolean;
+  effects?: string[];
+  modifiers?: CardModifier[];
+  threshold_modifiers?: ThresholdModifiers;
+  duration?: string;
 }
 
 /**
@@ -117,29 +166,18 @@ export interface EnhancedAbilityCard {
   recall: string;
   text: string;
 
-  // Enhanced fields (parsed/added)
-  action_type?: ActionType;
-  timing?: Timing;
-  frequency?: Frequency;
-  costs?: CardCosts;
+  // Enhanced fields (nested blocks)
+  enhancement: EnhancementBlock;
+  enhancement_override?: EnhancementBlock;
 
-  // Token tracking
-  has_tokens?: boolean;
-  max_tokens?: number | null;
-  token_source?: string;
-  token_replenish?: TokenReplenish;
-
-  // Combat mechanics
-  attack?: CardAttack;
-  roll?: CardRoll;
-
-  // Modifiers
-  modifiers?: CardModifier[];
-  threshold_modifiers?: ThresholdModifiers;
-
-  // Metadata
-  keywords?: string[];
-  duration?: 'scene' | 'rest' | 'until_triggered' | null;
+  // Top-level stat bonuses (permanent character creation bonuses)
+  stat_bonuses?: {
+    evasion?: number;
+    experience?: number;
+    damage_thresholds?: string | number;
+    hit_point_slots?: number;
+    stress_slots?: number;
+  };
 }
 
 /**
@@ -202,6 +240,13 @@ export interface FrequencyCheckboxProps {
   className?: string;
 }
 
+export interface ActiveEffectCheckboxProps {
+  cardName: string;
+  duration: string;
+  onToggle?: (active: boolean) => void;
+  className?: string;
+}
+
 export interface CardTokenTrackProps {
   cardName: string;
   maxTokens: number | null;
@@ -237,9 +282,7 @@ export interface EnhancedFeature {
   costs?: CardCosts;
 
   // Token tracking
-  has_tokens?: boolean;
-  max_tokens?: number | null;
-  token_source?: string;
+  tokens?: CardTokens;
 
   // Combat mechanics
   attack?: CardAttack;

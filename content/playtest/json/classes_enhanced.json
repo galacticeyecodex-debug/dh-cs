@@ -1,0 +1,302 @@
+[
+  {
+    "name": "Blood Hunter",
+    "description": "As a blood hunter, you harness the power of hemocraft—that is, blood magic—in your relentless pursuit of evil creatures.",
+    "domain_1": "Blood",
+    "domain_2": "Blade",
+    "evasion": "9",
+    "hp": "6",
+    "items": "a steel needle OR a vial holding a foe's blood",
+    "hope_feat_name": "Blood Maledict",
+    "hope_feat_text": "**Spend 3 Hope** to target a creature within Far range or in a vision from your Grim Psychometry. Until you finish a rest, take Severe damage, or use this feature again, you have advantage on all **action rolls** against the target.",
+    "subclass_1": "Order of the Ghost Slayer",
+    "subclass_2": "Order of the Mutant",
+    "subclass_3": "Order of the Lycan",
+    "suggested_traits": "+2, -1, +1, +1, 0, 0",
+    "suggested_primary": "Longsword",
+    "suggested_armor": "Leather Armor",
+    "class_feats": [
+      {
+        "name": "Crimson Rite",
+        "text": "You can enchant your strikes with bloodthirsty power at the cost of your vitality. Mark a Hit Point to enchant one of your active weapons. Until you finish your next rest, that weapon deals physical or magic damage (choose when you use this feature) and an extra **1d6** damage when you hit with it. This extra damage increases to **2d6** at level 5 and **3d6** at level 8.",
+        "enhancement": {
+          "timing": "action",
+          "frequency": "at_will",
+          "costs": {
+            "hit_points": 1
+          },
+          "keywords": [
+            "damage",
+            "magic",
+            "ability"
+          ],
+          "duration": "rest"
+        }
+      },
+      {
+        "name": "Grim Psychometry",
+        "text": "While inspecting a creature, a location, or an object within Very Close range, make a **Spellcast Roll (12)**. On a success, **mark a Stress** to have a vision of the most recent violence involving the target, and until you finish a rest, you have advantage on any **action roll** to recall lore about things in the vision.",
+        "enhancement": {
+          "timing": "free",
+          "frequency": "at_will",
+          "costs": {
+            "stress": 1
+          },
+          "keywords": [
+            "stress_cost",
+            "buff",
+            "ability"
+          ],
+          "roll": {
+            "type": "Spellcast Roll",
+            "trait": "Spellcast",
+            "difficulty": 12,
+            "target_reaction": false
+          },
+          "duration": "rest",
+          "attack": {
+            "trait": "None",
+            "range": "Very Close"
+          }
+        }
+      }
+    ],
+    "backgrounds": [
+      {
+        "question": "Are you descended from blood hunters, or are you the first in your bloodline to practice hemocraft?"
+      },
+      {
+        "question": "Which blood relative taught you an important lesson, and how has that lesson kept you alive?"
+      },
+      {
+        "question": "Who or what was your first kill?"
+      }
+    ],
+    "connections": [
+      {
+        "question": "What have you heard about blood magic that makes you afraid of me or concerned for my well-being?"
+      },
+      {
+        "question": "What act of bloodshed brought us together?"
+      },
+      {
+        "question": "How does my determination to rid the Mortal Realms of evildoers align with your beliefs?"
+      }
+    ],
+    "hope_feat_enhanced": {
+      "name": "Blood Maledict",
+      "text": "**Spend 3 Hope** to target a creature within Far range or in a vision from your Grim Psychometry. Until you finish a rest, take Severe damage, or use this feature again, you have advantage on all **action rolls** against the target.",
+      "enhancement": {
+        "timing": "free",
+        "frequency": "at_will",
+        "costs": {
+          "hope": 3
+        },
+        "keywords": [
+          "damage",
+          "hope_cost",
+          "buff",
+          "ability"
+        ],
+        "duration": "rest",
+        "attack": {
+          "trait": "None",
+          "range": "Far"
+        }
+      }
+    }
+  },
+  {
+    "name": "Witch",
+    "description": "As a witch, you weave together the mysterious powers of earth, sky, and spirit to craft protective charms and hex your enemies.",
+    "domain_1": "Dread",
+    "domain_2": "Sage",
+    "evasion": "10",
+    "hp": "5",
+    "items": "a small, harmless pet OR a talking skull",
+    "hope_feat_name": "Witch's Charm",
+    "hope_feat_text": "When you or an ally within Far range rolls a failure on an **action roll**, you can **spend 3 Hope** to change it into a success with Fear instead.",
+    "subclass_1": "Hedge",
+    "subclass_2": "Moon",
+    "suggested_traits": "0, -1, 0, +2, +1, +1",
+    "suggested_primary": "Dualstaff",
+    "suggested_armor": "Gambeson Armor",
+    "class_feats": [
+      {
+        "name": "Hex",
+        "text": "When a creature causes you or an ally within Close range to mark any number of Hit Points, you can **mark a Stress** to Hex them. Action and damage rolls against a Hexed creature gain a bonus equal to your tier. This condition lasts until the GM spends a number of Fear equal to your Spellcast trait to remove it or you Hex another creature. Otherwise, remove it when the scene ends.",
+        "enhancement": {
+          "timing": "reaction",
+          "frequency": "at_will",
+          "costs": {
+            "stress": 1
+          },
+          "keywords": [
+            "damage",
+            "stress_cost",
+            "ability"
+          ],
+          "attack": {
+            "trait": "None",
+            "range": "Close"
+          }
+        }
+      },
+      {
+        "name": "Commune",
+        "text": "Once per long rest, during a moment of calm, you can commune with an ancestor, deity, nature spirit, or otherworldly being. Ask them a question, then roll a number of **d6s** equal to your Spellcast trait. Choose one value from the rolled results and reference the chart below for the effect:\n\n1-3: You taste a flavor, smell a scent, or feel a sensation relevant to the answer.\n4-5: You hear sounds or see a vision relevant to the answer.\n6: You psychically experience a scene relevant to the answer as if you were there.",
+        "enhancement": {
+          "timing": "action",
+          "frequency": "once_per_long_rest",
+          "keywords": [
+            "ability"
+          ]
+        }
+      }
+    ],
+    "backgrounds": [
+      {
+        "question": "How did you first discover your affinity for magical craft?"
+      },
+      {
+        "question": "You once used your power to help someone in a dire situation. Who were they and why did they come to you?"
+      },
+      {
+        "question": "Your magic once opened a door best left closed. Who or what was on the other side?"
+      }
+    ],
+    "connections": [
+      {
+        "question": "What about my magical practice makes you most ill at ease?"
+      },
+      {
+        "question": "I once appeared to you in a dream and shared a vision of the future. What did I tell you?"
+      },
+      {
+        "question": "Why do you come to me for advice?"
+      }
+    ],
+    "hope_feat_enhanced": {
+      "name": "Witch's Charm",
+      "text": "When you or an ally within Far range rolls a failure on an **action roll**, you can **spend 3 Hope** to change it into a success with Fear instead.",
+      "enhancement": {
+        "timing": "action",
+        "frequency": "at_will",
+        "costs": {
+          "hope": 3
+        },
+        "keywords": [
+          "hope_cost",
+          "ability"
+        ],
+        "attack": {
+          "trait": "None",
+          "range": "Far"
+        }
+      }
+    }
+  },
+  {
+    "name": "Brawler",
+    "description": "As a brawler, you can use your fists just as well as any weapon to fight off the threats that get in your way.",
+    "domain_1": "Bone",
+    "domain_2": "Valor",
+    "evasion": "10",
+    "hp": "6",
+    "items": "hand wraps from a mentor OR a book about your secret hobby",
+    "hope_feat_name": "Staggering Strike",
+    "hope_feat_text": "**Spend 3 Hope** when you succeed on an attack to temporarily Stagger your target and force them to **mark a Stress**. While Staggered, they have disadvantage on attack rolls.",
+    "subclass_1": "Juggernaut",
+    "subclass_2": "Martial Artist",
+    "suggested_traits": "+1, +1, 0, +2, 0, -1",
+    "suggested_primary": "Quarterstaff",
+    "suggested_armor": "Leather Armor",
+    "class_feats": [
+      {
+        "name": "I Am The Weapon",
+        "text": "While you don't have any equipped weapons:\n- You gain a +1 bonus to Evasion.\n- Your unarmed strikes are considered a Melee weapon, use the trait of your choice, and deal **d8**+**d6** phy damage using your Proficiency.",
+        "enhancement": {
+          "timing": "action",
+          "frequency": "at_will",
+          "keywords": [
+            "damage",
+            "ability"
+          ],
+          "modifiers": [
+            {
+              "stat": "evasion",
+              "value": 1,
+              "condition": {
+                "type": "always"
+              },
+              "source": "I Am The Weapon"
+            }
+          ],
+          "attack": {
+            "trait": "Spellcast",
+            "range": "Close",
+            "combat_category": "passive_triggered",
+            "damage": "d8"
+          }
+        }
+      },
+      {
+        "name": "Combo Strikes",
+        "text": "After making a damage roll with a Melee weapon but before dealing that damage to the target, **mark a Stress** to start a combo strike. When you do, roll your Combo Die and note its value. Then, roll your Combo Die again. If the value of the second roll is equal to or greater than your first roll, continue rolling until the latest Combo Die's roll is less than the roll that preceded it. Total all rolled values and add that amount to your weapon's damage. These values cannot be adjusted by features that affect damage dice.\n\nYour Combo Die starts as a **d4**. When you level up, once per tier you may use one of your advancement options to increase your Combo Die instead.",
+        "enhancement": {
+          "timing": "action",
+          "frequency": "at_will",
+          "costs": {
+            "stress": 1
+          },
+          "keywords": [
+            "damage",
+            "stress_cost",
+            "ability"
+          ]
+        }
+      }
+    ],
+    "backgrounds": [
+      {
+        "question": "Where did you spend time during your formative years that taught you, directly or indirectly, how to fight in the style you use?"
+      },
+      {
+        "question": "What group or organization has always had your back, and how did you get in their good graces?"
+      },
+      {
+        "question": "Who did you lose a fight to long ago that you are desperate for a rematch against?"
+      }
+    ],
+    "connections": [
+      {
+        "question": "What is one thing we're both afraid of?"
+      },
+      {
+        "question": "I rely on you for something important during our travels together. What is it and how do you feel about it?"
+      },
+      {
+        "question": "I still haven't forgiven you for something you said to me. What was it and why did you say it?"
+      }
+    ],
+    "extras": "# COMBO DIE PROGRESSION\n\nYour Combo Die starts as a **d4**. When you level up, once per tier you may use one of your advancement options to increase your Combo Die:\n\n- Tier 1 (Level 1): **d4**\n- Tier 2 (Levels 2-4): **d6**\n- Tier 3 (Levels 5-7): **d8**\n- Tier 4 (Levels 8-10): **d10**",
+    "hope_feat_enhanced": {
+      "name": "Staggering Strike",
+      "text": "**Spend 3 Hope** when you succeed on an attack to temporarily Stagger your target and force them to **mark a Stress**. While Staggered, they have disadvantage on attack rolls.",
+      "enhancement": {
+        "timing": "reaction",
+        "frequency": "at_will",
+        "costs": {
+          "stress": 1,
+          "hope": 3
+        },
+        "keywords": [
+          "stress_cost",
+          "hope_cost",
+          "debuff",
+          "ability"
+        ]
+      }
+    }
+  }
+]
