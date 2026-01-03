@@ -604,8 +604,8 @@
     "recall": "1",
     "text": "When you take Severe damage, you can **mark a Stress** to reduce the severity by one threshold.",
     "enhancement": {
-      "action_type": "reaction",
-      "timing": "reaction",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "at_will",
       "costs": {
         "stress": 1
@@ -642,8 +642,8 @@
     "recall": "0",
     "text": "When you make a successful attack against a target within Very Close range, you can **spend a Hope** to use the attack against all other targets within Very Close range. All additional adversaries you succeed against with this ability take half damage.",
     "enhancement": {
-      "action_type": "passive",
-      "timing": "free",
+      "action_type": "attack",
+      "timing": "action",
       "frequency": "at_will",
       "costs": {
         "hope": 1
@@ -810,6 +810,19 @@
         "hope_cost",
         "ability"
       ]
+    },
+    "enhancement_override": {
+      "action_type": "buff",
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "healing",
+        "hope_cost",
+        "ability"
+      ],
+      "costs": {
+        "hope": 3
+      }
     }
   },
   {
@@ -847,8 +860,8 @@
     "recall": "2",
     "text": "Once per long rest when you would make a Death Move, you can **spend a Hope** to clear a Hit Point instead.",
     "enhancement": {
-      "action_type": "passive",
-      "timing": "free",
+      "action_type": "buff",
+      "timing": "action",
       "frequency": "once_per_long_rest",
       "costs": {
         "hope": 1
@@ -962,8 +975,8 @@
     "recall": "2",
     "text": "Once per long rest, while you’re charging into danger, you can muster a rousing call that inspires your allies. All allies who can hear you each clear a Stress and gain a Hope. Additionally, your allies gain advantage on attack rolls until you or an ally rolls a failure with Fear.",
     "enhancement": {
-      "action_type": "passive",
-      "timing": "free",
+      "action_type": "buff",
+      "timing": "action",
       "frequency": "once_per_long_rest",
       "keywords": [
         "stress_relief",
@@ -1080,6 +1093,30 @@
           "source": "Battle Monster"
         }
       ]
+    },
+    "enhancement_override": {
+      "action_type": "reaction",
+      "timing": "free",
+      "frequency": "at_will",
+      "costs": {
+        "stress": 4
+      },
+      "keywords": [
+        "damage",
+        "stress_cost",
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "hit_points",
+          "value": 0,
+          "formula": "the",
+          "condition": {
+            "type": "always"
+          },
+          "source": "Battle Monster"
+        }
+      ]
     }
   },
   {
@@ -1154,7 +1191,7 @@
     "text": "When you’re targeted by an attack made from beyond Melee range, you can **mark a Stress** to roll a **d4** and gain a bonus to your Evasion equal to the result against the attack.",
     "enhancement": {
       "action_type": "attack",
-      "timing": "action",
+      "timing": "reaction",
       "frequency": "at_will",
       "costs": {
         "stress": 1
@@ -1289,7 +1326,7 @@
     "recall": "1",
     "text": "When you Help an Ally, they can **spend a Hope** to add one of your Experiences to their roll alongside your advantage die.\n\nWhen making a Tag Team Roll, you can roll a **d20** as your Hope Die.",
     "enhancement": {
-      "action_type": "attack",
+      "action_type": "buff",
       "timing": "action",
       "frequency": "at_will",
       "costs": {
@@ -1316,8 +1353,8 @@
     "recall": "1",
     "text": "**Mark a Stress** to boost off a willing ally within Close range, fling yourself into the air, and perform an aerial attack against a target within Far range. You have advantage on the attack, add a **d10** to the damage roll, and end your move within Melee range of the target.",
     "enhancement": {
-      "action_type": "passive",
-      "timing": "free",
+      "action_type": "attack",
+      "timing": "action",
       "frequency": "at_will",
       "costs": {
         "stress": 1
@@ -1557,6 +1594,7 @@
             "label": "Extra"
           }
         ],
+        "is_triggered_bonus": true,
         "damage": "2d12"
       }
     }
@@ -2671,8 +2709,8 @@
     "recall": "2",
     "text": "When you mark 1 or more Hit Points from an attack, you can **mark a Stress** to place a number of tokens equal to the number of Hit Points you marked on this card. On your next successful attack, gain a +5 bonus to your damage roll for each token on this card, then clear all tokens.",
     "enhancement": {
-      "action_type": "passive",
-      "timing": "free",
+      "action_type": "buff",
+      "timing": "action",
       "frequency": "at_will",
       "costs": {
         "stress": 1
@@ -2731,8 +2769,8 @@
     "recall": "1",
     "text": "After you make an **action roll** to persuade, lie, or garner favor, you can **spend a Hope** to reroll the Hope or Fear Die.",
     "enhancement": {
-      "action_type": "attack",
-      "timing": "action",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "at_will",
       "costs": {
         "hope": 1
@@ -2744,7 +2782,8 @@
       "attack": {
         "trait": "Spellcast",
         "range": "Close",
-        "combat_category": "passive_triggered"
+        "combat_category": "passive_triggered",
+        "is_triggered_bonus": true
       }
     }
   },
@@ -2889,8 +2928,8 @@
     "recall": "0",
     "text": "People know who you are and what you’ve done, and they treat you differently because of it. When you leverage your notoriety to get what you want, you can **mark a Stress** before you roll to gain a +10 bonus to the result. Your food and drinks are always free wherever you go, and everything else you buy is reduced in price by one bag of gold (to a minimum of one handful).\n\nThis card doesn’t count against your loadout’s domain card maximum of 5 and can’t be placed in your vault.",
     "enhancement": {
-      "action_type": "buff",
-      "timing": "action",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "at_will",
       "costs": {
         "stress": 1
@@ -3300,8 +3339,8 @@
     "recall": "2",
     "text": "When you have midnight domain cards in your loadout are from the midnight domain, gain the following benefits:\n\n- Once per rest, when you have 0 Hope and the GM would gain a Fear, you can gain a Hope instead.\n- When you make a successful attack, you can **mark a Stress** to add the result of your Fear Die to your damage roll.",
     "enhancement": {
-      "action_type": "passive",
-      "timing": "free",
+      "action_type": "buff",
+      "timing": "action",
       "frequency": "once_per_rest",
       "costs": {
         "stress": 1
@@ -3348,8 +3387,8 @@
     "recall": "2",
     "text": "Your prowess is enhanced under the cover of shadow. While you’re shrouded in low light or darkness, you gain a +1 bonus to your Evasion and make attack rolls with advantage.",
     "enhancement": {
-      "action_type": "buff",
-      "timing": "action",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "at_will",
       "keywords": [
         "buff",
@@ -3493,8 +3532,8 @@
     "recall": "1",
     "text": "**Mark a Stress** to become Spectral until you make an **action roll** targeting another creature. While Spectral, you’re immune to physical damage and can float and pass through solid objects. Other creatures can still see you while you’re in this form.",
     "enhancement": {
-      "action_type": "utility",
-      "timing": "action",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "at_will",
       "costs": {
         "stress": 1
@@ -3515,8 +3554,8 @@
     "recall": "0",
     "text": "When you’re tracking a specific creature or group of creatures based on signs of their passage, you can **spend any number of Hope** and ask the GM that many questions from the following list.\n\n- What direction did they go?\n- How long ago did they pass through?\n- What were they doing in this location?\n- How many of them were here?\n\nWhen you encounter creatures you’ve tracked in this way, gain a +1 bonus to your Evasion against them.",
     "enhancement": {
-      "action_type": "passive",
-      "timing": "free",
+      "action_type": "buff",
+      "timing": "action",
       "frequency": "at_will",
       "keywords": [
         "hope_gain",
@@ -3951,8 +3990,8 @@
     "recall": "2",
     "text": "When 4 or more of the domain cards in your loadout are from the Sage domain, gain the following benefits:\n\n- While you’re in a natural environment, you gain a +2 bonus to your **Spellcast Rolls**.\n- Once per rest, you can double your Agility or Instinct when making a roll that uses that trait. You must choose to do this before you roll.",
     "enhancement": {
-      "action_type": "buff",
-      "timing": "action",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "once_per_rest",
       "keywords": [
         "ability"
@@ -4047,6 +4086,7 @@
         "damage",
         "physical",
         "healing",
+        "healing",
         "movement",
         "spell"
       ],
@@ -4123,7 +4163,7 @@
     "recall": "2",
     "text": "**Mark a Stress** to transform into a hulking nature spirit, gaining the following benefits:\n\n- When you succeed on an attack or **Spellcast Roll**, gain a +10 bonus to the damage roll.\n- When you deal enough damage to defeat a creature within Close range, you absorb them and clear an Armor Slot.\n- You can’t be Restrained.\n\nBefore you make an **action roll**, you must **spend a Hope**. If you can’t, you revert to your normal form.",
     "enhancement": {
-      "action_type": "utility",
+      "action_type": "buff",
       "timing": "action",
       "frequency": "at_will",
       "costs": {
@@ -4361,7 +4401,7 @@
     "recall": "1",
     "text": "You speak with an unmatched power and authority. You have advantage on **action rolls** to de-escalate violent situations or convince someone to follow your lead.\n\nAdditionally, you’re emboldened in moments of duress. When all of your Stress slots are marked, you gain a +1 bonus to your Proficiency for damage rolls.",
     "enhancement": {
-      "action_type": "buff",
+      "action_type": "utility",
       "timing": "action",
       "frequency": "at_will",
       "keywords": [
@@ -4535,8 +4575,8 @@
     "recall": "1",
     "text": "When you deal damage to an adversary, you can **spend 2 Hope** to clear a Hit Point on an ally within Close range.",
     "enhancement": {
-      "action_type": "passive",
-      "timing": "free",
+      "action_type": "buff",
+      "timing": "action",
       "frequency": "at_will",
       "costs": {
         "hope": 2
@@ -4934,8 +4974,8 @@
     "recall": "1",
     "text": "Once per long rest, when you console or inspire an ally who failed an **action roll**, you can both clear 2 Stress.",
     "enhancement": {
-      "action_type": "passive",
-      "timing": "free",
+      "action_type": "buff",
+      "timing": "action",
       "frequency": "once_per_long_rest",
       "keywords": [
         "stress_relief",
@@ -5020,7 +5060,7 @@
           "stat": "armor_score",
           "value": 1,
           "condition": {
-            "type": "always"
+            "type": "when_armored"
           },
           "source": "Armorer"
         }
@@ -5118,8 +5158,8 @@
     "recall": "1",
     "text": "When 4 or more of the domain cards in your loadout are from the Valor domain, gain the following benefits:\n\n- +1 bonus to your Armor Score\n- When you mark 1 or more Hit Points without marking an Armor Slot, clear an Armor Slot.",
     "enhancement": {
-      "action_type": "buff",
-      "timing": "action",
+      "action_type": "passive",
+      "timing": "free",
       "frequency": "at_will",
       "keywords": [
         "healing",
@@ -5230,7 +5270,7 @@
     "recall": "3",
     "text": "When you deal damage to an adversary, you can **mark a Stress** and describe how you encourage your allies. The next PC to make an attack against that adversary can clear a Stress or gain a Hope.",
     "enhancement": {
-      "action_type": "attack",
+      "action_type": "buff",
       "timing": "action",
       "frequency": "at_will",
       "costs": {

@@ -310,8 +310,8 @@ describe('Abilities Schema Validation - Blade Domain', () => {
             expect(enhanced.enhancement.costs?.stress).toBe(4);
         });
 
-        it('should be action_type attack', () => {
-            expect(enhanced.enhancement.action_type).toBe('attack');
+        it('should be action_type reaction', () => {
+            expect(enhanced.enhancement.action_type).toBe('reaction');
         });
     });
 
