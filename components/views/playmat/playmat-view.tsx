@@ -220,7 +220,7 @@ export default function PlaymatView() {
               // Collect all active modifiers from loadout cards
               const allModifiers: PassiveModifier[] = [];
               loadoutCards.forEach(card => {
-                const mods = parseCardPassiveModifiers(card, character);
+                const mods = parseCardPassiveModifiers(card, character, card.state?.is_active ?? false);
                 allModifiers.push(...mods.filter(m => m.isActive));
               });
 
@@ -459,7 +459,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
   const positionSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Parse card mechanics
-  const passiveModifiers = character ? parseCardPassiveModifiers(charCard, character) : [];
+  const passiveModifiers = character ? parseCardPassiveModifiers(charCard, character, charCard.state?.is_active ?? false) : [];
   const combatAbility = parseCombatAbility(charCard);
 
   // Handle image upload
@@ -530,6 +530,8 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
         return <Shield size={12} className="text-gray-400" />;
       case 'when_unarmored':
         return <ShieldOff size={12} className="text-gray-400" />;
+      case 'when_active':
+        return <Zap size={12} className="text-yellow-400" />;
       case 'loadout_domain_count':
         return <Users size={12} className="text-purple-400" />;
       case 'environment':
@@ -547,6 +549,8 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
         return 'While wearing armor';
       case 'when_unarmored':
         return 'While not wearing armor';
+      case 'when_active':
+        return 'While active';
       case 'loadout_domain_count':
         return `When ${condition.minCount}+ ${condition.domain} cards in loadout`;
       case 'environment':

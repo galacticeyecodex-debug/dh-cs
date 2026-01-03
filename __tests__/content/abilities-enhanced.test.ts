@@ -219,6 +219,7 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
                 'always',
                 'when_armored',
                 'when_unarmored',
+                'when_active',
                 'loadout_domain_count',
                 'environment'
             ];
