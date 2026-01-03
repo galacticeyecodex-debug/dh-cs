@@ -71,7 +71,7 @@ export function DomainCard({
   const fontSize = isThumbnail ? 0.7 : 1; // Scale factor for text
 
   // Dynamic font size for longer descriptions to prevent clipping
-  const descriptionBaseSize = (description?.length || 0) > 500 ? 12 : 14;
+  const descriptionBaseSize = (description?.length || 0) > 400 ? 12 : 14;
 
   return (
     <div

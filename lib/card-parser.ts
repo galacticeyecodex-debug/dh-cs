@@ -1,22 +1,57 @@
 /**
- * DOMAIN CARD PARSER
+ * DOMAIN CARD PARSER (NLU Engine)
  * ----------------------------------------------------------------------------
- * Extracts passive modifiers and combat mechanics from domain card descriptions.
+ * This module is the core NLU (Natural Language Understanding) engine for the
+ * Daggerheart Character Sheet. It analyzes raw card text to extract structured
+ * gameplay mechanics, enabling interactive features in the application.
  *
- * FUNCTIONALITY:
- * - Parses card text for stat bonuses (+1 to Agility, +half Agility to Evasion, etc.)
- * - Evaluates conditions (equipment state, loadout composition)
- * - Calculates dynamic modifier values
- * - Returns structured modifier data for integration with character stats
+ * DOCUMENTATION & REFERENCE:
+ *   - Schema Definitions: dh-cs/types/cards.ts
+ *   - Integration: dh-cs/scripts/enhance_json.ts
+ *   - Test Suite: dh-cs/__tests__/content/abilities-enhanced.test.ts
  *
- * This parser follows similar patterns to ModifierBuilder for consistency.
+ * CORE FUNCTIONALITY:
+ * The parser breaks down card descriptions into semantic components:
+ *
+ * 1. Activation & Costs (`parseCosts`, `parseActionType`)
+ *    - Detects resource costs (Hope, Stress, HP)
+ *    - Identifies action types (Attack, Reaction, Utility, Passive)
+ *
+ * 2. Combat Mechanics (`enhanceAbilityCard` -> `attack` block)
+ *    - Extracts attack traits (Strength, Spellcast, etc.)
+ *    - Parses ranges, damage dice, and damage types
+ *    - Classifies combat usage (standalone attack vs. damage bonus)
+ *
+ * 3. Passive Modifiers (`parseCardPassiveModifiers`)
+ *    - Parses static bonuses ("+1 to Evasion")
+ *    - Handles dynamic formulas ("equal to half your Agility")
+ *    - Evaluates conditional activators ("while unarmored")
+ *
+ * 4. Token Tracking (`parseCardTokens`)
+ *    - Identifies token pools ("put 3 tokens on this card")
+ *    - Determines replenishment rules (rest, long rest)
+ *
+ * ARCHITECTURE:
+ * - `enhanceAbilityCard`: The main entry point. Orchestrates the sub-parsers onto a raw card.
+ * - Sub-parsers: Specialized functions (e.g., `parseStressCost`, `parseCardDamage`) that
+ *   handle specific mechanics using regex patterns.
+ * - `stripMarkdown`: Normalizes text (removes bold/italics) for consistent matching.
+ *
+ * EXTENDING THE PARSER:
+ * When adding new mechanics (e.g., Environment effects):
+ * 1. Define the schema in `types/cards.ts`.
+ * 2. Create a new sub-parser function here (e.g., `parseEnvironmentEffect`).
+ * 3. Add the parser call to `enhanceAbilityCard`.
+ * 4. Add test cases in `__tests__/content/abilities-enhanced.test.ts`.
  */
 
 import type { Character, CharacterCard } from '@/types/character';
 import type {
   ActionType,
+  AdditionalDamage,
   CardAttack,
   CardCosts,
+  CardModifier,
   CardRoll,
   CombatCategory,
   DamageType,
@@ -47,6 +82,7 @@ export type ModifierCondition =
   | { type: 'always' }
   | { type: 'when_armored' }
   | { type: 'when_unarmored' }
+  | { type: 'when_active' }
   | { type: 'loadout_domain_count'; domain: string; minCount: number }
   | { type: 'environment'; requirement: string };
 
@@ -86,7 +122,10 @@ const STAT_PATTERNS: Record<string, RegExp> = {
  */
 export function stripMarkdown(text: string): string {
   if (!text) return '';
-  return text.replace(/\*\*|\*/g, '');
+  return text
+    .replace(/\*\*|\*/g, '')
+    // Normalize curly quotes (U+2018, U+2019) to ASCII apostrophes for consistent matching
+    .replace(/[\u2018\u2019]/g, "'");
 }
 
 /**
@@ -94,9 +133,10 @@ export function stripMarkdown(text: string): string {
  */
 export function parseCardPassiveModifiers(
   card: CharacterCard,
-  character: Character
+  character: Character,
+  isCardActive: boolean = false
 ): PassiveModifier[] {
-  const description = card.library_item?.data?.description || '';
+  const description = card.library_item?.data?.description || card.library_item?.data?.text || '';
   const cardName = card.library_item?.name || 'Unknown Card';
   const modifiers: PassiveModifier[] = [];
 
@@ -116,7 +156,7 @@ export function parseCardPassiveModifiers(
     const stat = matchStatName(statText.trim());
 
     if (stat) {
-      const isActive = evaluateModifierCondition(condition, character);
+      const isActive = evaluateModifierCondition(condition, character, isCardActive);
       modifiers.push({
         stat,
         value,
@@ -144,7 +184,7 @@ export function parseCardPassiveModifiers(
       if (targetStat) {
         const formula = isHalf ? `half_${sourceStat}` : sourceStat;
         const value = calculateDynamicValue(formula, character);
-        const isActive = evaluateModifierCondition(condition, character);
+        const isActive = evaluateModifierCondition(condition, character, isCardActive);
 
         modifiers.push({
           stat: targetStat,
@@ -175,7 +215,7 @@ export function parseCardPassiveModifiers(
       if (targetStat) {
         const formula = `${baseValue}_plus_${sourceStat}`;
         const value = calculateDynamicValue(formula, character);
-        const isActive = evaluateModifierCondition(condition, character);
+        const isActive = evaluateModifierCondition(condition, character, isCardActive);
 
         modifiers.push({
           stat: targetStat,
@@ -191,6 +231,138 @@ export function parseCardPassiveModifiers(
 
   return modifiers;
 }
+
+/**
+ * Parse modifiers from card text without character context
+ * Used for pre-parsing modifiers into the enhanced JSON
+ */
+export function parseStaticModifiers(text: string, cardName: string): CardModifier[] {
+  const modifiers: CardModifier[] = [];
+
+  // Strip markdown formatting first
+  const cleanText = stripMarkdown(text);
+
+  // Parse condition context first
+  const condition = extractCondition(cleanText);
+
+  // Pattern 1: Static bonus/penalty - "+1 bonus to your Agility" or "-2 penalty to your Spellcast Rolls"
+  const staticMatches = Array.from(cleanText.matchAll(/([+\-]\d+)\s+(?:(?:bonus|penalty)\s+)?to\s+(?:your\s+)?([a-z\s]+?)(?:\s+rolls?)?(?:\.|,|\n|$|\s+(?:but|and|or|while|when))/gi));
+
+  for (const matchResult of staticMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const valueStr = match[1];
+    const statText = match[2];
+    if (!valueStr || !statText) continue;
+
+    const value = parseInt(valueStr); // Handles both +1 and -1
+    const stat = matchStatName(statText.trim());
+
+    if (stat) {
+      modifiers.push({
+        stat,
+        value,
+        condition,
+        source: cardName
+      });
+    }
+  }
+
+  // Pattern 2: Dynamic bonus - "equal to half your Agility"
+  const dynamicMatches = Array.from(cleanText.matchAll(/equal to\s+(?:(half)\s+)?(?:your\s+)?([a-z]+)/gi));
+
+  for (const matchResult of dynamicMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const isHalf = !!match[1];
+    const sourceStat = match[2]!.toLowerCase();
+
+    // Find what stat this bonus applies to (look backwards in the text)
+    const beforeText = cleanText.substring(0, match.index);
+    const targetStatMatch = beforeText.match(/to\s+(?:your\s+)?([a-z\s]+?)$/i);
+
+    if (targetStatMatch) {
+      const targetStat = matchStatName(targetStatMatch[1]!.trim());
+      if (targetStat) {
+        const formula = isHalf ? `half_${sourceStat}` : sourceStat;
+
+        modifiers.push({
+          stat: targetStat,
+          value: 0, // Will be calculated at runtime
+          formula,
+          condition,
+          source: cardName
+        });
+      }
+    }
+  }
+
+  // Pattern 3: Complex formula - "3 + your Strength" (for Bare Bones)
+  const complexMatches = Array.from(cleanText.matchAll(/(\d+)\s*\+\s*(?:your\s+)?([a-z]+)/gi));
+
+  for (const matchResult of complexMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const baseValue = parseInt(match[1]!);
+    const sourceStat = match[2]!.toLowerCase();
+
+    // Find target stat
+    const beforeText = cleanText.substring(0, match.index);
+    const targetStatMatch = beforeText.match(/to\s+(?:your\s+)?([a-z\s]+?)(?:\s+equal)?$/i);
+
+    if (targetStatMatch) {
+      const targetStat = matchStatName(targetStatMatch[1]!.trim());
+      if (targetStat) {
+        const formula = `${baseValue}_plus_${sourceStat}`;
+
+        modifiers.push({
+          stat: targetStat,
+          value: 0, // Will be calculated at runtime
+          formula,
+          condition,
+          source: cardName
+        });
+      }
+    }
+  }
+
+  // Pattern 4: Damage reduction - "reduce incoming damage by 1d8"
+  const reductionMatches = Array.from(cleanText.matchAll(/reduce(?:\s+(?:incoming|the))?\s+damage\s+by\s+(\d*d\d+(?:\+\d+)?)/gi));
+
+  for (const matchResult of reductionMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const diceNotation = match[1];
+
+    modifiers.push({
+      stat: 'damage_reduction',
+      value: 0, // Will be rolled at runtime
+      formula: diceNotation,
+      condition,
+      source: cardName
+    });
+  }
+
+  // Pattern 5: "add your [trait] to your [stat]" (e.g., "add your Proficiency to your Evasion")
+  const addTraitMatches = Array.from(cleanText.matchAll(/add\s+(?:your\s+)?(agility|strength|finesse|presence|knowledge|instinct|spellcast|proficiency|level|tier)\s+to\s+(?:your\s+)?([a-z\s]+?)(?:\.|,|\n|$|\s+(?:but|and|or|while|when))/gi));
+
+  for (const matchResult of addTraitMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const sourceTrait = match[1];
+    const targetStatText = match[2];
+    if (!sourceTrait || !targetStatText) continue;
+
+    const targetStat = matchStatName(targetStatText.trim());
+    if (targetStat) {
+      modifiers.push({
+        stat: targetStat,
+        value: 0, // Will be calculated at runtime
+        formula: sourceTrait.toLowerCase(),
+        condition,
+        source: cardName
+      });
+    }
+  }
+
+  return modifiers;
+}
+
 
 /**
  * Extract condition from card description
@@ -214,6 +386,15 @@ function extractCondition(description: string): ModifierCondition {
     };
   }
 
+  // Check for active state / transformation
+  // Matches: "Mark a Stress to transform", "spend to enter a form", "while in your... form", "while active"
+  if (
+    /(?:mark|spend).*?to\s+(?:transform|enter\s+(?:a\s+)?form|become)/i.test(description) ||
+    /while\s+(?:you(?:'re)?\s+)?(?:are\s+)?(?:in\s+)?(?:this\s+)?(?:form|state|stance|frenzied|active)/i.test(description)
+  ) {
+    return { type: 'when_active' };
+  }
+
   // Default: always active
   return { type: 'always' };
 }
@@ -223,7 +404,8 @@ function extractCondition(description: string): ModifierCondition {
  */
 export function evaluateModifierCondition(
   condition: ModifierCondition,
-  character: Character
+  character: Character,
+  isCardActive: boolean = true
 ): boolean {
   switch (condition.type) {
     case 'always':
@@ -238,6 +420,9 @@ export function evaluateModifierCondition(
       return !character.character_inventory?.find(i =>
         i.location === 'equipped_armor'
       );
+
+    case 'when_active':
+      return isCardActive;
 
     case 'loadout_domain_count': {
       const loadoutCards = character.character_cards?.filter(c =>
@@ -372,8 +557,23 @@ export function getBareBonesBonuses(character: Character): PassiveModifier[] {
 /**
  * Parse stress cost from card text
  * Matches patterns like "mark a Stress", "mark 2 Stress", "**mark a Stress**"
+ * Excludes stress costs that are for replenishment (e.g., "mark a Stress to replenish")
  */
 export function parseStressCost(text: string): number {
+  // Strip markdown for pattern matching
+  const cleanText = stripMarkdown(text);
+
+  // Check if stress is for replenishment, not activation
+  if (/mark\s+(?:a\s+)?\d*\s*Stress\s+to\s+replenish/i.test(cleanText)) {
+    return 0; // This is a replenishment cost, not an activation cost
+  }
+
+  // Check if this is an ability that PREVENTS marking stress (not a cost)
+  // Pattern: "when you would mark a Stress" indicates the ability triggers to prevent it
+  if (/when\s+you\s+would\s+(?:\*\*)?mark\s+(?:a\s+)?(?:\d+\s+)?Stress/i.test(cleanText)) {
+    return 0; // This is a prevention ability, not an activation cost
+  }
+
   // Match "mark X Stress" or "mark a Stress"
   const patterns = [
     /\*\*mark (\d+) Stress\*\*/i,
@@ -464,7 +664,8 @@ export function parseFrequency(text: string): Frequency {
   if (lowerText.includes('once per session')) {
     return 'once_per_session';
   }
-  if (lowerText.includes('once per long rest')) {
+  // "once each per long rest" (Gifted Performer: songs can each be used once per long rest)
+  if (lowerText.includes('once per long rest') || lowerText.includes('once each per long rest')) {
     return 'once_per_long_rest';
   }
   if (lowerText.includes('once per rest')) {
@@ -475,23 +676,80 @@ export function parseFrequency(text: string): Frequency {
 }
 
 /**
+ * Parse duration from card text
+ */
+export function parseDuration(text: string): 'scene' | 'rest' | 'until_triggered' | null {
+  const cleanText = stripMarkdown(text).toLowerCase();
+
+  if (cleanText.includes('until the end of the scene')) {
+    return 'scene';
+  }
+  if (cleanText.includes('until your next rest')) {
+    return 'rest';
+  }
+  if (cleanText.includes('until triggered')) {
+    return 'until_triggered';
+  }
+
+  return null;
+}
+
+/**
  * Parse range from card text
+ * Finds the FIRST "within X range" or "X range" pattern in the text,
+ * which represents the primary targeting range.
+ * Ignores "range of X" patterns (equipment requirements) when better matches exist.
  */
 export function parseCardRange(text: string): Range | undefined {
+  // All range patterns to search for
   const rangePatterns: { pattern: RegExp; range: Range }[] = [
-    { pattern: /Very Far range/i, range: 'Very Far' },
-    { pattern: /Very Close range/i, range: 'Very Close' },
-    { pattern: /Far range/i, range: 'Far' },
-    { pattern: /Close range/i, range: 'Close' },
-    { pattern: /Melee range/i, range: 'Melee' },
-    { pattern: /within Melee/i, range: 'Melee' },
+    { pattern: /within Very Far/i, range: 'Very Far' },
+    { pattern: /within Far/i, range: 'Far' },
     { pattern: /within Very Close/i, range: 'Very Close' },
     { pattern: /within Close/i, range: 'Close' },
-    { pattern: /within Far/i, range: 'Far' },
-    { pattern: /within Very Far/i, range: 'Very Far' },
+    { pattern: /within Melee/i, range: 'Melee' },
+    { pattern: /Very Far range/i, range: 'Very Far' },
+    { pattern: /Far range/i, range: 'Far' },
+    { pattern: /Very Close range/i, range: 'Very Close' },
+    { pattern: /Close range/i, range: 'Close' },
+    { pattern: /Melee range/i, range: 'Melee' },
   ];
 
+  // Check for "range of X" patterns which describe equipment requirements (Spirit Weapon)
+  // These should be deprioritized
+  const hasNonRequirementRange = /(?:within\s+|targets?\s+\w+\s+)?(?:Very Far|Far|Very Close|Close|Melee)\s+range/i.test(text) ||
+    /within\s+(?:Very Far|Far|Very Close|Close|Melee)/i.test(text);
+
+  // Find the earliest match in the text (primary range)
+  let earliestMatch: { index: number; range: Range } | null = null;
+
   for (const { pattern, range } of rangePatterns) {
+    const match = text.match(pattern);
+    if (match && match.index !== undefined) {
+      // Skip "range of X" patterns if better patterns exist
+      const before = text.substring(Math.max(0, match.index - 10), match.index).toLowerCase();
+      if (before.includes('range of') && hasNonRequirementRange) continue;
+
+      if (earliestMatch === null || match.index < earliestMatch.index) {
+        earliestMatch = { index: match.index, range };
+      }
+    }
+  }
+
+  if (earliestMatch) {
+    return earliestMatch.range;
+  }
+
+  // Fallback: Check "range of X" patterns only if nothing else matched
+  const fallbackPatterns: { pattern: RegExp; range: Range }[] = [
+    { pattern: /range of Very Far/i, range: 'Very Far' },
+    { pattern: /range of Far/i, range: 'Far' },
+    { pattern: /range of Very Close/i, range: 'Very Close' },
+    { pattern: /range of Close/i, range: 'Close' },
+    { pattern: /range of Melee/i, range: 'Melee' },
+  ];
+
+  for (const { pattern, range } of fallbackPatterns) {
     if (pattern.test(text)) {
       return range;
     }
@@ -504,30 +762,108 @@ export function parseCardRange(text: string): Range | undefined {
  * Parse the trait used for rolls from card text
  */
 export function parseRollTrait(text: string): string | undefined {
-  const traitPattern = /\*\*(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct) Roll\*\*/i;
+  // Match patterns like "**Spellcast Roll**" or "**Spellcast Roll (13)**"
+  const traitPattern = /\*\*(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct) Roll(?:\s*\(\d+\))?\*\*/i;
   const match = text.match(traitPattern);
-  return match ? match[1] : undefined;
+  if (match) return match[1];
+
+  // Also try without markdown for plain text
+  const plainPattern = /(?:make a|make an)\s+(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct)\s+Roll/i;
+  const plainMatch = text.match(plainPattern);
+  if (plainMatch) return plainMatch[1];
+
+  // Pattern for "reaction roll using your [Trait] trait"
+  // Need to strip markdown first to handle "**reaction roll** using your Spellcast trait"
+  const cleanText = stripMarkdown(text);
+  const usingTraitPattern = /(?:reaction\s+)?roll\s+using\s+(?:your\s+)?(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct)(?:\s+trait)?/i;
+  const usingMatch = cleanText.match(usingTraitPattern);
+  if (usingMatch) return usingMatch[1];
+
+  // Pattern for weapon-based traits: "Instinct weapon", "Finesse Close weapon"
+  const weaponTraitPattern = /(?:as\s+(?:a|an)\s+)?(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct)\s+(?:\w+\s+)?weapon/i;
+  const weaponMatch = cleanText.match(weaponTraitPattern);
+  if (weaponMatch) return weaponMatch[1];
+
+  // Pattern for "treating it as an X weapon"
+  const treatAsPattern = /treating\s+it\s+as\s+(?:a|an)\s+(Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct)\s+weapon/i;
+  const treatMatch = cleanText.match(treatAsPattern);
+  if (treatMatch) return treatMatch[1];
+
+  return undefined;
 }
 
 /**
  * Parse roll difficulty (DC) from card text
  */
 export function parseRollDifficulty(text: string): number | undefined {
+  // Strip markdown first to handle patterns like "**Spellcast Roll (15)**"
+  const cleanText = stripMarkdown(text);
+
   // Match patterns like "Spellcast Roll (15)" or "Roll (12)"
-  const dcPattern = /Roll\s*\((\d+)\)/i;
-  const match = text.match(dcPattern);
-  return match ? parseInt(match[1], 10) : undefined;
+  // Also matches "Reaction Roll (15)"
+  const dcPattern = /(?:Spellcast|Strength|Agility|Finesse|Presence|Knowledge|Instinct|Reaction)\s+Roll\s*\((\d+)\)/i;
+  const match = cleanText.match(dcPattern);
+  if (match) {
+    return parseInt(match[1], 10);
+  }
+
+  // Fallback: simpler pattern for "Roll (X)" without trait
+  const simplePattern = /Roll\s*\((\d+)\)/i;
+  const simpleMatch = cleanText.match(simplePattern);
+  return simpleMatch ? parseInt(simpleMatch[1], 10) : undefined;
 }
 
 /**
  * Parse damage from card text
- * Returns the first damage notation found
+ * Returns the first damage notation found that is associated with DEALING damage
+ * (not reducing damage, which is a defensive mechanic)
  */
 export function parseCardDamage(text: string): string | undefined {
-  // Match patterns like "d8", "1d8", "2d8+4", "d10+3"
-  const damagePattern = /(\d*d\d+(?:\+\d+)?)/i;
-  const match = text.match(damagePattern);
-  return match ? match[1] : undefined;
+  // Strip markdown for cleaner matching
+  const cleanText = stripMarkdown(text);
+
+  // Only match die rolls that are associated with dealing damage
+  // This prevents defensive abilities like "reduce damage by 1d8" from being classified as attacks
+  const damagePatterns = [
+    // "1d8 damage", "1d8 magic damage", "2d6+4 physical damage"
+    /(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
+    // "deal 1d8", "deal 2d6+3"
+    /deal\s+(\d*d\d+(?:\+\d+)?)/i,
+    // "dealing 1d8 damage"
+    /dealing\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
+    // "deals d8 damage" or "that deals d12 physical damage"
+    /deals\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
+    // "take 1d8 damage" (enemies taking damage)
+    /take\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
+    // "takes 1d8 damage"
+    /takes\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
+    // "damage is 1d8"
+    /damage\s+is\s+(\d*d\d+(?:\+\d+)?)/i,
+    // "roll ... d10s ... deal that much damage" (Unleash Chaos pattern)
+    // Matches "roll a number of d10s" where "d10s" is plural, followed later by "deal that much ... damage"
+    /roll\s+(?:a\s+number\s+of\s+)?(\d*d\d+)s?\s+.*deal\s+that\s+much\s+(?:magic\s+|physical\s+)?damage/i,
+  ];
+
+  for (const pattern of damagePatterns) {
+    const match = cleanText.match(pattern);
+    if (match) {
+      // Check for "extra", "additional", "more" immediately preceding the match
+      // This filters out modifiers like "deal an extra 1d8 damage" from being the PRIMARY damage
+      const fullMatchIndex = match.index!;
+      const prefix = cleanText.substring(Math.max(0, fullMatchIndex - 30), fullMatchIndex).toLowerCase();
+
+      // Check for: "extra", "additional", "more", or "add" (modifier)
+      // Handles "an extra", "add a", "deal an extra"
+      if (/(?:(?:an?|the)\s+)?(?:extra|additional|more|added?)\s+$/i.test(prefix) ||
+        /add\s+(?:an?\s+)?$/i.test(prefix)) {
+        continue;
+      }
+
+      return match[1];
+    }
+  }
+
+  return undefined;
 }
 
 /**
@@ -574,61 +910,503 @@ export function parseTargetType(text: string): TargetType | undefined {
 export function parseActionType(text: string, cardType: string, attack?: CardAttack, roll?: CardRoll): ActionType {
   const cleanText = stripMarkdown(text).toLowerCase();
 
-  // If we already parsed an attack, it's an attack
-  if (attack) return 'attack';
-
-  // Check for reaction patterns
-  if (
-    cleanText.includes('reaction roll') ||
-    cleanText.includes('when you would take damage') ||
-    cleanText.includes('when an attack') ||
-    cleanText.includes('when you are targeted')
-  ) {
-    return 'reaction';
+  // DEBUG LOGGING
+  const debug = text.includes('give yourself flight') || text.includes('halve the damage') || text.includes('spiritual weapon') || text.includes('minor visual illusion');
+  if (debug) {
+    console.log(`[ParseActionType] Analyzing: ${text.substring(0, 50)}...`);
+    console.log(`[ParseActionType] CleanText: ${cleanText}`);
   }
 
-  // If it's a roll against something but didn't qualify as 'attack' (no damage/range)
-  // it might still be an attack action
-  if (cleanText.includes('make a') && (cleanText.includes('roll against') || cleanText.includes('attack'))) {
+  // Special Case: Natural Weapons (e.g., "Your kick is a natural weapon...")
+  // These are passive abilities describing a weapon, not an active attack action.
+  if (/\bnatural\s+weapon\b/i.test(cleanText)) {
+    if (debug) console.log(`[ParseActionType] Matched Natural Weapon`);
+    return undefined; // Will be passive
+  }
+
+  // 1. Check for reaction patterns first (highest priority - defensive abilities)
+  // ... (keep patterns) ...
+  const reactionPatterns = [
+    /\byou (?:can |must )?(?:make|making) a reaction roll\b/i,  // You make a reaction roll
+    /\bby making a reaction roll\b/i,  // "interrupt... by making a reaction roll"
+    /\bwhen you would take damage\b/i,
+    /\bwhen you would take (?:minor|major|severe) damage\b/i,  // Threshold-specific damage
+    // Note: "when you take Severe damage" with cost-based reduction is passive, not reaction
+    // Only treat as reaction if it involves counterattack or external interaction
+    /\bwhen an attack made against you\b/i,
+    /\bwhen you are targeted\b/i,
+    /\bwhen you mark your last\b/i,
+    /\binstead of making a death move\b/i,
+    /\bwhen you would mark an armor slot\b/i,
+    /\bwhen a creature within\b/i,
+    // Ally protection reactions
+    /\bwhen an ally (?:within|would|takes|marks)\b/i,
+    /\bwhen an ally.*?takes damage\b/i,
+    /\bwhen an ally.*?marks.*?hit point\b/i,
+    // Adversary attack reactions  
+    /\bafter an adversary makes an attack against you\b/i,
+    /\bwhen an adversary.*?attack(?:s)? (?:you|against)\b/i,
+    /\bwhen an adversary within.*?succeeds\b/i,
+    // Damage halving/reduction as reaction
+    /\bto halve incoming\b/i,
+    /\bhalve\s+(?:incoming\s+|the\s+)?(?:physical|magic|magical)?\s?damage\b/i,
+    // Roll result reactions (fear/hope)
+    /\bwhen you roll with fear\b/i,
+    // Targeting reactions
+    /\bwhen.*?target(?:s|ed) you\b/i,
+    // Force adversary to reroll (reaction during their action)
+    /\bforce\s+(?:an?\s+)?adversary\s+to\s+reroll\b/i,
+    /\bforce\s+(?:the\s+)?attacker\s+to\b/i,
+    // Attack of opportunity style reactions
+    /\bif\s+(?:an?\s+)?adversary\s+(?:within|attempts)\b/i,
+    /\battempts?\s+to\s+leave\s+(?:that\s+)?(?:range|melee)\b/i,
+    // Physical damage trigger
+    /\bwhen you take physical damage\b/i,
+    // Damage-would-mark patterns
+    /\bwhen.*?damage\s+(?:from\s+)?(?:an?\s+)?attack\s+would\s+mark\b/i,
+    /\bwould\s+mark\s+(?:your\s+)?last\s+(?:hit\s+point|stress)\b/i,
+    // Armor slot reaction
+    /\bmark\s+(?:an\s+)?additional\s+armor\s+slot\s+to\s+reduce\b/i,
+    // Attack roll succeeds against you
+    /\bwhen\s+(?:an?\s+)?attack\s+roll\s+against\s+you\s+succeeds\b/i,
+    // GM gains Fear trigger
+    /\bwhen\s+(?:the\s+)?gm\s+gains\s+(?:a\s+)?fear\b/i,
+    // Ally roll failure trigger
+    /\bwhen\s+(?:you\s+or\s+)?(?:an?\s+)?ally.*?(?:rolls?|fails)\s+(?:a\s+)?failure\b/i,
+    /\brolls\s+a\s+failure\s+on\s+(?:an?\s+)?\*?\*?action\s+roll\b/i,
+    // Creature causes marking Hit Points (Hex-style)  
+    /\bwhen\s+(?:a\s+)?creature\s+causes\s+(?:you|an\s+ally).*?to\s+mark\b/i,
+    // When you mark Hit Points from attack
+    /\bwhen\s+you\s+mark\s+(?:one\s+or\s+)?more\s+(?:than\s+one\s+)?hit\s+points?\s+from\b/i,
+    /\bwhen\s+you\s+mark\s+more\s+than\s+one\s+(?:hit\s+point|hp)\s+from\b/i,
+    // Generic "when you mark" triggers (Wolf Form, etc.)
+    /\bwhen\s+you\s+mark\s+(?:one\s+or\s+more\s+)?hit\s+points?\b/i,
+    /\bwhen\s+you\s+\*?\*?mark\s+your\s+last\s+stress\b/i,
+    // "if you mark" HP from attack (Juggernaut style)
+    /\bif\s+you\s+mark\s+(?:more\s+than\s+)?(?:one\s+)?hit\s+points?\s+from\b/i,
+  ];
+
+  // Check for Counter-Attack pattern (Reaction that is also an Attack)
+  // e.g. "When you mark an Armor Slot... make a Strength Roll against..."
+  const hasRollAgainst = /make (?:a |an )?\*?\*?(?:\w+\s+)?roll\*?\*? against/i.test(text);
+
+  if (reactionPatterns.some(pattern => {
+    const match = pattern.test(cleanText);
+    if (match && debug) console.log(`[ParseActionType] Matched Reaction: ${pattern}`);
+    return match;
+  })) {
+    // Exception: If it's a reaction that involves making an attack roll against someone,
+    // treat it as 'attack' for UI purposes (Splintering Strike)
+    if (hasRollAgainst) {
+      if (debug) console.log(`[ParseActionType] Counter-Attack detected (Reaction + Attack)`);
+      return 'attack';
+    }
+    return undefined;
+  }
+
+
+  // 2. Check for downtime patterns
+  if (
+    cleanText.includes('during a rest') ||
+    cleanText.includes('during a long rest') ||
+    cleanText.includes('when you finish a rest') ||
+    cleanText.includes('spend a downtime move') ||
+    cleanText.includes('downtime move') ||
+    cleanText.includes('as an additional downtime') ||
+    cleanText.includes('as a downtime move')
+  ) {
+    if (debug) console.log(`[ParseActionType] Matched Downtime`);
+    return undefined;
+  }
+
+  // 2.5. EARLY CHECK: If the ability is an explicit "Spend X and/to make an attack",
+  // classify as attack immediately. This prevents buff/utility patterns from
+  // catching abilities like Ranger's Focus which are attacks that grant bonuses.
+  const hasExplicitAttackCommand = /(?:spend|mark).*?(?:to|and)\s+make\s+(?:a\s+|an\s+)?attack/i.test(cleanText);
+  if (hasExplicitAttackCommand) {
+    if (debug) console.log(`[ParseActionType] Early ATTACK: explicit attack command`);
     return 'attack';
   }
 
-  // Check for downtime patterns
-  if (cleanText.includes('during a rest') || cleanText.includes('downtime')) {
-    return 'downtime';
+
+  // 3. Check for BUFF patterns (healing, support, granting bonuses to self/allies)
+  // IMPORTANT: This must come BEFORE attacks and passive to catch active enhancement abilities
+  const buffPatterns = [
+    // Healing/clearing resources
+    /\bclear(?:s)?\s+(?:a|an|\d+)\s+(?:hit\s+point|stress|armor\s+slot)/i,
+    /\blay\s+your\s+hands\s+upon\b/i,
+    /\bhealing\s+magic\b/i,
+    /\bclose\s+their\s+wounds\b/i,
+    /\bclears?\s+(?:1d4|1d6|1d8)\s+hit\s+points?\b/i,
+    /\bthat\s+creature\s+clears\b/i,
+    /\bheal\b/i,
+    /\brestore\s+hit\s+points?\b/i,
+    /\bregain\s+hit\s+points?\b/i,
+
+    // Rally and dice granting (CRITICAL for Bard abilities)
+    /\bgive\s+(?:yourself|each|all|them|an?\s+ally)\b.*?\b(?:rally\s+)?die\b/i,
+    /\brally\s+die\b/i,
+    /\bgrant(?:s|ing)?\s+.*?\b(?:rally\s+)?die\b/i,
+
+    // Gaining bonuses (active, not passive)
+    /\bgain\s+(?:a\s+)?\+?\d+\s+bonus\s+to\b/i,
+    /\bgain\s+advantage\b/i,
+    /\bgain\s+a\s+hope\b/i,
+    /\beach\s+(?:ally|creature)\s+(?:clears?|gains?)\b/i,
+
+    // Self-enhancement buffs
+    /\bbecome\s+unstoppable\b/i,
+    /\bbecome\s+invisible\b/i,
+    /\broll\s+a\s+d20\s+as\s+your\s+hope\s+die\b/i,
+
+    // Reroll abilities (active enhancement) - but NOT triggered rerolls
+    /\breroll\s+(?:any\s+)?(?:number\s+of\s+)?(?:your\s+)?damage\s+dice\b/i,
+
+    // Weapon/attack enchantment
+    /\benchant\s+(?:one\s+of\s+)?(?:your\s+)?(?:active\s+)?weapons?\b/i,
+    /\bextra\s+\*?\*?\d*d\d+\*?\*?\s+damage\s+when\s+you\s+hit\b/i,
+
+    // Advantage granting
+    /\bhave\s+advantage\s+on\s+all\s+\*?\*?action\s+rolls?\*?\*?\b/i,
+    /\bgain\s+advantage\s+on\b/i,
+
+    // Hope gain for party
+    /\ball\s+allies.*?gain.*?hope\b/i,
+    /\beach.*?gains?\s+(?:a\s+)?hope\b/i,
+  ];
+
+
+  // Check if this is an ACTIVE BUFF ability - specifically for proactive enhancement
+  // Key indicators: "you can go/muster/become" (active self-enhancement)
+  // OR buff patterns without a reaction/passive trigger
+  const hasProactiveChoice =
+    // Active self-enhancement verbs (not just "you can mark/clear" which are resource costs)
+    /\byou\s+can\s+(?:go\s+into|muster|become\s+(?:invisible|unstoppable))\b/i.test(cleanText) ||
+    // Granting dice to allies (active buff)
+    /\bgive\s+(?:yourself|each|all|them|an?\s+ally)\b.*?\bdie\b/i.test(cleanText);
+
+  // Check for "while you're" active clauses that indicate proactive abilities
+  const hasWhileClauseActive = /^(?:once|twice)\s+per\s+[^,]+,\s+while\s+you(?:'re|\s+are)\b/i.test(cleanText);
+
+  // Exclude abilities that have TRUE passive triggers (automatic, no player choice)
+  // Triggered passives: "When you attack/roll/succeed" + minor choice like "clear stress"
+  // These are NOT buffs even though they have "you can"
+  const hasPassiveTrigger =
+    // "When you roll/attack/succeed/fail" triggers are passive even with "you can clear/mark"
+    /^(?:when|if|after|whenever)\s+you\s+(?:roll|succeed|fail|attack|critically|make\s+(?:a\s+)?success)/i.test(cleanText) ||
+    /^(?:once|twice)\s+per\s+(?:rest|long\s+rest|scene|turn|round),?\s+(?:when|if|after)\s+you\s+(?:roll|succeed|fail|attack|critically|make\s+(?:a\s+)?success)/i.test(cleanText) ||
+    // "When you would mark" triggers (prevents marking)
+    /\bwhen\s+you\s+would\s+(?:\*\*)?mark\b/i.test(cleanText) ||
+    // "While X, you gain/have..." patterns are conditional passives
+    /\bwhile\s+you(?:'re|\s+are)\s+.*?\b(?:gain|have)\b/i.test(cleanText) && !hasWhileClauseActive ||
+    // "You have advantage on..." at start is passive
+    /^you\s+have\s+(?:advantage|a\s+base|a\s+\+?\d+)/i.test(cleanText) ||
+    // "You have advantage" anywhere followed by "on action rolls" is passive
+    /\byou\s+have\s+advantage\s+on\s+.*?\baction\s+rolls?\b/i.test(cleanText) ||
+    // "When you leverage/use" patterns are triggered passives
+    /\bwhen\s+you\s+(?:leverage|use)\b/i.test(cleanText) ||
+    // "When X or more domain cards" passive bonuses
+    /\bwhen\s+\d+\s+or\s+more\s+(?:of\s+the\s+)?domain\s+cards\b/i.test(cleanText) ||
+    // "At the start of each session" automatic triggers
+    /\bat\s+the\s+start\s+of\s+(?:each|every)\s+(?:session|scene|turn)\b/i.test(cleanText);
+
+  // Active buffs: Must have proactive choice AND buff patterns AND NOT be passive triggered
+  if ((hasProactiveChoice || hasWhileClauseActive) && !hasPassiveTrigger && buffPatterns.some(pattern => pattern.test(cleanText))) {
+    if (debug) console.log(`[ParseActionType] Matched Active Buff`);
+    return undefined;
   }
 
-  // Check for buff patterns
-  if (
-    cleanText.includes('gain a bonus') ||
-    cleanText.includes('gain advantage') ||
-    cleanText.includes('clear a stress') ||
-    cleanText.includes('clear a hit point')
-  ) {
-    return 'buff';
+  // Regular buff check - only if no passive trigger
+  if (!hasPassiveTrigger && buffPatterns.some(pattern => {
+    const match = pattern.test(cleanText);
+    if (match && debug) console.log(`[ParseActionType] Matched Buff Pattern: ${pattern}`);
+    return match;
+  })) {
+    return undefined;
   }
 
-  // Default based on card type
+  // 5. Check for utility abilities (transformations, cantrips, illusions, communication, resource conversion)
+  // MOVED UP: Utility checks come before Attack checks because many utilities (transformations)
+  // define attacks inside them, but the primary action is the transformation/utility.
+  const utilityPatterns = [
+    /\btransform\s+into\b/i,
+    /\bmagically\s+transform\b/i,
+    /\bcreate\s+(?:a\s+)?(?:minor\s+)?(?:visual\s+)?illusion\b/i,
+    /\bperform\s+harmless\b/i,
+    /\bsubtl[e]?\s+(?:magical\s+)?effects?\b/i,
+    /\bspeak\s+with\b/i,
+    /\bcommunicate\s+(?:across|with)\b/i,
+    /\bretract\s+into\s+your\s+shell\b/i,
+    /\bextract\s+(?:one\s+)?memory\b/i,
+    /\bplace\s+(?:a\s+)?domain\s+card\b/i,
+    // Teleportation / disappearing
+    /\bdisappear\s+from\s+where\s+you\s+are\b/i,
+    /\bdisappear\s+and\s+(?:then\s+)?reappear\b/i,
+    /\breappear\s+(?:inside|in|at|next\s+to)\b/i,
+    /\bslip\s+into\s+the\s+realm\b/i,
+    // Becoming cloaked/hidden
+    /\bbecome\s+cloaked\b/i,
+    /\bto\s+become\s+cloaked\b/i,
+    // Creating zones/effects
+    /\bcreate\s+(?:a\s+)?(?:temporary|dark)\b/i,
+    /\bcall\s+on\s+a\s+shady\s+contact\b/i,
+    // Item acquisition
+    /\breach\s+into\s+(?:this|your)\s+pack\b/i,
+    /\bpull\s+out\s+(?:a|an)\s+(?:mundane\s+)?item\b/i,
+    // Channel/incarnation
+    /\bchannel\s+one\s+of\b/i,
+    /\bprioritize\s+a[n]?\s+adversary\b/i,
+    // Glamour/disguise
+    /\bglamour\s+yourself\b/i,
+    /\bmagical\s+facade\b/i,
+    /\bdisguise\s+yourself\b/i,
+    // Spectral/spirit form transitions
+    /\bbody\s+becomes\s+spectral\b/i,
+    /\bshift\s+between\s+corporeal\s+and\s+incorporeal\b/i,
+    /\btransition\s+into\s+(?:and\s+out\s+of\s+)?(?:your\s+)?spirit\s+form\b/i,
+    // Commune with spirits
+    /\bcommune\s+with\s+(?:an?\s+)?(?:ancestor|deity|spirit|being)\b/i,
+    /\bconverse\s+with\s+(?:any\s+)?(?:nearby\s+)?spirits\b/i,
+    /\bstep\s+beyond\s+the\s+veil\b/i,
+    // Unbelievable feats (movement utility)
+    /\bperform\s+an\s+unbelievable\s+feat\b/i,
+    /\brunning\s+across\s+water\b/i,
+    /\bleaping\s+between\s+distant\b/i,
+    // Added Utility Patterns
+    // "fly" and "flight" must be about granting the ability to fly, not projectile motion
+    /\byou\s+(?:can\s+)?fly\b/i,
+    /\bgive\s+yourself\s+flight\b/i,
+    /\bgain\s+(?:the\s+ability\s+to\s+)?flight\b/i,
+    /\bgrant\s+(?:you\s+)?flight\b/i,
+    /\bteleport\b/i,
+    /\bproject\s+(?:your\s+)?senses\b/i,
+    /\balter\s+reality\b/i,
+    /\btake\s+on\s+the\s+form\b/i,
+  ];
+  if (utilityPatterns.some(pattern => {
+    const match = pattern.test(cleanText);
+    if (match && debug) console.log(`[ParseActionType] Matched Utility: ${pattern}`);
+    return match;
+  })) {
+    return undefined;
+  }
+
+  // 4. Check if this is an ATTACK (player initiates combat action)
+  // An attack needs: "make a Roll against" OR parsed attack data
+
+  const hasAttackWith = /make (?:a |an )?attack with/i.test(cleanText);
+  // Matches: "spend...to make...attack" AND "spend...and make...attack"
+  const hasExplicitAttack = /(?:spend|mark).*?(?:to|and) make (?:a |an )?attack/i.test(cleanText);
+
+  // Attack extension - when a successful attack allows you to extend it to more targets
+  // This is still an "attack" action because you're actively choosing to expand the attack
+  // NOTE: Must distinguish from triggered bonus damage ("dealing extra damage") which is NOT an extension
+  const hasAttackExtension = /when you (?:make a successful|succeed on).*?attack.*?(?:spend|mark).*?(?:use|apply|extend)/i.test(cleanText) &&
+    !/dealing\s+(?:an?\s+)?(?:extra|additional)/i.test(cleanText);
+
+  // "perform an aerial attack" or similar explicit attack descriptions
+  const hasPerformAttack = /\bperform\s+(?:a |an )?(?:\w+\s+)?attack\b/i.test(cleanText);
+
+  // "to attack an adversary" or "fly...to attack" (Spirit Weapon: weapon flies to attack)
+  const hasDirectAttackVerb = /\bto\s+attack\s+(?:a |an )?(?:adversary|target|creature|enemy)/i.test(cleanText);
+
+  // "Make a [Trait] Roll" (imperative)
+  // e.g. "Make a Presence Roll (10)" -> This is an action
+  const hasMakeRoll = /make (?:a |an )?\*?\*?(?:\w+\s+)?roll\*?\*?(?:\s+\(\d+\))?/i.test(text) && !/reaction roll/i.test(text);
+
+  if (debug && hasMakeRoll) console.log(`[ParseActionType] Detected hasMakeRoll`);
+
+  // But exclude simple "when you make a successful attack" passive triggers (without extension)
+  const isSimpleAttackTrigger = /when you (?:make a success|succeed|critically succeed|fail)/i.test(cleanText) && !hasAttackExtension;
+
+  // Exclude abilities that describe how to modify attacks (passive), not attacks themselves
+  // "Before you make an attack" - modifies upcoming attacks (Apex Predator)
+  // "Increase the damage dice" - permanent stat enhancement (Powerhouse)
+  const isPassiveAttackModifier = /^before you make (?:a |an )?(?:\w+\s+)?(?:attack|roll)/i.test(cleanText) ||
+    /^increase (?:the |your )/i.test(cleanText);
+
+  // Check if the text contains damage dice (indicates offensive action)
+  // Exclude "damage dice" (describes dice type, e.g. "d8 damage dice" vs "1d8 damage")
+  const hasDamageDice = /\d*d\d+(?:[+\-]\d+)?\s+(?:magic\s+|physical\s+|true\s+)?damage(?!\s+dice)/i.test(cleanText);
+
+  // "hasMakeRoll" alone is not enough to classify as attack.
+  // For spells/abilities with just a roll (no damage, no "against"), treat as utility.
+  // Only count hasMakeRoll as attack indicator if there's damage or "against" a target.
+  const hasMakeRollForAttack = hasMakeRoll && (hasDamageDice || hasRollAgainst);
+
+  // Only classify as attack if we have attack-like patterns AND it's not a triggered bonus
+  const hasAttackIndicators = attack || hasRollAgainst || hasAttackWith || hasExplicitAttack || hasAttackExtension || hasPerformAttack || hasDirectAttackVerb || hasMakeRollForAttack;
+  const isTriggeredBonusAttack = attack?.is_triggered_bonus;
+  if (hasAttackIndicators && !isSimpleAttackTrigger && !isTriggeredBonusAttack && !isPassiveAttackModifier) {
+    if (debug) console.log(`[ParseActionType] Returning ATTACK`);
+    return 'attack';
+  }
+
+  // 6. Check for passive abilities (triggered by conditions, not actively used)
+  // This is a VERY important section - passive abilities are the most common type
+  // IMPORTANT: This comes LAST (before default) to catch remaining triggered abilities
+  const passiveTriggers = [
+    // Basic "when you" triggers at start of text
+    /^when you (?:roll|deal|succeed|critically|fail)/i,
+    /^when you make a successful/i,
+    /^while you(?:'re| are)/i,
+    /^you have advantage/i,
+    /^you have a base/i,
+    /^gain a \+?\d+ bonus to/i,
+    /^when an ally/i,
+
+    // PASSIVE: "Before you make an attack" - modifies upcoming attacks (Apex Predator)
+    /^before you make (?:a |an )?(?:\w+\s+)?attack/i,
+    /\bbefore you make (?:a |an )?(?:\w+\s+)?(?:roll|attack)\s+against\b/i,
+
+    // PASSIVE: Ability stat increases like "Increase the d8 damage dice" (Powerhouse)
+    /^increase the\b/i,
+    /^increase your\b/i,
+
+    // PASSIVE: "with a single attack roll" - describes attack mechanics, doesn't initiate
+    /\bwith a single attack roll\b/i,
+
+    // Post-action triggers (after making an attack/roll)
+    /\bwhen you (?:make a successful|succeed on|successfully cast|successfully make)\b/i,
+    /\bafter you (?:make|cast|successfully)\b/i,
+    /\bafter (?:making|casting) (?:a|an)\b/i,
+    /\bwhen you successfully cast\b/i,
+    /\bafter you successfully\b/i,
+
+    // Conditional bonuses (while/if conditions)
+    /\bwhile (?:you(?:'re| are)|wearing|wielding|in)\b/i,
+    /\bif you (?:are|have)\b/i,
+    /\bwhen (?:\d+|four|4) or more (?:of the )?(?:domain )?cards\b/i,
+    /\bwhen (?:\d+|four|4)\+ (?:of the )?(?:domain )?cards\b/i,
+
+    // Damage roll triggers
+    /\bwhen you (?:roll|deal) (?:your )?damage\b/i,
+    /\bwhen you roll (?:your )?damage dice\b/i,
+    /\bwhen rolling damage\b/i,
+
+    // Attack triggers (not initiating, but triggered by)
+    /\bwhen you (?:make an attack|attack)\b/i,
+    /\bwhen making an attack\b/i,
+    /\bwhen you critically succeed on an attack\b/i,
+    /\bwhen you fail an attack\b/i,
+
+    // Defeat/kill triggers
+    /\bwhen you (?:defeat|kill) (?:a|an|the)\b/i,
+    /\bwhen you deal enough damage to defeat\b/i,
+
+    // Marking/taking damage triggers
+    /\bwhen you cause (?:a|an|the) (?:adversary|target|creature) to mark\b/i,
+    /\bwhen (?:a|an|the) (?:adversary|target|creature) (?:you|marks)\b/i,
+
+    // Taking damage with severity (passive mitigation, not reaction counter-attack)
+    /\bwhen you take (?:minor|major|severe) damage\b/i,
+
+    // Experience/token usage triggers
+    /\bwhen you use (?:a|an|one of your) experience\b/i,
+    /\bwhen using (?:a|an|one of your) experience\b/i,
+    /\btriggered by using experience\b/i,
+
+    // Passive stat bonuses
+    /\bgain (?:a )?\+?\d+ bonus to (?:your )?\w+\b/i,
+    /\byou (?:have|gain) (?:a )?(?:permanent )?\+?\d+\b/i,
+
+    // Reroll abilities (passive triggers) - but only when triggered by condition
+    /\bwhen you roll.*?you can reroll\b/i,
+    /\breroll any (?:1s|2s|number)\b/i,
+
+    // First time per turn/scene triggers
+    /\bthe first time (?:you|each)\b/i,
+    /\bonce per (?:turn|round)\b/i,
+
+    // Loadout composition bonuses
+    /\bwhen (?:\d+|four|4) or more of the domain cards in your loadout\b/i,
+  ];
+
+  if (passiveTriggers.some(pattern => pattern.test(cleanText))) {
+    return undefined;
+  }
+
+  // 7. Default based on card type
   if (cardType === 'Spell') {
-    return 'utility'; // Non-combat spells are utility
+    return undefined;
   }
 
-  return 'passive';
+  return undefined;
 }
 
 /**
  * Determine timing from action type and text
  */
 export function parseTiming(text: string, actionType: ActionType): Timing {
-  if (actionType === 'reaction') {
-    return 'reaction';
+  const cleanText = text.replace(/\*/g, '');
+
+  // 1. Explicit Reaction patterns
+  const reactionPatterns = [
+    /as a reaction/i,
+    /timing: reaction/i,
+    /reaction roll/i,
+    /interrupt/i,
+    /when you (?:would )?take (?:magic |physical |severe |major |minor )?damage/i,
+    /when you (?:would )?mark/i,
+    /after an? (?:adversary|creature|ally)/i,
+    /when an? (?:adversary|creature|ally)/i,
+    /in response to/i,
+    /(?:to |you )?(?:reduce|halve) (?:incoming |the )?damage/i,
+    // Pattern for "when an attack fails" or "when an attack made against you...fails"
+    // Handles: "when an attack fails", "when an attack made against you from X fails", 
+    // "when an attack made against you that would deal physical damage fails"
+    /when an? attack(?:\s+made\s+against\s+you)?(?:[^.]*?)\s+fails/i,
+    /when (?:you(?:'re|r)?|are) targeted/i,
+    /if an? adversary/i,
+    /when (?:you|an? ally) (?:are|is) attacked/i,
+    // Pattern for "to halve X damage" (defensive reaction)
+    /to\s+halve\s+(?:incoming\s+)?(?:physical\s+|magic\s+)?damage/i,
+    // Pattern for "when attack roll...succeeds" (defensive reaction trigger)
+    /when\s+an?\s+attack\s+roll\s+(?:against\s+you\s+)?succeeds/i,
+    // Pattern for "when you succeed on an attack" (triggered bonus damage)
+    /when\s+you\s+succeed\s+on\s+an?\s+attack/i,
+    // Pattern for "when you critically succeed on" (triggered bonus)
+    /when\s+you\s+critically\s+succeed\s+on/i,
+  ];
+
+  for (const p of reactionPatterns) {
+    if (p.test(cleanText)) {
+      console.log(`MATCHED Reaction: pattern=${p}, text="${cleanText.substring(0, 30)}..."`);
+      return 'reaction';
+    }
   }
-  if (actionType === 'downtime') {
+
+  // 2. Explicit Downtime patterns
+  const downtimePatterns = [
+    /during a (?:short |long )?rest/i,
+    /as a downtime move/i,
+    /during downtime/i,
+    /when you take a (?:short |long )?rest/i,
+  ];
+  if (downtimePatterns.some(p => p.test(cleanText))) {
     return 'downtime';
   }
-  if (actionType === 'passive') {
+
+  // 3. Explicit Free patterns (and Passive-style patterns)
+  const freePatterns = [
+    /free action/i,
+    /\bpermanent\b/i,
+    /always active/i,
+    /you (?:have|gain) advantage/i,
+    /at the (?:start|end) of/i,
+    /character creation/i,
+  ];
+  if (freePatterns.some(p => p.test(cleanText))) {
     return 'free';
   }
+
+  // 4. Default based on action_type
+  // Attacks are always 'action' unless they matched reaction above
+  if (actionType === 'attack') {
+    return 'action';
+  }
+
+  // Most other things (buffs, utilities) that aren't reactions or downtime are actions
   return 'action';
 }
 
@@ -638,9 +1416,38 @@ export function parseTiming(text: string, actionType: ActionType): Timing {
 export function hasTokenMechanics(text: string): boolean {
   const lowerText = text.toLowerCase();
   return (
+    // Placing tokens
     (lowerText.includes('place') && lowerText.includes('token')) ||
+    lowerText.includes('place a number of tokens') ||
+    lowerText.includes('place tokens') ||
+    // Spending tokens
     (lowerText.includes('spend') && lowerText.includes('token')) ||
-    lowerText.includes('tokens on this card')
+    lowerText.includes('spend a token') ||
+    lowerText.includes('spend one token') ||
+    // Tokens on card
+    lowerText.includes('tokens on this card') ||
+    lowerText.includes('token on this card') ||
+    // Clearing/removing tokens
+    lowerText.includes('clear all unspent tokens') ||
+    lowerText.includes('clear all tokens') ||
+    lowerText.includes('remove a token') ||
+    lowerText.includes('remove tokens') ||
+    // Holding tokens
+    lowerText.includes('hold up to') && lowerText.includes('token') ||
+    lowerText.includes('hold tokens') ||
+    // Token equal to trait
+    lowerText.includes('tokens equal to') ||
+    lowerText.includes('token equal to') ||
+    // Number of tokens
+    lowerText.includes('number of tokens') ||
+    // Gain a token
+    lowerText.includes('gain a token') ||
+    lowerText.includes('gain tokens') ||
+    // Dice pool mechanics (e.g., "Slayer Dice") - dice stored on card
+    /place\s+(?:a\s+)?\*?\*?d\d+\*?\*?\s+on\s+this\s+card/i.test(text) ||
+    /store\s+(?:a\s+number\s+of|up\s+to)\s+.*?\s+(?:dice|die)\s+equal\s+to/i.test(text) ||
+    // "you can store a number of X Dice equal to your Y"
+    /(?:number|pool)\s+of\s+.*?dice\s+equal\s+to/i.test(text)
   );
 }
 
@@ -649,11 +1456,18 @@ export function hasTokenMechanics(text: string): boolean {
  * Returns null if tokens are dynamic (based on trait)
  */
 export function parseMaxTokens(text: string): number | null {
-  // Check for fixed token count
+  // Check for fixed token count - "place 8 tokens"
   const fixedPattern = /place (\d+) tokens?/i;
   const fixedMatch = text.match(fixedPattern);
   if (fixedMatch) {
     return parseInt(fixedMatch[1], 10);
+  }
+
+  // Check for "hold up to X tokens" or "up to X tokens at a time"
+  const holdPattern = /(?:hold\s+)?up\s+to\s+\*?\*?(\d+)\s+tokens?\*?\*?(?:\s+at\s+a\s+time)?/i;
+  const holdMatch = text.match(holdPattern);
+  if (holdMatch) {
+    return parseInt(holdMatch[1], 10);
   }
 
   // Check for "tokens equal to" pattern (dynamic)
@@ -673,26 +1487,58 @@ export function parseMaxTokens(text: string): number | null {
  * Parse token source trait from card text
  */
 export function parseTokenSource(text: string): string | undefined {
-  const traitPattern = /tokens? equal to (?:your )?(\w+)/i;
-  const match = text.match(traitPattern);
-  if (match) {
-    const trait = match[1].toLowerCase();
-    // Map common variations
-    const traitMap: Record<string, string> = {
-      'agility': 'agility',
-      'strength': 'strength',
-      'finesse': 'finesse',
-      'presence': 'presence',
-      'knowledge': 'knowledge',
-      'instinct': 'instinct',
-      'spellcast': 'spellcast',
-      'proficiency': 'proficiency',
-      'level': 'level',
-      'tier': 'tier',
-    };
-    return traitMap[trait] || trait;
+  const cleanText = stripMarkdown(text).toLowerCase();
+
+  // Pattern 1: "tokens equal to your [trait]" or "tokens equal to [trait]"
+  const pattern1 = /tokens?(?:\s+on\s+this\s+card)?\s+equal\s+to\s+(?:your\s+)?(\w+)/i;
+  const match1 = cleanText.match(pattern1);
+  if (match1) {
+    return normalizeTokenSourceTrait(match1[1]);
   }
+
+  // Pattern 2: "a number of tokens equal to your [trait]"
+  const pattern2 = /(?:a\s+)?number\s+of\s+tokens?\s+equal\s+to\s+(?:your\s+)?(\w+)/i;
+  const match2 = cleanText.match(pattern2);
+  if (match2) {
+    return normalizeTokenSourceTrait(match2[1]);
+  }
+
+  // Pattern 3: "place tokens equal to..." or "place a number of tokens equal to..."
+  const pattern3 = /place\s+(?:a\s+number\s+of\s+)?tokens?\s+equal\s+to\s+(?:your\s+)?(\w+)/i;
+  const match3 = cleanText.match(pattern3);
+  if (match3) {
+    return normalizeTokenSourceTrait(match3[1]);
+  }
+
+  // Pattern 4: Dice pool mechanics - "store a number of X Dice equal to your [trait]"
+  const pattern4 = /(?:store|hold|keep)\s+(?:a\s+)?(?:number\s+of\s+)?.*?s*(?:dice|die)\s+equal\s+to\s+(?:your\s+)?(\w+)/i;
+  const match4 = cleanText.match(pattern4);
+  if (match4) {
+    return normalizeTokenSourceTrait(match4[1]);
+  }
+
   return undefined;
+}
+
+/**
+ * Normalize token source trait names
+ */
+function normalizeTokenSourceTrait(trait: string): string {
+  const normalized = trait.toLowerCase();
+  // Map common variations
+  const traitMap: Record<string, string> = {
+    'agility': 'agility',
+    'strength': 'strength',
+    'finesse': 'finesse',
+    'presence': 'presence',
+    'knowledge': 'knowledge',
+    'instinct': 'instinct',
+    'spellcast': 'spellcast',
+    'proficiency': 'proficiency',
+    'level': 'level',
+    'tier': 'tier',
+  };
+  return traitMap[normalized] || normalized;
 }
 
 /**
@@ -702,44 +1548,89 @@ export function extractKeywords(text: string, cardType: string): string[] {
   const keywords: string[] = [];
   const lowerText = text.toLowerCase();
 
-  // Damage-related
-  if (lowerText.includes('damage')) keywords.push('damage');
-  if (lowerText.includes('magic damage')) keywords.push('magic');
-  if (lowerText.includes('physical damage')) keywords.push('physical');
+  // Damage reduction (defensive)
+  if (/reduce(?:\s+(?:incoming|the))?\s+damage/.test(lowerText)) {
+    keywords.push('damage_reduction');
+  }
+  // Also catch "reduce the number of Hit Points they mark"
+  if (/reduce\s+(?:the\s+)?(?:number\s+of\s+)?hit\s+points\s+(?:they|you)\s+mark/.test(lowerText)) {
+    if (!keywords.includes('damage_reduction')) keywords.push('damage_reduction');
+  }
 
-  // AoE
-  if (lowerText.includes('all targets') || lowerText.includes('all adversaries')) {
+  // Damage-related (offensive) - only for dealing damage, not reducing
+  if (/\bdamage\b/.test(lowerText)) {
+    // Exclude damage reduction patterns
+    if (!/reduce(?:\s+(?:incoming|the))?\s+damage/.test(lowerText)) {
+      keywords.push('damage');
+    }
+  }
+  if (/\bmagic\s+damage\b/.test(lowerText)) keywords.push('magic');
+  if (/\bphysical\s+damage\b/.test(lowerText)) keywords.push('physical');
+
+  // AoE - expanded patterns
+  if (
+    /\ball\s+targets\b/.test(lowerText) ||
+    /\ball\s+adversaries\b/.test(lowerText) ||
+    /\ball\s+creatures\s+within\b/.test(lowerText) ||
+    /\beach\s+adversary\b/.test(lowerText) ||
+    /\beach\s+creature\s+within\b/.test(lowerText) ||
+    /\beach\s+target\s+within\b/.test(lowerText) ||
+    /\bto\s+all\s+creatures\b/.test(lowerText)
+  ) {
     keywords.push('aoe');
   }
 
-  // Healing/Support
-  if (lowerText.includes('clear') && lowerText.includes('hit point')) {
+  // Healing/Support - multiple patterns to catch various phrasing
+  if (/\bclear\b.*?\bhit\s+points?\b|\bhit\s+points?\b.*?\bclear\b/.test(lowerText)) {
     keywords.push('healing');
   }
-  if (lowerText.includes('clear') && lowerText.includes('stress')) {
+  // Also catch "clears X Hit Point", "clear a Hit Point", or "clears **1d4** Hit Points" (with optional markdown)
+  if (/\bclears?\s+(?:\*{0,2}(?:\d+d?\d*|\d+)\*{0,2}\s+)?(?:a\s+)?hit\s+point/i.test(lowerText)) {
+    keywords.push('healing');
+  }
+  if (/\bclear\b.*?\bstress\b|\bstress\b.*?\bclear\b/.test(lowerText)) {
     keywords.push('stress_relief');
   }
-  if (lowerText.includes('gain') && lowerText.includes('hope')) {
+  // Also catch "clears X Stress" or "clear a Stress"
+  if (/\bclears?\s+(?:\d+\s+)?(?:a\s+)?stress/i.test(lowerText)) {
+    keywords.push('stress_relief');
+  }
+  // Fix: "gain" must be a complete word (not part of "again")
+  if (/\bgain\b/.test(lowerText) && /\bhope\b/.test(lowerText)) {
     keywords.push('hope_gain');
+  }
+  // Catch "gains a Hope" for abilities that give party Hope
+  if (/\bgains?\s+(?:a\s+)?hope\b/i.test(lowerText)) {
+    if (!keywords.includes('hope_gain')) keywords.push('hope_gain');
   }
 
   // Costs
-  if (lowerText.includes('mark') && lowerText.includes('stress')) {
+  if (/\bmark\b/.test(lowerText) && /\bstress\b/.test(lowerText)) {
     keywords.push('stress_cost');
   }
-  if (lowerText.includes('spend') && lowerText.includes('hope')) {
+  if (/\bspend\b/.test(lowerText) && /\bhope\b/.test(lowerText)) {
     keywords.push('hope_cost');
   }
 
   // Control
-  if (lowerText.includes('vulnerable')) keywords.push('debuff');
-  if (lowerText.includes('restrained')) keywords.push('control');
-  if (lowerText.includes('advantage')) keywords.push('buff');
-  if (lowerText.includes('disadvantage')) keywords.push('debuff');
+  if (/\bvulnerable\b/.test(lowerText)) keywords.push('debuff');
+  if (/\brestrained\b/.test(lowerText)) keywords.push('control');
+  if (/\badvantage\b/.test(lowerText)) keywords.push('buff');
+  if (/\bdisadvantage\b/.test(lowerText)) keywords.push('debuff');
 
-  // Movement
-  if (lowerText.includes('teleport') || lowerText.includes('move')) {
+  // Movement - expanded patterns
+  if (/\bteleport\b/.test(lowerText) || /\bmove\b/.test(lowerText)) {
     keywords.push('movement');
+  }
+  // Additional movement patterns: leap, fly, jump, reappear, hover
+  if (/\bleap\b|\bfly\b|\bjump\b|\breappear\b|\bhover\b/.test(lowerText)) {
+    if (!keywords.includes('movement')) keywords.push('movement');
+  }
+  // Forced movement: throw, pull, push
+  if (/\bthrow\s+(?:them|target|an?\s+adversary)\b/.test(lowerText) ||
+    /\bpull\s+(?:yourself|the\s+target|them)\b/.test(lowerText) ||
+    /\bpush\s+(?:them|target|an?\s+adversary)\b/.test(lowerText)) {
+    if (!keywords.includes('movement')) keywords.push('movement');
   }
 
   // Tokens
@@ -757,16 +1648,45 @@ export function extractKeywords(text: string, cardType: string): string[] {
  */
 export function parseRoll(text: string): CardRoll | undefined {
   const trait = parseRollTrait(text);
-  if (!trait) return undefined;
-
   const difficulty = parseRollDifficulty(text);
-  const hasTargetReaction = text.toLowerCase().includes('reaction roll');
+
+  // Need at least a trait or difficulty to have a roll
+  if (!trait && !difficulty) return undefined;
+
+  // Check for negation patterns - if the text says "without making" or "don't make" a roll, don't extract it
+  const cleanText = stripMarkdown(text).toLowerCase();
+  const negationPatterns = [
+    /without\s+making\s+(?:a|an)\s+\w+\s+roll/i,
+    /don't\s+(?:make|need)\s+(?:a|an)\s+\w+\s+roll/i,
+    /doesn't\s+(?:make|need|require)\s+(?:a|an)\s+\w+\s+roll/i,
+    /no\s+\w+\s+roll/i,
+  ];
+
+  if (negationPatterns.some(pattern => pattern.test(cleanText))) {
+    return undefined;
+  }
+
+  // Target makes a reaction roll (forced save)
+  const hasTargetReaction =
+    cleanText.includes('reaction roll') ||
+    /must\s+(?:make|succeed)\s+(?:a|on)\s+.*?reaction/i.test(cleanText) ||
+    /(?:targets?|creatures?)\s+(?:who|that|must)\s+.*?reaction/i.test(cleanText);
+
+  // Check if costs are required BEFORE making the roll
+  // Patterns like "Spend a Hope to make a roll" or "Mark Stress to make a roll"
+  // Also catches "Mark 2 Stress to make" or "Spend 5 Hope to make"
+  const requiresCostForRoll =
+    /\*\*spend\s+(?:a\s+|\d+\s+)?hope\*\*\s+to\s+(?:make|allow)/i.test(text) ||
+    /\*\*mark\s+(?:a\s+|\d+\s+)?stress\*\*\s+to\s+(?:make|allow)/i.test(text) ||
+    /spend\s+(?:a\s+|\d+\s+)?hope\s+to\s+(?:make|allow)/i.test(cleanText) ||
+    /mark\s+(?:a\s+|\d+\s+)?stress\s+to\s+(?:make|allow)/i.test(cleanText);
 
   return {
-    type: `${trait} Roll`,
-    trait,
+    type: `${trait || 'Spellcast'} Roll`,
+    trait: trait || 'Spellcast',
     difficulty,
     target_reaction: hasTargetReaction,
+    requires_cost_for_roll: requiresCostForRoll || undefined, // Only include if true
   };
 }
 
@@ -841,18 +1761,58 @@ export function parseCombatCategory(text: string): CombatCategory {
  */
 export function parseAttack(text: string): CardAttack | undefined {
   const cleanText = stripMarkdown(text);
+  const lowerText = cleanText.toLowerCase();
   const trait = parseRollTrait(text);
   const range = parseCardRange(text);
   const damage = parseCardDamage(text);
-  const hasAgainst = cleanText.toLowerCase().includes('against');
+  const hasAgainst = lowerText.includes('against');
 
-  // Stricter check: An attack needs damage OR a trait roll against a target
-  if (!damage && !(trait && hasAgainst)) return undefined;
+  // Check for weapon-style descriptions
+  const isWeaponAbility = /(?:as\s+(?:a|an)\s+)?\w+\s+weapon\s+that\s+deals/i.test(cleanText) ||
+    /treating\s+it\s+as\s+(?:a|an)\s+\w+\s+weapon/i.test(cleanText) ||
+    /use\s+(?:it|your\s+\w+)\s+as\s+(?:a|an)\s+\w+\s+\w*\s*weapon/i.test(cleanText);
+
+  // Check for attack actions
+  const hasMakeRollTo = /make\s+(?:a|an)\s+\*?\*?\w+\s+roll\*?\*?\s+to/i.test(text);
+  const hasAttackTarget = /attack\s+(?:a\s+)?target/i.test(lowerText) ||
+    /scratch\s+a\s+target/i.test(lowerText) ||
+    /use\s+this\s+breath\s+against/i.test(lowerText) ||
+    /attack\s+(?:an?\s+)?adversary/i.test(lowerText);
+
+  // Parse additional/secondary damage
+  const additionalDamage = extractAdditionalDamage(text);
+
+  // Heuristic: Check if "Make an attack" is purely conditional (e.g. "When you make an attack")
+  // vs Imperative ("Make an attack"). used to filter false positives for buffs.
+  const allActionMentions = cleanText.match(/make\s+(?:an?\s+)?(?:attack|.*?\s+roll)/gi) || [];
+  const conditionalActionMentions = cleanText.match(/(?:if|when|whenever|after|before|until|and|first\s+time)\s+(?:[^.!?]*?\s+)?make\s+(?:an?\s+)?(?:attack|.*?\s+roll)/gi) || [];
+  const hasUnconditionalAction = allActionMentions.length > conditionalActionMentions.length;
+
+  // If the card starts with a conditional trigger and has NO unconditional action mentions,
+  // this is a triggered ability. We still parse attack DATA (damage, range, etc.),
+  // but we flag it so parseActionType knows not to classify it as an "attack" action_type.
+  const startsWithConditional = /^(?:when|after|if|whenever)\s+you\s+(?:make|roll|succeed|fail)/i.test(cleanText) ||
+    /^(?:when|after|if|whenever)\s+making/i.test(cleanText);
+  const isTriggeredBonus = startsWithConditional && !hasUnconditionalAction;
+
+  // Requirements for parsing as an attack:
+  // 1. Has damage, OR
+  // 2. Has trait roll against target, OR
+  // 3. Is a weapon ability, OR
+  // 4. Make a roll to affect target
+  // 5. Has additional damage (AND has explicit action initiation)
+  if (!damage && !(trait && hasAgainst) && !isWeaponAbility && !hasMakeRollTo && !hasAttackTarget) {
+    if (additionalDamage.length === 0) return undefined;
+    // If relying solely on additional damage, ensure we have an unconditional action trigger
+    if (!hasUnconditionalAction) return undefined;
+  }
 
   const attack: CardAttack = {
     trait: trait || 'Spellcast',
     range: range || 'Close',
     combat_category: parseCombatCategory(text),
+    additional_damage: additionalDamage.length > 0 ? additionalDamage : undefined,
+    is_triggered_bonus: isTriggeredBonus || undefined,
   };
 
   if (damage) attack.damage = damage;
@@ -865,7 +1825,143 @@ export function parseAttack(text: string): CardAttack | undefined {
   const difficulty = parseRollDifficulty(text);
   if (difficulty) attack.difficulty = difficulty;
 
+  // Extract effect from ability text (e.g., "become vulnerable")
+  if (/\bvulnerable\b/i.test(lowerText)) {
+    attack.secondary_effects = attack.secondary_effects || [];
+    attack.secondary_effects.push('vulnerable');
+  }
+
   return attack;
+}
+
+/**
+ * Extract additional/secondary damage instances from text
+ */
+function extractAdditionalDamage(text: string): AdditionalDamage[] {
+  const cleanText = stripMarkdown(text);
+  const results: AdditionalDamage[] = [];
+
+  // 1. "on a success (with Hope), add [dice] to your damage roll"
+  const addMatches = cleanText.matchAll(/([^\.]*?)\badd\s+(?:an?\s+)?(\d*d\d+)(?:\s+(?:magic|physical)\s+damage)?(?:\s+to\s+(?:your\s+)?damage\s+roll)/gi);
+  for (const match of addMatches) {
+    let condition = match[1].trim();
+    const damage = match[2];
+
+    // Clean up condition
+    if (condition.toLowerCase().startsWith('add')) condition = '';
+    condition = condition.replace(/^(?:and\s+|,\s*)/i, '');
+    if (condition.toLowerCase().includes('on a success')) condition = condition.replace(/on a success/i, '').trim();
+    if (condition.startsWith('with ')) condition = condition.replace('with ', '');
+    condition = condition.replace(/[,\s]+$/i, ''); // Strip trailing commas
+    condition = condition.trim() || 'On hit';
+
+    // Infer label
+    let label = 'Extra';
+    if (condition.toLowerCase().includes('hope')) label = 'Hope';
+    if (condition.toLowerCase().includes('crit')) label = 'Crit';
+
+    results.push({
+      damage,
+      condition,
+      label
+    });
+  }
+
+  // 2. "take(s) an extra/additional [dice] [type] damage (if/when...)"
+  const extraMatches = cleanText.matchAll(/([^\.]*?)\b(?:extra|additional)\s+(\d*d\d+(?:\+\d+)?)\s+(?:(magic|physical|true)\s+)?damage(.*?)(?:\.|$)/gi);
+  for (const match of extraMatches) {
+    const preContext = match[1].trim();
+    const damage = match[2];
+    const type = match[3] as DamageType | undefined;
+    const postContext = match[4].trim();
+
+    // Construct condition from context
+    let condition = '';
+
+    // Check if Pre-context has a strong trigger (When/If)
+    const PreLower = preContext.toLowerCase();
+    if (PreLower.includes('when ') || PreLower.includes('if ')) {
+      condition = preContext;
+    }
+    // Otherwise check post-context
+    else if (postContext.toLowerCase().startsWith(' if') || postContext.toLowerCase().startsWith(' when')) {
+      condition = postContext.trim();
+    }
+    // Fallback to pre-context
+    else if (preContext) {
+      condition = preContext;
+    }
+
+    // Clean condition
+    condition = condition.replace(/^(?:and\s+|,\s*)/i, '');
+
+    // Only strip "target takes" stuff if we didn't find a nice "When/If" clause
+    if (!condition.toLowerCase().startsWith('when') && !condition.toLowerCase().startsWith('if')) {
+      if (condition.toLowerCase().includes('must take')) condition = condition.replace(/.*?must take/i, 'target takes').trim();
+    }
+
+    // Final cleanup
+    condition = condition.replace(/,\s*they\s+must\s+take\s+an?$/i, '');
+    condition = condition.replace(/,\s*target\s+takes\s+an?$/i, '');
+
+    // Infer label
+    let label = 'Extra';
+    if (condition.toLowerCase().includes('on fire')) label = 'Fire';
+    if (condition.toLowerCase().includes('vulnerable')) label = 'Vuln';
+
+    results.push({
+      damage,
+      damage_type: type,
+      condition: condition || 'Secondary',
+      label
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Parse stat_bonuses from card text for permanent character bonuses
+ * Matches patterns like "Gain an additional Hit Point slot" or "Gain an additional Stress slot"
+ */
+export function parseStatBonuses(text: string): {
+  hit_point_slots?: number;
+  stress_slots?: number;
+  evasion?: number;
+  experience?: number;
+  damage_thresholds?: string | number;
+} | undefined {
+  const cleanText = stripMarkdown(text).toLowerCase();
+  const bonuses: {
+    hit_point_slots?: number;
+    stress_slots?: number;
+    evasion?: number;
+    experience?: number;
+    damage_thresholds?: string | number;
+  } = {};
+
+  // Pattern: "Gain an additional Hit Point slot" or "gain an additional Hit Point slot"
+  if (/gain\s+(?:an?\s+)?(?:additional\s+)?hit\s+point\s+slot/i.test(cleanText)) {
+    bonuses.hit_point_slots = 1;
+  }
+
+  // Pattern: "Gain an additional Stress slot" or "gain an additional Stress slot"
+  if (/gain\s+(?:an?\s+)?(?:additional\s+)?stress\s+slot/i.test(cleanText)) {
+    bonuses.stress_slots = 1;
+  }
+
+  // Pattern for multiple slots: "gain 2 Hit Point slots"
+  const hpMatch = cleanText.match(/gain\s+(\d+)\s+(?:additional\s+)?hit\s+point\s+slots?/i);
+  if (hpMatch) {
+    bonuses.hit_point_slots = parseInt(hpMatch[1]);
+  }
+
+  const stressMatch = cleanText.match(/gain\s+(\d+)\s+(?:additional\s+)?stress\s+slots?/i);
+  if (stressMatch) {
+    bonuses.stress_slots = parseInt(stressMatch[1]);
+  }
+
+  return Object.keys(bonuses).length > 0 ? bonuses : undefined;
 }
 
 /**
@@ -878,6 +1974,12 @@ export function enhanceAbilityCard(card: {
   type: string;
   recall: string;
   text: string;
+  // Optional overrides
+  action_type_override?: ActionType;
+  timing_override?: Timing;
+  frequency_override?: Frequency;
+  keywords_override?: string[];
+  costs_override?: CardCosts;
 }): EnhancedAbilityCard {
   const text = card.text;
   const cardType = card.type as 'Spell' | 'Ability';
@@ -885,14 +1987,25 @@ export function enhanceAbilityCard(card: {
   // 1. Parse structured data first
   const attack = parseAttack(text);
   const roll = parseRoll(text);
-  const costs = parseCosts(text);
-  const frequency = parseFrequency(text);
+  const costs = card.costs_override || parseCosts(text); // Override takes precedence
+  const frequency = card.frequency_override || parseFrequency(text);
   const hasTokens = hasTokenMechanics(text);
-  const keywords = extractKeywords(text, cardType);
+  const keywords = card.keywords_override || extractKeywords(text, cardType);
 
-  // 2. Determine action type based on parsed data
-  const actionType = parseActionType(text, cardType, attack, roll);
-  const timing = parseTiming(text, actionType);
+  // 2. Determine action type (with override)
+  const actionType = card.action_type_override || parseActionType(text, cardType, attack, roll);
+  const timing = card.timing_override || parseTiming(text, actionType);
+
+  // Log overrides for visibility
+  if (card.action_type_override || card.timing_override || card.frequency_override || card.keywords_override || card.costs_override) {
+    const overrides = [];
+    if (card.action_type_override) overrides.push(`action_type=${card.action_type_override}`);
+    if (card.timing_override) overrides.push(`timing=${card.timing_override}`);
+    if (card.frequency_override) overrides.push(`frequency=${card.frequency_override}`);
+    if (card.keywords_override) overrides.push(`keywords`);
+    if (card.costs_override) overrides.push(`costs`);
+    console.log(`  ⚠️  ${card.name}: Using overrides [${overrides.join(', ')}]`);
+  }
 
   const enhanced: EnhancedAbilityCard = {
     name: card.name,
@@ -901,28 +2014,87 @@ export function enhanceAbilityCard(card: {
     type: cardType,
     recall: card.recall,
     text: card.text,
-    action_type: actionType,
-    timing,
-    frequency,
-    costs,
-    keywords,
+    enhancement: {
+      action_type: actionType,
+      timing,
+      frequency,
+      costs,
+      keywords,
+    }
   };
+
+  // Parse and add passive modifiers
+  const modifiers = parseStaticModifiers(text, card.name);
+  if (modifiers.length > 0) {
+    enhanced.enhancement.modifiers = modifiers;
+  }
+
+  // Parse and add stat bonuses (hit point slots, stress slots, etc.)
+  const statBonuses = parseStatBonuses(text);
+  if (statBonuses) {
+    enhanced.stat_bonuses = statBonuses;
+  }
 
   // Add token info if applicable
   if (hasTokens) {
-    enhanced.has_tokens = true;
-    enhanced.max_tokens = parseMaxTokens(text);
-    enhanced.token_source = parseTokenSource(text);
+    enhanced.enhancement.tokens = {
+      has_tokens: true,
+      max_tokens: parseMaxTokens(text),
+      token_source: parseTokenSource(text)
+    };
+  }
+
+  // Add attack/roll info
+  if (attack) {
+    enhanced.enhancement.attack = attack;
+  }
+
+  if (roll) {
+    enhanced.enhancement.roll = roll;
+  }
+
+  const durationPatterns = [
+    { type: 'until_triggered', pattern: /until triggered/i },
+    { type: 'rest', pattern: /until (?:you )?(?:finish )?(?:a |your )?(?:next )?rest/i },
+    { type: 'long_rest', pattern: /until (?:you )?(?:finish a )?long rest/i },
+    { type: 'scene', pattern: /for the (?:rest of the )?scene/i },
+    { type: 'session', pattern: /for the (?:rest of the )?session/i },
+    // Conditional durations - effects that last until some condition is no longer met
+    { type: 'conditional', pattern: /until there (?:are|is) no(?: more)?\b/i },
+  ];
+
+  for (const { type, pattern } of durationPatterns) {
+    if (pattern.test(text)) {
+      enhanced.enhancement.duration = type;
+      break;
+    }
   }
 
   // Add attack info if applicable
   if (attack) {
-    enhanced.attack = attack;
+    enhanced.enhancement.attack = attack;
+  } else {
+    // Even without a full attack, extract range for effect range / ally range
+    const effectRange = parseCardRange(text);
+    if (effectRange) {
+      enhanced.enhancement.attack = {
+        trait: 'None',
+        range: effectRange,
+      };
+    }
   }
 
   // Add roll info
   if (roll) {
-    enhanced.roll = roll;
+    enhanced.enhancement.roll = roll;
+  }
+
+  // Add duration (if not already found by previous patterns)
+  if (!enhanced.enhancement.duration) {
+    const duration = parseDuration(text);
+    if (duration) {
+      enhanced.enhancement.duration = duration;
+    }
   }
 
   return enhanced;
@@ -988,9 +2160,11 @@ export function enhanceFeature(feature: {
 
   // Add token info if applicable
   if (hasTokens) {
-    enhanced.has_tokens = true;
-    enhanced.max_tokens = parseMaxTokens(text);
-    enhanced.token_source = parseTokenSource(text);
+    enhanced.tokens = {
+      has_tokens: true,
+      max_tokens: parseMaxTokens(text),
+      token_source: parseTokenSource(text)
+    };
   }
 
   // Add attack info if applicable
@@ -1007,7 +2181,7 @@ export function enhanceFeature(feature: {
  */
 export function hasCombatRelevance(card: {
   action_type?: ActionType;
-  attack?: CardAttack;
+  attack?: CardAttack | null;
   keywords?: string[];
 }): boolean {
   if (card.action_type === 'attack') return true;
@@ -1040,17 +2214,276 @@ export function getActionTypeLabel(actionType: ActionType): string {
   switch (actionType) {
     case 'attack':
       return 'Attack';
-    case 'reaction':
-      return 'Reaction';
-    case 'passive':
-      return 'Passive';
-    case 'downtime':
-      return 'Downtime';
-    case 'buff':
-      return 'Buff';
-    case 'utility':
-      return 'Utility';
     default:
       return '';
   }
+}
+
+// ============================================================================
+// COMBAT ABILITY PARSING (Unified from combat-spell-parser.ts)
+// ============================================================================
+// The following functions provide combat ability extraction for domain cards,
+// consolidating functionality previously split across two parsers.
+
+/**
+ * Represents a combat action from a domain card
+ * (Unified from combat-spell-parser.ts for backwards compatibility)
+ */
+export interface CombatAbility {
+  cardId: string;
+  name: string;
+  rollType: 'spellcast' | 'attack' | 'none' | 'trait_check';
+  trait?: string;          // For attack rolls or trait checks
+  range?: string;          // Melee, Close, Far, Very Far
+  damage?: string;         // Dice notation (e.g., "d8+2", "1d20+3")
+  damageType?: 'magic' | 'physical' | 'special';
+  usesProficiency?: boolean; // Whether damage scales with proficiency
+  costs?: {
+    hope?: number;
+    stress?: number;
+    recall?: number;
+  };
+  effects?: string[];      // Additional effects (On Fire, Vulnerable, etc.)
+  description: string;     // Full card description
+  recallCost: number;      // Cost to recall from vault
+}
+
+/**
+ * Check if damage uses proficiency scaling
+ */
+export function parseUsesProficiency(text: string): boolean {
+  return /using (?:your )?proficiency(?: die)?/i.test(text);
+}
+
+/**
+ * Extract status effects from card text
+ */
+export function parseStatusEffects(text: string): string[] {
+  const effects: string[] = [];
+  const statusPatterns = [
+    { pattern: /on fire/i, effect: 'On Fire' },
+    { pattern: /vulnerable/i, effect: 'Vulnerable' },
+    { pattern: /restrained/i, effect: 'Restrained' },
+    { pattern: /stunned/i, effect: 'Stunned' },
+    { pattern: /blinded/i, effect: 'Blinded' },
+    { pattern: /frightened/i, effect: 'Frightened' },
+  ];
+
+  for (const { pattern, effect } of statusPatterns) {
+    if (pattern.test(text)) {
+      effects.push(effect);
+    }
+  }
+
+  // Check for special mechanics
+  if (/double(?:s)? (?:the )?(?:result|damage)/i.test(text)) {
+    effects.push('Doubles damage');
+  }
+
+  if (/once per rest/i.test(text)) {
+    effects.push('Once per rest');
+  }
+
+  return effects;
+}
+
+/**
+ * Check if a card description contains combat mechanics
+ * Uses specific patterns to avoid false positives from defensive/utility cards
+ */
+export function hasCombatMechanics(description: string): boolean {
+  const combatIndicators = [
+    // Specific offensive roll patterns
+    /make\s+(?:a|an)\s+(?:spellcast|attack|melee|ranged)\s+(?:roll|attack)/i,
+
+    // Specific damage dealing patterns (with dice notation)
+    /deal(?:s|ing)?\s+\d*d\d+(?:[+\-]\d+)?\s+(?:magic|physical|true)?\s*damage/i,
+
+    // Targeted offensive actions
+    /make.*(?:attack|spellcast).*against/i,
+
+    // Attack success patterns (adjective or adverb form)
+    /success(?:ful|fully)\s+(?:attack|spellcast)/i,
+
+    // Weapon attack modifiers (damage roll context)
+    /(?:attack|weapon).*damage\s+roll/i,
+  ];
+
+  return combatIndicators.some(pattern => pattern.test(description));
+}
+
+/**
+ * Extract roll type from description
+ */
+function extractRollType(description: string): CombatAbility['rollType'] {
+  if (/make (?:a|an) spellcast roll/i.test(description)) {
+    return 'spellcast';
+  }
+  if (/make (?:a|an) (?:melee|attack|weapon) (?:attack|roll)/i.test(description)) {
+    return 'attack';
+  }
+  if (/make (?:a|an) (agility|strength|finesse|instinct|presence|knowledge) roll/i.test(description)) {
+    return 'trait_check';
+  }
+  return 'none';
+}
+
+/**
+ * Extract trait for attack or trait check rolls
+ */
+function extractTrait(description: string, rollType: CombatAbility['rollType']): string | undefined {
+  if (rollType === 'spellcast') {
+    return 'Spellcast';
+  }
+
+  // Check for specific trait mentions
+  const traitMatch = description.match(/(agility|strength|finesse|instinct|presence|knowledge) (?:roll|check)/i);
+  if (traitMatch) {
+    return traitMatch[1]!.charAt(0).toUpperCase() + traitMatch[1]!.slice(1).toLowerCase();
+  }
+
+  // For weapon attacks, check for trait in attack description
+  const weaponTraitMatch = description.match(/using (?:your )?(agility|strength|finesse|instinct|presence|knowledge)/i);
+  if (weaponTraitMatch) {
+    return weaponTraitMatch[1]!.charAt(0).toUpperCase() + weaponTraitMatch[1]!.slice(1).toLowerCase();
+  }
+
+  return undefined;
+}
+
+/**
+ * Extract range from description (for CombatAbility)
+ */
+function extractRange(description: string): string | undefined {
+  const rangePattern = /within (very close|very far|far|close|melee|short|long) range/i;
+  const match = description.match(rangePattern);
+
+  if (match) {
+    const range = match[1]!.toLowerCase();
+    // Normalize range names
+    if (range === 'short') return 'Close';
+    if (range === 'long') return 'Far';
+    if (range === 'very close') return 'Very Close';
+    if (range === 'very far') return 'Very Far';
+    return range.charAt(0).toUpperCase() + range.slice(1);
+  }
+
+  return undefined;
+}
+
+/**
+ * Extract damage formula and type (for CombatAbility)
+ */
+function extractDamage(description: string): {
+  damage?: string;
+  damageType?: 'magic' | 'physical' | 'special';
+  usesProficiency?: boolean;
+} {
+  // Pattern: "d8+2 magic damage", "1d20+3 damage", or "d8 damage" (no multiplier)
+  const damagePattern = /(?:deal(?:s|ing)?|take(?:s)?)\s+(\d*d\d+(?:[+\-]\d+)?)\s+(magic|physical|true)?\s*damage/i;
+  const match = description.match(damagePattern);
+
+  if (!match) {
+    return {};
+  }
+
+  const damage = match[1];
+  const typeMatch = match[2];
+
+  let damageType: 'magic' | 'physical' | 'special' | undefined;
+  if (typeMatch) {
+    const normalized = typeMatch.toLowerCase();
+    if (normalized === 'magic') damageType = 'magic';
+    else if (normalized === 'physical') damageType = 'physical';
+    else damageType = 'special';
+  }
+
+  // Check if damage uses proficiency (handles both "Proficiency" and "Proficiency Die")
+  const usesProficiency = parseUsesProficiency(description);
+
+  return {
+    damage,
+    damageType,
+    usesProficiency
+  };
+}
+
+/**
+ * Extract resource costs (for CombatAbility)
+ */
+function extractCosts(description: string): CombatAbility['costs'] {
+  const costs: CombatAbility['costs'] = {};
+
+  // Hope cost: "spend 3 Hope" or "spend a Hope"
+  const hopeMatch = description.match(/spend (?:a|(\d+)) hope/i);
+  if (hopeMatch) {
+    costs.hope = hopeMatch[1] ? parseInt(hopeMatch[1]) : 1;
+  }
+
+  // Stress cost: "mark 2 Stress" or "mark a Stress"
+  const stressMatch = description.match(/mark (?:a|(\d+)) stress/i);
+  if (stressMatch) {
+    costs.stress = stressMatch[1] ? parseInt(stressMatch[1]) : 1;
+  }
+
+  return Object.keys(costs).length > 0 ? costs : undefined;
+}
+
+/**
+ * Parse a domain card to extract combat abilities
+ * (Unified replacement for combat-spell-parser.ts parseCombatAbility)
+ */
+export function parseCombatAbility(card: CharacterCard): CombatAbility | null {
+  const description = card.library_item?.data?.description || '';
+  const cardName = card.library_item?.name || 'Unknown';
+  const recallCost = parseInt(card.library_item?.data?.recall || '0');
+
+  // Check if this card has combat mechanics
+  if (!hasCombatMechanics(description)) {
+    return null;
+  }
+
+  // Determine roll type
+  const rollType = extractRollType(description);
+
+  // Extract trait for attack rolls or trait checks
+  const trait = extractTrait(description, rollType);
+
+  // Extract range
+  const range = extractRange(description);
+
+  // Extract damage
+  const { damage, damageType, usesProficiency } = extractDamage(description);
+
+  // Extract costs
+  const costs = extractCosts(description);
+
+  // Extract effects
+  const effects = parseStatusEffects(description);
+
+  return {
+    cardId: card.id,
+    name: cardName,
+    rollType,
+    trait,
+    range,
+    damage,
+    damageType,
+    usesProficiency,
+    costs,
+    effects: effects.length > 0 ? effects : undefined,
+    description,
+    recallCost
+  };
+}
+
+/**
+ * Get all combat abilities from character's loadout
+ */
+export function getLoadoutCombatAbilities(cards: CharacterCard[]): CombatAbility[] {
+  const loadoutCards = cards.filter(card => card.location === 'loadout');
+
+  return loadoutCards
+    .map(parseCombatAbility)
+    .filter((ability): ability is CombatAbility => ability !== null);
 }

@@ -22,14 +22,24 @@ import clsx from 'clsx';
 import { DomainCard } from '@/components/physical-cards/domain-card';
 import CardTokenTrack from '@/components/views/playmat/card-token-track';
 import FrequencyCheckbox from '@/components/views/playmat/frequency-checkbox';
-import { AttackCard, MarkStressButton, SpendHopeButton } from '@/components/views/combat';
+import { DomainAbilityButton } from '@/components/views/playmat/domain-ability-button';
+import { DomainCostsRow } from '@/components/views/playmat/domain-costs-row';
+import { AttackCard } from '@/components/views/combat';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { EnhancedAbilityCard } from '@/types/cards';
 import { getSystemModifiers, calculateWeaponDamage, parseDamageRoll } from '@/lib/utils';
+import {
+  getEnhancement,
+  getAttack,
+  getRoll,
+  getCosts,
+  getActionType,
+  hasTokens as checkHasTokens
+} from '@/lib/enhancement-utils';
 
 interface PlaymatCardProps {
   card: CharacterCard;
-  enhancedData?: EnhancedAbilityCard;
+  enhancedData?: EnhancedAbilityCard; // Use generalized interface if needed
   onMoveLocation: (location: 'loadout' | 'vault') => void;
   onView: () => void;
   onEditArt?: () => void;
@@ -44,26 +54,33 @@ export default function PlaymatCard({
   onEditArt,
   onManageModifiers,
 }: PlaymatCardProps) {
-  const { character, prepareRoll } = useCharacterStore();
+  const { character, cardStates, prepareRoll, updateHope, updateVitals } = useCharacterStore();
   const libraryItem = card.library_item;
 
   if (!libraryItem) return null;
 
+  // --- Enhancement Data Extraction ---
+  const enhancement = enhancedData ? getEnhancement(enhancedData) : undefined;
+  const attack = enhancedData ? getAttack(enhancedData) : undefined;
+  const roll = enhancedData ? getRoll(enhancedData) : undefined;
+  const costs = enhancedData ? getCosts(enhancedData) : undefined;
+  const actionType = enhancedData ? getActionType(enhancedData) : 'passive';
+  const hasTokens = enhancedData ? checkHasTokens(enhancedData) : false;
+
   // --- Attack / Roll Calculation Logic (Similar to CombatView) ---
-  // If the card has an attack or roll, we prepare the data for AttackCard
-  const hasAttack = enhancedData?.attack || enhancedData?.roll;
+  const hasAttackOrRoll = !!(attack || roll);
 
   let attackCardNode = null;
 
-  if (character && hasAttack && enhancedData) {
+  if (character && hasAttackOrRoll && enhancedData && enhancement) {
     // 1. Calculate Proficiency
     const baseProficiency = character.proficiency || 1;
-    const systemProfMods = getSystemModifiers(character, 'proficiency');
+    const systemProfMods = getSystemModifiers(character, 'proficiency', cardStates);
     const userProfMods = character.modifiers?.['proficiency'] || [];
     const totalProficiency = Math.max(1, baseProficiency + [...systemProfMods, ...userProfMods].reduce((acc, mod) => acc + mod.value, 0));
 
     // 2. Calculate Spellcast/Trait Bonus
-    const rollTrait = enhancedData.roll?.trait || enhancedData.attack?.trait;
+    const rollTrait = roll?.trait || attack?.trait;
     let rollBonus = 0;
     let rollLabel = '';
 
@@ -78,20 +95,20 @@ export default function PlaymatCard({
         let traitModSum = 0;
         if (spellcastTraitName) {
           const tKey = spellcastTraitName.toLowerCase();
-          const tSystem = getSystemModifiers(character, tKey);
+          const tSystem = getSystemModifiers(character, tKey, cardStates);
           const tUser = character.modifiers?.[tKey] || [];
           traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
         }
 
         const spellcastBase = rawTraitValue + traitModSum;
-        const spellcastMods = getSystemModifiers(character, 'spellcast');
+        const spellcastMods = getSystemModifiers(character, 'spellcast', cardStates);
         const userSpellcastMods = character.modifiers?.['spellcast'] || [];
         rollBonus = spellcastBase + [...spellcastMods, ...userSpellcastMods].reduce((acc, mod) => acc + mod.value, 0);
         rollLabel = 'Spellcast';
       } else {
         const traitKey = rollTrait.toLowerCase();
         const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-        const systemTraitMods = getSystemModifiers(character, traitKey);
+        const systemTraitMods = getSystemModifiers(character, traitKey, cardStates);
         const userTraitMods = character.modifiers?.[traitKey] || [];
         rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
         rollLabel = rollTrait;
@@ -99,42 +116,57 @@ export default function PlaymatCard({
     }
 
     // 3. Calculate Damage
-    const baseDamage = enhancedData.attack?.damage;
+    const baseDamage = attack?.damage;
     const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
 
-    // 4. Render AttackCard (Mini Version)
+    // 4. Determine if Attack button should be shown based on combat_category
+    // damage_bonus and passive_triggered features don't need Attack buttons
+    const combatCategory = attack?.combat_category || 'passive_triggered';
+    const showAttackButton = roll || combatCategory === 'standalone_attack' || combatCategory === 'roll_only';
+
+    // 5. Render AttackCard (Mini Version)
     attackCardNode = (
       <div className="mt-2">
         <AttackCard
           id={`playmat-${card.id}`}
-          name={enhancedData.name} // Usually we might want simpler name or just "Attack"
+          name={enhancedData.name}
           trait={rollLabel || 'Roll'}
-          range={enhancedData.attack?.range || ''}
+          range={attack?.range || ''}
           baseDamage={baseDamage}
           calculatedDamage={finalDamage}
           totalAttackBonus={rollBonus}
           attackModifier={0}
           damageModifier={0}
           proficiency={totalProficiency}
-          onAttackRoll={() => prepareRoll(`${enhancedData.name} ${rollLabel}`, rollBonus)}
+          onAttackRoll={showAttackButton ? () => prepareRoll(`${enhancedData.name} ${rollLabel}`, rollBonus) : undefined}
           onDamageRoll={finalDamage ? () => {
             const { dice, modifier } = parseDamageRoll(finalDamage);
             prepareRoll(`${enhancedData.name} Damage`, modifier, dice);
           } : undefined}
-          borderVariant={enhancedData.action_type === 'reaction' ? 'reaction' : 'spell'}
-          // For playmat, we might want a simplified look? 
-          // AttackCard is already quite dense. Let's use it as is for consistency.
-          rollLabel={rollLabel || 'Roll'}
-          costs={enhancedData.costs}
+          additionalDamage={attack?.additional_damage}
+          onAdditionalDamageRoll={(damage, label) => {
+            // For additional damage, we typically assume it's dice-heavy, but might have modifier
+            // Using parseDamageRoll should work for "2d6" or "1d8+2"
+            // Note: It doesn't include proficiency usually for extra damage, so we use it raw.
+            const { dice, modifier } = parseDamageRoll(damage);
+            prepareRoll(`${enhancedData.name} ${label}`, modifier, dice);
+          }}
+          borderVariant={enhancement?.timing === 'reaction' ? 'reaction' : 'spell'}
+          rollLabel={combatCategory === 'roll_only' ? 'Roll' : (rollLabel || 'Attack')}
+          costs={costs || undefined}
+          onSpendHope={() => character && updateHope(character.hope - (costs?.hope || 0))}
+          onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (costs?.stress || 0))}
+          roll={roll || undefined}
         />
       </div>
     );
   }
 
   // --- Mechanics Tray Logic ---
-  const showTokenTrack = enhancedData?.has_tokens;
-  const showFrequency = enhancedData?.frequency && enhancedData.frequency !== 'at_will';
-  const showMechanics = showTokenTrack || showFrequency || hasAttack;
+  const showTokenTrack = hasTokens;
+  const showFrequency = enhancement?.frequency && enhancement.frequency !== 'at_will';
+  const showDuration = !!enhancement?.duration;
+  const showMechanics = showTokenTrack || showFrequency || hasAttackOrRoll || showDuration;
 
   const isLoadout = card.location === 'loadout';
 
@@ -157,9 +189,8 @@ export default function PlaymatCard({
           y: card.state?.custom_image_position_y ?? 0,
         }}
         size="thumbnail"
-        // variant="default" is implied
-        hasPassiveModifiers={!!(enhancedData?.modifiers && enhancedData.modifiers.length > 0)}
-        hasCombatAbility={!!hasAttack}
+        hasPassiveModifiers={!!(enhancement?.modifiers && enhancement.modifiers.length > 0)}
+        hasCombatAbility={!!hasAttackOrRoll}
       />
 
       {/* Modifiers Button (Top Right Overlay) */}
@@ -172,7 +203,6 @@ export default function PlaymatCard({
           className="absolute top-2 right-2 z-40 p-1.5 bg-black/50 hover:bg-black/80 text-white/70 hover:text-white rounded-full transition-colors backdrop-blur-sm border border-white/10"
           title="Change Card Art"
         >
-          {/* Future: This button may be used to manage card-specific modifiers (TBD) */}
           <Settings size={14} />
         </button>
       )}
@@ -185,27 +215,48 @@ export default function PlaymatCard({
         }}
       >
         {/* Token Track */}
-        {showTokenTrack && (
+        {showTokenTrack && enhancement && (
           <CardTokenTrack
             cardName={libraryItem.name}
-            maxTokens={enhancedData?.max_tokens ?? null}
-            tokenSource={enhancedData?.token_source}
+            maxTokens={enhancement.tokens?.max_tokens ?? null}
+            tokenSource={enhancement.tokens?.token_source}
           />
         )}
 
         {/* Frequency */}
-        {showFrequency && enhancedData?.frequency && (
+        {showFrequency && enhancement?.frequency && (
           <div className="flex justify-center">
             <FrequencyCheckbox
               cardName={libraryItem.name}
-              frequency={enhancedData.frequency}
+              frequency={enhancement.frequency}
               className="bg-white/5 px-3 py-1.5 w-full justify-center"
+            />
+          </div>
+        )}
+
+        {/* Persistent Effect / Duration */}
+        {showDuration && enhancement?.duration && (
+          <div className="flex justify-center">
+            <DomainAbilityButton
+              cardName={libraryItem.name}
+              costType="duration"
+              label={enhancement.duration === 'scene' ? 'Active (Scene)' : 'Active'}
+              className="w-full justify-center"
             />
           </div>
         )}
 
         {/* Embedded Attack Card */}
         {attackCardNode}
+
+        {/* Action Costs (for non-attack cards) */}
+        {!hasAttackOrRoll && costs && (
+          <DomainCostsRow
+            cardName={libraryItem.name}
+            costs={costs}
+            className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5"
+          />
+        )}
 
         {/* Actions Row */}
         <div className="pt-1 border-t border-white/5 flex gap-2">

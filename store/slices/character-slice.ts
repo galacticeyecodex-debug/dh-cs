@@ -197,8 +197,9 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
   },
 
   recalculateDerivedStats: async () => {
-    const state = get();
+    const state = get() as CharacterStore;
     const character = state.character;
+    const cardStates = state.cardStates || {};
 
     if (!character) {
       return;
@@ -211,7 +212,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     }
 
     const inventory = character.character_inventory || [];
-    const equippedArmor = inventory.find(i => i.location === 'equipped_armor');
+    const equippedArmor = inventory.find((i: CharacterInventoryItem) => i.location === 'equipped_armor');
     
     // 1. Calculate Base Armor Score & Thresholds
     let baseArmorScore = 0;
@@ -239,7 +240,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     const tempChar = { ...character, character_inventory: inventory };
 
     // --- ARMOR SCORE CALCULATION ---
-    const armorSystemMods = getSystemModifiers(tempChar, 'armor').map((m: any) => convertToModifier(m, 'armor'));
+    const armorSystemMods = getSystemModifiers(tempChar, 'armor', cardStates).map((m: any) => convertToModifier(m, 'armor'));
     const armorUserMods = (character.modifiers?.['armor'] || []).map(m => convertToModifier(m, 'armor'));
     const allArmorMods = [...armorSystemMods, ...armorUserMods];
 
@@ -269,20 +270,20 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     // Apply modifiers to thresholds
     
     // 1. Generic 'damage_thresholds' (applies to Major and Severe)
-    const threshSystemMods = getSystemModifiers(tempChar, 'damage_thresholds').map((m: any) => convertToModifier(m, 'damage_thresholds'));
+    const threshSystemMods = getSystemModifiers(tempChar, 'damage_thresholds', cardStates).map((m: any) => convertToModifier(m, 'damage_thresholds'));
     const threshUserMods = (character.modifiers?.['damage_thresholds'] || []).map(m => convertToModifier(m, 'damage_thresholds'));
     const genericBonus = ModifierService.applyModifiers(0, [...threshSystemMods, ...threshUserMods], character, 'damage_thresholds');
     
     // 2. Specific Modifiers
-    const minorSystemMods = getSystemModifiers(tempChar, 'damage_threshold_minor').map((m: any) => convertToModifier(m, 'damage_threshold_minor'));
+    const minorSystemMods = getSystemModifiers(tempChar, 'damage_threshold_minor', cardStates).map((m: any) => convertToModifier(m, 'damage_threshold_minor'));
     const minorUserMods = (character.modifiers?.['damage_threshold_minor'] || []).map(m => convertToModifier(m, 'damage_threshold_minor'));
     const minorBonus = ModifierService.applyModifiers(0, [...minorSystemMods, ...minorUserMods], character, 'damage_threshold_minor');
 
-    const majorSystemMods = getSystemModifiers(tempChar, 'damage_threshold_major').map((m: any) => convertToModifier(m, 'damage_threshold_major'));
+    const majorSystemMods = getSystemModifiers(tempChar, 'damage_threshold_major', cardStates).map((m: any) => convertToModifier(m, 'damage_threshold_major'));
     const majorUserMods = (character.modifiers?.['damage_threshold_major'] || []).map(m => convertToModifier(m, 'damage_threshold_major'));
     const majorBonus = ModifierService.applyModifiers(0, [...majorSystemMods, ...majorUserMods], character, 'damage_threshold_major');
 
-    const severeSystemMods = getSystemModifiers(tempChar, 'damage_threshold_severe').map((m: any) => convertToModifier(m, 'damage_threshold_severe'));
+    const severeSystemMods = getSystemModifiers(tempChar, 'damage_threshold_severe', cardStates).map((m: any) => convertToModifier(m, 'damage_threshold_severe'));
     const severeUserMods = (character.modifiers?.['damage_threshold_severe'] || []).map(m => convertToModifier(m, 'damage_threshold_severe'));
     const severeBonus = ModifierService.applyModifiers(0, [...severeSystemMods, ...severeUserMods], character, 'damage_threshold_severe');
 
@@ -295,7 +296,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     // --- HP MAX CALCULATION ---
     const classBaseHP = parseInt(character.class_data?.data?.starting_hp) || 6;
     
-    const hpSystemMods = getSystemModifiers(tempChar, 'hit_points').map((m: any) => convertToModifier(m, 'hp'));
+    const hpSystemMods = getSystemModifiers(tempChar, 'hit_points', cardStates).map((m: any) => convertToModifier(m, 'hp'));
     const hpUserMods = (character.modifiers?.['hit_points'] || []).map(m => convertToModifier(m, 'hp'));
     
     const newHPMax = ModifierService.applyModifiers(classBaseHP, [...hpSystemMods, ...hpUserMods], character, 'hp');
@@ -303,11 +304,28 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
 
     // --- STRESS MAX CALCULATION ---
     const baseStress = 6;
-    const stressSystemMods = getSystemModifiers(tempChar, 'stress').map((m: any) => convertToModifier(m, 'stress'));
+    const stressSystemMods = getSystemModifiers(tempChar, 'stress', cardStates).map((m: any) => convertToModifier(m, 'stress'));
     const stressUserMods = (character.modifiers?.['stress'] || []).map(m => convertToModifier(m, 'stress'));
     
     const newStressMax = ModifierService.applyModifiers(baseStress, [...stressSystemMods, ...stressUserMods], character, 'stress');
 
+
+    // --- TRAIT TOTALS (for dynamic formulas) ---
+    // Calculate total trait values (base + modifiers) to use in dynamic formulas
+    // like "half your Agility" in Untouchable
+    const traitsWithTotals: any = { ...character.stats };
+    const traitNames = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+
+    for (const trait of traitNames) {
+      const baseStat = character.stats?.[trait as keyof typeof character.stats] || 0;
+      const systemMods = getSystemModifiers(tempChar, trait, cardStates).map((m: any) => convertToModifier(m, trait));
+      const userMods = (character.modifiers?.[trait] || []).map((m: any) => convertToModifier(m, trait));
+      const totalStat = ModifierService.applyModifiers(baseStat, [...systemMods, ...userMods], character, trait);
+      traitsWithTotals[trait] = totalStat;
+    }
+
+    // Create temporary character with calculated total stats for dynamic formula evaluation
+    const tempCharWithTotals = { ...tempChar, stats: traitsWithTotals };
 
     // --- EVASION CALCULATION ---
     // calculateBaseEvasion does: Class Base + System Modifiers.
@@ -316,11 +334,11 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     // calculateBaseEvasion(tempChar) returns (Class Base + System Mods).
     // Let's use that as base for User Mods.
     // OR: Reconstruct fully with Service.
-    
+
     const classBaseEvasion = parseInt(character.class_data?.data?.starting_evasion) || 10;
-    const evSystemMods = getSystemModifiers(tempChar, 'evasion').map((m: any) => convertToModifier(m, 'evasion'));
+    const evSystemMods = getSystemModifiers(tempCharWithTotals, 'evasion', cardStates).map((m: any) => convertToModifier(m, 'evasion'));
     const evUserMods = (character.modifiers?.['evasion'] || []).map(m => convertToModifier(m, 'evasion'));
-    
+
     const newEvasion = ModifierService.applyModifiers(classBaseEvasion, [...evSystemMods, ...evUserMods], character, 'evasion');
 
 

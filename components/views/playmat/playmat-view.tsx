@@ -28,8 +28,7 @@ import clsx from 'clsx';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import ModifierSheet from '@/components/shared/modifier-sheet';
-import { parseCardPassiveModifiers, type PassiveModifier, type ModifierCondition } from '@/lib/card-parser';
-import { parseCombatAbility, type CombatAbility } from '@/lib/combat-spell-parser';
+import { parseCardPassiveModifiers, parseCombatAbility, type PassiveModifier, type ModifierCondition, type CombatAbility } from '@/lib/card-parser';
 import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { uploadCharacterImage } from '@/lib/storage-service';
@@ -38,10 +37,11 @@ import { getSystemModifiers } from '@/lib/utils';
 import Image from 'next/image';
 import PlaymatCard from './playmat-card';
 import type { EnhancedAbilityCard } from '@/types/cards';
+import { getAttack, getRoll } from '@/lib/enhancement-utils';
 import useContentAccess from '@/hooks/useContentAccess';
 
 export default function PlaymatView() {
-  const { character, moveCard, addCardToCollection, updateCardImage, updateCardImagePosition, updateModifiers, user } = useCharacterStore();
+  const { character, cardStates, moveCard, addCardToCollection, updateCardImage, updateCardImagePosition, updateModifiers, user } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'loadout' | 'vault'>('loadout');
@@ -68,13 +68,13 @@ export default function PlaymatView() {
   useEffect(() => {
     const loadEnhancedAbilities = async () => {
       try {
-        const srdModule = await import('@/content/srd/json/abilities.json');
+        const srdModule = await import('@/content/srd/json/abilities_enhanced.json');
         const srdData = (srdModule.default || []) as EnhancedAbilityCard[];
 
         let playtestData: EnhancedAbilityCard[] = [];
         if (includePlaytest) {
           try {
-            const playtestModule = await import('@/content/playtest/json/abilities.json');
+            const playtestModule = await import('@/content/playtest/json/abilities_enhanced.json');
             playtestData = (playtestModule.default || []) as EnhancedAbilityCard[];
           } catch (e) {
             console.warn('Playtest abilities not found');
@@ -95,11 +95,12 @@ export default function PlaymatView() {
 
       try {
         // Fetch card-related types (including domains for filter dropdown)
+        // Include playtest content if user has access
         const [abilitiesData, spellsData, grimoiresData, domainsData] = await Promise.all([
-          dataService.library.getByType('ability'),
-          dataService.library.getByType('spell'),
-          dataService.library.getByType('grimoire'),
-          dataService.library.getByType('domain'),
+          dataService.library.getByType('ability', { includePlaytest }),
+          dataService.library.getByType('spell', { includePlaytest }),
+          dataService.library.getByType('grimoire', { includePlaytest }),
+          dataService.library.getByType('domain', { includePlaytest }),
         ]);
 
         setAllLibraryItems([
@@ -115,7 +116,7 @@ export default function PlaymatView() {
     };
 
     fetchAllLibraryItems();
-  }, []);
+  }, [includePlaytest]);
 
   // Memoize callbacks BEFORE early return (hooks must be unconditional)
   const handleAddCard = useCallback((item: LibraryItem) => {
@@ -217,10 +218,27 @@ export default function PlaymatView() {
           <div className="space-y-6">
             {/* Active Modifiers Summary */}
             {loadoutCards.length > 0 && character && (() => {
+              // CRITICAL: Calculate total trait values (base + modifiers) for dynamic formulas
+              // This ensures cards like "Untouchable" (half Agility) use the correct total
+              const traitsWithTotals: any = { ...character.stats };
+              const traitNames = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+
+              for (const trait of traitNames) {
+                const baseStat = character.stats?.[trait as keyof typeof character.stats] || 0;
+                const userMods = (character.modifiers?.[trait] || []) as any[];
+                const userTotal = userMods.reduce((sum: number, mod: any) => sum + (mod.value || 0), 0);
+                traitsWithTotals[trait] = baseStat + userTotal;
+              }
+
+              // Create temporary character with calculated total stats for formula evaluation
+              const charForParsing = { ...character, stats: traitsWithTotals };
+
               // Collect all active modifiers from loadout cards
               const allModifiers: PassiveModifier[] = [];
               loadoutCards.forEach(card => {
-                const mods = parseCardPassiveModifiers(card, character);
+                const cardName = card.library_item?.name || '';
+                const isCardActive = cardStates?.[cardName]?.is_active ?? false;
+                const mods = parseCardPassiveModifiers(card, charForParsing, isCardActive);
                 allModifiers.push(...mods.filter(m => m.isActive));
               });
 
@@ -361,7 +379,10 @@ export default function PlaymatView() {
           const tabs = [];
 
           // 1. Roll Tab (Spellcast or Trait)
-          const rollTrait = ability.roll?.trait || ability.attack?.trait;
+          const attack = getAttack(ability);
+          const roll = getRoll(ability);
+          const rollTrait = roll?.trait || attack?.trait;
+
           if (rollTrait) {
             if (rollTrait.toLowerCase() === 'spellcast') {
               const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
@@ -404,7 +425,7 @@ export default function PlaymatView() {
           }
 
           // 2. Damage Tab
-          if (ability.attack?.damage) {
+          if (attack?.damage) {
             const systemDamageMods = getSystemModifiers(character, 'damage');
             const userDamageMods = character.modifiers?.['damage'] || [];
 
@@ -440,7 +461,7 @@ export default function PlaymatView() {
 
 
 function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: CharacterCard, onClose: () => void, mode?: 'full' | 'art-only' }) {
-  const { character, updateCardImage, updateCardImagePosition, user } = useCharacterStore();
+  const { character, cardStates, updateCardImage, updateCardImagePosition, user } = useCharacterStore();
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown', domain: '', tier: 0, type: '', data: {} };
   const recallCost = data?.recall || '0';
   const theme = getDomainTheme(domain);
@@ -456,7 +477,9 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
   const positionSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Parse card mechanics
-  const passiveModifiers = character ? parseCardPassiveModifiers(charCard, character) : [];
+  const cardName = charCard.library_item?.name || '';
+  const isCardActive = cardStates?.[cardName]?.is_active ?? false;
+  const passiveModifiers = character ? parseCardPassiveModifiers(charCard, character, isCardActive) : [];
   const combatAbility = parseCombatAbility(charCard);
 
   // Handle image upload
@@ -527,6 +550,8 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
         return <Shield size={12} className="text-gray-400" />;
       case 'when_unarmored':
         return <ShieldOff size={12} className="text-gray-400" />;
+      case 'when_active':
+        return <Zap size={12} className="text-yellow-400" />;
       case 'loadout_domain_count':
         return <Users size={12} className="text-purple-400" />;
       case 'environment':
@@ -544,6 +569,8 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
         return 'While wearing armor';
       case 'when_unarmored':
         return 'While not wearing armor';
+      case 'when_active':
+        return 'While active';
       case 'loadout_domain_count':
         return `When ${condition.minCount}+ ${condition.domain} cards in loadout`;
       case 'environment':
@@ -792,7 +819,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
                   <div className="flex items-start gap-3">
                     <Upload size={16} className="mt-0.5" style={{ color: theme.accent }} />
                     <div>
-                      <div className="font-bold text-sm">Artwork Background</div>
+                      <div className="font-bold text-sm">Artwork Only</div>
                       <div className="text-xs text-gray-400 mt-1">
                         Upload character art or scene. Text will display over the image with a gradient overlay.
                       </div>
