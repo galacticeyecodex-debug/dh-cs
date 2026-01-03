@@ -171,8 +171,8 @@
         "name": "Slayer",
         "text": "You gain a pool of dice called Slayer Dice. On a roll with Hope, you can place a **d6** on this card instead of gaining a Hope, adding the die to the pool. You can store a number of Slayer Dice equal to your Proficiency. When you make an attack roll or damage roll, you can spend any number of these Slayer Dice, rolling them and adding their result to the roll. At the end of each session, clear any unspent Slayer Dice on this card and gain a Hope per die cleared.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "action_type": "buff",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "damage",
@@ -496,7 +496,7 @@
         "name": "Manipulate Magic",
         "text": "Your primal origin allows you to modify the essence of magic itself. After you cast a spell or make an attack using a weapon that deals magic damage, you can **mark a Stress** to do one of the following:\n\n- Extend the spell or attack’s reach by one range\n- Gain a +2 bonus to the **action roll**’s result\n- Double a damage die of your choice\n- Hit an additional target within range",
         "enhancement": {
-          "action_type": "attack",
+          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -709,6 +709,7 @@
                 "label": "Extra"
               }
             ],
+            "is_triggered_bonus": true,
             "damage": "1d10",
             "damage_type": "magic"
           }
@@ -1155,6 +1156,7 @@
             "hope": 3
           },
           "keywords": [
+            "healing",
             "hope_cost",
             "ability"
           ]
@@ -1318,7 +1320,7 @@
         "name": "Elemental Dominion",
         "text": "You further embody your element. While Channeling, you gain the following benefit:\n\n- **Fire:** You gain a +1 bonus to your Proficiency for attacks and spells that deal damage.\n- **Earth:** When you would mark Hit Points, roll a **d6** per Hit Point marked. For each result of 6, reduce the number of Hit Points you mark by 1.\n- **Water:** When an attack against you succeeds, you can **mark a Stress** to make the attacker temporarily Vulnerable.\n- **Air:** You gain a +1 bonus to your Evasion and can fly.",
         "enhancement": {
-          "action_type": "buff",
+          "action_type": "attack",
           "timing": "reaction",
           "frequency": "at_will",
           "costs": {
@@ -1372,8 +1374,8 @@
         "name": "Ruthless Predator",
         "text": "When you make a damage roll, you can **mark a Stress** to gain a +1 bonus to your Proficiency. Additionally, when you deal Severe damage to an adversary, they must **mark a Stress**.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "action_type": "buff",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -1589,8 +1591,8 @@
         "name": "Heart of a Poet",
         "text": "After you make an **action roll** to impress, persuade, or offend someone, you can **spend a Hope** to add a **d4** to the roll.",
         "enhancement": {
-          "action_type": "attack",
-          "timing": "action",
+          "action_type": "passive",
+          "timing": "free",
           "frequency": "at_will",
           "costs": {
             "hope": 1
@@ -1602,7 +1604,8 @@
           "attack": {
             "trait": "Spellcast",
             "range": "Close",
-            "combat_category": "passive_triggered"
+            "combat_category": "passive_triggered",
+            "is_triggered_bonus": true
           }
         }
       }

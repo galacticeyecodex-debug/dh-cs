@@ -64,6 +64,7 @@ export interface CardAttack {
   secondary_effects?: string[];
   combat_category?: CombatCategory; // Determines which buttons to show
   additional_damage?: AdditionalDamage[];
+  is_triggered_bonus?: boolean; // True if this is bonus damage on a triggered ability, not a standalone attack
 }
 
 export interface AdditionalDamage {
@@ -167,6 +168,15 @@ export interface EnhancedAbilityCard {
   // Enhanced fields (nested blocks)
   enhancement: EnhancementBlock;
   enhancement_override?: EnhancementBlock;
+
+  // Top-level stat bonuses (permanent character creation bonuses)
+  stat_bonuses?: {
+    evasion?: number;
+    experience?: number;
+    damage_thresholds?: string | number;
+    hit_point_slots?: number;
+    stress_slots?: number;
+  };
 }
 
 /**

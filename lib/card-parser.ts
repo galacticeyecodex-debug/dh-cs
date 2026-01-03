@@ -88,7 +88,10 @@ const STAT_PATTERNS: Record<string, RegExp> = {
  */
 export function stripMarkdown(text: string): string {
   if (!text) return '';
-  return text.replace(/\*\*|\*/g, '');
+  return text
+    .replace(/\*\*|\*/g, '')
+    // Normalize curly quotes (U+2018, U+2019) to ASCII apostrophes for consistent matching
+    .replace(/[\u2018\u2019]/g, "'");
 }
 
 /**
@@ -791,7 +794,8 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     /\bby making a reaction roll\b/i,  // "interrupt... by making a reaction roll"
     /\bwhen you would take damage\b/i,
     /\bwhen you would take (?:minor|major|severe) damage\b/i,  // Threshold-specific damage
-    /\bwhen you take (?:minor|major|severe) damage\b/i,  // "when you take Minor damage"
+    // Note: "when you take Severe damage" with cost-based reduction is passive, not reaction
+    // Only treat as reaction if it involves counterattack or external interaction
     /\bwhen an attack made against you\b/i,
     /\bwhen you are targeted\b/i,
     /\bwhen you mark your last\b/i,
@@ -906,14 +910,46 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
   ];
 
   
-  // Exclude abilities that have passive triggers (when/while/if/after)
-  // This includes patterns like "Once per rest, when..." or "After you make..."
-  const hasPassiveTrigger = 
-    /^(?:when|while|if|after|whenever)\s+you\b/i.test(cleanText) ||
-    /^(?:once|twice)\s+per\s+(?:rest|long\s+rest|scene|turn|round),?\s+(?:when|while|if|after)\s+you\b/i.test(cleanText) ||
-    /\bafter\s+you\s+(?:make|succeed|fail|cast|roll)\b/i.test(cleanText) ||
-    /\bwhen\s+you\s+(?:make|succeed|fail|cast|roll)\b/i.test(cleanText);
-  
+  // Check if this is an ACTIVE BUFF ability - specifically for proactive enhancement
+  // Key indicators: "you can go/muster/become" (active self-enhancement)
+  // OR buff patterns without a reaction/passive trigger
+  const hasProactiveChoice =
+    // Active self-enhancement verbs (not just "you can mark/clear" which are resource costs)
+    /\byou\s+can\s+(?:go\s+into|muster|become\s+(?:invisible|unstoppable))\b/i.test(cleanText) ||
+    // Granting dice to allies (active buff)
+    /\bgive\s+(?:yourself|each|all|them|an?\s+ally)\b.*?\bdie\b/i.test(cleanText);
+
+  // Check for "while you're" active clauses that indicate proactive abilities
+  const hasWhileClauseActive = /^(?:once|twice)\s+per\s+[^,]+,\s+while\s+you(?:'re|\s+are)\b/i.test(cleanText);
+
+  // Exclude abilities that have TRUE passive triggers (automatic, no player choice)
+  // Triggered passives: "When you attack/roll/succeed" + minor choice like "clear stress"
+  // These are NOT buffs even though they have "you can"
+  const hasPassiveTrigger =
+    // "When you roll/attack/succeed/fail" triggers are passive even with "you can clear/mark"
+    /^(?:when|if|after|whenever)\s+you\s+(?:roll|succeed|fail|attack|critically|make\s+(?:a\s+)?success)/i.test(cleanText) ||
+    /^(?:once|twice)\s+per\s+(?:rest|long\s+rest|scene|turn|round),?\s+(?:when|if|after)\s+you\s+(?:roll|succeed|fail|attack|critically|make\s+(?:a\s+)?success)/i.test(cleanText) ||
+    // "When you would mark" triggers (prevents marking)
+    /\bwhen\s+you\s+would\s+(?:\*\*)?mark\b/i.test(cleanText) ||
+    // "While X, you gain/have..." patterns are conditional passives
+    /\bwhile\s+you(?:'re|\s+are)\s+.*?\b(?:gain|have)\b/i.test(cleanText) && !hasWhileClauseActive ||
+    // "You have advantage on..." at start is passive
+    /^you\s+have\s+(?:advantage|a\s+base|a\s+\+?\d+)/i.test(cleanText) ||
+    // "You have advantage" anywhere followed by "on action rolls" is passive
+    /\byou\s+have\s+advantage\s+on\s+.*?\baction\s+rolls?\b/i.test(cleanText) ||
+    // "When you leverage/use" patterns are triggered passives
+    /\bwhen\s+you\s+(?:leverage|use)\b/i.test(cleanText) ||
+    // "When X or more domain cards" passive bonuses
+    /\bwhen\s+\d+\s+or\s+more\s+(?:of\s+the\s+)?domain\s+cards\b/i.test(cleanText) ||
+    // "At the start of each session" automatic triggers
+    /\bat\s+the\s+start\s+of\s+(?:each|every)\s+(?:session|scene|turn)\b/i.test(cleanText);
+
+  // Active buffs: Must have proactive choice AND buff patterns AND NOT be passive triggered
+  if ((hasProactiveChoice || hasWhileClauseActive) && !hasPassiveTrigger && buffPatterns.some(pattern => pattern.test(cleanText))) {
+    return 'buff';
+  }
+
+  // Regular buff check - only if no passive trigger
   if (!hasPassiveTrigger && buffPatterns.some(pattern => pattern.test(cleanText))) {
     return 'buff';
   }
@@ -924,10 +960,20 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
   const hasAttackWith = /make (?:a |an )?attack with/i.test(cleanText);
   const hasExplicitAttack = /(?:spend|mark).*?to make (?:a |an )?attack/i.test(cleanText);
 
-  // But exclude "when you make a successful attack" (that's a trigger, not initiation)
-  const isAttackTrigger = /when you (?:make a success|succeed|critically succeed|fail)/i.test(cleanText);
+  // Attack extension - when a successful attack allows you to extend it to more targets
+  // This is still an "attack" action because you're actively choosing to expand the attack
+  const hasAttackExtension = /when you (?:make a successful|succeed on).*?attack.*?(?:spend|mark).*?(?:use|apply|extend|deal)/i.test(cleanText);
 
-  if ((attack || hasRollAgainst || hasAttackWith || hasExplicitAttack) && !isAttackTrigger) {
+  // "perform an aerial attack" or similar explicit attack descriptions
+  const hasPerformAttack = /\bperform\s+(?:a |an )?(?:\w+\s+)?attack\b/i.test(cleanText);
+
+  // But exclude simple "when you make a successful attack" passive triggers (without extension)
+  const isSimpleAttackTrigger = /when you (?:make a success|succeed|critically succeed|fail)/i.test(cleanText) && !hasAttackExtension;
+
+  // Only classify as attack if we have attack-like patterns AND it's not a triggered bonus
+  const hasAttackIndicators = attack || hasRollAgainst || hasAttackWith || hasExplicitAttack || hasAttackExtension || hasPerformAttack;
+  const isTriggeredBonusAttack = attack?.is_triggered_bonus;
+  if (hasAttackIndicators && !isSimpleAttackTrigger && !isTriggeredBonusAttack) {
     return 'attack';
   }
 
@@ -1025,6 +1071,9 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     // Marking/taking damage triggers
     /\bwhen you cause (?:a|an|the) (?:adversary|target|creature) to mark\b/i,
     /\bwhen (?:a|an|the) (?:adversary|target|creature) (?:you|marks)\b/i,
+
+    // Taking damage with severity (passive mitigation, not reaction counter-attack)
+    /\bwhen you take (?:minor|major|severe) damage\b/i,
 
     // Experience/token usage triggers
     /\bwhen you use (?:a|an|one of your) experience\b/i,
@@ -1264,8 +1313,8 @@ export function extractKeywords(text: string, cardType: string): string[] {
   if (/\bclear\b.*?\bhit\s+points?\b|\bhit\s+points?\b.*?\bclear\b/.test(lowerText)) {
     keywords.push('healing');
   }
-  // Also catch "clears X Hit Point" or "clear a Hit Point"
-  if (/\bclears?\s+(?:\d+\s+)?(?:a\s+)?hit\s+point/i.test(lowerText)) {
+  // Also catch "clears X Hit Point", "clear a Hit Point", or "clears **1d4** Hit Points" (with optional markdown)
+  if (/\bclears?\s+(?:\*{0,2}(?:\d+d?\d*|\d+)\*{0,2}\s+)?(?:a\s+)?hit\s+point/i.test(lowerText)) {
     keywords.push('healing');
   }
   if (/\bclear\b.*?\bstress\b|\bstress\b.*?\bclear\b/.test(lowerText)) {
@@ -1467,6 +1516,13 @@ export function parseAttack(text: string): CardAttack | undefined {
   const conditionalActionMentions = cleanText.match(/(?:if|when|whenever|after|before|until|and|first\s+time)\s+(?:[^.!?]*?\s+)?make\s+(?:an?\s+)?(?:attack|.*?\s+roll)/gi) || [];
   const hasUnconditionalAction = allActionMentions.length > conditionalActionMentions.length;
 
+  // If the card starts with a conditional trigger and has NO unconditional action mentions,
+  // this is a triggered ability. We still parse attack DATA (damage, range, etc.),
+  // but we flag it so parseActionType knows not to classify it as an "attack" action_type.
+  const startsWithConditional = /^(?:when|after|if|whenever)\s+you\s+(?:make|roll|succeed|fail)/i.test(cleanText) ||
+    /^(?:when|after|if|whenever)\s+making/i.test(cleanText);
+  const isTriggeredBonus = startsWithConditional && !hasUnconditionalAction;
+
   // Requirements for parsing as an attack:
   // 1. Has damage, OR
   // 2. Has trait roll against target, OR
@@ -1484,6 +1540,7 @@ export function parseAttack(text: string): CardAttack | undefined {
     range: range || 'Close',
     combat_category: parseCombatCategory(text),
     additional_damage: additionalDamage.length > 0 ? additionalDamage : undefined,
+    is_triggered_bonus: isTriggeredBonus || undefined,
   };
 
   if (damage) attack.damage = damage;
@@ -1592,6 +1649,50 @@ function extractAdditionalDamage(text: string): AdditionalDamage[] {
 }
 
 /**
+ * Parse stat_bonuses from card text for permanent character bonuses
+ * Matches patterns like "Gain an additional Hit Point slot" or "Gain an additional Stress slot"
+ */
+export function parseStatBonuses(text: string): {
+  hit_point_slots?: number;
+  stress_slots?: number;
+  evasion?: number;
+  experience?: number;
+  damage_thresholds?: string | number;
+} | undefined {
+  const cleanText = stripMarkdown(text).toLowerCase();
+  const bonuses: {
+    hit_point_slots?: number;
+    stress_slots?: number;
+    evasion?: number;
+    experience?: number;
+    damage_thresholds?: string | number;
+  } = {};
+
+  // Pattern: "Gain an additional Hit Point slot" or "gain an additional Hit Point slot"
+  if (/gain\s+(?:an?\s+)?(?:additional\s+)?hit\s+point\s+slot/i.test(cleanText)) {
+    bonuses.hit_point_slots = 1;
+  }
+
+  // Pattern: "Gain an additional Stress slot" or "gain an additional Stress slot"
+  if (/gain\s+(?:an?\s+)?(?:additional\s+)?stress\s+slot/i.test(cleanText)) {
+    bonuses.stress_slots = 1;
+  }
+
+  // Pattern for multiple slots: "gain 2 Hit Point slots"
+  const hpMatch = cleanText.match(/gain\s+(\d+)\s+(?:additional\s+)?hit\s+point\s+slots?/i);
+  if (hpMatch) {
+    bonuses.hit_point_slots = parseInt(hpMatch[1]);
+  }
+
+  const stressMatch = cleanText.match(/gain\s+(\d+)\s+(?:additional\s+)?stress\s+slots?/i);
+  if (stressMatch) {
+    bonuses.stress_slots = parseInt(stressMatch[1]);
+  }
+
+  return Object.keys(bonuses).length > 0 ? bonuses : undefined;
+}
+
+/**
  * Enhance a basic ability card with parsed metadata
  */
 export function enhanceAbilityCard(card: {
@@ -1654,6 +1755,12 @@ export function enhanceAbilityCard(card: {
   const modifiers = parseStaticModifiers(text, card.name);
   if (modifiers.length > 0) {
     enhanced.enhancement.modifiers = modifiers;
+  }
+
+  // Parse and add stat bonuses (hit point slots, stress slots, etc.)
+  const statBonuses = parseStatBonuses(text);
+  if (statBonuses) {
+    enhanced.stat_bonuses = statBonuses;
   }
 
   // Add token info if applicable

@@ -88,8 +88,8 @@
         "name": "Thick Skin",
         "text": "When you take Minor damage, you can **mark 2 Stress** instead of marking a Hit Point.",
         "enhancement": {
-          "action_type": "reaction",
-          "timing": "reaction",
+          "action_type": "passive",
+          "timing": "free",
           "frequency": "at_will",
           "costs": {
             "stress": 2
@@ -257,6 +257,7 @@
                 "label": "Extra"
               }
             ],
+            "is_triggered_bonus": true,
             "damage": "2d6",
             "targets": "single"
           }
@@ -290,6 +291,7 @@
             "trait": "Agility",
             "range": "Very Far",
             "combat_category": "passive_triggered",
+            "is_triggered_bonus": true,
             "damage": "1d12",
             "damage_type": "physical",
             "targets": "all_in_range"
@@ -496,8 +498,8 @@
         "name": "Luckbringer",
         "text": "At the start of each session, everyone in your party gains a Hope.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "action_type": "passive",
+          "timing": "free",
           "frequency": "at_will",
           "keywords": [
             "hope_gain",
@@ -685,6 +687,7 @@
                 "label": "Extra"
               }
             ],
+            "is_triggered_bonus": true,
             "damage": "1d6",
             "targets": "single"
           }
