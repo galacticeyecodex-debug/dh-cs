@@ -103,6 +103,7 @@ export type ModifierCondition =
   | { type: 'always' }
   | { type: 'when_armored' }
   | { type: 'when_unarmored' }
+  | { type: 'when_active' }
   | { type: 'loadout_domain_count'; domain: string; minCount: number }
   | { type: 'environment'; requirement: string };
 

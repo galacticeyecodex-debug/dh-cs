@@ -82,6 +82,7 @@ export type ModifierCondition =
   | { type: 'always' }
   | { type: 'when_armored' }
   | { type: 'when_unarmored' }
+  | { type: 'when_active' }
   | { type: 'loadout_domain_count'; domain: string; minCount: number }
   | { type: 'environment'; requirement: string };
 
@@ -132,7 +133,8 @@ export function stripMarkdown(text: string): string {
  */
 export function parseCardPassiveModifiers(
   card: CharacterCard,
-  character: Character
+  character: Character,
+  isCardActive: boolean = true
 ): PassiveModifier[] {
   const description = card.library_item?.data?.description || '';
   const cardName = card.library_item?.name || 'Unknown Card';
@@ -154,7 +156,7 @@ export function parseCardPassiveModifiers(
     const stat = matchStatName(statText.trim());
 
     if (stat) {
-      const isActive = evaluateModifierCondition(condition, character);
+      const isActive = evaluateModifierCondition(condition, character, isCardActive);
       modifiers.push({
         stat,
         value,
@@ -182,7 +184,7 @@ export function parseCardPassiveModifiers(
       if (targetStat) {
         const formula = isHalf ? `half_${sourceStat}` : sourceStat;
         const value = calculateDynamicValue(formula, character);
-        const isActive = evaluateModifierCondition(condition, character);
+        const isActive = evaluateModifierCondition(condition, character, isCardActive);
 
         modifiers.push({
           stat: targetStat,
@@ -213,7 +215,7 @@ export function parseCardPassiveModifiers(
       if (targetStat) {
         const formula = `${baseValue}_plus_${sourceStat}`;
         const value = calculateDynamicValue(formula, character);
-        const isActive = evaluateModifierCondition(condition, character);
+        const isActive = evaluateModifierCondition(condition, character, isCardActive);
 
         modifiers.push({
           stat: targetStat,
@@ -384,6 +386,15 @@ function extractCondition(description: string): ModifierCondition {
     };
   }
 
+  // Check for active state / transformation
+  // Matches: "Mark a Stress to transform", "spend to enter a form", "while in your... form", "while active"
+  if (
+    /(?:mark|spend).*?to\s+(?:transform|enter\s+(?:a\s+)?form|become)/i.test(description) ||
+    /while\s+(?:you(?:'re)?\s+)?(?:are\s+)?(?:in\s+)?(?:this\s+)?(?:form|state|stance|frenzied|active)/i.test(description)
+  ) {
+    return { type: 'when_active' };
+  }
+
   // Default: always active
   return { type: 'always' };
 }
@@ -393,7 +404,8 @@ function extractCondition(description: string): ModifierCondition {
  */
 export function evaluateModifierCondition(
   condition: ModifierCondition,
-  character: Character
+  character: Character,
+  isCardActive: boolean = true
 ): boolean {
   switch (condition.type) {
     case 'always':
@@ -408,6 +420,9 @@ export function evaluateModifierCondition(
       return !character.character_inventory?.find(i =>
         i.location === 'equipped_armor'
       );
+
+    case 'when_active':
+      return isCardActive;
 
     case 'loadout_domain_count': {
       const loadoutCards = character.character_cards?.filter(c =>

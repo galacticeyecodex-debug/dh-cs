@@ -540,7 +540,7 @@
               "stat": "damage",
               "value": 10,
               "condition": {
-                "type": "always"
+                "type": "when_active"
               },
               "source": "Arcane Charge"
             }
