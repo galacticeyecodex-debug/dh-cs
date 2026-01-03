@@ -23,6 +23,7 @@ import React from 'react';
 import { Target, Zap, MapPin, Skull } from 'lucide-react';
 import clsx from 'clsx';
 import { DomainAbilityButton } from './domain-ability-button';
+import { DomainCostsRow } from './domain-costs-row';
 import FrequencyCheckbox from '@/components/views/playmat/frequency-checkbox';
 import CardTokenTrack from '@/components/views/playmat/card-token-track';
 import { useCharacterStore } from '@/store/character-store';
@@ -194,20 +195,11 @@ export default function CardEnhancementPanel({
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2 items-center">
         {/* Cost buttons */}
-        {enhancement.costs?.stress && (
-          <DomainAbilityButton 
-            cardName={card.name}
-            costType="stress" 
-            costValue={enhancement.costs.stress} 
-          />
-        )}
-        {enhancement.costs?.hope && (
-          <DomainAbilityButton 
-            cardName={card.name}
-            costType="hope" 
-            costValue={enhancement.costs.hope} 
-          />
-        )}
+        <DomainCostsRow
+          cardName={card.name}
+          costs={enhancement.costs || undefined}
+          className="flex flex-wrap gap-2"
+        />
 
         {/* Duration/Active button */}
         {enhancement.duration && (
