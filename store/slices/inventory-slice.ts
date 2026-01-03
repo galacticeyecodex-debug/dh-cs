@@ -21,6 +21,7 @@ export interface InventorySlice {
   deleteItemFromInventory: (inventoryItemId: string) => Promise<void>;
   moveCard: (cardId: string, destination: 'loadout' | 'vault') => Promise<void>;
   addCardToCollection: (item: LibraryItem) => Promise<void>;
+  removeCard: (cardId: string) => Promise<void>;
   updateCardImage: (cardId: string, imageUrl: string | null, imageType?: 'artwork' | 'full-card', position?: { x: number; y: number }) => Promise<void>;
   updateCardImagePosition: (cardId: string, position: { x: number; y: number }) => Promise<void>;
   updateInventoryItemImage: (itemId: string, imageUrl: string | null, position?: { x: number; y: number }) => Promise<void>;
@@ -74,7 +75,11 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
     if (!state.character) return;
 
     try {
-      const data = await dataService.card.add(state.character.id, item.id, 'vault');
+      // CRITICAL: Check if loadout has space (max 5 cards)
+      const loadoutCards = (state.character.character_cards || []).filter((c: any) => c.location === 'loadout');
+      const destination = loadoutCards.length < 5 ? 'loadout' : 'vault';
+
+      const data = await dataService.card.add(state.character.id, item.id, destination);
 
       // Manually add the library_item data
       const addedCard: CharacterCard = {
@@ -90,6 +95,27 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
       }));
     } catch (error) {
       console.error('Error adding card:', error);
+    }
+  },
+
+  removeCard: async (cardId) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    try {
+      await dataService.card.remove(cardId);
+
+      set((s: any) => ({
+        character: s.character ? {
+          ...s.character,
+          character_cards: (s.character.character_cards || []).filter((c: any) => c.id !== cardId),
+        } : null,
+      }));
+
+      toast.success('Card removed from character');
+    } catch (error) {
+      console.error('Error removing card:', error);
+      toast.error('Failed to remove card');
     }
   },
 
