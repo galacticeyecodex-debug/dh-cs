@@ -114,6 +114,30 @@ export function getSystemModifiers(character: any, stat: string, cardStates: Rec
 
   // B. DOMAIN CARDS IN LOADOUT
   if (character.character_cards) {
+    // CRITICAL FIX: For dynamic formulas like "half your Agility" to work correctly,
+    // we need to use TOTAL stat values (base + modifiers), not just base values.
+    // Calculate total trait values FIRST before processing domain cards.
+    const traitsWithTotals: any = { ...character.stats };
+    const traitNames = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+
+    // Only calculate if we're requesting evasion or a similar derived stat that might use formulas
+    // (Otherwise we'd have circular dependency for trait modifiers themselves)
+    const needsTotalStats = stat !== 'agility' && stat !== 'strength' && stat !== 'finesse' &&
+                            stat !== 'instinct' && stat !== 'presence' && stat !== 'knowledge';
+
+    if (needsTotalStats) {
+      for (const trait of traitNames) {
+        const baseStat = character.stats?.[trait as keyof typeof character.stats] || 0;
+        // Get user modifiers (these don't depend on domain cards)
+        const userMods = (character.modifiers?.[trait] || []) as any[];
+        const userTotal = userMods.reduce((sum: number, mod: any) => sum + (mod.value || 0), 0);
+        traitsWithTotals[trait] = baseStat + userTotal;
+      }
+    }
+
+    // Create temporary character with calculated total stats for dynamic formula evaluation
+    const charForParsing = needsTotalStats ? { ...character, stats: traitsWithTotals } : character;
+
     const loadoutCards = character.character_cards.filter((card: any) =>
       card.location === 'loadout'
     );
@@ -124,7 +148,7 @@ export function getSystemModifiers(character: any, stat: string, cardStates: Rec
 
       // Special case: Bare Bones (complex tier-based thresholds)
       if (cardName === 'Bare Bones') {
-        const bareBonesModifiers = getBareBonesBonuses(character);
+        const bareBonesModifiers = getBareBonesBonuses(charForParsing);
         bareBonesModifiers
           .filter((mod: any) => mod.stat === stat && mod.isActive)
           .forEach((mod: any, index: number) => {
@@ -141,7 +165,7 @@ export function getSystemModifiers(character: any, stat: string, cardStates: Rec
 
       // General card parsing
       const isCardActive = cardStates[cardName]?.is_active ?? false;
-      const cardModifiers = parseCardPassiveModifiers(card, character, isCardActive);
+      const cardModifiers = parseCardPassiveModifiers(card, charForParsing, isCardActive);
 
       cardModifiers
         .filter((mod: any) => mod.stat === stat && mod.isActive)

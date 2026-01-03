@@ -310,6 +310,23 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     const newStressMax = ModifierService.applyModifiers(baseStress, [...stressSystemMods, ...stressUserMods], character, 'stress');
 
 
+    // --- TRAIT TOTALS (for dynamic formulas) ---
+    // Calculate total trait values (base + modifiers) to use in dynamic formulas
+    // like "half your Agility" in Untouchable
+    const traitsWithTotals: any = { ...character.stats };
+    const traitNames = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+
+    for (const trait of traitNames) {
+      const baseStat = character.stats?.[trait as keyof typeof character.stats] || 0;
+      const systemMods = getSystemModifiers(tempChar, trait, cardStates).map((m: any) => convertToModifier(m, trait));
+      const userMods = (character.modifiers?.[trait] || []).map((m: any) => convertToModifier(m, trait));
+      const totalStat = ModifierService.applyModifiers(baseStat, [...systemMods, ...userMods], character, trait);
+      traitsWithTotals[trait] = totalStat;
+    }
+
+    // Create temporary character with calculated total stats for dynamic formula evaluation
+    const tempCharWithTotals = { ...tempChar, stats: traitsWithTotals };
+
     // --- EVASION CALCULATION ---
     // calculateBaseEvasion does: Class Base + System Modifiers.
     // We want to replace the manual part of it.
@@ -317,11 +334,11 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     // calculateBaseEvasion(tempChar) returns (Class Base + System Mods).
     // Let's use that as base for User Mods.
     // OR: Reconstruct fully with Service.
-    
+
     const classBaseEvasion = parseInt(character.class_data?.data?.starting_evasion) || 10;
-    const evSystemMods = getSystemModifiers(tempChar, 'evasion', cardStates).map((m: any) => convertToModifier(m, 'evasion'));
+    const evSystemMods = getSystemModifiers(tempCharWithTotals, 'evasion', cardStates).map((m: any) => convertToModifier(m, 'evasion'));
     const evUserMods = (character.modifiers?.['evasion'] || []).map(m => convertToModifier(m, 'evasion'));
-    
+
     const newEvasion = ModifierService.applyModifiers(classBaseEvasion, [...evSystemMods, ...evUserMods], character, 'evasion');
 
 
