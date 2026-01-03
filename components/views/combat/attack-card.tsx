@@ -24,6 +24,8 @@ import { getValueColor } from '@/lib/styles';
 import MarkStressButton from './mark-stress-button';
 import SpendHopeButton from './spend-hope-button';
 
+import { AdditionalDamage } from '@/types/cards';
+
 export interface AttackCardCosts {
     stress?: number;
     hope?: number;
@@ -56,6 +58,10 @@ export interface AttackCardProps {
     onDamageRoll?: () => void;
     /** Optional callback for gear button - if provided, gear button is shown */
     onManageModifiers?: () => void;
+    /** Optional additional damage instances */
+    additionalDamage?: AdditionalDamage[];
+    /** Callback for rolling additional damage */
+    onAdditionalDamageRoll?: (damage: string, label: string) => void;
     /** Optional damage type (e.g., "Physical", "Magic") */
     damageType?: string;
     /** Optional icon to display next to the name */
@@ -102,6 +108,8 @@ const AttackCard = React.memo(function AttackCard({
     onAttackRoll,
     onDamageRoll,
     onManageModifiers,
+    additionalDamage,
+    onAdditionalDamageRoll,
     damageType,
     icon,
     description,
@@ -369,6 +377,35 @@ const AttackCard = React.memo(function AttackCard({
                         Damage {damageModifier !== 0 && `(${damageModifier >= 0 ? `+${damageModifier}` : damageModifier})`}
                     </button>
                 )}
+
+                {/* Additional Damage Buttons */}
+                {additionalDamage?.map((extra, idx) => (
+                    <button
+                        key={idx}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra');
+                        }}
+                        disabled={isUsed || !canRoll}
+                        className={clsx(
+                            'relative py-2 px-3 bg-white/5 hover:bg-white/15 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors',
+                            (isUsed || !canRoll) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-opacity-60',
+                        )}
+                        title={extra.condition}
+                    >
+                        <div
+                            className="absolute top-0.5 right-0.5 text-gray-600 transition-colors pointer-events-none"
+                            aria-hidden="true"
+                        >
+                            <Dices size={8} />
+                        </div>
+                        <Skull size={12} className="text-red-400/70" />
+                        <div className="flex flex-col items-start leading-none gap-0.5">
+                            <span>{extra.damage}</span>
+                            <span className="text-[9px] text-gray-400 font-normal uppercase">{extra.label}</span>
+                        </div>
+                    </button>
+                ))}
 
                 {/* Frequency Checkbox */}
                 {frequency}

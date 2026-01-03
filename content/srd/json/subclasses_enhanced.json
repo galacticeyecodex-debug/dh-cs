@@ -701,6 +701,14 @@
             "trait": "Spellcast",
             "range": "Close",
             "combat_category": "passive_triggered",
+            "additional_damage": [
+              {
+                "damage": "1d10",
+                "damage_type": "magic",
+                "condition": "When you succeed with Fear on an attack roll, you deal an",
+                "label": "Extra"
+              }
+            ],
             "damage": "1d10",
             "damage_type": "magic"
           }
@@ -1470,6 +1478,13 @@
             "trait": "Spellcast",
             "range": "Close",
             "combat_category": "passive_triggered",
+            "additional_damage": [
+              {
+                "damage": "1d8",
+                "condition": "- Spend a Hope to deal an",
+                "label": "Extra"
+              }
+            ],
             "damage": "1d8"
           }
         }
@@ -1534,6 +1549,13 @@
             "trait": "Spellcast",
             "range": "Close",
             "combat_category": "passive_triggered",
+            "additional_damage": [
+              {
+                "damage": "1d12",
+                "condition": "While flying, you deal an",
+                "label": "Extra"
+              }
+            ],
             "damage": "1d12"
           }
         }

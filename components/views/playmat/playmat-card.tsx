@@ -137,6 +137,14 @@ export default function PlaymatCard({
             const { dice, modifier } = parseDamageRoll(finalDamage);
             prepareRoll(`${enhancedData.name} Damage`, modifier, dice);
           } : undefined}
+          additionalDamage={attack?.additional_damage}
+          onAdditionalDamageRoll={(damage, label) => {
+            // For additional damage, we typically assume it's dice-heavy, but might have modifier
+            // Using parseDamageRoll should work for "2d6" or "1d8+2"
+            // Note: It doesn't include proficiency usually for extra damage, so we use it raw.
+            const { dice, modifier } = parseDamageRoll(damage);
+            prepareRoll(`${enhancedData.name} ${label}`, modifier, dice);
+          }}
           borderVariant={actionType === 'reaction' ? 'reaction' : 'spell'}
           rollLabel={rollLabel || 'Roll'}
           costs={costs || undefined}
