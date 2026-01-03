@@ -14,6 +14,22 @@ import createClient from '@/lib/supabase/client';
 import { dataService } from '@/lib/data-service';
 import { CharacterStore } from '@/types/store';
 
+// localStorage key for persisting selected character ID
+const SELECTED_CHARACTER_STORAGE_KEY = 'dh:selectedCharacterId';
+
+// Helper to get persisted character ID or null
+const getInitialSelectedCharacterId = (): string | null => {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const stored = localStorage.getItem(SELECTED_CHARACTER_STORAGE_KEY);
+    return stored || null;
+  } catch (error) {
+    console.warn('Failed to load selected character ID from localStorage:', error);
+    return null;
+  }
+};
+
 export interface AuthSlice {
   user: AppUser | null;
   selectedCharacterId: string | null;
@@ -24,9 +40,21 @@ export interface AuthSlice {
 
 export const createAuthSlice: StateCreator<CharacterStore, [], [], AuthSlice> = (set, get) => ({
   user: null,
-  selectedCharacterId: null,
+  selectedCharacterId: getInitialSelectedCharacterId(),
   setUser: (user) => set({ user }),
-  setSelectedCharacterId: (id) => set({ selectedCharacterId: id }),
+  setSelectedCharacterId: (id) => {
+    set({ selectedCharacterId: id });
+    // Persist to localStorage
+    try {
+      if (id) {
+        localStorage.setItem(SELECTED_CHARACTER_STORAGE_KEY, id);
+      } else {
+        localStorage.removeItem(SELECTED_CHARACTER_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.warn('Failed to persist selected character ID to localStorage:', error);
+    }
+  },
   fetchUser: async (options?: { skipCharacterFetch?: boolean }) => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();

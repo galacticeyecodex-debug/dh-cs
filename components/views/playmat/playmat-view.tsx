@@ -41,7 +41,7 @@ import { getAttack, getRoll } from '@/lib/enhancement-utils';
 import useContentAccess from '@/hooks/useContentAccess';
 
 export default function PlaymatView() {
-  const { character, cardStates, moveCard, addCardToCollection, updateCardImage, updateCardImagePosition, updateModifiers, user } = useCharacterStore();
+  const { character, cardStates, moveCard, addCardToCollection, removeCard, updateCardImage, updateCardImagePosition, updateModifiers, user } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'loadout' | 'vault'>('loadout');
@@ -304,21 +304,25 @@ export default function PlaymatView() {
                   );
                 })
               ) : (
-                <div className="w-[240px] aspect-[2.5/3.5] border-2 border-dashed border-white/5 rounded-lg flex flex-col items-center justify-center text-gray-600 p-4 text-center">
-                  <LibraryBig size={24} className="mb-2" />
-                  <span className="text-sm">
-                    {searchTerm ? "No cards match your search." : "No cards in Loadout."}
-                  </span>
-                  <span className="text-xs">
-                    {searchTerm ? "Try a different search term." : "Add from Vault or create new!"}
-                  </span>
+                <div className="relative flex flex-col items-center gap-2 p-2 bg-dagger-panel border-2 border-dashed border-white/5 rounded-xl w-full">
+                  <div className="w-[240px] aspect-[2.5/3.5] flex flex-col items-center justify-center text-gray-600 p-4 text-center">
+                    <LibraryBig size={24} className="mb-2" />
+                    <span className="text-sm">
+                      {searchTerm ? "No cards match your search." : "No cards in Loadout."}
+                    </span>
+                    <span className="text-xs">
+                      {searchTerm ? "Try a different search term." : "Add from Vault or create new!"}
+                    </span>
+                  </div>
                 </div>
               )}
 
               {/* Fill remaining slots up to 5 only if not searching */}
               {!searchTerm && Array.from({ length: Math.max(0, 5 - loadoutCards.length) }).map((_, i) => (
-                <div key={`empty-${i}`} className="w-[240px] aspect-[2.5/3.5] border-2 border-dashed border-white/5 rounded-lg flex items-center justify-center text-gray-600">
-                  <span className="text-xs uppercase">Slot {loadoutCards.length + i + 1}</span>
+                <div key={`empty-${i}`} className="relative flex flex-col items-center gap-2 p-2 bg-dagger-panel border-2 border-dashed border-white/5 rounded-xl w-full">
+                  <div className="w-[240px] aspect-[2.5/3.5] flex items-center justify-center text-gray-600">
+                    <span className="text-xs uppercase">Slot {loadoutCards.length + i + 1}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -360,6 +364,7 @@ export default function PlaymatView() {
           onAddItem={handleAddCard}
           libraryItems={allLibraryItems}
           filterType="cards"
+          ownedCards={character?.character_cards}
         />
 
         {/* Card Detail Modal */}
@@ -461,7 +466,7 @@ export default function PlaymatView() {
 
 
 function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: CharacterCard, onClose: () => void, mode?: 'full' | 'art-only' }) {
-  const { character, cardStates, updateCardImage, updateCardImagePosition, user } = useCharacterStore();
+  const { character, cardStates, updateCardImage, updateCardImagePosition, removeCard, user } = useCharacterStore();
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown', domain: '', tier: 0, type: '', data: {} };
   const recallCost = data?.recall || '0';
   const theme = getDomainTheme(domain);
@@ -1032,8 +1037,18 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
         </div>
 
         {/* Footer */}
-        <div className="py-2 text-center text-xs text-gray-500">
-          {/* Footer content removed */}
+        <div className="p-4 border-t border-white/10 flex justify-center">
+          <button
+            onClick={async () => {
+              if (confirm(`Remove "${name}" from your character? This cannot be undone.`)) {
+                await removeCard(charCard.id);
+                onClose();
+              }
+            }}
+            className="flex items-center gap-1.5 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-lg text-sm font-bold transition-colors border border-red-500/30"
+          >
+            <Trash2 size={14} /> Remove from Character
+          </button>
         </div>
       </div>
     </div>
