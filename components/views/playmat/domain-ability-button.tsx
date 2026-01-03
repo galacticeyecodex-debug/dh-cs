@@ -13,6 +13,10 @@ interface DomainAbilityButtonProps {
   label?: string; // Optional override
   className?: string;
   disabled?: boolean;
+  // Controlled mode props
+  isActiveOverride?: boolean;
+  onActivate?: () => void;
+  onDeactivate?: () => void;
 }
 
 export function DomainAbilityButton({
@@ -22,6 +26,9 @@ export function DomainAbilityButton({
   label,
   className,
   disabled = false,
+  isActiveOverride,
+  onActivate,
+  onDeactivate,
 }: DomainAbilityButtonProps) {
   const { 
     character, 
@@ -31,7 +38,10 @@ export function DomainAbilityButton({
     toggleCardActive 
   } = useCharacterStore();
 
-  const isActive = cardStates[cardName]?.is_active || false;
+  // Use override if provided, otherwise check store
+  const isActive = isActiveOverride !== undefined 
+    ? isActiveOverride 
+    : (cardStates[cardName]?.is_active || false);
 
   // Determine effective label and icon
   let displayLabel = label;
@@ -41,12 +51,12 @@ export function DomainAbilityButton({
 
   if (costType === 'hope') {
     displayLabel = label || `Spend ${costValue > 0 ? costValue : 'a'} Hope`;
-    Icon = Zap; // Or a specific Hope icon
-    costColor = 'text-yellow-400';
-    activeColor = 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50';
+    Icon = Zap;
+    costColor = 'text-dagger-gold'; // Harmonized to dagger-gold for Hope
+    activeColor = 'bg-dagger-gold/20 text-dagger-gold border-dagger-gold/50';
   } else if (costType === 'stress') {
     displayLabel = label || `Mark ${costValue > 0 ? costValue : 'a'} Stress`;
-    Icon = Skull; // Or a specific Stress icon
+    Icon = Skull;
     costColor = 'text-purple-400';
     activeColor = 'bg-purple-900/40 text-purple-300 border-purple-500/50';
   } else if (costType === 'duration') {
@@ -60,9 +70,9 @@ export function DomainAbilityButton({
     e.stopPropagation();
     if (!character || disabled || isActive) return;
 
-    // 1. Pay Cost
+    // 1. Pay Cost (always pay unless it's a duration/free toggle)
     if (costType === 'hope' && costValue > 0) {
-      if (character.hope < costValue) return; // Should be disabled, but check anyway
+      if (character.hope < costValue) return; 
       updateHope(character.hope - costValue);
     } else if (costType === 'stress' && costValue > 0) {
       const currentStress = character.vitals.stress_current;
@@ -70,16 +80,24 @@ export function DomainAbilityButton({
       updateVitals('stress_current', currentStress + costValue);
     }
 
-    // 2. Set Active
-    toggleCardActive(cardName);
+    // 2. Set Active / Callback
+    if (onActivate) {
+      onActivate();
+    } else {
+      toggleCardActive(cardName);
+    }
   };
 
   const handleReset = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!character || !isActive) return;
 
-    // Just toggle off (no refund)
-    toggleCardActive(cardName);
+    // Just toggle off
+    if (onDeactivate) {
+      onDeactivate();
+    } else {
+      toggleCardActive(cardName);
+    }
   };
 
   // Check affordability
