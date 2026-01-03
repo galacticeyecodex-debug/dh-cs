@@ -25,7 +25,7 @@ import ModifierSheet from '@/components/shared/modifier-sheet';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import useContentAccess from '@/hooks/useContentAccess';
 
-import { AttackCard, MarkStressButton, SpendHopeButton, FrequencyCheckbox, CardTokenTrack } from './';
+import { AttackCard, FrequencyCheckbox, CardTokenTrack } from './';
 import { hasCombatRelevance, enhanceFeature } from '@/lib/card-parser';
 import type { EnhancedAbilityCard, EnhancedAncestry, EnhancedCommunity, EnhancedFeature, Frequency } from '@/types/cards';
 
