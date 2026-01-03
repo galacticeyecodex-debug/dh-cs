@@ -196,11 +196,11 @@ describe('Subclass Abilities Schema Validation - Call of the Slayer (Warrior)', 
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should have token_source = proficiency', () => {
-            expect(enhanced.enhancement.token_source).toBe('proficiency');
+            expect(enhanced.enhancement.tokens?.token_source).toBe('proficiency');
         });
     });
 

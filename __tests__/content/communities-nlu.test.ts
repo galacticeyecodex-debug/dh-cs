@@ -116,11 +116,11 @@ describe('Community Abilities Schema Validation - Seaborne', () => {
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should have token_source = level', () => {
-            expect(enhanced.enhancement.token_source).toBe('level');
+            expect(enhanced.enhancement.tokens?.token_source).toBe('level');
         });
 
         it('should have no costs (gains tokens on Fear, spends them for bonus)', () => {

@@ -373,8 +373,8 @@
         "name": "Shell",
         "text": "Gain a bonus to your damage thresholds equal to your Proficiency.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "action_type": "passive",
+          "timing": "free",
           "frequency": "at_will",
           "keywords": [
             "damage",
@@ -496,8 +496,8 @@
         "name": "Luckbringer",
         "text": "At the start of each session, everyone in your party gains a Hope.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "action_type": "buff",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "hope_gain",
@@ -509,8 +509,8 @@
         "name": "Internal Compass",
         "text": "When you roll a 1 on your Hope Die, you can reroll it.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "action_type": "passive",
+          "timing": "free",
           "frequency": "at_will",
           "keywords": [
             "ability"

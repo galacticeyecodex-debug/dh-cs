@@ -848,6 +848,7 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     return 'reaction';
   }
 
+
   // 2. Check for downtime patterns
   if (
     cleanText.includes('during a rest') ||
@@ -861,7 +862,63 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     return 'downtime';
   }
 
-  // 3. Check if this is an ATTACK (player initiates combat action)
+  // 3. Check for BUFF patterns (healing, support, granting bonuses to self/allies)
+  // IMPORTANT: This must come BEFORE attacks and passive to catch active enhancement abilities
+  const buffPatterns = [
+    // Healing/clearing resources
+    /\bclear(?:s)?\s+(?:a|an|\d+)\s+(?:hit\s+point|stress|armor\s+slot)/i,
+    /\blay\s+your\s+hands\s+upon\b/i,
+    /\bhealing\s+magic\b/i,
+    /\bclose\s+their\s+wounds\b/i,
+    /\bclears?\s+(?:1d4|1d6|1d8)\s+hit\s+points?\b/i,
+    /\bthat\s+creature\s+clears\b/i,
+
+    // Rally and dice granting (CRITICAL for Bard abilities)
+    /\bgive\s+(?:yourself|each|all|them|an?\s+ally)\b.*?\b(?:rally\s+)?die\b/i,
+    /\brally\s+die\b/i,
+    /\bgrant(?:s|ing)?\s+.*?\b(?:rally\s+)?die\b/i,
+
+    // Gaining bonuses (active, not passive)
+    /\bgain\s+(?:a\s+)?\+?\d+\s+bonus\s+to\b/i,
+    /\bgain\s+advantage\b/i,
+    /\bgain\s+a\s+hope\b/i,
+    /\beach\s+(?:ally|creature)\s+(?:clears?|gains?)\b/i,
+
+    // Self-enhancement buffs
+    /\bbecome\s+unstoppable\b/i,
+    /\bbecome\s+invisible\b/i,
+    /\broll\s+a\s+d20\s+as\s+your\s+hope\s+die\b/i,
+
+    // Reroll abilities (active enhancement) - but NOT triggered rerolls
+    /\breroll\s+(?:any\s+)?(?:number\s+of\s+)?(?:your\s+)?damage\s+dice\b/i,
+
+    // Weapon/attack enchantment
+    /\benchant\s+(?:one\s+of\s+)?(?:your\s+)?(?:active\s+)?weapons?\b/i,
+    /\bextra\s+\*?\*?\d*d\d+\*?\*?\s+damage\s+when\s+you\s+hit\b/i,
+
+    // Advantage granting
+    /\bhave\s+advantage\s+on\s+all\s+\*?\*?action\s+rolls?\*?\*?\b/i,
+    /\bgain\s+advantage\s+on\b/i,
+
+    // Hope gain for party
+    /\ball\s+allies.*?gain.*?hope\b/i,
+    /\beach.*?gains?\s+(?:a\s+)?hope\b/i,
+  ];
+
+  
+  // Exclude abilities that have passive triggers (when/while/if/after)
+  // This includes patterns like "Once per rest, when..." or "After you make..."
+  const hasPassiveTrigger = 
+    /^(?:when|while|if|after|whenever)\s+you\b/i.test(cleanText) ||
+    /^(?:once|twice)\s+per\s+(?:rest|long\s+rest|scene|turn|round),?\s+(?:when|while|if|after)\s+you\b/i.test(cleanText) ||
+    /\bafter\s+you\s+(?:make|succeed|fail|cast|roll)\b/i.test(cleanText) ||
+    /\bwhen\s+you\s+(?:make|succeed|fail|cast|roll)\b/i.test(cleanText);
+  
+  if (!hasPassiveTrigger && buffPatterns.some(pattern => pattern.test(cleanText))) {
+    return 'buff';
+  }
+
+  // 4. Check if this is an ATTACK (player initiates combat action)
   // An attack needs: "make a Roll against" OR parsed attack data
   const hasRollAgainst = /make (?:a |an )?\*?\*?(?:\w+\s+)?roll\*?\*? against/i.test(text);
   const hasAttackWith = /make (?:a |an )?attack with/i.test(cleanText);
@@ -874,7 +931,7 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     return 'attack';
   }
 
-  // 4. Check for utility abilities (transformations, cantrips, illusions, communication, resource conversion)
+  // 5. Check for utility abilities (transformations, cantrips, illusions, communication, resource conversion)
   const utilityPatterns = [
     /\btransform\s+into\b/i,
     /\bmagically\s+transform\b/i,
@@ -924,8 +981,11 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     return 'utility';
   }
 
-  // 5. Check for passive abilities (triggered by conditions, not actively used)
+  // 6. Check for passive abilities (triggered by conditions, not actively used)
+  // This is a VERY important section - passive abilities are the most common type
+  // IMPORTANT: This comes LAST (before default) to catch remaining triggered abilities
   const passiveTriggers = [
+    // Basic "when you" triggers at start of text
     /^when you (?:roll|deal|succeed|critically|fail)/i,
     /^when you make a successful/i,
     /^while you(?:'re| are)/i,
@@ -933,51 +993,62 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     /^you have a base/i,
     /^gain a \+?\d+ bonus to/i,
     /^when an ally/i,
+
+    // Post-action triggers (after making an attack/roll)
+    /\bwhen you (?:make a successful|succeed on|successfully cast|successfully make)\b/i,
+    /\bafter you (?:make|cast|successfully)\b/i,
+    /\bafter (?:making|casting) (?:a|an)\b/i,
+    /\bwhen you successfully cast\b/i,
+    /\bafter you successfully\b/i,
+
+    // Conditional bonuses (while/if conditions)
+    /\bwhile (?:you(?:'re| are)|wearing|wielding|in)\b/i,
+    /\bif you (?:are|have)\b/i,
+    /\bwhen (?:\d+|four|4) or more (?:of the )?(?:domain )?cards\b/i,
+    /\bwhen (?:\d+|four|4)\+ (?:of the )?(?:domain )?cards\b/i,
+
+    // Damage roll triggers
+    /\bwhen you (?:roll|deal) (?:your )?damage\b/i,
+    /\bwhen you roll (?:your )?damage dice\b/i,
+    /\bwhen rolling damage\b/i,
+
+    // Attack triggers (not initiating, but triggered by)
+    /\bwhen you (?:make an attack|attack)\b/i,
+    /\bwhen making an attack\b/i,
+    /\bwhen you critically succeed on an attack\b/i,
+    /\bwhen you fail an attack\b/i,
+
+    // Defeat/kill triggers
+    /\bwhen you (?:defeat|kill) (?:a|an|the)\b/i,
+    /\bwhen you deal enough damage to defeat\b/i,
+
+    // Marking/taking damage triggers
+    /\bwhen you cause (?:a|an|the) (?:adversary|target|creature) to mark\b/i,
+    /\bwhen (?:a|an|the) (?:adversary|target|creature) (?:you|marks)\b/i,
+
+    // Experience/token usage triggers
+    /\bwhen you use (?:a|an|one of your) experience\b/i,
+    /\bwhen using (?:a|an|one of your) experience\b/i,
+    /\btriggered by using experience\b/i,
+
+    // Passive stat bonuses
+    /\bgain (?:a )?\+?\d+ bonus to (?:your )?\w+\b/i,
+    /\byou (?:have|gain) (?:a )?(?:permanent )?\+?\d+\b/i,
+
+    // Reroll abilities (passive triggers) - but only when triggered by condition
+    /\bwhen you roll.*?you can reroll\b/i,
+    /\breroll any (?:1s|2s|number)\b/i,
+
+    // First time per turn/scene triggers
+    /\bthe first time (?:you|each)\b/i,
+    /\bonce per (?:turn|round)\b/i,
+
+    // Loadout composition bonuses
+    /\bwhen (?:\d+|four|4) or more of the domain cards in your loadout\b/i,
   ];
 
   if (passiveTriggers.some(pattern => pattern.test(cleanText))) {
-    // Check if it's a triggered buff (healing, rerolls)
-    if (cleanText.includes('clear a hit point') || cleanText.includes('clear a stress') ||
-      cleanText.includes('clear 2') || cleanText.includes('clear 3') ||
-      cleanText.includes('can reroll') || cleanText.includes('gain hope') ||
-      cleanText.includes('gain a hope')) {
-      return 'buff';
-    }
     return 'passive';
-  }
-
-  // 6. Check for buff patterns (healing, support, granting bonuses to self/allies)
-  if (
-    cleanText.includes('gain a bonus') ||
-    cleanText.includes('gain advantage') ||
-    cleanText.includes('clear a stress') ||
-    cleanText.includes('clear a hit point') ||
-    cleanText.includes('clear 2 hit points') ||
-    cleanText.includes('clear 2 armor slots') ||
-    cleanText.includes('lay your hands upon') ||
-    cleanText.includes('healing magic') ||
-    cleanText.includes('close their wounds') ||
-    // Rally die / dice granting
-    /give\s+(?:yourself|each|all)\b.*?\bdie\b/i.test(cleanText) ||
-    /\brally\s+die\b/i.test(cleanText) ||
-    // Self-enhancement buffs
-    /\bbecome\s+unstoppable\b/i.test(cleanText) ||
-    /\broll\s+a\s+d20\s+as\s+your\s+hope\s+die\b/i.test(cleanText) ||
-    // Reroll abilities
-    /\breroll\s+(?:any\s+)?(?:number\s+of\s+)?(?:your\s+)?damage\s+dice\b/i.test(cleanText) ||
-    // Bonus to attack/damage rolls
-    /\b\+\d+\s+bonus\s+to\s+(?:your\s+)?(?:attack|damage)\s+rolls?\b/i.test(cleanText) ||
-    /\bgain\s+a\s+\+\d+\s+bonus\s+to\s+your\s+evasion\b/i.test(cleanText) ||
-    // Healing with dice
-    /\bclears?\s+(?:1d4|1d6|1d8)\s+hit\s+points?\b/i.test(cleanText) ||
-    /\bthat\s+creature\s+clears\b/i.test(cleanText) ||
-    // Weapon enchantment/enhancement
-    /\benchant\s+(?:one\s+of\s+)?(?:your\s+)?(?:active\s+)?weapons?\b/i.test(cleanText) ||
-    /\bextra\s+\*?\*?\d*d\d+\*?\*?\s+damage\s+when\s+you\s+hit\b/i.test(cleanText) ||
-    // Have advantage on all action rolls
-    /\bhave\s+advantage\s+on\s+all\s+\*?\*?action\s+rolls?\*?\*?\b/i.test(cleanText)
-  ) {
-    return 'buff';
   }
 
   // 7. Default based on card type
@@ -1040,9 +1111,30 @@ export function parseTiming(text: string, actionType: ActionType): Timing {
 export function hasTokenMechanics(text: string): boolean {
   const lowerText = text.toLowerCase();
   return (
+    // Placing tokens
     (lowerText.includes('place') && lowerText.includes('token')) ||
+    lowerText.includes('place a number of tokens') ||
+    lowerText.includes('place tokens') ||
+    // Spending tokens
     (lowerText.includes('spend') && lowerText.includes('token')) ||
-    lowerText.includes('tokens on this card')
+    lowerText.includes('spend a token') ||
+    lowerText.includes('spend one token') ||
+    // Tokens on card
+    lowerText.includes('tokens on this card') ||
+    lowerText.includes('token on this card') ||
+    // Clearing/removing tokens
+    lowerText.includes('clear all unspent tokens') ||
+    lowerText.includes('clear all tokens') ||
+    lowerText.includes('remove a token') ||
+    lowerText.includes('remove tokens') ||
+    // Holding tokens
+    lowerText.includes('hold up to') && lowerText.includes('token') ||
+    lowerText.includes('hold tokens') ||
+    // Token equal to trait
+    lowerText.includes('tokens equal to') ||
+    lowerText.includes('token equal to') ||
+    // Number of tokens
+    lowerText.includes('number of tokens')
   );
 }
 
@@ -1260,11 +1352,21 @@ export function parseRoll(text: string): CardRoll | undefined {
     /must\s+(?:make|succeed)\s+(?:a|on)\s+.*?reaction/i.test(cleanText) ||
     /(?:targets?|creatures?)\s+(?:who|that|must)\s+.*?reaction/i.test(cleanText);
 
+  // Check if costs are required BEFORE making the roll
+  // Patterns like "Spend a Hope to make a roll" or "Mark Stress to make a roll"
+  // Also catches "Mark 2 Stress to make" or "Spend 5 Hope to make"
+  const requiresCostForRoll =
+    /\*\*spend\s+(?:a\s+|\d+\s+)?hope\*\*\s+to\s+(?:make|allow)/i.test(text) ||
+    /\*\*mark\s+(?:a\s+|\d+\s+)?stress\*\*\s+to\s+(?:make|allow)/i.test(text) ||
+    /spend\s+(?:a\s+|\d+\s+)?hope\s+to\s+(?:make|allow)/i.test(cleanText) ||
+    /mark\s+(?:a\s+|\d+\s+)?stress\s+to\s+(?:make|allow)/i.test(cleanText);
+
   return {
     type: `${trait || 'Spellcast'} Roll`,
     trait: trait || 'Spellcast',
     difficulty,
     target_reaction: hasTargetReaction,
+    requires_cost_for_roll: requiresCostForRoll || undefined, // Only include if true
   };
 }
 

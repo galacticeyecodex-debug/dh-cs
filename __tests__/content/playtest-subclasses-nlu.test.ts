@@ -209,7 +209,7 @@ describe('Playtest Subclasses NLU Validation - Witch Subclasses', () => {
             });
 
             it('should have has_tokens = true', () => {
-                expect(enhanced.enhancement.has_tokens).toBe(true);
+                expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
             });
 
             it('should have keyword tokens', () => {
@@ -228,7 +228,7 @@ describe('Playtest Subclasses NLU Validation - Witch Subclasses', () => {
             });
 
             it('should have has_tokens = true', () => {
-                expect(enhanced.enhancement.has_tokens).toBe(true);
+                expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
             });
 
             it('should have attack.range = Very Close', () => {
@@ -388,7 +388,7 @@ describe('Playtest Subclasses NLU Validation - Brawler Subclasses', () => {
             });
 
             it('should have has_tokens = true', () => {
-                expect(enhanced.enhancement.has_tokens).toBe(true);
+                expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
             });
 
             it('should have keyword tokens', () => {

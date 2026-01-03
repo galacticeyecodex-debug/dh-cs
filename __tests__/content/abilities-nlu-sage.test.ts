@@ -163,11 +163,11 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should have token_source = spellcast', () => {
-            expect(enhanced.enhancement.token_source).toBe('spellcast');
+            expect(enhanced.enhancement.tokens?.token_source).toBe('spellcast');
         });
     });
 
@@ -181,7 +181,7 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         });
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should have roll.difficulty = 13', () => {
@@ -280,7 +280,7 @@ describe('Abilities Schema Validation - Sage Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should have has_tokens = true', () => {
-            expect(enhanced.enhancement.has_tokens).toBe(true);
+            expect(enhanced.enhancement.tokens?.has_tokens).toBe(true);
         });
 
         it('should be action_type passive', () => {

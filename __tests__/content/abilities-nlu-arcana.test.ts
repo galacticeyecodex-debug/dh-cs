@@ -205,6 +205,10 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         it('should be action_type utility (movement, no damage)', () => {
             expect(enhanced.enhancement.action_type).toBe('utility');
         });
+
+        it('should NOT have roll.requires_cost_for_roll (cost is conditional on success)', () => {
+            expect(enhanced.enhancement.roll?.requires_cost_for_roll).toBeUndefined();
+        });
     });
 
     describe('Preservation Blast', () => {
@@ -240,6 +244,10 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
 
         it('should have roll.target_reaction = true', () => {
             expect(enhanced.enhancement.roll?.target_reaction).toBe(true);
+        });
+
+        it('should have roll.requires_cost_for_roll = true (cost is prerequisite)', () => {
+            expect(enhanced.enhancement.roll?.requires_cost_for_roll).toBe(true);
         });
     });
 
