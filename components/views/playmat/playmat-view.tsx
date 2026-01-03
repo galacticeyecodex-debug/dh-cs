@@ -95,11 +95,12 @@ export default function PlaymatView() {
 
       try {
         // Fetch card-related types (including domains for filter dropdown)
+        // Include playtest content if user has access
         const [abilitiesData, spellsData, grimoiresData, domainsData] = await Promise.all([
-          dataService.library.getByType('ability'),
-          dataService.library.getByType('spell'),
-          dataService.library.getByType('grimoire'),
-          dataService.library.getByType('domain'),
+          dataService.library.getByType('ability', { includePlaytest }),
+          dataService.library.getByType('spell', { includePlaytest }),
+          dataService.library.getByType('grimoire', { includePlaytest }),
+          dataService.library.getByType('domain', { includePlaytest }),
         ]);
 
         setAllLibraryItems([
@@ -115,7 +116,7 @@ export default function PlaymatView() {
     };
 
     fetchAllLibraryItems();
-  }, []);
+  }, [includePlaytest]);
 
   // Memoize callbacks BEFORE early return (hooks must be unconditional)
   const handleAddCard = useCallback((item: LibraryItem) => {
@@ -217,12 +218,27 @@ export default function PlaymatView() {
           <div className="space-y-6">
             {/* Active Modifiers Summary */}
             {loadoutCards.length > 0 && character && (() => {
+              // CRITICAL: Calculate total trait values (base + modifiers) for dynamic formulas
+              // This ensures cards like "Untouchable" (half Agility) use the correct total
+              const traitsWithTotals: any = { ...character.stats };
+              const traitNames = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+
+              for (const trait of traitNames) {
+                const baseStat = character.stats?.[trait as keyof typeof character.stats] || 0;
+                const userMods = (character.modifiers?.[trait] || []) as any[];
+                const userTotal = userMods.reduce((sum: number, mod: any) => sum + (mod.value || 0), 0);
+                traitsWithTotals[trait] = baseStat + userTotal;
+              }
+
+              // Create temporary character with calculated total stats for formula evaluation
+              const charForParsing = { ...character, stats: traitsWithTotals };
+
               // Collect all active modifiers from loadout cards
               const allModifiers: PassiveModifier[] = [];
               loadoutCards.forEach(card => {
                 const cardName = card.library_item?.name || '';
                 const isCardActive = cardStates?.[cardName]?.is_active ?? false;
-                const mods = parseCardPassiveModifiers(card, character, isCardActive);
+                const mods = parseCardPassiveModifiers(card, charForParsing, isCardActive);
                 allModifiers.push(...mods.filter(m => m.isActive));
               });
 
