@@ -32,7 +32,7 @@
  *
  *   // Auto-generated mechanics (overwritten on every run)
  *   "enhancement": {
- *     "action_type": "attack" | "utility",
+ *     "action_type": "attack" | undefined,
  *     "timing": "action" | "reaction" | "free" | "downtime",
  *     "frequency": "at_will" | "once_per_rest" | "once_per_long_rest" | "once_per_session",
  *     "duration": "scene" | "instant" | ...,
@@ -369,11 +369,7 @@ function processAbilitiesFile(inputPath: string, outputPath: string): EnhancedCa
     const stats = {
       total: enhanced.length,
       attacks: effectiveTypes.filter(t => t === 'attack').length,
-      reactions: effectiveTypes.filter(t => t === 'utility').length,
-      buffs: effectiveTypes.filter(t => t === 'utility').length,
-      utility: effectiveTypes.filter(t => t === 'utility').length,
-      passives: effectiveTypes.filter(t => t === 'utility').length,
-      downtime: effectiveTypes.filter(t => t === 'utility').length,
+      other: effectiveTypes.filter(t => t !== 'attack').length,
       withOverrides: enhanced.filter(c => c.enhancement_override).length,
     };
     console.log(`  Stats:`, stats);
@@ -416,11 +412,7 @@ function processCharacterOptionsFile(
       entries: enhanced.length,
       totalFeats: allFeats.length,
       attacks: effectiveTypes.filter(t => t === 'attack').length,
-      reactions: effectiveTypes.filter(t => t === 'reaction').length,
-      buffs: effectiveTypes.filter(t => t === 'buff').length,
-      utility: effectiveTypes.filter(t => t === 'utility').length,
-      passives: effectiveTypes.filter(t => t === 'passive').length,
-      downtime: effectiveTypes.filter(t => t === 'downtime').length,
+      other: effectiveTypes.filter(t => t !== 'attack').length,
       withOverrides: allFeats.filter(f => f.enhancement_override).length,
     };
 
@@ -463,10 +455,7 @@ function processClassesFile(inputPath: string, outputPath: string): ClassEntry[]
       totalClassFeats: allClassFeats.length,
       hopeFeats,
       attacks: effectiveTypes.filter(t => t === 'attack').length,
-      reactions: effectiveTypes.filter(t => t === 'reaction').length,
-      buffs: effectiveTypes.filter(t => t === 'buff').length,
-      utility: effectiveTypes.filter(t => t === 'utility').length,
-      passives: effectiveTypes.filter(t => t === 'passive').length,
+      other: effectiveTypes.filter(t => t !== 'attack').length,
       withOverrides: allClassFeats.filter(f => f.enhancement_override).length,
     };
 
@@ -514,10 +503,7 @@ function processSubclassesFile(inputPath: string, outputPath: string): SubclassE
       masteries: allMasteries.length,
       totalFeats: allFeats.length,
       attacks: effectiveTypes.filter(t => t === 'attack').length,
-      reactions: effectiveTypes.filter(t => t === 'reaction').length,
-      buffs: effectiveTypes.filter(t => t === 'buff').length,
-      utility: effectiveTypes.filter(t => t === 'utility').length,
-      passives: effectiveTypes.filter(t => t === 'passive').length,
+      other: effectiveTypes.filter(t => t !== 'attack').length,
       withOverrides: allFeats.filter(f => f.enhancement_override).length,
     };
 

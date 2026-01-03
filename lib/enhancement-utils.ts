@@ -68,7 +68,7 @@ export function hasOverride<T extends WithEnhancement>(item: T): boolean {
  * @returns The effective action_type
  */
 export function getActionType<T extends WithEnhancement>(item: T): ActionType {
-    return getEnhancement(item)?.action_type ?? 'passive';
+    return getEnhancement(item)?.action_type;
 }
 
 /**
@@ -193,7 +193,7 @@ export function migrateToBlockStructure(
 
     // Extract enhanced fields into block
     const enhancement: EnhancementBlock = {
-        action_type: (card.action_type as ActionType) ?? 'passive',
+        action_type: (card.action_type as ActionType),
         timing: (card.timing as Timing) ?? 'action',
         frequency: (card.frequency as Frequency) ?? 'at_will',
         costs: card.costs as unknown as CardCosts,

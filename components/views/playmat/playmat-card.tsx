@@ -145,7 +145,7 @@ export default function PlaymatCard({
             const { dice, modifier } = parseDamageRoll(damage);
             prepareRoll(`${enhancedData.name} ${label}`, modifier, dice);
           }}
-          borderVariant={actionType === 'reaction' ? 'reaction' : 'spell'}
+          borderVariant={enhancement?.timing === 'reaction' ? 'reaction' : 'spell'}
           rollLabel={rollLabel || 'Roll'}
           costs={costs || undefined}
           onSpendHope={() => character && updateHope(character.hope - (costs?.hope || 0))}

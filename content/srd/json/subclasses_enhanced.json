@@ -9,8 +9,7 @@
         "name": "Companion",
         "text": "You have an animal companion of your choice (at the GM’s discretion). They stay by your side unless you tell them otherwise.\n\nTake the Ranger Companion sheet. When you level up your character, choose a level-up option for your companion from this sheet as well.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -23,8 +22,7 @@
         "name": "Expert Training",
         "text": "Choose an additional level-up option for your companion.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -35,7 +33,6 @@
         "name": "Battle-Bonded",
         "text": "When an adversary attacks you while they’re within your companion’s Melee range, you gain a +2 bonus to your Evasion against the attack.",
         "enhancement": {
-          "action_type": "reaction",
           "timing": "reaction",
           "frequency": "at_will",
           "keywords": [
@@ -63,8 +60,7 @@
         "name": "Advanced Training",
         "text": "Choose two additional level-up options for your companion.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -75,8 +71,7 @@
         "name": "Loyal Friend",
         "text": "Once per long rest, when the damage from an attack would **mark your companion’s last Stress** or your last Hit Point and you’re within Close range of each other, you or your companion can rush to the other’s side and take that damage instead.",
         "enhancement": {
-          "action_type": "reaction",
-          "timing": "reaction",
+          "timing": "action",
           "frequency": "once_per_long_rest",
           "keywords": [
             "damage",
@@ -99,8 +94,7 @@
         "name": "Courage",
         "text": "When you fail a roll with Fear, you gain a Hope.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "hope_gain",
@@ -112,7 +106,6 @@
         "name": "Battle Ritual",
         "text": "Once per long rest, before you attempt something incredibly dangerous or face off against a foe who clearly outmatches you, describe what ritual you perform or preparations you make. When you do, clear 2 Stress and gain 2 Hope.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "once_per_long_rest",
           "keywords": [
@@ -129,18 +122,11 @@
         "name": "Rise to the Challenge",
         "text": "You are vigilant in the face of mounting danger. While you have 2 or fewer Hit Points unmarked, you can roll a **d20** as your Hope Die.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
-          ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "damage": "d20"
-          }
+          ]
         }
       }
     ],
@@ -149,8 +135,7 @@
         "name": "Camaraderie",
         "text": "Your unwavering bravery is a rallying point for your allies. You can initiate a Tag Team Roll once per additional time per session. Additionally, when an ally initiates a Tag Team Roll with you, they only need to **spend 2 Hope** to do so.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "reaction",
           "frequency": "at_will",
           "costs": {
             "hope": 2
@@ -171,8 +156,7 @@
         "name": "Slayer",
         "text": "You gain a pool of dice called Slayer Dice. On a roll with Hope, you can place a **d6** on this card instead of gaining a Hope, adding the die to the pool. You can store a number of Slayer Dice equal to your Proficiency. When you make an attack roll or damage roll, you can spend any number of these Slayer Dice, rolling them and adding their result to the roll. At the end of each session, clear any unspent Slayer Dice on this card and gain a Hope per die cleared.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "timing": "free",
           "frequency": "at_will",
           "keywords": [
             "damage",
@@ -188,8 +172,7 @@
         "name": "Weapon Specialist",
         "text": "You can wield multiple weapons with dangerous ease. When you succeed on an attack, you can **spend a Hope** to add one of the damage dice from your secondary weapon to the damage roll. Additionally, once per long rest when you roll your Slayer Dice, reroll any 1s.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "once_per_long_rest",
           "costs": {
             "hope": 1
@@ -207,7 +190,6 @@
         "name": "Martial Preparation",
         "text": "You’re an inspirational warrior to all who travel with you. Your party gains access to the Martial Preparation downtime move. To use this move during a rest, describe how you instruct and train with your party. You and each ally who chooses this downtime move gain a **d6** Slayer Die. A PC with a Slayer Die can spend it to roll the die and add the result to an attack or damage roll of their choice.",
         "enhancement": {
-          "action_type": "downtime",
           "timing": "downtime",
           "frequency": "at_will",
           "keywords": [
@@ -228,8 +210,8 @@
         "name": "Spirit Weapon",
         "text": "When you have an equipped weapon with a range of Melee or Very Close, it can fly from your hand to attack an adversary within Close range and then return to you. You can **mark a Stress** to target an additional adversary within range with the same attack roll.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "action_type": "attack",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -240,8 +222,9 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
-            "range": "Close"
+            "trait": "Spellcast",
+            "range": "Close",
+            "combat_category": "passive_triggered"
           }
         }
       },
@@ -249,7 +232,6 @@
         "name": "Sparing Touch",
         "text": "Once per long rest, touch a creature and clear 2 Hit Points or 2 Stress from them.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "once_per_long_rest",
           "keywords": [
@@ -266,8 +248,7 @@
         "name": "Devout",
         "text": "When you roll your Prayer Dice, you can roll an additional die and discard the lowest result. Additionally, you can use your “Sparing Touch” feature twice instead of once per long rest.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "once_per_long_rest",
           "keywords": [
             "ability"
@@ -280,8 +261,7 @@
         "name": "Sacred Resonance",
         "text": "When you roll damage for your “Spirit Weapon” feature, if any of the die results match, double the value of each matching die. For example, if you roll two 5s, they count as two 10s.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "damage",
@@ -300,8 +280,7 @@
         "name": "Elementalist",
         "text": "Choose one of the following elements at character creation: air, earth, fire, lightning, water.\n\nYou can shape this element into harmless effects. Additionally, **spend a Hope** and describe how your control over this element helps an **action roll** you’re about to make, then either gain a +2 bonus to the roll or a +3 bonus to the roll’s damage.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "timing": "free",
           "frequency": "at_will",
           "costs": {
             "hope": 1
@@ -320,8 +299,7 @@
         "name": "Natural Evasion",
         "text": "You can call forth your element to protect you from harm. When an attack roll against you succeeds, you can **mark a Stress** and describe how you use your element to defend you. When you do, roll a **d6** and add its result to your Evasion against the attack.",
         "enhancement": {
-          "action_type": "reaction",
-          "timing": "reaction",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -329,13 +307,7 @@
           "keywords": [
             "stress_cost",
             "ability"
-          ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "damage": "d6"
-          }
+          ]
         }
       }
     ],
@@ -344,7 +316,6 @@
         "name": "Transcendence",
         "text": "Once per long rest, you can transform into a physical manifestation of your element. When you do, describe your transformation and choose two of the following benefits to gain until your next rest:\n\n- +4 bonus to your Severe threshold\n- +1 bonus to a character trait of your choice\n- +1 bonus to your Proficiency\n- +2 bonus to your Evasion",
         "enhancement": {
-          "action_type": "utility",
           "timing": "action",
           "frequency": "once_per_long_rest",
           "keywords": [
@@ -382,7 +353,6 @@
         "name": "Shadow Stepper",
         "text": "You can move from shadow to shadow. When you move into an area of darkness or a shadow cast by another creature or object, you can **mark a Stress** to disappear from where you are and reappear inside another shadow within Far range. When you reappear, you are Cloaked.",
         "enhancement": {
-          "action_type": "utility",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -405,7 +375,6 @@
         "name": "Dark Cloud",
         "text": "Make a **Spellcast Roll (15)**. On a success, create a temporary dark cloud that covers any area within Close range. Anyone in this cloud can’t see outside of it, and anyone outside of it can’t see in. You’re considered Cloaked from any adversary for whom the cloud blocks line of sight.",
         "enhancement": {
-          "action_type": "utility",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
@@ -427,8 +396,7 @@
         "name": "Adrenaline",
         "text": "While you’re Vulnerable, add your level to your damage rolls.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "damage",
@@ -443,7 +411,6 @@
         "name": "Fleeting Shadow",
         "text": "Gain a permanent +1 bonus to your Evasion. You can use your “Shadow Stepper” feature to move within Very Far range.",
         "enhancement": {
-          "action_type": "passive",
           "timing": "free",
           "frequency": "at_will",
           "keywords": [
@@ -470,7 +437,6 @@
         "name": "Vanishing Act",
         "text": "**Mark a Stress** to become Cloaked at any time. When Cloaked from this feature, you automatically clear the Restrained condition if you have it. You remain Cloaked in this way until you roll with Fear or until your next rest.",
         "enhancement": {
-          "action_type": "utility",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -496,7 +462,6 @@
         "name": "Manipulate Magic",
         "text": "Your primal origin allows you to modify the essence of magic itself. After you cast a spell or make an attack using a weapon that deals magic damage, you can **mark a Stress** to do one of the following:\n\n- Extend the spell or attack’s reach by one range\n- Gain a +2 bonus to the **action roll**’s result\n- Double a damage die of your choice\n- Hit an additional target within range",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -522,19 +487,12 @@
         "name": "Enchanted Aid",
         "text": "You can enhance the magic of others with your essence. When you Help an Ally with a **Spellcast Roll**, you can roll a **d8** as your advantage die. Once per long rest, after an ally has made a **Spellcast Roll** with your help, you can swap the results of their Duality Dice.",
         "enhancement": {
-          "action_type": "attack",
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "once_per_long_rest",
           "keywords": [
             "buff",
             "ability"
           ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "damage": "d8"
-          },
           "roll": {
             "type": "Spellcast Roll",
             "trait": "Spellcast",
@@ -548,8 +506,7 @@
         "name": "Arcane Charge",
         "text": "You can gather magical energy to enhance your capabilities. When you take magic damage, you become Charged. Alternatively, you can **spend 2 Hope** to become Charged. When you successfully make an attack that deals magic damage while Charged, you can clear your Charge to either gain a +10 bonus to the damage roll or gain a +3 bonus to the Difficulty of a **reaction roll** the spell causes the target to make. You stop being Charged at your next long rest.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "at_will",
           "costs": {
             "hope": 2
@@ -584,8 +541,7 @@
         "name": "Prepared",
         "text": "Take an additional domain card of your level or lower from a domain you have access to.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -596,8 +552,7 @@
         "name": "Adept",
         "text": "When you Utilize an Experience, you can **mark a Stress** instead of spending a Hope. If you do, double your Experience modifier for that roll.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -614,8 +569,7 @@
         "name": "Accomplished",
         "text": "Take an additional domain card of your level or lower from a domain you have access to.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -626,8 +580,7 @@
         "name": "Perfect Recall",
         "text": "Once per rest, when you recall a domain card in your vault, you can reduce its Recall Cost by 1.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "once_per_rest",
           "keywords": [
             "ability"
@@ -640,8 +593,7 @@
         "name": "Brilliant",
         "text": "Take an additional domain card of your level or lower from a domain you have access to.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -652,18 +604,11 @@
         "name": "Honed Expertise",
         "text": "When you use an Experience, roll a **d6**. On a result of 5 or higher, you can use it without spending Hope.",
         "enhancement": {
-          "action_type": "attack",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
-          ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "damage": "d6"
-          }
+          ]
         }
       }
     ]
@@ -677,8 +622,7 @@
         "name": "Battlemage",
         "text": "You’ve focused your studies on becoming an unconquerable force on the battlefield. Gain an additional Hit Point slot.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -689,30 +633,13 @@
         "name": "Face Your Fear",
         "text": "When you succeed with Fear on an attack roll, you deal an extra **1d10** magic damage.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "damage",
             "magic",
             "ability"
-          ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "additional_damage": [
-              {
-                "damage": "1d10",
-                "damage_type": "magic",
-                "condition": "When you succeed with Fear on an attack roll, you deal an",
-                "label": "Extra"
-              }
-            ],
-            "is_triggered_bonus": true,
-            "damage": "1d10",
-            "damage_type": "magic"
-          }
+          ]
         }
       }
     ],
@@ -721,8 +648,7 @@
         "name": "Conjure Shield",
         "text": "You can maintain a protective barrier of magic. While you have at least 2 Hope, you add your Proficiency to your Evasion.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -733,8 +659,7 @@
         "name": "Fueled by Fear",
         "text": "The extra magic damage from your “Face Your Fear” feature increases to **2d10**.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "damage",
@@ -749,8 +674,7 @@
         "name": "Thrive in Chaos",
         "text": "When you succeed on an attack, you can **mark a Stress** after rolling damage to force the target to mark an additional Hit Point.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -766,8 +690,7 @@
         "name": "Have No Fear",
         "text": "The extra magic damage from your “Face Your Fear” feature increases to **3d10**.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "damage",
@@ -786,7 +709,6 @@
         "name": "Unwavering",
         "text": "Gain a permanent +1 bonus to your damage thresholds.",
         "enhancement": {
-          "action_type": "passive",
           "timing": "free",
           "frequency": "at_will",
           "keywords": [
@@ -809,7 +731,6 @@
         "name": "Iron Will",
         "text": "When you take physical damage, you can mark an additional Armor Slot to reduce the severity.",
         "enhancement": {
-          "action_type": "reaction",
           "timing": "reaction",
           "frequency": "at_will",
           "keywords": [
@@ -825,7 +746,6 @@
         "name": "Unrelenting",
         "text": "Gain a permanent +2 bonus to your damage thresholds.",
         "enhancement": {
-          "action_type": "passive",
           "timing": "free",
           "frequency": "at_will",
           "keywords": [
@@ -848,7 +768,6 @@
         "name": "Partners-in-Arms",
         "text": "When an ally within Very Close range takes damage, you can mark an Armor Slot to reduce the severity by one threshold.",
         "enhancement": {
-          "action_type": "reaction",
           "timing": "reaction",
           "frequency": "at_will",
           "keywords": [
@@ -867,7 +786,6 @@
         "name": "Undaunted",
         "text": "Gain a permanent +3 bonus to your damage thresholds.",
         "enhancement": {
-          "action_type": "passive",
           "timing": "free",
           "frequency": "at_will",
           "keywords": [
@@ -890,7 +808,6 @@
         "name": "Loyal Protector",
         "text": "When an ally within Close range has 2 or fewer Hit Points and would take damage, you can **mark a Stress** to sprint to their side and take the damage instead.",
         "enhancement": {
-          "action_type": "reaction",
           "timing": "reaction",
           "frequency": "at_will",
           "costs": {
@@ -918,8 +835,7 @@
         "name": "Well-Connected",
         "text": "When you arrive in a prominent town or environment, you know somebody who calls this place home. Give them a name, note how you think they could be useful, and choose one fact from the following list:\n\n- They owe me a favor, but they’ll be hard to find.\n- They’re going to ask for something in exchange.\n- They’re always in a great deal of trouble.\n- We used to be together. It’s a long story.\n- We didn’t part on great terms.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -932,7 +848,6 @@
         "name": "Contacts Everywhere",
         "text": "Once per session, you can briefly call on a shady contact. Choose one of the following benefits and describe what brought them here to help you in this moment:\n\n- They provide 1 handful of gold, a unique tool, or a mundane object that the situation requires.\n- On your next **action roll**, their help provides a +3 bonus to the result of your Hope or Fear Die.\n- The next time you deal damage, they snipe from the shadows, adding **2d8** to your damage roll.",
         "enhancement": {
-          "action_type": "utility",
           "timing": "action",
           "frequency": "once_per_session",
           "keywords": [
@@ -957,18 +872,11 @@
         "name": "Reliable Backup",
         "text": "You can use your “Contacts Everywhere” feature three times per session. The following options are added to the list of benefits you can choose from when you use that feature:\n\n- When you mark 1 or more Hit Points, they can rush out to shield you, reducing the Hit Points marked by 1.\n- When you make a **Presence Roll** in conversation, they back you up. You can roll a **d20** as your Hope Die.",
         "enhancement": {
-          "action_type": "attack",
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "at_will",
           "keywords": [
             "ability"
           ],
-          "attack": {
-            "trait": "Presence",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "damage": "d20"
-          },
           "roll": {
             "type": "Presence Roll",
             "trait": "Presence",
@@ -987,7 +895,6 @@
         "name": "Gifted Performer",
         "text": "You can play three different types of songs, once each per long rest; describe how you perform for others to gain the listed benefit:\n\n- **Relaxing Song:** You and all allies within Close range clear a Hit Point.\n- **Epic Song:** Make a target within Close range temporarily Vulnerable.\n- **Heartbreaking Song:** You and all allies within Close range gain a Hope.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
@@ -1009,7 +916,6 @@
         "name": "Maestro",
         "text": "Your rallying songs steel the courage of those who listen. When you give a Rally Die to an ally, they can gain a Hope or clear a Stress.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
@@ -1026,8 +932,7 @@
         "name": "Virtuoso",
         "text": "You are among the greatest of your craft and your skill is boundless. You can perform each of your “Gifted Performer” feature’s songs twice per long rest.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -1044,8 +949,7 @@
         "name": "At Ease",
         "text": "Gain an additional Stress slot.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -1056,7 +960,6 @@
         "name": "Revenge",
         "text": "When an adversary within Melee range succeeds on an attack against you, you can **mark 2 Stress** to force the attacker to mark a Hit Point.",
         "enhancement": {
-          "action_type": "reaction",
           "timing": "reaction",
           "frequency": "at_will",
           "costs": {
@@ -1079,7 +982,6 @@
         "name": "Act of Reprisal",
         "text": "When an adversary damages an ally within Melee range, you gain a +1 bonus to your Proficiency for the next successful attack you make against that adversary.",
         "enhancement": {
-          "action_type": "reaction",
           "timing": "reaction",
           "frequency": "at_will",
           "keywords": [
@@ -1107,7 +1009,6 @@
         "name": "Nemesis",
         "text": "**Spend 2 Hope** to Prioritize an adversary until your next rest. When you make an attack against your Prioritized adversary, you can swap the results of your Hope and Fear Dice. You can only Prioritize one adversary at a time.",
         "enhancement": {
-          "action_type": "utility",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -1131,8 +1032,7 @@
         "name": "Clarity of Nature",
         "text": "Once per long rest, you can create a space of natural serenity within Close range. When you spend a few minutes resting within the space, clear Stress equal to your Instinct, distributed as you choose between you and your allies.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "once_per_long_rest",
           "keywords": [
             "stress_relief",
@@ -1149,7 +1049,6 @@
         "name": "Regeneration",
         "text": "Touch a creature and **spend 3 Hope**. That creature clears **1d4** Hit Points.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -1168,8 +1067,7 @@
         "name": "Regenerative Reach",
         "text": "You can target creatures within Very Close range with your “Regeneration” feature.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -1184,7 +1082,6 @@
         "name": "Warden’s Protection",
         "text": "Once per long rest, **spend 2 Hope** to clear 2 Hit Points on **1d4** allies within Close range.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "once_per_long_rest",
           "costs": {
@@ -1208,8 +1105,7 @@
         "name": "Defender",
         "text": "Your animal transformation embodies a healing guardian spirit. When you’re in Beastform and an ally within Close range marks 2 or more Hit Points, you can **mark a Stress** to reduce the number of Hit Points they mark by 1.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -1236,8 +1132,7 @@
         "name": "Elemental Incarnation",
         "text": "**Mark a Stress** to Channel one of the following elements until you take Severe damage or until your next rest:\n\n- **Fire:** When an adversary within Melee range deals damage to you, they take **1d10** magic damage.\n- **Earth:** Gain a bonus to your damage thresholds equal to your Proficiency.\n- **Water:** When you deal damage to an adversary within Melee range, all other adversaries within Very Close range must **mark a Stress**.\n- **Air:** You can hover, gaining advantage on **Agility Rolls**.",
         "enhancement": {
-          "action_type": "attack",
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -1277,8 +1172,7 @@
         "name": "Elemental Aura",
         "text": "Once per rest while Channeling, you can assume an aura matching your element. The aura affects targets within Close range until your Channeling ends.\n\n- **Fire:** When an adversary marks 1 or more Hit Points, they must also **mark a Stress**.\n- **Earth:** Your allies gain a +1 bonus to Strength.\n- **Water:** When an adversary deals damage to you, you can **mark a Stress** to move them anywhere within Very Close range of where they are.\n- **Air:** When you or an ally takes damage from an attack beyond Melee range, reduce the damage by **1d8**.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "once_per_rest",
           "costs": {
             "stress": 1
@@ -1320,7 +1214,6 @@
         "name": "Elemental Dominion",
         "text": "You further embody your element. While Channeling, you gain the following benefit:\n\n- **Fire:** You gain a +1 bonus to your Proficiency for attacks and spells that deal damage.\n- **Earth:** When you would mark Hit Points, roll a **d6** per Hit Point marked. For each result of 6, reduce the number of Hit Points you mark by 1.\n- **Water:** When an attack against you succeeds, you can **mark a Stress** to make the attacker temporarily Vulnerable.\n- **Air:** You gain a +1 bonus to your Evasion and can fly.",
         "enhancement": {
-          "action_type": "attack",
           "timing": "reaction",
           "frequency": "at_will",
           "costs": {
@@ -1351,16 +1244,7 @@
               },
               "source": "Elemental Dominion"
             }
-          ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "damage": "d6",
-            "secondary_effects": [
-              "vulnerable"
-            ]
-          }
+          ]
         }
       }
     ]
@@ -1374,7 +1258,6 @@
         "name": "Ruthless Predator",
         "text": "When you make a damage roll, you can **mark a Stress** to gain a +1 bonus to your Proficiency. Additionally, when you deal Severe damage to an adversary, they must **mark a Stress**.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -1401,8 +1284,7 @@
         "name": "Path Forward",
         "text": "When you’re traveling to a place you’ve previously visited or you carry an object that has been at the location before, you can identify the shortest, most direct path to your destination.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -1415,7 +1297,6 @@
         "name": "Elusive Predator",
         "text": "When your Focus makes an attack against you, you gain a +2 bonus to your Evasion against the attack.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
@@ -1462,7 +1343,6 @@
         "name": "Wings of Light",
         "text": "You can fly. While flying, you can do the following:\n\n- **Mark a Stress** to pick up and carry another willing creature approximately your size or smaller.\n- **Spend a Hope** to deal an extra **1d8** damage on a successful attack.",
         "enhancement": {
-          "action_type": "attack",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -1475,20 +1355,7 @@
             "hope_cost",
             "movement",
             "ability"
-          ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "additional_damage": [
-              {
-                "damage": "1d8",
-                "condition": "- Spend a Hope to deal an",
-                "label": "Extra"
-              }
-            ],
-            "damage": "1d8"
-          }
+          ]
         }
       }
     ],
@@ -1497,7 +1364,6 @@
         "name": "Ethereal Visage",
         "text": "Your supernatural visage strikes awe and fear. While flying, you have advantage on **Presence Rolls**. When you succeed with Hope on a **Presence Roll**, you can remove a Fear from the GM’s Fear pool instead of gaining Hope.",
         "enhancement": {
-          "action_type": "passive",
           "timing": "free",
           "frequency": "at_will",
           "keywords": [
@@ -1517,7 +1383,6 @@
         "name": "Ascendant",
         "text": "Gain a permanent +4 bonus to your Severe damage threshold.",
         "enhancement": {
-          "action_type": "passive",
           "timing": "free",
           "frequency": "at_will",
           "keywords": [
@@ -1540,26 +1405,12 @@
         "name": "Power of the Gods",
         "text": "While flying, you deal an extra **1d12** damage instead of **1d8** from your “Wings of Light” feature.",
         "enhancement": {
-          "action_type": "attack",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "damage",
             "ability"
-          ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "additional_damage": [
-              {
-                "damage": "1d12",
-                "condition": "While flying, you deal an",
-                "label": "Extra"
-              }
-            ],
-            "damage": "1d12"
-          }
+          ]
         }
       }
     ]
@@ -1573,7 +1424,6 @@
         "name": "Rousing Speech",
         "text": "Once per long rest, you can give a heartfelt, inspiring speech. All allies within Far range clear 2 Stress.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "once_per_long_rest",
           "keywords": [
@@ -1591,8 +1441,7 @@
         "name": "Heart of a Poet",
         "text": "After you make an **action roll** to impress, persuade, or offend someone, you can **spend a Hope** to add a **d4** to the roll.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "hope": 1
@@ -1615,8 +1464,7 @@
         "name": "Eloquent",
         "text": "Your moving words boost morale. Once per session, when you encourage an ally, you can do one of the following:\n\n- Allow them to find a mundane object or tool they need.\n- Help an Ally without spending Hope.\n- Give them an additional downtime move during their next rest.",
         "enhancement": {
-          "action_type": "downtime",
-          "timing": "downtime",
+          "timing": "action",
           "frequency": "once_per_session",
           "keywords": [
             "movement",
@@ -1630,19 +1478,12 @@
         "name": "Epic Poetry",
         "text": "Your Rally Die increases to a **d10**. Additionally, when you Help an Ally, you can narrate the moment as if you were writing the tale of their heroism in a memoir. When you do, roll a **d10** as your advantage die.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "buff",
             "ability"
-          ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "damage": "d10"
-          }
+          ]
         }
       }
     ]

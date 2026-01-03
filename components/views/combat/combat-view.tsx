@@ -650,7 +650,7 @@ export default function CombatView() {
               }
 
               // Determine border variant
-              const borderVariant = enhancement.action_type === 'reaction' ? 'reaction' : 'spell';
+              const borderVariant = enhancement.timing === 'reaction' ? 'reaction' : 'spell';
 
               // Determine combat category for button visibility
               const combatCategory = enhancement.attack?.combat_category || 'passive_triggered';
@@ -685,7 +685,7 @@ export default function CombatView() {
                   damageType={enhancement.attack?.damage_type}
                   badges={badges}
                   borderVariant={borderVariant}
-                  actionType={enhancement.action_type}
+                  actionType={enhancement.action_type || (enhancement.timing === 'reaction' ? 'reaction' : undefined)}
                   rollLabel={combatCategory === 'damage_bonus' ? undefined : (combatCategory === 'roll_only' ? 'Roll' : rollLabel)}
                   isUsed={isUsed}
                   description={ability.text}

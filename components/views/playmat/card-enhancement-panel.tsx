@@ -52,7 +52,7 @@ export default function CardEnhancementPanel({
   const hasCosts = enhancement.costs?.stress || enhancement.costs?.hope;
   const hasTokens = enhancement.tokens?.has_tokens;
   const hasFrequency = enhancement.frequency && enhancement.frequency !== 'at_will';
-  const hasActionInfo = enhancement.action_type && enhancement.action_type !== 'passive';
+  const hasActionInfo = !!enhancement.action_type;
   const hasRange = enhancement.attack?.range;
   const hasTargets = enhancement.attack?.targets;
   const hasRoll = enhancement.roll || enhancement.attack;
@@ -141,11 +141,7 @@ export default function CardEnhancementPanel({
           {hasActionInfo && (
             <span className={clsx(
               'flex items-center gap-1 px-2 py-1 rounded font-medium',
-              enhancement.action_type === 'attack' && 'bg-red-900/30 text-red-400 border border-red-500/30',
-              enhancement.action_type === 'reaction' && 'bg-orange-900/30 text-orange-400 border border-orange-500/30',
-              enhancement.action_type === 'buff' && 'bg-green-900/30 text-green-400 border border-green-500/30',
-              enhancement.action_type === 'utility' && 'bg-blue-900/30 text-blue-400 border border-blue-500/30',
-              enhancement.action_type === 'downtime' && 'bg-gray-700/50 text-gray-300 border border-gray-500/30'
+              enhancement.action_type === 'attack' && 'bg-red-900/30 text-red-400 border border-red-500/30'
             )}>
               <Zap size={12} />
               {getActionTypeLabel(enhancement.action_type!)}

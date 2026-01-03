@@ -42,7 +42,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -56,7 +56,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -70,7 +70,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -88,7 +88,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -102,7 +102,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -112,7 +112,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for proficiency +1', () => {
@@ -145,7 +145,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -159,7 +159,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -215,7 +215,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         });
 
         it('should be action_type buff', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -246,7 +246,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -293,7 +293,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -303,7 +303,7 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 

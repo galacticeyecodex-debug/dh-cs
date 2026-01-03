@@ -204,11 +204,11 @@ describe('parseTargetType', () => {
 
 describe('parseActionType', () => {
   it('should detect reaction from reaction roll', () => {
-    expect(parseActionType('make a reaction roll to avoid', 'Ability')).toBe('reaction');
+    expect(parseActionType('make a reaction roll to avoid', 'Ability')).toBeUndefined();
   });
 
   it('should detect reaction from "when you would take damage"', () => {
-    expect(parseActionType('When you would take damage, you can', 'Ability')).toBe('reaction');
+    expect(parseActionType('When you would take damage, you can', 'Ability')).toBeUndefined();
   });
 
   it('should detect attack from roll against pattern', () => {
@@ -216,19 +216,19 @@ describe('parseActionType', () => {
   });
 
   it('should detect downtime from during a rest', () => {
-    expect(parseActionType('During a rest, you can do this', 'Ability')).toBe('downtime');
+    expect(parseActionType('During a rest, you can do this', 'Ability')).toBeUndefined();
   });
 
   it('should detect buff from gain advantage', () => {
-    expect(parseActionType('You gain advantage on your next roll', 'Ability')).toBe('buff');
+    expect(parseActionType('You gain advantage on your next roll', 'Ability')).toBeUndefined();
   });
 
-  it('should default spells to utility', () => {
-    expect(parseActionType('Cast this spell', 'Spell')).toBe('utility');
+  it('should default spells to undefined', () => {
+    expect(parseActionType('Cast this spell', 'Spell')).toBeUndefined();
   });
 
-  it('should default abilities to passive', () => {
-    expect(parseActionType('This ability is always active', 'Ability')).toBe('passive');
+  it('should default abilities to undefined', () => {
+    expect(parseActionType('This ability is always active', 'Ability')).toBeUndefined();
   });
 });
 
@@ -329,12 +329,8 @@ describe('getActionTypeLabel', () => {
     expect(getActionTypeLabel('attack')).toBe('Attack');
   });
 
-  it('should return Reaction for reaction', () => {
-    expect(getActionTypeLabel('reaction')).toBe('Reaction');
-  });
-
-  it('should return Passive for passive', () => {
-    expect(getActionTypeLabel('passive')).toBe('Passive');
+  it('should return empty string for undefined', () => {
+    expect(getActionTypeLabel(undefined)).toBe('');
   });
 });
 
@@ -352,7 +348,7 @@ describe('hasCombatRelevance', () => {
     expect(hasCombatRelevance(card)).toBe(true);
   });
 
-  it('should return false for reaction action_type', () => {
+  it('should return false for undefined action_type', () => {
     const card: EnhancedAbilityCard = {
       name: 'Test',
       level: '1',
@@ -360,7 +356,7 @@ describe('hasCombatRelevance', () => {
       type: 'Ability',
       recall: '1',
       text: 'Test ability',
-      action_type: 'reaction',
+      action_type: undefined,
     };
     expect(hasCombatRelevance(card)).toBe(false);
   });
@@ -404,7 +400,7 @@ describe('hasCombatRelevance', () => {
       type: 'Ability',
       recall: '1',
       text: 'Test ability',
-      action_type: 'passive',
+      action_type: undefined,
       keywords: ['buff'],
     };
     expect(hasCombatRelevance(card)).toBe(false);

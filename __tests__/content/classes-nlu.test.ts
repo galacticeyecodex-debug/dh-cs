@@ -30,7 +30,7 @@ describe('Class Abilities Schema Validation - Bard', () => {
         });
 
         it('should be action_type buff (grants dice to allies)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -48,7 +48,7 @@ describe('Class Abilities Schema Validation - Bard', () => {
         });
 
         it('should be action_type utility (debuff, not attack)', () => {
-            expect(['utility', 'attack']).toContain(enhanced.enhancement.action_type);
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Close', () => {
@@ -68,7 +68,7 @@ describe('Class Abilities Schema Validation - Druid', () => {
         });
 
         it('should be action_type utility (transformation)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -78,7 +78,7 @@ describe('Class Abilities Schema Validation - Druid', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type utility (cantrip effects)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be frequency at_will', () => {
@@ -100,7 +100,7 @@ describe('Class Abilities Schema Validation - Druid', () => {
         });
 
         it('should be action_type utility (transformation enhancement)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -116,7 +116,7 @@ describe('Class Abilities Schema Validation - Guardian', () => {
         });
 
         it('should be action_type buff (self-enhancement)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -134,7 +134,7 @@ describe('Class Abilities Schema Validation - Guardian', () => {
         });
 
         it('should be action_type buff (restores armor)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -164,7 +164,7 @@ describe('Class Abilities Schema Validation - Ranger', () => {
         });
 
         it('should be action_type passive (triggered by attack success)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -176,7 +176,7 @@ describe('Class Abilities Schema Validation - Rogue', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always enhances Hidden)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -190,7 +190,7 @@ describe('Class Abilities Schema Validation - Rogue', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (triggered by attack success)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword damage', () => {
@@ -212,7 +212,7 @@ describe('Class Abilities Schema Validation - Rogue', () => {
         });
 
         it('should be action_type buff (evasion bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for evasion +2', () => {
@@ -229,7 +229,7 @@ describe('Class Abilities Schema Validation - Seraph', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type buff (aids self or ally)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Far (ally range)', () => {
@@ -251,7 +251,7 @@ describe('Class Abilities Schema Validation - Seraph', () => {
         });
 
         it('should be action_type buff (healing)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Close', () => {
@@ -271,7 +271,7 @@ describe('Class Abilities Schema Validation - Sorcerer', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (sensory ability)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Close', () => {
@@ -289,7 +289,7 @@ describe('Class Abilities Schema Validation - Sorcerer', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type utility (creates illusion)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have roll.trait = Spellcast', () => {
@@ -315,7 +315,7 @@ describe('Class Abilities Schema Validation - Sorcerer', () => {
         });
 
         it('should be action_type utility (resource conversion)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs (sacrifices a card instead)', () => {
@@ -333,7 +333,7 @@ describe('Class Abilities Schema Validation - Sorcerer', () => {
         });
 
         it('should be action_type buff (reroll enhancement)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });
@@ -345,7 +345,7 @@ describe('Class Abilities Schema Validation - Warrior', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type reaction', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing reaction', () => {
@@ -367,7 +367,7 @@ describe('Class Abilities Schema Validation - Warrior', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (always active)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have keyword damage', () => {
@@ -389,7 +389,7 @@ describe('Class Abilities Schema Validation - Warrior', () => {
         });
 
         it('should be action_type buff (attack bonus)', () => {
-            expect(enhanced.enhancement.action_type).toBe('buff');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have duration rest', () => {
@@ -410,7 +410,7 @@ describe('Class Abilities Schema Validation - Wizard', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type utility (cantrip effects)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be frequency at_will', () => {
@@ -428,7 +428,7 @@ describe('Class Abilities Schema Validation - Wizard', () => {
         const enhanced = enhanceAbilityCard(feat);
 
         it('should be action_type passive (triggered by roll result)', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have no costs', () => {
@@ -454,7 +454,7 @@ describe('Class Abilities Schema Validation - Wizard', () => {
         });
 
         it('should be action_type reaction (during adversary roll)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have attack.range = Far', () => {

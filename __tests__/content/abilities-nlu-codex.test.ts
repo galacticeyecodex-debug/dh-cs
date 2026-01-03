@@ -139,7 +139,7 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         });
 
         it('should be action_type reaction (Repudiate is a reaction)', () => {
-            expect(enhanced.enhancement.action_type).toBe('reaction');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -197,7 +197,7 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         });
 
         it('should be action_type utility', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -221,7 +221,7 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type utility (marks target, no immediate damage)', () => {
-            expect(enhanced.enhancement.action_type).toBe('utility');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be frequency at_will', () => {
@@ -257,7 +257,7 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         });
 
         it('should be action_type passive', () => {
-            expect(enhanced.enhancement.action_type).toBe('passive');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -285,7 +285,7 @@ describe('Abilities Schema Validation - Codex Domain', () => {
         });
 
         it('should be action_type downtime', () => {
-            expect(enhanced.enhancement.action_type).toBe('downtime');
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should be timing downtime', () => {
