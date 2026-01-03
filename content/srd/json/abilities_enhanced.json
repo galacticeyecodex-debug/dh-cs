@@ -110,6 +110,14 @@
         "trait": "Spellcast",
         "range": "Melee",
         "combat_category": "standalone_attack",
+        "additional_damage": [
+          {
+            "damage": "2d6",
+            "damage_type": "magic",
+            "condition": "When a creature acts while On Fire",
+            "label": "Fire"
+          }
+        ],
         "damage": "1d20+3",
         "damage_type": "magic",
         "targets": "single"
@@ -1134,33 +1142,6 @@
         "range": "Far",
         "combat_category": "passive_triggered"
       }
-    },
-    "enhancement_override": {
-      "action_type": "attack",
-      "timing": "action",
-      "frequency": "once_per_rest",
-      "costs": {
-        "stress": 1
-      },
-      "keywords": [
-        "stress_cost",
-        "ability"
-      ],
-      "modifiers": [
-        {
-          "stat": "attack",
-          "value": 1,
-          "condition": {
-            "type": "always"
-          },
-          "source": "Deft Maneuvers"
-        }
-      ],
-      "attack": {
-        "trait": "Agility",
-        "range": "Far",
-        "combat_category": "passive_triggered"
-      }
     }
   },
   {
@@ -1568,6 +1549,13 @@
         "trait": "Spellcast",
         "range": "Close",
         "combat_category": "standalone_attack",
+        "additional_damage": [
+          {
+            "damage": "2d12",
+            "condition": "When you make a successful attack, you can mark a Stress to make the next successful attack against that same target deal an",
+            "label": "Extra"
+          }
+        ],
         "damage": "2d12"
       }
     }
@@ -2955,6 +2943,13 @@
         "trait": "Spellcast",
         "range": "Very Close",
         "combat_category": "passive_triggered",
+        "additional_damage": [
+          {
+            "damage": "1d8",
+            "condition": "If a target you hit is Vulnerable, they take an",
+            "label": "Vuln"
+          }
+        ],
         "damage": "1d8+2",
         "damage_type": "magic",
         "targets": "all_in_range",
@@ -3087,6 +3082,13 @@
         "trait": "Spellcast",
         "range": "Close",
         "combat_category": "passive_triggered",
+        "additional_damage": [
+          {
+            "damage": "2d6",
+            "condition": "When a creature attacks a target who is Vulnerable in this way, they deal an",
+            "label": "Vuln"
+          }
+        ],
         "damage": "2d6",
         "targets": "single",
         "secondary_effects": [
@@ -3654,7 +3656,14 @@
       "attack": {
         "trait": "Spellcast",
         "range": "Melee",
-        "combat_category": "passive_triggered"
+        "combat_category": "passive_triggered",
+        "additional_damage": [
+          {
+            "damage": "d6",
+            "condition": "When you deal damage to an adversary within Melee range of your familiar, you",
+            "label": "Extra"
+          }
+        ]
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -4790,8 +4799,20 @@
         "ability"
       ],
       "attack": {
-        "trait": "None",
-        "range": "Close"
+        "trait": "Spellcast",
+        "range": "Close",
+        "combat_category": "damage_bonus",
+        "additional_damage": [
+          {
+            "damage": "d6",
+            "condition": "Hope",
+            "label": "Hope"
+          }
+        ],
+        "targets": "single",
+        "secondary_effects": [
+          "vulnerable"
+        ]
       }
     }
   },
