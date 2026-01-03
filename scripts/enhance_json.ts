@@ -1,20 +1,98 @@
 /**
  * UNIFIED JSON ENHANCEMENT SCRIPT
  * ----------------------------------------------------------------------------
- * Processes all game content JSON files (abilities, ancestries, communities)
- * to add enhanced metadata fields for interactive UI components.
+ * This script serves as the build-step processor for all Daggerheart game content.
+ * It reads raw JSON files (abilities, ancestries, classes, etc.) and injects
+ * structured mechanics metadata used by the interactive application.
  *
- * Usage: npx tsx scripts/enhance_json.ts
+ * USAGE:
+ *   npx tsx scripts/enhance_json.ts
  *
- * OUTPUT FORMAT:
- * Each card/feat will have:
- * - `enhancement`: Parser-generated metadata (regenerated each run)
- * - `enhancement_override`: Manual override (preserved across runs, never overwritten)
+ * DOCUMENTATION & REFERENCE:
+ *   - Schema Definitions: dh-cs/types/cards.ts (EnhancedAbilityCard, EnhancementBlock)
+ *   - Detailed Schema Guide: dh-cs/docs/ABILITIES_SCHEMA.md
+ *   - Parsing Logic: dh-cs/lib/card-parser.ts
  *
- * The app should use: card.enhancement_override ?? card.enhancement
+ * HOW IT WORKS:
+ * 1. Reads raw content files from `content/srd/json/` and `content/playtest/json/`.
+ * 2. Parses the `text` of every card/feat using the shared `lib/card-parser.ts`.
+ *    - This parser uses NLU (Natural Language Understanding) patterns to extract
+ *      mechanics like attacks, costs, tokens, and modifiers.
+ * 3. Generates an `enhancement` object for each item containing these mechanics.
+ * 4. Preserves any existing `enhancement_override` blocks found in the *output* files.
+ *    - This allows developers to manually correct parser errors by adding an
+ *      override block directly to the output JSON, which persists across re-runs.
+ * 5. Writes the result to `*_enhanced.json` files.
  *
- * NOTE: All parsing logic is imported from lib/card-parser.ts to ensure
- * a single source of truth for parsing rules.
+ * OUTPUT SCHEMA:
+ * The script produces items with the following structure (TypeScript: EnhancedAbilityCard):
+ *
+ * {
+ *   // ... Original fields (name, text, etc.) ...
+ *
+ *   // Auto-generated mechanics (overwritten on every run)
+ *   "enhancement": {
+ *     "action_type": "attack" | "utility",
+ *     "timing": "action" | "reaction" | "free" | "downtime",
+ *     "frequency": "at_will" | "once_per_rest" | "once_per_long_rest" | "once_per_session",
+ *     "duration": "scene" | "instant" | ...,
+ *     
+ *     // Resource Costs
+ *     "costs": {
+ *       "hope": number,
+ *       "stress": number,
+ *       "hit_points": number,
+ *       "armor_slots": number
+ *     },
+ *
+ *     // Token Tracking (e.g., for "Hide", "Flight")
+ *     "tokens": {
+ *       "has_tokens": boolean,
+ *       "max_tokens": number | null, // null means dynamic (e.g., "equal to Agility")
+ *       "token_source": string,      // Trait or source name
+ *       "token_replenish": "rest" | ...
+ *     },
+ *
+ *     // Combat Mechanics
+ *     "attack": {
+ *       "trait": string,             // e.g., "Strength", "Spellcast"
+ *       "range": string,             // e.g., "Melee", "Far"
+ *       "damage": string,            // e.g., "d8", "2d10"
+ *       "damage_type": "physical" | "magic",
+ *       "combat_category": "standalone_attack" | "damage_bonus" | ...
+ *     },
+ *
+ *     // Non-Attack Rolls
+ *     "roll": {
+ *       "type": string,              // e.g., "Spellcast Roll"
+ *       "difficulty": number         // Fixed DC if applicable
+ *     },
+ *
+ *     // Passive Stat Modifiers
+ *     "modifiers": [
+ *       {
+ *         "stat": "evasion" | "armor" | ...,
+ *         "value": number,
+ *         "condition": { ... }       // e.g., "while_unarmored"
+ *       }
+ *     ]
+ *   },
+ *
+ *   // Manual Override (Optional - Takes Precedence)
+ *   // Use this to fix parser mistakes. If present, the app uses this instead.
+ *   "enhancement_override": { ... same structure as enhancement ... }
+ * }
+ *
+ * CONSUMPTION IN APP:
+ * Components should access mechanics via `enhancement_override` if it exists,
+ * falling back to `enhancement`.
+ * Example: `const mechanics = card.enhancement_override ?? card.enhancement;`
+ *
+ * SUPPORTED FILE TYPES:
+ * - Abilities (Spells/Grimoires): Main cards.
+ * - Ancestries/Communities: Enhances `feats` array inside.
+ * - Classes: Enhances `class_feats` and `hope_feat`.
+ * - Subclasses: Enhances `foundations`, `specializations`, and `masteries`.
  */
 
 import * as fs from 'fs';
@@ -291,11 +369,11 @@ function processAbilitiesFile(inputPath: string, outputPath: string): EnhancedCa
     const stats = {
       total: enhanced.length,
       attacks: effectiveTypes.filter(t => t === 'attack').length,
-      reactions: effectiveTypes.filter(t => t === 'reaction').length,
-      buffs: effectiveTypes.filter(t => t === 'buff').length,
+      reactions: effectiveTypes.filter(t => t === 'utility').length,
+      buffs: effectiveTypes.filter(t => t === 'utility').length,
       utility: effectiveTypes.filter(t => t === 'utility').length,
-      passives: effectiveTypes.filter(t => t === 'passive').length,
-      downtime: effectiveTypes.filter(t => t === 'downtime').length,
+      passives: effectiveTypes.filter(t => t === 'utility').length,
+      downtime: effectiveTypes.filter(t => t === 'utility').length,
       withOverrides: enhanced.filter(c => c.enhancement_override).length,
     };
     console.log(`  Stats:`, stats);
