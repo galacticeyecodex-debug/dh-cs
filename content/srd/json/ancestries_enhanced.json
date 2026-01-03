@@ -18,7 +18,7 @@
         "name": "Efficient",
         "text": "When you take a short rest, you can choose a long rest move instead of a short rest move.",
         "enhancement": {
-          "timing": "action",
+          "timing": "downtime",
           "frequency": "at_will",
           "keywords": [
             "movement",
@@ -36,7 +36,7 @@
         "name": "Scales",
         "text": "Your scales act as natural protection. When you would take Severe damage, you can **mark a Stress** to mark 1 fewer Hit Points.",
         "enhancement": {
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -85,7 +85,7 @@
         "name": "Thick Skin",
         "text": "When you take Minor damage, you can **mark 2 Stress** instead of marking a Hit Point.",
         "enhancement": {
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "at_will",
           "costs": {
             "stress": 2
@@ -101,7 +101,7 @@
         "name": "Increased Fortitude",
         "text": "**Spend 3 Hope** to halve incoming physical damage.",
         "enhancement": {
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "at_will",
           "costs": {
             "hope": 3
@@ -124,7 +124,7 @@
         "name": "Quick Reactions",
         "text": "**Mark a Stress** to gain advantage on a **reaction roll**.",
         "enhancement": {
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -225,8 +225,7 @@
         "name": "Kick",
         "text": "When you succeed on an attack against a target within Melee range, you can **mark a Stress** to kick yourself off them, dealing an extra **2d6** damage and knocking back either yourself or the target to Very Close range.",
         "enhancement": {
-          "action_type": "attack",
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -238,7 +237,7 @@
           ],
           "attack": {
             "trait": "None",
-            "range": "Very Close"
+            "range": "Melee"
           }
         }
       }
@@ -287,9 +286,6 @@
         "enhancement": {
           "timing": "reaction",
           "frequency": "at_will",
-          "costs": {
-            "stress": 1
-          },
           "keywords": [
             "stress_cost",
             "ability"
@@ -410,7 +406,7 @@
           ],
           "attack": {
             "trait": "None",
-            "range": "Very Close"
+            "range": "Melee"
           }
         }
       }
@@ -620,8 +616,7 @@
         "name": "Tusks",
         "text": "When you succeed on an attack against a target within Melee range, you can **spend a Hope** to gore the target with your tusks, dealing an extra **1d6** damage.",
         "enhancement": {
-          "action_type": "attack",
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "at_will",
           "costs": {
             "hope": 1

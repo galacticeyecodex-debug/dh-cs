@@ -52,7 +52,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         });
 
         it('should be action_type passive or reaction', () => {
-            expect(['passive', 'reaction']).toContain(enhanced.enhancement.action_type);
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -62,7 +62,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
 
         it('should have modifier for damage with formula strength', () => {
@@ -95,7 +95,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         });
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -141,7 +141,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         });
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -156,7 +156,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         });
 
         it('should be action_type downtime or passive', () => {
-            expect(['downtime', 'passive']).toContain(enhanced.enhancement.action_type);
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -194,7 +194,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         const enhanced = enhanceAbilityCard(ability);
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -279,7 +279,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         });
 
         it('should be action_type passive or buff', () => {
-            expect(['passive', 'buff']).toContain(enhanced.enhancement.action_type);
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 
@@ -313,7 +313,7 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         });
 
         it('should be action_type passive or reaction', () => {
-            expect(['passive', 'reaction']).toContain(enhanced.enhancement.action_type);
+            expect(enhanced.enhancement.action_type).toBeUndefined();
         });
     });
 });

@@ -162,8 +162,14 @@
             "damage",
             "hope_gain",
             "hope_cost",
+            "tokens",
             "ability"
-          ]
+          ],
+          "tokens": {
+            "has_tokens": true,
+            "max_tokens": null,
+            "token_source": "proficiency"
+          }
         }
       }
     ],
@@ -172,7 +178,7 @@
         "name": "Weapon Specialist",
         "text": "You can wield multiple weapons with dangerous ease. When you succeed on an attack, you can **spend a Hope** to add one of the damage dice from your secondary weapon to the damage roll. Additionally, once per long rest when you roll your Slayer Dice, reroll any 1s.",
         "enhancement": {
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "once_per_long_rest",
           "costs": {
             "hope": 1
@@ -299,7 +305,7 @@
         "name": "Natural Evasion",
         "text": "You can call forth your element to protect you from harm. When an attack roll against you succeeds, you can **mark a Stress** and describe how you use your element to defend you. When you do, roll a **d6** and add its result to your Evasion against the attack.",
         "enhancement": {
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -402,6 +408,17 @@
             "damage",
             "debuff",
             "ability"
+          ],
+          "modifiers": [
+            {
+              "stat": "damage",
+              "value": 0,
+              "formula": "level",
+              "condition": {
+                "type": "always"
+              },
+              "source": "Adrenaline"
+            }
           ]
         }
       }
@@ -652,6 +669,17 @@
           "frequency": "at_will",
           "keywords": [
             "ability"
+          ],
+          "modifiers": [
+            {
+              "stat": "evasion",
+              "value": 0,
+              "formula": "proficiency",
+              "condition": {
+                "type": "always"
+              },
+              "source": "Conjure Shield"
+            }
           ]
         }
       },
@@ -674,7 +702,7 @@
         "name": "Thrive in Chaos",
         "text": "When you succeed on an attack, you can **mark a Stress** after rolling damage to force the target to mark an additional Hit Point.",
         "enhancement": {
-          "timing": "action",
+          "timing": "reaction",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -896,7 +924,7 @@
         "text": "You can play three different types of songs, once each per long rest; describe how you perform for others to gain the listed benefit:\n\n- **Relaxing Song:** You and all allies within Close range clear a Hit Point.\n- **Epic Song:** Make a target within Close range temporarily Vulnerable.\n- **Heartbreaking Song:** You and all allies within Close range gain a Hope.",
         "enhancement": {
           "timing": "action",
-          "frequency": "at_will",
+          "frequency": "once_per_long_rest",
           "keywords": [
             "healing",
             "healing",
@@ -1158,7 +1186,7 @@
           ],
           "attack": {
             "trait": "Spellcast",
-            "range": "Very Close",
+            "range": "Melee",
             "combat_category": "passive_triggered",
             "damage": "1d10",
             "damage_type": "magic"
@@ -1204,7 +1232,7 @@
           ],
           "attack": {
             "trait": "None",
-            "range": "Very Close"
+            "range": "Close"
           }
         }
       }
@@ -1320,7 +1348,6 @@
         "name": "Apex Predator",
         "text": "Before you make an attack roll against your Focus, you can **spend a Hope**. On a successful attack, you remove a Fear from the GM’s Fear pool.",
         "enhancement": {
-          "action_type": "attack",
           "timing": "action",
           "frequency": "at_will",
           "costs": {

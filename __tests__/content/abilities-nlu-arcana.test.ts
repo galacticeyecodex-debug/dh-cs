@@ -68,6 +68,10 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         it('should have attack.damage_type = magic', () => {
             expect(enhanced.enhancement.attack?.damage_type).toBe('magic');
         });
+
+        it('should have attack.damage = d10', () => {
+            expect(enhanced.enhancement.attack?.damage).toBe('d10');
+        });
     });
 
     describe('Wall Walk', () => {

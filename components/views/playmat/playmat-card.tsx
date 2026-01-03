@@ -118,7 +118,12 @@ export default function PlaymatCard({
     const baseDamage = attack?.damage;
     const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
 
-    // 4. Render AttackCard (Mini Version)
+    // 4. Determine if Attack button should be shown based on combat_category
+    // damage_bonus and passive_triggered features don't need Attack buttons
+    const combatCategory = attack?.combat_category || 'passive_triggered';
+    const showAttackButton = roll || combatCategory === 'standalone_attack' || combatCategory === 'roll_only';
+
+    // 5. Render AttackCard (Mini Version)
     attackCardNode = (
       <div className="mt-2">
         <AttackCard
@@ -132,7 +137,7 @@ export default function PlaymatCard({
           attackModifier={0}
           damageModifier={0}
           proficiency={totalProficiency}
-          onAttackRoll={() => prepareRoll(`${enhancedData.name} ${rollLabel}`, rollBonus)}
+          onAttackRoll={showAttackButton ? () => prepareRoll(`${enhancedData.name} ${rollLabel}`, rollBonus) : undefined}
           onDamageRoll={finalDamage ? () => {
             const { dice, modifier } = parseDamageRoll(finalDamage);
             prepareRoll(`${enhancedData.name} Damage`, modifier, dice);
@@ -146,7 +151,7 @@ export default function PlaymatCard({
             prepareRoll(`${enhancedData.name} ${label}`, modifier, dice);
           }}
           borderVariant={enhancement?.timing === 'reaction' ? 'reaction' : 'spell'}
-          rollLabel={rollLabel || 'Roll'}
+          rollLabel={combatCategory === 'roll_only' ? 'Roll' : (rollLabel || 'Attack')}
           costs={costs || undefined}
           onSpendHope={() => character && updateHope(character.hope - (costs?.hope || 0))}
           onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (costs?.stress || 0))}

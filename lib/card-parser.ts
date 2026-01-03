@@ -337,6 +337,27 @@ export function parseStaticModifiers(text: string, cardName: string): CardModifi
     });
   }
 
+  // Pattern 5: "add your [trait] to your [stat]" (e.g., "add your Proficiency to your Evasion")
+  const addTraitMatches = Array.from(cleanText.matchAll(/add\s+(?:your\s+)?(agility|strength|finesse|presence|knowledge|instinct|spellcast|proficiency|level|tier)\s+to\s+(?:your\s+)?([a-z\s]+?)(?:\.|,|\n|$|\s+(?:but|and|or|while|when))/gi));
+
+  for (const matchResult of addTraitMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const sourceTrait = match[1];
+    const targetStatText = match[2];
+    if (!sourceTrait || !targetStatText) continue;
+
+    const targetStat = matchStatName(targetStatText.trim());
+    if (targetStat) {
+      modifiers.push({
+        stat: targetStat,
+        value: 0, // Will be calculated at runtime
+        formula: sourceTrait.toLowerCase(),
+        condition,
+        source: cardName
+      });
+    }
+  }
+
   return modifiers;
 }
 
@@ -532,6 +553,12 @@ export function parseStressCost(text: string): number {
     return 0; // This is a replenishment cost, not an activation cost
   }
 
+  // Check if this is an ability that PREVENTS marking stress (not a cost)
+  // Pattern: "when you would mark a Stress" indicates the ability triggers to prevent it
+  if (/when\s+you\s+would\s+(?:\*\*)?mark\s+(?:a\s+)?(?:\d+\s+)?Stress/i.test(cleanText)) {
+    return 0; // This is a prevention ability, not an activation cost
+  }
+
   // Match "mark X Stress" or "mark a Stress"
   const patterns = [
     /\*\*mark (\d+) Stress\*\*/i,
@@ -622,7 +649,8 @@ export function parseFrequency(text: string): Frequency {
   if (lowerText.includes('once per session')) {
     return 'once_per_session';
   }
-  if (lowerText.includes('once per long rest')) {
+  // "once each per long rest" (Gifted Performer: songs can each be used once per long rest)
+  if (lowerText.includes('once per long rest') || lowerText.includes('once each per long rest')) {
     return 'once_per_long_rest';
   }
   if (lowerText.includes('once per rest')) {
@@ -653,22 +681,60 @@ export function parseDuration(text: string): 'scene' | 'rest' | 'until_triggered
 
 /**
  * Parse range from card text
+ * Finds the FIRST "within X range" or "X range" pattern in the text,
+ * which represents the primary targeting range.
+ * Ignores "range of X" patterns (equipment requirements) when better matches exist.
  */
 export function parseCardRange(text: string): Range | undefined {
+  // All range patterns to search for
   const rangePatterns: { pattern: RegExp; range: Range }[] = [
-    { pattern: /Very Far range/i, range: 'Very Far' },
-    { pattern: /Very Close range/i, range: 'Very Close' },
-    { pattern: /Far range/i, range: 'Far' },
-    { pattern: /Close range/i, range: 'Close' },
-    { pattern: /Melee range/i, range: 'Melee' },
-    { pattern: /within Melee/i, range: 'Melee' },
+    { pattern: /within Very Far/i, range: 'Very Far' },
+    { pattern: /within Far/i, range: 'Far' },
     { pattern: /within Very Close/i, range: 'Very Close' },
     { pattern: /within Close/i, range: 'Close' },
-    { pattern: /within Far/i, range: 'Far' },
-    { pattern: /within Very Far/i, range: 'Very Far' },
+    { pattern: /within Melee/i, range: 'Melee' },
+    { pattern: /Very Far range/i, range: 'Very Far' },
+    { pattern: /Far range/i, range: 'Far' },
+    { pattern: /Very Close range/i, range: 'Very Close' },
+    { pattern: /Close range/i, range: 'Close' },
+    { pattern: /Melee range/i, range: 'Melee' },
   ];
 
+  // Check for "range of X" patterns which describe equipment requirements (Spirit Weapon)
+  // These should be deprioritized
+  const hasNonRequirementRange = /(?:within\s+|targets?\s+\w+\s+)?(?:Very Far|Far|Very Close|Close|Melee)\s+range/i.test(text) ||
+    /within\s+(?:Very Far|Far|Very Close|Close|Melee)/i.test(text);
+
+  // Find the earliest match in the text (primary range)
+  let earliestMatch: { index: number; range: Range } | null = null;
+
   for (const { pattern, range } of rangePatterns) {
+    const match = text.match(pattern);
+    if (match && match.index !== undefined) {
+      // Skip "range of X" patterns if better patterns exist
+      const before = text.substring(Math.max(0, match.index - 10), match.index).toLowerCase();
+      if (before.includes('range of') && hasNonRequirementRange) continue;
+
+      if (earliestMatch === null || match.index < earliestMatch.index) {
+        earliestMatch = { index: match.index, range };
+      }
+    }
+  }
+
+  if (earliestMatch) {
+    return earliestMatch.range;
+  }
+
+  // Fallback: Check "range of X" patterns only if nothing else matched
+  const fallbackPatterns: { pattern: RegExp; range: Range }[] = [
+    { pattern: /range of Very Far/i, range: 'Very Far' },
+    { pattern: /range of Far/i, range: 'Far' },
+    { pattern: /range of Very Close/i, range: 'Very Close' },
+    { pattern: /range of Close/i, range: 'Close' },
+    { pattern: /range of Melee/i, range: 'Melee' },
+  ];
+
+  for (const { pattern, range } of fallbackPatterns) {
     if (pattern.test(text)) {
       return range;
     }
@@ -758,6 +824,9 @@ export function parseCardDamage(text: string): string | undefined {
     /takes\s+(\d*d\d+(?:\+\d+)?)\s+(?:magic\s+|physical\s+)?damage/i,
     // "damage is 1d8"
     /damage\s+is\s+(\d*d\d+(?:\+\d+)?)/i,
+    // "roll ... d10s ... deal that much damage" (Unleash Chaos pattern)
+    // Matches "roll a number of d10s" where "d10s" is plural, followed later by "deal that much ... damage"
+    /roll\s+(?:a\s+number\s+of\s+)?(\d*d\d+)s?\s+.*deal\s+that\s+much\s+(?:magic\s+|physical\s+)?damage/i,
   ];
 
   for (const pattern of damagePatterns) {
@@ -826,8 +895,22 @@ export function parseTargetType(text: string): TargetType | undefined {
 export function parseActionType(text: string, cardType: string, attack?: CardAttack, roll?: CardRoll): ActionType {
   const cleanText = stripMarkdown(text).toLowerCase();
 
+  // DEBUG LOGGING
+  const debug = text.includes('give yourself flight') || text.includes('halve the damage') || text.includes('spiritual weapon') || text.includes('minor visual illusion');
+  if (debug) {
+    console.log(`[ParseActionType] Analyzing: ${text.substring(0, 50)}...`);
+    console.log(`[ParseActionType] CleanText: ${cleanText}`);
+  }
+
+  // Special Case: Natural Weapons (e.g., "Your kick is a natural weapon...")
+  // These are passive abilities describing a weapon, not an active attack action.
+  if (/\bnatural\s+weapon\b/i.test(cleanText)) {
+    if (debug) console.log(`[ParseActionType] Matched Natural Weapon`);
+    return undefined; // Will be passive
+  }
+
   // 1. Check for reaction patterns first (highest priority - defensive abilities)
-  // Note: "reaction roll" is complex - only treat as reaction if YOU are making it
+  // ... (keep patterns) ...
   const reactionPatterns = [
     /\byou (?:can |must )?(?:make|making) a reaction roll\b/i,  // You make a reaction roll
     /\bby making a reaction roll\b/i,  // "interrupt... by making a reaction roll"
@@ -851,7 +934,7 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     /\bwhen an adversary within.*?succeeds\b/i,
     // Damage halving/reduction as reaction
     /\bto halve incoming\b/i,
-    /\bhalve incoming (?:physical|magic|magical)? ?damage\b/i,
+    /\bhalve\s+(?:incoming\s+|the\s+)?(?:physical|magic|magical)?\s?damage\b/i,
     // Roll result reactions (fear/hope)
     /\bwhen you roll with fear\b/i,
     // Targeting reactions
@@ -887,7 +970,22 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     // "if you mark" HP from attack (Juggernaut style)
     /\bif\s+you\s+mark\s+(?:more\s+than\s+)?(?:one\s+)?hit\s+points?\s+from\b/i,
   ];
-  if (reactionPatterns.some(pattern => pattern.test(cleanText))) {
+
+  // Check for Counter-Attack pattern (Reaction that is also an Attack)
+  // e.g. "When you mark an Armor Slot... make a Strength Roll against..."
+  const hasRollAgainst = /make (?:a |an )?\*?\*?(?:\w+\s+)?roll\*?\*? against/i.test(text);
+
+  if (reactionPatterns.some(pattern => {
+    const match = pattern.test(cleanText);
+    if (match && debug) console.log(`[ParseActionType] Matched Reaction: ${pattern}`);
+    return match;
+  })) {
+    // Exception: If it's a reaction that involves making an attack roll against someone,
+    // treat it as 'attack' for UI purposes (Splintering Strike)
+    if (hasRollAgainst) {
+      if (debug) console.log(`[ParseActionType] Counter-Attack detected (Reaction + Attack)`);
+      return 'attack';
+    }
     return undefined;
   }
 
@@ -902,8 +1000,19 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     cleanText.includes('as an additional downtime') ||
     cleanText.includes('as a downtime move')
   ) {
+    if (debug) console.log(`[ParseActionType] Matched Downtime`);
     return undefined;
   }
+
+  // 2.5. EARLY CHECK: If the ability is an explicit "Spend X and/to make an attack",
+  // classify as attack immediately. This prevents buff/utility patterns from
+  // catching abilities like Ranger's Focus which are attacks that grant bonuses.
+  const hasExplicitAttackCommand = /(?:spend|mark).*?(?:to|and)\s+make\s+(?:a\s+|an\s+)?attack/i.test(cleanText);
+  if (hasExplicitAttackCommand) {
+    if (debug) console.log(`[ParseActionType] Early ATTACK: explicit attack command`);
+    return 'attack';
+  }
+
 
   // 3. Check for BUFF patterns (healing, support, granting bonuses to self/allies)
   // IMPORTANT: This must come BEFORE attacks and passive to catch active enhancement abilities
@@ -915,6 +1024,9 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     /\bclose\s+their\s+wounds\b/i,
     /\bclears?\s+(?:1d4|1d6|1d8)\s+hit\s+points?\b/i,
     /\bthat\s+creature\s+clears\b/i,
+    /\bheal\b/i,
+    /\brestore\s+hit\s+points?\b/i,
+    /\bregain\s+hit\s+points?\b/i,
 
     // Rally and dice granting (CRITICAL for Bard abilities)
     /\bgive\s+(?:yourself|each|all|them|an?\s+ally)\b.*?\b(?:rally\s+)?die\b/i,
@@ -985,11 +1097,16 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
 
   // Active buffs: Must have proactive choice AND buff patterns AND NOT be passive triggered
   if ((hasProactiveChoice || hasWhileClauseActive) && !hasPassiveTrigger && buffPatterns.some(pattern => pattern.test(cleanText))) {
+    if (debug) console.log(`[ParseActionType] Matched Active Buff`);
     return undefined;
   }
 
   // Regular buff check - only if no passive trigger
-  if (!hasPassiveTrigger && buffPatterns.some(pattern => pattern.test(cleanText))) {
+  if (!hasPassiveTrigger && buffPatterns.some(pattern => {
+    const match = pattern.test(cleanText);
+    if (match && debug) console.log(`[ParseActionType] Matched Buff Pattern: ${pattern}`);
+    return match;
+  })) {
     return undefined;
   }
 
@@ -1040,31 +1157,73 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     /\bperform\s+an\s+unbelievable\s+feat\b/i,
     /\brunning\s+across\s+water\b/i,
     /\bleaping\s+between\s+distant\b/i,
+    // Added Utility Patterns
+    // "fly" and "flight" must be about granting the ability to fly, not projectile motion
+    /\byou\s+(?:can\s+)?fly\b/i,
+    /\bgive\s+yourself\s+flight\b/i,
+    /\bgain\s+(?:the\s+ability\s+to\s+)?flight\b/i,
+    /\bgrant\s+(?:you\s+)?flight\b/i,
+    /\bteleport\b/i,
+    /\bproject\s+(?:your\s+)?senses\b/i,
+    /\balter\s+reality\b/i,
+    /\btake\s+on\s+the\s+form\b/i,
   ];
-  if (utilityPatterns.some(pattern => pattern.test(cleanText))) {
+  if (utilityPatterns.some(pattern => {
+    const match = pattern.test(cleanText);
+    if (match && debug) console.log(`[ParseActionType] Matched Utility: ${pattern}`);
+    return match;
+  })) {
     return undefined;
   }
 
   // 4. Check if this is an ATTACK (player initiates combat action)
   // An attack needs: "make a Roll against" OR parsed attack data
-  const hasRollAgainst = /make (?:a |an )?\*?\*?(?:\w+\s+)?roll\*?\*? against/i.test(text);
+
   const hasAttackWith = /make (?:a |an )?attack with/i.test(cleanText);
-  const hasExplicitAttack = /(?:spend|mark).*?to make (?:a |an )?attack/i.test(cleanText);
+  // Matches: "spend...to make...attack" AND "spend...and make...attack"
+  const hasExplicitAttack = /(?:spend|mark).*?(?:to|and) make (?:a |an )?attack/i.test(cleanText);
 
   // Attack extension - when a successful attack allows you to extend it to more targets
   // This is still an "attack" action because you're actively choosing to expand the attack
-  const hasAttackExtension = /when you (?:make a successful|succeed on).*?attack.*?(?:spend|mark).*?(?:use|apply|extend|deal)/i.test(cleanText);
+  // NOTE: Must distinguish from triggered bonus damage ("dealing extra damage") which is NOT an extension
+  const hasAttackExtension = /when you (?:make a successful|succeed on).*?attack.*?(?:spend|mark).*?(?:use|apply|extend)/i.test(cleanText) &&
+    !/dealing\s+(?:an?\s+)?(?:extra|additional)/i.test(cleanText);
 
   // "perform an aerial attack" or similar explicit attack descriptions
   const hasPerformAttack = /\bperform\s+(?:a |an )?(?:\w+\s+)?attack\b/i.test(cleanText);
 
+  // "to attack an adversary" or "fly...to attack" (Spirit Weapon: weapon flies to attack)
+  const hasDirectAttackVerb = /\bto\s+attack\s+(?:a |an )?(?:adversary|target|creature|enemy)/i.test(cleanText);
+
+  // "Make a [Trait] Roll" (imperative)
+  // e.g. "Make a Presence Roll (10)" -> This is an action
+  const hasMakeRoll = /make (?:a |an )?\*?\*?(?:\w+\s+)?roll\*?\*?(?:\s+\(\d+\))?/i.test(text) && !/reaction roll/i.test(text);
+
+  if (debug && hasMakeRoll) console.log(`[ParseActionType] Detected hasMakeRoll`);
+
   // But exclude simple "when you make a successful attack" passive triggers (without extension)
   const isSimpleAttackTrigger = /when you (?:make a success|succeed|critically succeed|fail)/i.test(cleanText) && !hasAttackExtension;
 
+  // Exclude abilities that describe how to modify attacks (passive), not attacks themselves
+  // "Before you make an attack" - modifies upcoming attacks (Apex Predator)
+  // "Increase the damage dice" - permanent stat enhancement (Powerhouse)
+  const isPassiveAttackModifier = /^before you make (?:a |an )?(?:\w+\s+)?(?:attack|roll)/i.test(cleanText) ||
+    /^increase (?:the |your )/i.test(cleanText);
+
+  // Check if the text contains damage dice (indicates offensive action)
+  // Exclude "damage dice" (describes dice type, e.g. "d8 damage dice" vs "1d8 damage")
+  const hasDamageDice = /\d*d\d+(?:[+\-]\d+)?\s+(?:magic\s+|physical\s+|true\s+)?damage(?!\s+dice)/i.test(cleanText);
+
+  // "hasMakeRoll" alone is not enough to classify as attack.
+  // For spells/abilities with just a roll (no damage, no "against"), treat as utility.
+  // Only count hasMakeRoll as attack indicator if there's damage or "against" a target.
+  const hasMakeRollForAttack = hasMakeRoll && (hasDamageDice || hasRollAgainst);
+
   // Only classify as attack if we have attack-like patterns AND it's not a triggered bonus
-  const hasAttackIndicators = attack || hasRollAgainst || hasAttackWith || hasExplicitAttack || hasAttackExtension || hasPerformAttack;
+  const hasAttackIndicators = attack || hasRollAgainst || hasAttackWith || hasExplicitAttack || hasAttackExtension || hasPerformAttack || hasDirectAttackVerb || hasMakeRollForAttack;
   const isTriggeredBonusAttack = attack?.is_triggered_bonus;
-  if (hasAttackIndicators && !isSimpleAttackTrigger && !isTriggeredBonusAttack) {
+  if (hasAttackIndicators && !isSimpleAttackTrigger && !isTriggeredBonusAttack && !isPassiveAttackModifier) {
+    if (debug) console.log(`[ParseActionType] Returning ATTACK`);
     return 'attack';
   }
 
@@ -1080,6 +1239,17 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     /^you have a base/i,
     /^gain a \+?\d+ bonus to/i,
     /^when an ally/i,
+
+    // PASSIVE: "Before you make an attack" - modifies upcoming attacks (Apex Predator)
+    /^before you make (?:a |an )?(?:\w+\s+)?attack/i,
+    /\bbefore you make (?:a |an )?(?:\w+\s+)?(?:roll|attack)\s+against\b/i,
+
+    // PASSIVE: Ability stat increases like "Increase the d8 damage dice" (Powerhouse)
+    /^increase the\b/i,
+    /^increase your\b/i,
+
+    // PASSIVE: "with a single attack roll" - describes attack mechanics, doesn't initiate
+    /\bwith a single attack roll\b/i,
 
     // Post-action triggers (after making an attack/roll)
     /\bwhen you (?:make a successful|succeed on|successfully cast|successfully make)\b/i,
@@ -1159,17 +1329,31 @@ export function parseTiming(text: string, actionType: ActionType): Timing {
   const reactionPatterns = [
     /as a reaction/i,
     /timing: reaction/i,
+    /reaction roll/i,
+    /interrupt/i,
     /when you (?:would )?take (?:magic |physical |severe |major |minor )?damage/i,
     /when you (?:would )?mark/i,
     /after an? (?:adversary|creature|ally)/i,
     /when an? (?:adversary|creature|ally)/i,
     /in response to/i,
-    /(?:to |you )?(?:reduce|halve) (?:incoming )?damage/i,
-    /when an? attack fails/i,
-    /when targeted/i,
+    /(?:to |you )?(?:reduce|halve) (?:incoming |the )?damage/i,
+    // Pattern for "when an attack fails" or "when an attack made against you...fails"
+    // Handles: "when an attack fails", "when an attack made against you from X fails", 
+    // "when an attack made against you that would deal physical damage fails"
+    /when an? attack(?:\s+made\s+against\s+you)?(?:[^.]*?)\s+fails/i,
+    /when (?:you(?:'re|r)?|are) targeted/i,
     /if an? adversary/i,
+    /when (?:you|an? ally) (?:are|is) attacked/i,
+    // Pattern for "to halve X damage" (defensive reaction)
+    /to\s+halve\s+(?:incoming\s+)?(?:physical\s+|magic\s+)?damage/i,
+    // Pattern for "when attack roll...succeeds" (defensive reaction trigger)
+    /when\s+an?\s+attack\s+roll\s+(?:against\s+you\s+)?succeeds/i,
+    // Pattern for "when you succeed on an attack" (triggered bonus damage)
+    /when\s+you\s+succeed\s+on\s+an?\s+attack/i,
+    // Pattern for "when you critically succeed on" (triggered bonus)
+    /when\s+you\s+critically\s+succeed\s+on/i,
   ];
-  
+
   for (const p of reactionPatterns) {
     if (p.test(cleanText)) {
       console.log(`MATCHED Reaction: pattern=${p}, text="${cleanText.substring(0, 30)}..."`);
@@ -1179,10 +1363,10 @@ export function parseTiming(text: string, actionType: ActionType): Timing {
 
   // 2. Explicit Downtime patterns
   const downtimePatterns = [
-    /during a rest/i,
+    /during a (?:short |long )?rest/i,
     /as a downtime move/i,
     /during downtime/i,
-    /when you take a rest/i,
+    /when you take a (?:short |long )?rest/i,
   ];
   if (downtimePatterns.some(p => p.test(cleanText))) {
     return 'downtime';
@@ -1240,7 +1424,15 @@ export function hasTokenMechanics(text: string): boolean {
     lowerText.includes('tokens equal to') ||
     lowerText.includes('token equal to') ||
     // Number of tokens
-    lowerText.includes('number of tokens')
+    lowerText.includes('number of tokens') ||
+    // Gain a token
+    lowerText.includes('gain a token') ||
+    lowerText.includes('gain tokens') ||
+    // Dice pool mechanics (e.g., "Slayer Dice") - dice stored on card
+    /place\s+(?:a\s+)?\*?\*?d\d+\*?\*?\s+on\s+this\s+card/i.test(text) ||
+    /store\s+(?:a\s+number\s+of|up\s+to)\s+.*?\s+(?:dice|die)\s+equal\s+to/i.test(text) ||
+    // "you can store a number of X Dice equal to your Y"
+    /(?:number|pool)\s+of\s+.*?dice\s+equal\s+to/i.test(text)
   );
 }
 
@@ -1301,6 +1493,13 @@ export function parseTokenSource(text: string): string | undefined {
   const match3 = cleanText.match(pattern3);
   if (match3) {
     return normalizeTokenSourceTrait(match3[1]);
+  }
+
+  // Pattern 4: Dice pool mechanics - "store a number of X Dice equal to your [trait]"
+  const pattern4 = /(?:store|hold|keep)\s+(?:a\s+)?(?:number\s+of\s+)?.*?s*(?:dice|die)\s+equal\s+to\s+(?:your\s+)?(\w+)/i;
+  const match4 = cleanText.match(pattern4);
+  if (match4) {
+    return normalizeTokenSourceTrait(match4[1]);
   }
 
   return undefined;
@@ -1845,6 +2044,8 @@ export function enhanceAbilityCard(card: {
     { type: 'long_rest', pattern: /until (?:you )?(?:finish a )?long rest/i },
     { type: 'scene', pattern: /for the (?:rest of the )?scene/i },
     { type: 'session', pattern: /for the (?:rest of the )?session/i },
+    // Conditional durations - effects that last until some condition is no longer met
+    { type: 'conditional', pattern: /until there (?:are|is) no(?: more)?\b/i },
   ];
 
   for (const { type, pattern } of durationPatterns) {

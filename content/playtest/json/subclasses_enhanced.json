@@ -8,27 +8,19 @@
         "name": "Chasing Death",
         "text": "While you have 1–3 unmarked Hit Points, you can use your Crimson Rite feature without paying the Hit Point cost. If you have only 1 unmarked Hit Point, you roll **d8s** instead of **d6s** for the extra damage of your Crimson Rite.",
         "enhancement": {
-          "action_type": "attack",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "damage",
             "ability"
-          ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "damage": "d8"
-          }
+          ]
         }
       },
       {
         "name": "Shadowed Grit",
         "text": "When the GM gains a Fear from a Duality Dice roll, you can **mark a Stress** to gain a Hope.",
         "enhancement": {
-          "action_type": "reaction",
-          "timing": "reaction",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -46,7 +38,6 @@
         "name": "Veilwalker",
         "text": "You can briefly slip into the realm between the living and the dead. **Spend 2 Hope** to disappear and then reappear next to a creature or a corpse within Far range. You then have advantage on the next attack roll you make in this scene.",
         "enhancement": {
-          "action_type": "utility",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -70,7 +61,6 @@
         "name": "Spectral Form",
         "text": "You have another death move option: Spectral Form. When you choose this option, you clear a Hit Point, your body becomes spectral, you have resistance to physical damage, and you can pass through objects. This form ends if you clear any more Hit Points. It also ends if you mark your last Hit Point, which forces you to take a different death move. You're shunted to the nearest open space if you're inside an object when the form ends.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
@@ -94,8 +84,7 @@
         "name": "Mutagens",
         "text": "You employ mutagenic toxins created to enhance your abilities. When you finish a rest, you can drink one such toxin to gain its effects, which last until you finish your next rest. These effects include a +1 bonus to one trait of your choice, a −1 penalty to a different trait of your choice, and your choice of one of the following benefits:\n\n- Celerity: If you are Restrained or Vulnerable, you can **mark a Stress** to end the condition on yourself.\n- Durable: Your Armor Score increases by 2.\n- Hunter's Senses: You have advantage on any **action roll** you make to track a creature, and you can see in complete darkness.",
         "enhancement": {
-          "action_type": "downtime",
-          "timing": "downtime",
+          "timing": "free",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -116,8 +105,7 @@
         "name": "Improved Mutagens",
         "text": "When you choose a mutagen benefit, your options also include the following:\n\n- Nerves of Steel: Whenever you must **mark a Stress**, you can **spend 2 Hope** instead.\n- Rapidity: Your Evasion increases by 1.\n- Ironskin: Your Severe damage threshold increases by a number equal to your Proficiency.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "stress": 1,
@@ -135,8 +123,7 @@
         "name": "Volatile Toxins",
         "text": "You can choose two mutagen benefits instead of one. If you do, mark a Hit Point that can't be cleared until you finish your next rest.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "hit_points": 1
@@ -153,8 +140,7 @@
         "name": "Mastered Mutagens",
         "text": "The trait bonus and penalty you get from your Mutagens feature changes to +2 and −2, respectively. When you choose a mutagen benefit, your options also include the following:\n\n- Aetherblood: Within your line of sight, you can see creatures and objects that are invisible, and visual illusions appear transparent to you. If a creature or an object within your line of sight has been transformed by magic, you can see its true form.\n- Fury: When you make an attack roll, you can **mark a Stress** to gain a bonus to the roll equal to your Proficiency.\n- Steelflesh: Your Major damage threshold increases by a number equal to your Proficiency.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -177,8 +163,7 @@
         "name": "Werewolf",
         "text": "You gain the Werewolf Transformation card. Your rolls to perceive via hearing and scent have advantage.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "buff",
@@ -190,8 +175,7 @@
         "name": "Control the Beast",
         "text": "While in your Wolf Form, you can apply that form's bonus die to your Agility and Strength **Action Rolls**.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -204,8 +188,7 @@
         "name": "Feral Hide",
         "text": "While in your Wolf Form, you gain a bonus to your Damage Thresholds equal to your Tier.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "damage",
@@ -228,7 +211,6 @@
         "name": "Lycan Regeneration",
         "text": "While in your Wolf Form with all your Hit Points marked, you can **mark a Stress** to clear a Hit Point. You can do this while unconscious.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -249,8 +231,7 @@
         "name": "Master the Beast",
         "text": "When you are in your Wolf Form and would **mark your last Stress**, you can instead put one of your Domain cards from your Loadout into your Vault; you can't Recall that Domain card until you finish a long rest.\n\nWhen you Frenzy from marking your last Stress while in Wolf Form, you gain 2 Hope.",
         "enhancement": {
-          "action_type": "reaction",
-          "timing": "reaction",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "hope_gain",
@@ -271,8 +252,7 @@
         "name": "Herbal Remedies",
         "text": "When you or an ally clear one or more Hit Points or Stress as the result of using a consumable, increase the number cleared by one.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "healing",
@@ -285,8 +265,7 @@
         "name": "Tethered Talisman",
         "text": "Once per rest, you can imbue a small item with your protective essence. When the person holding the talisman takes damage, you can expend its magic to reduce the number of Hit Points they mark by one. You can't create a new talisman until the old one has been used.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "once_per_rest",
           "keywords": [
             "damage_reduction",
@@ -301,7 +280,6 @@
         "name": "Walk Between Worlds",
         "text": "Make a **Spellcast Roll (13)** to step beyond the veil of death and converse with any nearby spirits. Place a number of tokens equal to your Spellcast trait on this card and remove one each time a spirit answers a question. You return to the mortal realm when the last token is removed.",
         "enhancement": {
-          "action_type": "utility",
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
@@ -325,8 +303,7 @@
         "name": "Enhanced Hex",
         "text": "Attacks you make against Hexed creatures gain a damage bonus equal to your Proficiency.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "damage",
@@ -340,7 +317,6 @@
         "name": "Circle of Power",
         "text": "Once per rest, mark a circle on the ground around you up to Very Close range and place a number of tokens equal to your Spellcast Trait on this card. Each time you or any ally within the circle makes an **action roll** or is hit with an attack, remove a token. This spell lasts until the last token is removed or you step out of the circle. While within this circle, you and any allies:\n\n- Gain a +4 bonus to your damage thresholds.\n- Gain a +2 bonus to your attack rolls.\n- Gain a +1 bonus to your Evasion.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "once_per_rest",
           "keywords": [
@@ -396,8 +372,7 @@
         "name": "Night's Glamour",
         "text": "**Mark a Stress** to Glamour yourself in a magical facade that lasts until you mark a Hit Point, make an attack, or take a rest. While Glamoured, you can:\n\n- Disguise yourself to look like any creature of your approximate size that you've seen.\n- Enhance your own appearance. You gain advantage on **Presence Rolls** that leverage this change.",
         "enhancement": {
-          "action_type": "buff",
-          "timing": "action",
+          "timing": "free",
           "frequency": "at_will",
           "costs": {
             "stress": 1,
@@ -416,7 +391,6 @@
         "name": "Moonbeam",
         "text": "Once per session, you can conjure a column of moonlight that illuminates the area within Close range until the end of the scene. While bathed in this moonlight, you and any allies gain a +1 bonus to **Spellcast Rolls** and advantage on rolls to see through illusions.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "once_per_session",
           "keywords": [
@@ -444,8 +418,7 @@
         "name": "Ire of Pale Light",
         "text": "When a Hexed creature within Far range fails an attack roll, they must **mark a Stress**.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "stress": 1
@@ -466,7 +439,6 @@
         "name": "Lunar Phases",
         "text": "Your spirit ebbs and flows like the phases of the moon. At the beginning of each session, roll a **d4** and gain the matching effect until the end of the session:\n\n- 1: New - You can always **spend a Hope** to reduce Minor damage to None.\n- 2: Waxing - Gain a +2 bonus to your damage rolls.\n- 3: Full - Gain a +2 bonus to your damage thresholds.\n- 4: Waning - Gain a +1 bonus to your Evasion.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -503,13 +475,7 @@
               },
               "source": "Lunar Phases"
             }
-          ],
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "damage": "d4"
-          }
+          ]
         }
       }
     ]
@@ -523,7 +489,6 @@
         "name": "Powerhouse",
         "text": "Increase the **d8** damage dice for your unarmed attack to **d10s**. Additionally, you can **mark a Stress** to target two creatures within Melee range with a single attack roll.",
         "enhancement": {
-          "action_type": "attack",
           "timing": "action",
           "frequency": "at_will",
           "costs": {
@@ -546,8 +511,7 @@
         "name": "Overwhelm",
         "text": "On a successful attack, you can **spend a Hope** to force the target to **mark a Stress** or to throw them within Close range.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "costs": {
             "stress": 1,
@@ -571,7 +535,6 @@
         "name": "Rugged",
         "text": "Gain a permanent +3 bonus to your Severe damage threshold. Additionally, your \"Powerhouse\" feature can target up to three creatures instead of two.",
         "enhancement": {
-          "action_type": "passive",
           "timing": "free",
           "frequency": "at_will",
           "keywords": [
@@ -594,7 +557,6 @@
         "name": "Eye for an Eye",
         "text": "When you mark more than one Hit Point from an attack in Melee range, the attacker must make a **Reaction Roll (13)**. On a failure, once per rest, they immediately mark the same number of Hit Points in return.",
         "enhancement": {
-          "action_type": "reaction",
           "timing": "reaction",
           "frequency": "once_per_rest",
           "keywords": [
@@ -618,8 +580,7 @@
         "name": "Pummeljoy",
         "text": "When you critically succeed on a weapon attack in Melee range, you gain an additional Hope, clear an additional Stress, and gain a +1 bonus to your Proficiency for the attack.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "reaction",
           "frequency": "at_will",
           "keywords": [
             "stress_relief",
@@ -646,7 +607,6 @@
         "name": "Not Done Yet",
         "text": "When you mark more than one HP from an attack, you can gain a Hope or clear a Stress.",
         "enhancement": {
-          "action_type": "reaction",
           "timing": "reaction",
           "frequency": "at_will",
           "keywords": [
@@ -669,8 +629,7 @@
         "name": "Martial Form",
         "text": "Take the Martial Form sheet. You start with two martial stances from Tier 1. When you reach a new tier, take two additional stances at your tier or lower.",
         "enhancement": {
-          "action_type": "passive",
-          "timing": "free",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "ability"
@@ -681,7 +640,6 @@
         "name": "Focus",
         "text": "During a rest, roll a number of **d6s** equal to your Instinct and place a number of Focus tokens equal to the highest value rolled on this card. Spend a Focus to shift into a stance until you take Severe damage, the scene ends, you mark your last Hit Point, or you shift into another martial stance.",
         "enhancement": {
-          "action_type": "downtime",
           "timing": "downtime",
           "frequency": "at_will",
           "keywords": [
@@ -704,12 +662,6 @@
             "has_tokens": true,
             "max_tokens": null,
             "token_source": "the"
-          },
-          "attack": {
-            "trait": "Spellcast",
-            "range": "Close",
-            "combat_category": "passive_triggered",
-            "damage": "d6"
           }
         }
       }
@@ -719,8 +671,7 @@
         "name": "Keen Defenses",
         "text": "When you are targeted by an attack, you can spend a Focus to give the attack roll disadvantage.",
         "enhancement": {
-          "action_type": "reaction",
-          "timing": "reaction",
+          "timing": "action",
           "frequency": "at_will",
           "keywords": [
             "debuff",
@@ -764,7 +715,6 @@
         "name": "Limit Breaker",
         "text": "Once per rest, you can perform an unbelievable feat such as running across water, leaping between distant rooftops, or scaling the side of a building without needing to roll. When you do, gain a Hope and clear a Stress.",
         "enhancement": {
-          "action_type": "buff",
           "timing": "action",
           "frequency": "once_per_rest",
           "keywords": [
