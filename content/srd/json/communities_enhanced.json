@@ -100,9 +100,11 @@
             "tokens",
             "ability"
           ],
-          "has_tokens": true,
-          "max_tokens": null,
-          "token_source": "level"
+          "tokens": {
+            "has_tokens": true,
+            "max_tokens": null,
+            "token_source": "level"
+          }
         }
       }
     ]
