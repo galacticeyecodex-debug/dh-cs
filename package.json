@@ -16,7 +16,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "enhance-json": "npx tsx scripts/enhance_json.ts"
   },
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",

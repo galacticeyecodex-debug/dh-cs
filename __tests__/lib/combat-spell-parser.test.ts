@@ -1,7 +1,9 @@
 /**
- * TESTS: Combat Spell Parser
+ * TESTS: Combat Spell Parser (Unified in card-parser.ts)
  * ----------------------------------------------------------------------------
- * Tests for parsing combat abilities from domain card descriptions
+ * Tests for parsing combat abilities from domain card descriptions.
+ * These tests validate the parseCombatAbility functionality that was
+ * unified from combat-spell-parser.ts into card-parser.ts.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -9,7 +11,7 @@ import {
   parseCombatAbility,
   getLoadoutCombatAbilities,
   type CombatAbility
-} from '@/lib/combat-spell-parser';
+} from '@/lib/card-parser';
 import type { CharacterCard } from '@/types/character';
 
 // Helper to create mock cards
