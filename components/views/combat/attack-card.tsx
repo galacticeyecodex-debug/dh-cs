@@ -18,11 +18,10 @@
 
 import React, { useState } from 'react';
 import { MarkdownText } from '@/components/shared/markdown-text';
-import { Zap, Skull, Dices, RotateCcw, Info } from 'lucide-react';
+import { Zap, Skull, Dices, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { getValueColor } from '@/lib/styles';
-import MarkStressButton from './mark-stress-button';
-import SpendHopeButton from './spend-hope-button';
+import { DomainAbilityButton } from '@/components/views/playmat/domain-ability-button';
 
 import { AdditionalDamage } from '@/types/cards';
 
@@ -287,43 +286,34 @@ const AttackCard = React.memo(function AttackCard({
                 <div className="px-4 py-2 border-t border-white/5 bg-black/20 flex flex-wrap gap-2 items-center justify-between">
                     <div className="flex flex-wrap gap-2">
                         {costs?.stress && (
-                            <MarkStressButton
-                                cost={costs.stress}
-                                size="sm"
-                                onMark={() => {
+                            <DomainAbilityButton
+                                cardName={name}
+                                costType="stress"
+                                costValue={costs.stress}
+                                disabled={isCostPaid || isUsed}
+                                isActiveOverride={isCostPaid}
+                                onActivate={() => {
                                     setIsCostPaid(true);
                                     onMarkStress?.();
                                 }}
-                                disabled={isCostPaid || isUsed}
-                                className={isCostPaid ? 'opacity-50' : ''}
+                                onDeactivate={() => setIsCostPaid(false)}
                             />
                         )}
                         {costs?.hope && (
-                            <SpendHopeButton
-                                cost={costs.hope}
-                                size="sm"
-                                onSpend={() => {
+                            <DomainAbilityButton
+                                cardName={name}
+                                costType="hope"
+                                costValue={costs.hope}
+                                disabled={isCostPaid || isUsed}
+                                isActiveOverride={isCostPaid}
+                                onActivate={() => {
                                     setIsCostPaid(true);
                                     onSpendHope?.();
                                 }}
-                                disabled={isCostPaid || isUsed}
-                                className={isCostPaid ? 'opacity-50' : ''}
+                                onDeactivate={() => setIsCostPaid(false)}
                             />
                         )}
                     </div>
-                    {isCostPaid && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsCostPaid(false);
-                            }}
-                            className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider font-bold flex items-center gap-1 transition-colors"
-                            title="Reset cost activation"
-                        >
-                            <RotateCcw size={10} />
-                            Reset
-                        </button>
-                    )}
                 </div>
             )}
 
