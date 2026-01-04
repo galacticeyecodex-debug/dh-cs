@@ -22,21 +22,14 @@ const VALID_TABS: TabId[] = ['character', 'combat', 'playmat', 'inventory', 'dow
 // localStorage key for persisting active tab
 const ACTIVE_TAB_STORAGE_KEY = 'dh:activeTab';
 
-// Helper to get persisted tab or default
-const getInitialActiveTab = (): TabId => {
-  if (typeof window === 'undefined') return 'character';
+// Note: We always use 'character' as the initial tab to avoid hydration mismatch.
+// The useTabPersistence hook handles restoring the user's last tab from localStorage
+// after hydration is complete.
+const DEFAULT_TAB: TabId = 'character';
 
-  try {
-    const stored = localStorage.getItem(ACTIVE_TAB_STORAGE_KEY);
-    if (stored && VALID_TABS.includes(stored as TabId)) {
-      return stored as TabId;
-    }
-  } catch (error) {
-    console.warn('Failed to load active tab from localStorage:', error);
-  }
-
-  return 'character';
-};
+// Helper to get valid tabs for use in hooks
+export const getValidTabs = () => VALID_TABS;
+export const getActiveTabStorageKey = () => ACTIVE_TAB_STORAGE_KEY;
 
 export interface UiSlice {
   activeTab: TabId;
@@ -55,7 +48,7 @@ export interface UiSlice {
 }
 
 export const createUiSlice: StateCreator<CharacterStore, [], [], UiSlice> = (set) => ({
-  activeTab: getInitialActiveTab(),
+  activeTab: DEFAULT_TAB,
   isDiceOverlayOpen: false,
   isMoreMenuOpen: false,
   activeRoll: null,

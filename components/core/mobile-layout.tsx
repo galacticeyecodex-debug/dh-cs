@@ -24,6 +24,7 @@ import MoreMenu from './more-menu';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import useUser from '@/hooks/useUser';
+import { useTabPersistence } from '@/hooks/useTabPersistence';
 
 // Fix for no-explicit-any on NavButton props
 interface NavButtonProps {
@@ -37,6 +38,9 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
   const { activeTab, setActiveTab, openDiceOverlay, openMoreMenu, isMoreMenuOpen, character } = useCharacterStore();
   const router = useRouter();
   const { signOut } = useUser();
+
+  // Restore user's last tab from localStorage after hydration (prevents hydration mismatch)
+  useTabPersistence();
 
   const handleSignOut = async () => {
     await signOut();
