@@ -22,6 +22,7 @@ import {
     Frown,
     Meh,
     Smile,
+    Settings,
 } from 'lucide-react';
 import {
     getRelationshipTier,
@@ -31,6 +32,7 @@ import {
 } from '@/types/journal';
 import type { Relationship, RelationshipTier } from '@/types/journal';
 import clsx from 'clsx';
+import RelationshipChangeModal from './relationship-change-modal';
 
 type JournalTab = 'relationships' | 'reputation';
 
@@ -183,6 +185,7 @@ function RelationshipCard({
     onChangePoints,
     onDelete,
 }: RelationshipCardProps) {
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const tier = getRelationshipTier(relationship.points);
     const tierInfo = getRelationshipTierInfo(tier);
 
@@ -200,75 +203,86 @@ function RelationshipCard({
         }
     };
 
+    const handleConfirmChange = (change: number, reason: string) => {
+        onChangePoints(relationship.id, change);
+        // TODO: Store the reason in a relationship history table
+        console.log(`Relationship change: ${change}, Reason: ${reason}`);
+    };
+
     return (
-        <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-            <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                        {getTierIcon(tier)}
-                        <span className="font-medium text-white truncate">
-                            {relationship.npc_name}
-                        </span>
-                        <span className={clsx('text-xs font-medium', tierInfo.color)}>
-                            {tierInfo.label}
-                        </span>
-                    </div>
-                    {relationship.npc_description && (
-                        <p className="text-xs text-gray-400 line-clamp-1 mb-2">
-                            {relationship.npc_description}
-                        </p>
-                    )}
+        <>
+            <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            {getTierIcon(tier)}
+                            <span className="font-medium text-white truncate">
+                                {relationship.npc_name}
+                            </span>
+                            <span className={clsx('text-xs font-medium', tierInfo.color)}>
+                                {tierInfo.label}
+                            </span>
+                        </div>
+                        {relationship.npc_description && (
+                            <p className="text-xs text-gray-400 line-clamp-1 mb-2">
+                                {relationship.npc_description}
+                            </p>
+                        )}
 
-                    {/* Bond effects */}
-                    <div className="flex flex-wrap gap-2 text-xs">
-                        {relationship.bond_boon && tier === 'friend' || tier === 'beloved' ? (
-                            <span className="px-2 py-0.5 rounded bg-green-500/10 text-green-400">
-                                {relationship.bond_boon}
-                            </span>
-                        ) : null}
-                        {relationship.bond_bane && (tier === 'rival' || tier === 'enemy') ? (
-                            <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-400">
-                                {relationship.bond_bane}
-                            </span>
-                        ) : null}
+                        {/* Bond effects */}
+                        <div className="flex flex-wrap gap-2 text-xs">
+                            {relationship.bond_boon && tier === 'friend' || tier === 'beloved' ? (
+                                <span className="px-2 py-0.5 rounded bg-green-500/10 text-green-400">
+                                    {relationship.bond_boon}
+                                </span>
+                            ) : null}
+                            {relationship.bond_bane && (tier === 'rival' || tier === 'enemy') ? (
+                                <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-400">
+                                    {relationship.bond_bane}
+                                </span>
+                            ) : null}
+                        </div>
+                    </div>
+
+                    {/* Points display and Manage button */}
+                    <div className="flex items-center gap-2">
+                        <div className="text-center">
+                            <div className={clsx(
+                                'text-lg font-bold',
+                                relationship.points > 0 ? 'text-green-400' :
+                                    relationship.points < 0 ? 'text-red-400' : 'text-gray-400'
+                            )}>
+                                {relationship.points > 0 ? '+' : ''}{relationship.points}
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-dagger-gold transition-colors"
+                            title="Manage relationship"
+                        >
+                            <Settings size={16} />
+                        </button>
+
+                        {/* Delete button */}
+                        <button
+                            onClick={() => onDelete(relationship.id)}
+                            className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-colors"
+                            title="Remove NPC"
+                        >
+                            <Trash2 size={14} />
+                        </button>
                     </div>
                 </div>
-
-                {/* Points control */}
-                <div className="flex flex-col items-center gap-1">
-                    <button
-                        onClick={() => onChangePoints(relationship.id, 1)}
-                        className="p-1 rounded bg-white/5 hover:bg-white/10 text-gray-400 hover:text-green-400 transition-colors"
-                        title="Increase relationship"
-                    >
-                        <ChevronUp size={16} />
-                    </button>
-                    <span className={clsx(
-                        'text-sm font-bold w-6 text-center',
-                        relationship.points > 0 ? 'text-green-400' :
-                            relationship.points < 0 ? 'text-red-400' : 'text-gray-400'
-                    )}>
-                        {relationship.points > 0 ? '+' : ''}{relationship.points}
-                    </span>
-                    <button
-                        onClick={() => onChangePoints(relationship.id, -1)}
-                        className="p-1 rounded bg-white/5 hover:bg-white/10 text-gray-400 hover:text-red-400 transition-colors"
-                        title="Decrease relationship"
-                    >
-                        <ChevronDown size={16} />
-                    </button>
-                </div>
-
-                {/* Delete button */}
-                <button
-                    onClick={() => onDelete(relationship.id)}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-colors"
-                    title="Remove NPC"
-                >
-                    <Trash2 size={14} />
-                </button>
             </div>
-        </div>
+
+            {/* Relationship Change Modal */}
+            <RelationshipChangeModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                npcName={relationship.npc_name}
+                onConfirm={handleConfirmChange}
+            />
+        </>
     );
 }
 
