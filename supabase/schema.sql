@@ -200,6 +200,35 @@ CREATE TABLE IF NOT EXISTS public.character_projects (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   completed_at TIMESTAMP WITH TIME ZONE
 );
+
+-- 8. CHARACTER RELATIONSHIPS (NPC tracking with relationship tiers)
+CREATE TABLE IF NOT EXISTS public.character_relationships (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  character_id UUID REFERENCES public.characters(id) ON DELETE CASCADE NOT NULL,
+  
+  -- NPC data
+  npc_name TEXT NOT NULL,
+  npc_description TEXT,
+  npc_image_url TEXT,
+  
+  -- Relationship state
+  points INT NOT NULL DEFAULT 0,
+  -- Computed tier based on points:
+  -- <= -4: enemy, -3 to -2: rival, -1 to +1: acquaintance, +2 to +3: friend, >= +4: beloved
+  
+  -- Bond effects (from Strixhaven or custom)
+  bond_boon TEXT,
+  bond_bane TEXT,
+  
+  -- Notes and context
+  notes TEXT,
+  campaign TEXT, -- e.g., 'strixhaven', 'core', null for generic
+  
+  -- Metadata
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Profiles RLS and policies (drop policy if exists first)
 DO $$
 BEGIN
@@ -365,6 +394,37 @@ BEGIN
 
     EXECUTE 'DROP POLICY IF EXISTS "Projects deletable by char owner" ON public.character_projects';
     CREATE POLICY "Projects deletable by char owner" ON public.character_projects FOR DELETE USING (
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
+    );
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Character Relationships RLS
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = 'character_relationships' AND n.nspname = 'public') THEN
+
+    ALTER TABLE public.character_relationships ENABLE ROW LEVEL SECURITY;
+
+    EXECUTE 'DROP POLICY IF EXISTS "Relationships viewable by char owner" ON public.character_relationships';
+    CREATE POLICY "Relationships viewable by char owner" ON public.character_relationships FOR SELECT USING (
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
+    );
+
+    EXECUTE 'DROP POLICY IF EXISTS "Relationships insertable by char owner" ON public.character_relationships';
+    CREATE POLICY "Relationships insertable by char owner" ON public.character_relationships FOR INSERT WITH CHECK (
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
+    );
+
+    EXECUTE 'DROP POLICY IF EXISTS "Relationships updatable by char owner" ON public.character_relationships';
+    CREATE POLICY "Relationships updatable by char owner" ON public.character_relationships FOR UPDATE USING (
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
+    );
+
+    EXECUTE 'DROP POLICY IF EXISTS "Relationships deletable by char owner" ON public.character_relationships';
+    CREATE POLICY "Relationships deletable by char owner" ON public.character_relationships FOR DELETE USING (
       character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
     );
   END IF;
