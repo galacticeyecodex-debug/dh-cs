@@ -171,7 +171,35 @@ CREATE TABLE IF NOT EXISTS public.character_inventory (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- ROW LEVEL SECURITY (RLS) --
+-- 7. CHARACTER PROJECTS (Long-term goals with countdown clocks)
+CREATE TABLE IF NOT EXISTS public.character_projects (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  character_id UUID REFERENCES public.characters(id) ON DELETE CASCADE NOT NULL,
+  
+  -- Project metadata
+  name TEXT NOT NULL,
+  description TEXT,
+  type TEXT NOT NULL CHECK (type IN (
+    'generic', 'study_token', 'signature_spell', 'job', 'extracurricular'
+  )),
+  
+  -- Progress tracking (countdown clock)
+  countdown_total INT NOT NULL DEFAULT 4,
+  countdown_current INT NOT NULL DEFAULT 0,
+  completed BOOLEAN DEFAULT false,
+  
+  -- Type-specific data (JSONB for flexibility)
+  data JSONB DEFAULT '{}'::jsonb,
+  -- For study_token: { lesson: "Astrology", exam_semester: "Fall 1" }
+  -- For signature_spell: { spell_name: "...", spell_level: 3, effect: "..." }
+  -- For job: { employer: "Firejolt Cafe", pay: "1 handful" }
+  -- For extracurricular: { club: "Dead Languages Society" }
+  
+  -- Timestamps
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  completed_at TIMESTAMP WITH TIME ZONE
+);
 -- Profiles RLS and policies (drop policy if exists first)
 DO $$
 BEGIN
@@ -308,6 +336,37 @@ BEGIN
 
     EXECUTE 'DROP POLICY IF EXISTS "Users can delete own homebrew items" ON public.homebrew_items';
     CREATE POLICY "Users can delete own homebrew items" ON public.homebrew_items FOR DELETE USING (auth.uid() = user_id);
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Character Projects RLS
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = 'character_projects' AND n.nspname = 'public') THEN
+
+    ALTER TABLE public.character_projects ENABLE ROW LEVEL SECURITY;
+
+    EXECUTE 'DROP POLICY IF EXISTS "Projects viewable by char owner" ON public.character_projects';
+    CREATE POLICY "Projects viewable by char owner" ON public.character_projects FOR SELECT USING (
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
+    );
+
+    EXECUTE 'DROP POLICY IF EXISTS "Projects insertable by char owner" ON public.character_projects';
+    CREATE POLICY "Projects insertable by char owner" ON public.character_projects FOR INSERT WITH CHECK (
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
+    );
+
+    EXECUTE 'DROP POLICY IF EXISTS "Projects updatable by char owner" ON public.character_projects';
+    CREATE POLICY "Projects updatable by char owner" ON public.character_projects FOR UPDATE USING (
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
+    );
+
+    EXECUTE 'DROP POLICY IF EXISTS "Projects deletable by char owner" ON public.character_projects';
+    CREATE POLICY "Projects deletable by char owner" ON public.character_projects FOR DELETE USING (
+      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
+    );
   END IF;
 END;
 $$ LANGUAGE plpgsql;
