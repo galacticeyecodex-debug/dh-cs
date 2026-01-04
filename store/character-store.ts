@@ -15,6 +15,7 @@ import { createUiSlice, UiSlice } from './slices/ui-slice';
 import { createHomebrewSlice, HomebrewSlice } from './slices/homebrew-slice';
 import { createLevelingSlice, LevelingSlice } from './slices/leveling-slice';
 import { createCardStateSlice, CardStateSlice } from './slices/card-state-slice';
+import { createDowntimeSlice, DowntimeSlice } from './slices/downtime-slice';
 import { CharacterStore } from '@/types/store';
 
 // Re-export types for backward compatibility
@@ -29,4 +30,6 @@ export const useCharacterStore = create<CharacterStore>()((...a) => ({
   ...createHomebrewSlice(...a),
   ...createLevelingSlice(...a),
   ...createCardStateSlice(...a),
+  ...createDowntimeSlice(...a),
 }));
+
