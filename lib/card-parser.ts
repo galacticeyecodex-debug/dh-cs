@@ -5,6 +5,30 @@
  * Daggerheart Character Sheet. It analyzes raw card text to extract structured
  * gameplay mechanics, enabling interactive features in the application.
  *
+ * DESIGN PHILOSOPHY:
+ * The parser's job is to EXPOSE mechanics, not to INTERPRET gameplay intent.
+ *
+ * 1. Parse ALL costs mentioned in card text (Hope, Stress, HP)
+ *    - If a card says "spend a Hope", we extract it as a cost
+ *    - We do NOT distinguish between "activation costs" and "ongoing costs"
+ *    - The UI shows all costs as interactive buttons
+ *
+ * 2. Parse ALL modifiers mentioned in card text (+X bonuses, conditions)
+ *    - Every modifier the user might need is exposed
+ *    - Conditional modifiers use the `condition` field for context
+ *
+ * 3. Parse ALL rolls mentioned in card text (Spellcast Roll, Strength Roll, etc.)
+ *    - Every roll the card references is captured
+ *
+ * 4. Let the USER decide when to use them
+ *    - The UI provides easy access to the full card text
+ *    - Players read the text to understand timing and context
+ *    - This empowers players rather than restricting them
+ *
+ * This approach avoids the parser needing to understand complex Daggerheart
+ * timing rules. Instead, it provides complete information and trusts the
+ * player to apply the rules correctly.
+ *
  * DOCUMENTATION & REFERENCE:
  *   - Schema Definitions: dh-cs/types/cards.ts
  *   - Integration: dh-cs/scripts/enhance_json.ts
@@ -45,6 +69,7 @@
  * 4. Add test cases in `__tests__/content/abilities-enhanced.test.ts`.
  */
 
+
 import type { Character, CharacterCard } from '@/types/character';
 import type {
   ActionType,
@@ -77,12 +102,50 @@ export interface PassiveModifier {
 
 /**
  * Condition types for modifier activation
+ * ============================================================================
+ * These conditions determine WHEN a modifier is active. The UI component
+ * (DomainAbilityButton) handles the activation flow for most types.
+ * 
+ * CONDITION TYPES:
+ * 
+ * 'always' - Always active when card is in loadout (default for passive bonuses)
+ *   Example: "+1 to Evasion" on a passive card
+ * 
+ * 'when_armored' - Only active when character has armor equipped
+ *   Example: "While wearing armor, gain +1 to Armor Score"
+ * 
+ * 'when_unarmored' - Only active when character has NO armor equipped  
+ *   Example: Bare Bones - "Your Armor Score equals 3 + Strength when unarmored"
+ * 
+ * 'when_active' - Requires user to ACTIVATE the ability (via DomainAbilityButton)
+ *   The modifier is applied when the user clicks the activation button (Mark Stress,
+ *   Spend Hope, or Activate for no-cost abilities). It remains active until they
+ *   click the Reset button next to the activated state.
+ *   Example: Deft Maneuvers - "+1 to attack roll" only applies when ability is activated
+ *   Example: Frenzy - transformation bonuses apply while form is active
+ *   
+ *   UI Flow:
+ *   1. User sees "Mark Stress" / "Spend Hope" / "Activate" button
+ *   2. User clicks to activate → pays cost (if any) → modifier becomes active
+ *   3. User sees activated state with Reset button to the right
+ *   4. User clicks Reset → modifier deactivates
+ * 
+ * 'cost_activated' - DEPRECATED: Use 'when_active' instead
+ *   Originally intended for single-use activated modifiers, but 'when_active'
+ *   handles this case correctly with the Reset flow.
+ * 
+ * 'loadout_domain_count' - Active when loadout has enough cards from a domain
+ *   Example: "When 3+ Bone domain cards are in loadout, gain +1 to damage"
+ * 
+ * 'environment' - Active based on environment conditions (future feature)
+ *   Example: "While in darkness, gain advantage"
  */
 export type ModifierCondition =
   | { type: 'always' }
   | { type: 'when_armored' }
   | { type: 'when_unarmored' }
   | { type: 'when_active' }
+  | { type: 'cost_activated' }  // DEPRECATED: Use 'when_active' instead
   | { type: 'loadout_domain_count'; domain: string; minCount: number }
   | { type: 'environment'; requirement: string };
 
@@ -424,6 +487,11 @@ export function evaluateModifierCondition(
     case 'when_active':
       return isCardActive;
 
+    case 'cost_activated':
+      // Cost-activated modifiers are only active when the user explicitly activates the ability
+      // The isCardActive flag is set by UI when the user pays the cost
+      return isCardActive;
+
     case 'loadout_domain_count': {
       const loadoutCards = character.character_cards?.filter(c =>
         c.location === 'loadout'
@@ -447,7 +515,7 @@ export function evaluateModifierCondition(
 /**
  * Calculate dynamic modifier value from formula
  */
-function calculateDynamicValue(formula: string, character: Character): number {
+export function calculateDynamicValue(formula: string, character: Character): number {
   // Handle "half_[stat]" pattern
   if (formula.startsWith('half_')) {
     const stat = formula.replace('half_', '');
@@ -596,6 +664,7 @@ export function parseStressCost(text: string): number {
 /**
  * Parse hope cost from card text
  * Matches patterns like "spend a Hope", "spend 3 Hope", "**spend 2 Hope**"
+ * Also handles "spend up to 3 Hope" and "spend any number of Hope"
  */
 export function parseHopeCost(text: string): number {
   const patterns = [
@@ -603,6 +672,12 @@ export function parseHopeCost(text: string): number {
     /spend (\d+) Hope/i,
     /\*\*spend a Hope\*\*/i,
     /spend a Hope/i,
+    // "spend up to X Hope" - return the max value
+    /\*\*spend up to (\d+) Hope\*\*/i,
+    /spend up to (\d+) Hope/i,
+    // "spend any number of Hope" - return 1 as the base unit
+    /\*\*spend any number of Hope\*\*/i,
+    /spend any number of Hope/i,
   ];
 
   for (const pattern of patterns) {
@@ -614,6 +689,7 @@ export function parseHopeCost(text: string): number {
 
   return 0;
 }
+
 
 /**
  * Parse hit point cost from card text
@@ -2078,7 +2154,6 @@ export function enhanceAbilityCard(card: {
     const effectRange = parseCardRange(text);
     if (effectRange) {
       enhanced.enhancement.attack = {
-        trait: 'None',
         range: effectRange,
       };
     }
@@ -2179,11 +2254,12 @@ export function enhanceFeature(feature: {
  * Check if a card or feature has combat relevance (should appear in combat view)
  * Works with both EnhancedAbilityCard and EnhancedFeature types
  */
-export function hasCombatRelevance(card: {
+export function hasCombatRelevance(card?: {
   action_type?: ActionType;
   attack?: CardAttack | null;
   keywords?: string[];
-}): boolean {
+} | null): boolean {
+  if (!card) return false;
   if (card.action_type === 'attack') return true;
   if (card.attack) return true;
 

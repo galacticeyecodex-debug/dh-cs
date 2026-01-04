@@ -8,7 +8,15 @@ import { CardCosts } from '@/types/cards';
 
 interface DomainAbilityButtonProps {
   cardName: string;
-  costType: 'hope' | 'stress' | 'duration' | 'free';
+  /**
+   * Cost type determines button appearance and behavior:
+   * - 'hope': Spend Hope to activate (yellow/gold styling)
+   * - 'stress': Mark Stress to activate (purple styling)
+   * - 'activate': No cost, just toggle on/off (green styling) - for abilities like Frenzy
+   * - 'duration': Persistent effect toggle (blue styling)
+   * - 'free': Same as 'activate' - deprecated, use 'activate'
+   */
+  costType: 'hope' | 'stress' | 'activate' | 'duration' | 'free';
   costValue?: number;
   label?: string; // Optional override
   className?: string;
@@ -30,17 +38,17 @@ export function DomainAbilityButton({
   onActivate,
   onDeactivate,
 }: DomainAbilityButtonProps) {
-  const { 
-    character, 
-    cardStates, 
-    updateHope, 
-    updateVitals, 
-    toggleCardActive 
+  const {
+    character,
+    cardStates,
+    updateHope,
+    updateVitals,
+    toggleCardActive
   } = useCharacterStore();
 
   // Use override if provided, otherwise check store
-  const isActive = isActiveOverride !== undefined 
-    ? isActiveOverride 
+  const isActive = isActiveOverride !== undefined
+    ? isActiveOverride
     : (cardStates[cardName]?.is_active || false);
 
   // Resource Tracking Logic
@@ -62,13 +70,19 @@ export function DomainAbilityButton({
   if (costType === 'hope') {
     displayLabel = label || `Spend ${costValue > 0 ? costValue : 'a'} Hope`;
     Icon = Zap;
-    costColor = 'text-dagger-gold'; 
+    costColor = 'text-dagger-gold';
     activeColor = 'bg-dagger-gold/20 text-dagger-gold border-dagger-gold/50';
   } else if (costType === 'stress') {
     displayLabel = label || `Mark ${costValue > 0 ? costValue : 'a'} Stress`;
     Icon = Skull;
     costColor = 'text-purple-400';
     activeColor = 'bg-purple-900/40 text-purple-300 border-purple-500/50';
+  } else if (costType === 'activate' || costType === 'free') {
+    // No-cost activation (e.g., Frenzy) - green styling
+    displayLabel = label || 'Activate';
+    Icon = Zap;  // Could use Play or Power icon if desired
+    costColor = 'text-emerald-400';
+    activeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50';
   } else if (costType === 'duration') {
     displayLabel = label || 'Active';
     Icon = Clock;
@@ -78,23 +92,34 @@ export function DomainAbilityButton({
 
   const handleActivate = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!character || disabled || isActive) return;
+    if (!character || disabled) return;
 
-    // 1. Pay Cost (always pay unless it's a duration/free toggle)
-    if (costType === 'hope' && costValue > 0) {
-      if (character.hope < costValue) return; 
-      updateHope(character.hope - costValue);
-    } else if (costType === 'stress' && costValue > 0) {
-      const currentStress = character.vitals.stress_current;
-      if (currentStress + costValue > character.vitals.stress_max) return;
-      updateVitals('stress_current', currentStress + costValue);
-    }
-
-    // 2. Set Active / Callback
-    if (onActivate) {
-      onActivate();
-    } else {
-      toggleCardActive(cardName);
+    // DECOUPLED: Cost buttons ONLY pay costs, activation buttons ONLY toggle state
+    if (costType === 'hope') {
+      // Pay Hope cost (no activation)
+      if (costValue > 0) {
+        if (character.hope < costValue) return;
+        updateHope(character.hope - costValue);
+      }
+      // Call callback if provided (for custom behavior)
+      if (onActivate) onActivate();
+    } else if (costType === 'stress') {
+      // Pay Stress cost (no activation)
+      if (costValue > 0) {
+        const currentStress = character.vitals.stress_current;
+        if (currentStress + costValue > character.vitals.stress_max) return;
+        updateVitals('stress_current', currentStress + costValue);
+      }
+      // Call callback if provided (for custom behavior)
+      if (onActivate) onActivate();
+    } else if (costType === 'duration' || costType === 'activate' || costType === 'free') {
+      // Toggle activation state (no cost payment)
+      if (isActive) return; // Already active, use handleReset instead
+      if (onActivate) {
+        onActivate();
+      } else {
+        toggleCardActive(cardName);
+      }
     }
   };
 
@@ -118,13 +143,18 @@ export function DomainAbilityButton({
     return true;
   }, [character, costType, costValue]);
 
-  const isActuallyDisabled = disabled || (!isActive && !canAfford);
+  // Cost buttons (stress/hope) should never be disabled - users can always spend resources
+  // Only activation buttons (duration/activate) can be disabled
+  const isCostButton = costType === 'stress' || costType === 'hope';
+  const isActuallyDisabled = isCostButton ? disabled : (disabled || !canAfford);
 
-  // Unified visual style for both active and inactive states
-  // We use flex-wrap to handle the extra resource text gracefully on small screens
+  // Cost buttons NEVER show "active" state - they just pay resources
+  // Only activation buttons show active/inactive states
+  const showActiveState = !isCostButton && isActive;
+
   const buttonContent = (
     <span className="flex items-center gap-1.5 whitespace-nowrap">
-      {isActive ? <Check size={12} /> : <Icon size={12} />}
+      {showActiveState ? <Check size={12} /> : <Icon size={12} />}
       <span>{displayLabel}</span>
       {resourceInfo && (
         <span className="opacity-70 font-normal ml-0.5 text-[10px]">{resourceInfo}</span>
@@ -132,7 +162,8 @@ export function DomainAbilityButton({
     </span>
   );
 
-  if (isActive) {
+  // Activation buttons show active state with reset button
+  if (showActiveState) {
     return (
       <div className={clsx(
         "flex items-center justify-center gap-1 px-3 py-1.5 rounded text-xs font-bold border transition-colors cursor-default",
@@ -151,6 +182,7 @@ export function DomainAbilityButton({
     );
   }
 
+  // All other states: normal button
   return (
     <button
       onClick={handleActivate}

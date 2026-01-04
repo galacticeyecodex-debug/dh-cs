@@ -26,9 +26,11 @@ import { DomainAbilityButton } from './domain-ability-button';
 import { DomainCostsRow } from './domain-costs-row';
 import FrequencyCheckbox from '@/components/views/playmat/frequency-checkbox';
 import CardTokenTrack from '@/components/views/playmat/card-token-track';
+import ModifierActivationRow from '@/components/views/playmat/modifier-activation-row';
 import { useCharacterStore } from '@/store/character-store';
 import { getSystemModifiers, parseDamageRoll, calculateWeaponDamage } from '@/lib/utils';
 import { getActionTypeLabel, getFrequencyLabel } from '@/lib/card-parser';
+import { getEnhancement, getModifiers } from '@/lib/enhancement-utils';
 import type { EnhancedAbilityCard } from '@/types/cards';
 
 interface CardEnhancementPanelProps {
@@ -44,7 +46,8 @@ export default function CardEnhancementPanel({
 
   if (!character) return null;
 
-  const { enhancement } = card;
+  // Get the effective enhancement (override if present, else standard)
+  const enhancement = getEnhancement(card);
   // Fallback if enhancement is missing (shouldn't happen for valid cards)
   if (!enhancement) return null;
 
@@ -192,6 +195,99 @@ export default function CardEnhancementPanel({
         />
       )}
 
+      {/* Modifiers display */}
+      {(() => {
+        const modifiers = getModifiers(card);
+
+        if (modifiers.length === 0) return null;
+
+        // Helper to generate condition text
+        const getConditionText = (condition?: any) => {
+          if (!condition) return undefined;
+          switch (condition.type) {
+            case 'when_active':
+              return 'Activate to apply this bonus';
+            case 'when_armored':
+              return 'While wearing armor';
+            case 'when_unarmored':
+              return 'While not wearing armor';
+            case 'loadout_domain_count':
+              return `With ${condition.minCount}+ ${condition.domain} cards`;
+            case 'always':
+              return 'Always active';
+            default:
+              return undefined;
+          }
+        };
+
+        // Helper to format stat names for display
+        const formatStat = (stat: string) => {
+          return stat
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+        };
+
+        // Helper to format modifier value
+        const formatValue = (value: number, formula?: string) => {
+          if (formula) {
+            // Format formulas like "half_agility" or "strength"
+            const formatted = formula
+              .split('_')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
+            return `+${formatted}`;
+          }
+          return value >= 0 ? `+${value}` : `${value}`;
+        };
+
+        return (
+          <div className="space-y-2">
+            <h4 className="text-xs font-bold uppercase text-purple-400 tracking-wider">
+              Modifiers
+            </h4>
+            {modifiers.map((mod, index) => {
+              const modifierKey = `${mod.stat}-${index}`;
+
+              // For when_active modifiers, use the activation row with toggle
+              if (mod.condition?.type === 'when_active') {
+                return (
+                  <ModifierActivationRow
+                    key={`${card.name}-${mod.stat}-${index}`}
+                    cardName={card.name}
+                    modifier={mod}
+                    modifierKey={modifierKey}
+                    conditionText={getConditionText(mod.condition)}
+                  />
+                );
+              }
+
+              // For other modifiers (passive), show a read-only info row
+              return (
+                <div
+                  key={`${card.name}-${mod.stat}-${index}`}
+                  className="flex items-center justify-between gap-2 p-2 rounded bg-white/5 border border-white/10"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-200">
+                      {formatStat(mod.stat)}
+                    </span>
+                    <span className="text-sm font-bold text-green-400">
+                      {formatValue(mod.value, mod.formula)}
+                    </span>
+                  </div>
+                  {getConditionText(mod.condition) && (
+                    <span className="text-xs text-gray-400 italic">
+                      {getConditionText(mod.condition)}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
+
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2 items-center">
         {/* Cost buttons */}
@@ -201,8 +297,8 @@ export default function CardEnhancementPanel({
           className="flex flex-wrap gap-2"
         />
 
-        {/* Duration/Active button */}
-        {enhancement.duration && (
+        {/* Duration/Active button - ONLY for cards without when_active modifiers */}
+        {enhancement.duration && !getModifiers(card).some(mod => mod.condition?.type === 'when_active') && (
           <DomainAbilityButton
             cardName={card.name}
             costType="duration"

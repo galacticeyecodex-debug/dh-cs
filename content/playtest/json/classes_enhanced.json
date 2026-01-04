@@ -55,7 +55,6 @@
           },
           "duration": "rest",
           "attack": {
-            "trait": "None",
             "range": "Very Close"
           }
         }
@@ -100,7 +99,6 @@
         ],
         "duration": "rest",
         "attack": {
-          "trait": "None",
           "range": "Far"
         }
       }
@@ -137,7 +135,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -190,7 +187,6 @@
           "ability"
         ],
         "attack": {
-          "trait": "None",
           "range": "Far"
         }
       }

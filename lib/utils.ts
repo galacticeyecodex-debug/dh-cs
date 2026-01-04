@@ -17,7 +17,8 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { parseCardPassiveModifiers, getBareBonesBonuses } from './card-parser';
+import { parseCardPassiveModifiers, getBareBonesBonuses, calculateDynamicValue } from './card-parser';
+import { getModifiers, isModifierActive, getEnhancement, WithEnhancement } from './enhancement-utils';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -56,7 +57,13 @@ export function parseDamageRoll(input: string): { dice: string; modifier: number
 }
 
 // Helper to extract System Modifiers from Equipment AND Domain Cards
-export function getSystemModifiers(character: any, stat: string, cardStates: Record<string, any> = {}): any[] {
+// @param enhancedAbilities - Optional array of enhanced ability data for proper condition evaluation
+export function getSystemModifiers(
+  character: any,
+  stat: string,
+  cardStates: Record<string, any> = {},
+  enhancedAbilities?: Array<WithEnhancement & { name: string }>
+): any[] {
   if (!character) return [];
 
   const systemModifiers: any[] = [];
@@ -123,7 +130,7 @@ export function getSystemModifiers(character: any, stat: string, cardStates: Rec
     // Only calculate if we're requesting evasion or a similar derived stat that might use formulas
     // (Otherwise we'd have circular dependency for trait modifiers themselves)
     const needsTotalStats = stat !== 'agility' && stat !== 'strength' && stat !== 'finesse' &&
-                            stat !== 'instinct' && stat !== 'presence' && stat !== 'knowledge';
+      stat !== 'instinct' && stat !== 'presence' && stat !== 'knowledge';
 
     if (needsTotalStats) {
       for (const trait of traitNames) {
@@ -163,8 +170,50 @@ export function getSystemModifiers(character: any, stat: string, cardStates: Rec
         return;
       }
 
-      // General card parsing
       const isCardActive = cardStates[cardName]?.is_active ?? false;
+
+      // B1. Check for enhanced JSON modifiers FIRST (from enhancement_override or enhancement)
+      // These have proper condition types (when_active, loadout_domain_count, etc.)
+      const enhancedData = enhancedAbilities?.find((a: WithEnhancement & { name: string }) => a.name === cardName);
+      if (enhancedData) {
+        const jsonModifiers = getModifiers(enhancedData);
+        jsonModifiers
+          .filter((mod) => mod.stat === stat)
+          .forEach((mod, index) => {
+            // For when_active conditions, check per-modifier activation state
+            let isActive: boolean;
+            if (mod.condition?.type === 'when_active' || mod.condition?.type === 'cost_activated') {
+              // Per-modifier activation state: use modifierKey pattern matching the UI
+              const modifierKey = `${mod.stat}-${index}`;
+              isActive = cardStates[cardName]?.active_modifiers?.[modifierKey] ?? false;
+            } else {
+              // For other condition types, use the generic isModifierActive helper
+              const isCardActive = cardStates[cardName]?.is_active ?? false;
+              isActive = isModifierActive(mod, isCardActive, charForParsing);
+            }
+
+            if (isActive) {
+              // Calculate the actual value - for dynamic formulas, evaluate them
+              const calculatedValue = mod.formula
+                ? calculateDynamicValue(mod.formula, charForParsing)
+                : mod.value;
+
+              systemModifiers.push({
+                id: `card-${card.id}-enhanced-${mod.stat}-${index}`,
+                name: mod.source || cardName,
+                value: calculatedValue,
+                source: 'domain_card',
+                type: 'domain_card'
+              });
+            }
+          });
+        // If we found enhanced modifiers for this stat, skip text parsing
+        if (jsonModifiers.some((mod) => mod.stat === stat)) {
+          return;
+        }
+      }
+
+      // B2. Fallback: General text parsing (for cards without enhanced JSON)
       const cardModifiers = parseCardPassiveModifiers(card, charForParsing, isCardActive);
 
       cardModifiers
@@ -215,22 +264,30 @@ export function calculateBaseEvasion(character: any, cardStates: Record<string, 
   return base + itemBonus;
 }
 
-// Helper to calculate total attack modifier from equipped items
-export function calculateAttackModifier(character: any, cardStates: Record<string, any> = {}): number {
+// Helper to calculate total attack modifier from equipped items and domain cards
+export function calculateAttackModifier(
+  character: any,
+  cardStates: Record<string, any> = {},
+  enhancedAbilities?: Array<WithEnhancement & { name: string }>
+): number {
   if (!character) return 0;
 
-  const systemMods = getSystemModifiers(character, 'attack', cardStates);
+  const systemMods = getSystemModifiers(character, 'attack', cardStates, enhancedAbilities);
   const userMods = character.modifiers?.['attack'] || [];
   const allMods = [...systemMods, ...userMods];
 
   return allMods.reduce((acc, mod) => acc + mod.value, 0);
 }
 
-// Helper to calculate total damage modifier from equipped items
-export function calculateDamageModifier(character: any, cardStates: Record<string, any> = {}): number {
+// Helper to calculate total damage modifier from equipped items and domain cards
+export function calculateDamageModifier(
+  character: any,
+  cardStates: Record<string, any> = {},
+  enhancedAbilities?: Array<WithEnhancement & { name: string }>
+): number {
   if (!character) return 0;
 
-  const systemMods = getSystemModifiers(character, 'damage', cardStates);
+  const systemMods = getSystemModifiers(character, 'damage', cardStates, enhancedAbilities);
   const userMods = character.modifiers?.['damage'] || [];
   const allMods = [...systemMods, ...userMods];
 

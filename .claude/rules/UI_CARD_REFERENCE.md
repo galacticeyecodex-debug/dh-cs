@@ -1143,9 +1143,14 @@ Modal for managing item artwork. Reuses the same image upload, gallery selection
 ╚═════════════════════════════════════════════════════════════════╝
 ```
 
-### Playmat Card Wrapper (Interactive)
+### Playmat Card Wrapper (Interactive) - **DECOUPLED DESIGN**
 
 Wraps the visual Domain Card with interactive gameplay mechanics in a panel wrapper. The outer wrapper provides a dagger-panel container with the domain card and mechanics tray inside.
+
+**CRITICAL DESIGN PRINCIPLE: Costs are DECOUPLED from Activation**
+- Cost buttons (Stress/Hope) ONLY pay resources - they do NOT activate modifiers
+- Modifier activation is controlled separately via explicit toggle buttons
+- This gives users full control over when to spend resources vs when to apply bonuses
 
 ```
 ╔═════════════════════════════════════════════════════════════════════════════════╗
@@ -1187,9 +1192,66 @@ Wraps the visual Domain Card with interactive gameplay mechanics in a panel wrap
 ║  │  └───────────────────────────────────────────────────────────────────┘  │    ║
 ║  │                                                                         │    ║
 ║  │  ┌───────────────────────────────────────────────────────────────────┐  │    ║
+║  │  │  [MODIFIERS - when_active conditions]                             │  │    ║
+║  │  │  space-y-1.5                                                      │  │    ║
+║  │  │                                                                   │  │    ║
+║  │  │  MODIFIERS                                                        │  │    ║
+║  │  │  text-[10px] font-bold uppercase text-purple-400 text-center     │  │    ║
+║  │  │                                                                   │  │    ║
+║  │  │  ┌─────────────────────────────────────────────────────────────┐  │  │    ║
+║  │  │  │  MODIFIER ROW 1 (e.g., Damage bonus)                        │  │  │    ║
+║  │  │  │  flex items-center justify-between px-3 py-2 rounded-lg     │  │  │    ║
+║  │  │  │  bg-green-500/10 border-green-500/30 (if active)            │  │  │    ║
+║  │  │  │  bg-white/5 border-white/10 (if inactive)                   │  │  │    ║
+║  │  │  │                                                             │  │  │    ║
+║  │  │  │  +10 Damage                             [Activate]          │  │  │    ║
+║  │  │  │  text-lg font-bold text-green-400       text-xs button      │  │  │    ║
+║  │  │  │                                                             │  │  │    ║
+║  │  │  │  Activate to apply this bonus                               │  │  │    ║
+║  │  │  │  text-xs text-gray-400                                      │  │  │    ║
+║  │  │  └─────────────────────────────────────────────────────────────┘  │  │    ║
+║  │  │                                                                   │  │    ║
+║  │  │  ┌─────────────────────────────────────────────────────────────┐  │  │    ║
+║  │  │  │  MODIFIER ROW 2 (e.g., Severe Threshold bonus)              │  │  │    ║
+║  │  │  │  flex items-center justify-between px-3 py-2 rounded-lg     │  │  │    ║
+║  │  │  │  bg-green-500/10 border-green-500/30 (if active)            │  │  │    ║
+║  │  │  │  bg-white/5 border-white/10 (if inactive)                   │  │  │    ║
+║  │  │  │                                                             │  │  │    ║
+║  │  │  │  +8 Damage Threshold Severe             [Activate]          │  │  │    ║
+║  │  │  │  text-lg font-bold text-green-400       text-xs button      │  │  │    ║
+║  │  │  │                                                             │  │  │    ║
+║  │  │  │  Activate to apply this bonus                               │  │  │    ║
+║  │  │  │  text-xs text-gray-400                                      │  │  │    ║
+║  │  │  └─────────────────────────────────────────────────────────────┘  │  │    ║
+║  │  │                                                                   │  │    ║
+║  │  │  NOTE: Multiple modifiers create separate rows. Each row has     │  │    ║
+║  │  │  INDEPENDENT activation (cardStates[cardName].active_modifiers)   │  │    ║
+║  │  │  Clicking an Activate button toggles ONLY that specific modifier  │  │    ║
+║  │  │  This is important for modal spells or Grimoires with choices     │  │    ║
+║  │  │                                                                   │  │    ║
+║  │  │  When Active: That row shows [✓ Active] (bg-dagger-gold/20)      │  │    ║
+║  │  └───────────────────────────────────────────────────────────────────┘  │    ║
+║  │                                                                         │    ║
+║  │  ┌───────────────────────────────────────────────────────────────────┐  │    ║
+║  │  │  [ACTION COSTS - DECOUPLED FROM ACTIVATION]                      │  │    ║
+║  │  │  flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5│  │    ║
+║  │  │                                                                   │  │    ║
+║  │  │  ┌──────────────────────┐  ┌──────────────────────┐              │  │    ║
+║  │  │  │ 😰 Mark Stress (2/6) │  │ 💛 Spend Hope (3/6)  │              │  │    ║
+║  │  │  │ text-xs font-medium  │  │ text-xs font-medium  │              │  │    ║
+║  │  │  │ text-purple-400      │  │ text-dagger-gold     │              │  │    ║
+║  │  │  │ bg-white/5           │  │ bg-white/5           │              │  │    ║
+║  │  │  │ hover:bg-white/10    │  │ hover:bg-white/10    │              │  │    ║
+║  │  │  │                      │  │                      │              │  │    ║
+║  │  │  │ ONLY PAYS COST       │  │ ONLY PAYS COST       │              │  │    ║
+║  │  │  │ NO ACTIVATION        │  │ NO ACTIVATION        │              │  │    ║
+║  │  │  └──────────────────────┘  └──────────────────────┘              │  │    ║
+║  │  └───────────────────────────────────────────────────────────────────┘  │    ║
+║  │                                                                         │    ║
+║  │  ┌───────────────────────────────────────────────────────────────────┐  │    ║
 ║  │  │  [Embedded Attack Card - Optional, if card has attack/roll]       │  │    ║
-║  │  │  (Full AttackCard component with spell/reaction variant styling)  │  │    ║
-║  │  │  Shows: Attack button (+bonus), Damage button, Cost buttons       │  │    ║
+║  │  │  (AttackCard component WITHOUT costs - costs shown above)         │  │    ║
+║  │  │  Shows: Attack button (+bonus), Damage button                     │  │    ║
 ║  │  │  borderVariant: 'spell' or 'reaction'                             │  │    ║
 ║  │  └───────────────────────────────────────────────────────────────────┘  │    ║
 ║  │                                                                         │    ║
@@ -1227,7 +1289,40 @@ Wraps the visual Domain Card with interactive gameplay mechanics in a panel wrap
 **Conditional Mechanics Tray Elements:**
 1. Token Track - Only if `enhancedData?.has_tokens` is true
 2. Frequency Checkbox - Only if `enhancedData?.frequency && frequency !== 'at_will'`
-3. Embedded AttackCard - Only if card has `attack` or `roll` data
+3. **Modifiers Section** - Only if card has `when_active` modifiers (see ModifierActivationRow)
+4. **Action Costs** - Always shown if card has costs (even for attack cards)
+5. Embedded AttackCard - Only if card has `attack` or `roll` data (costs NOT included in AttackCard)
+
+**Key Design Decisions:**
+- **Decoupling**: Cost buttons and modifier activation are completely independent
+- **User Control**: Users decide when to pay costs and when to activate bonuses separately
+- **Visibility**: Costs are always shown in the mechanics tray, NOT embedded in AttackCard
+- **Clarity**: Each modifier gets its own explicit activation toggle with clear labeling
+
+**Components:**
+- `ModifierActivationRow` (`components/views/playmat/modifier-activation-row.tsx`) - Displays individual modifiers with activation controls
+- `DomainCostsRow` (`components/views/playmat/domain-costs-row.tsx`) - Renders cost buttons (stress/hope) that only pay resources
+- `DomainAbilityButton` (`components/views/playmat/domain-ability-button.tsx`) - Base button component (cost vs activation type determined by `costType` prop)
+
+**Example Cards:**
+
+**Frenzy** (Multiple modifiers, no costs):
+- Shows 2 modifier rows: `+10 Damage` and `+8 Damage Threshold Severe`
+- Each modifier has INDEPENDENT activation (user can toggle each separately)
+- For this ability, user should activate BOTH to get the full Frenzy effect
+- No cost buttons shown (no costs)
+- Has frequency checkbox: "Once per long rest"
+
+**Deft Maneuvers** (Single modifier with cost):
+- Shows 1 modifier row: `+1 Attack`
+- Shows cost button: "Mark Stress (2/6)"
+- Has frequency checkbox: "Once per rest"
+- Cost and activation are independent
+
+**Ground Pound** (Attack with cost, no when_active modifiers):
+- Shows cost button: "Spend 2 Hope (3/6)"
+- Shows AttackCard with Attack/Damage buttons
+- NO modifiers section (no when_active modifiers)
 
 
 

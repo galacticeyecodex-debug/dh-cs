@@ -77,7 +77,6 @@
           "ability"
         ],
         "attack": {
-          "trait": "None",
           "range": "Close"
         }
       }
@@ -351,7 +350,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Melee"
           }
         }
@@ -437,7 +435,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Far"
           }
         }
@@ -481,7 +478,6 @@
           "ability"
         ],
         "attack": {
-          "trait": "None",
           "range": "Close"
         }
       }
@@ -513,7 +509,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -534,7 +529,6 @@
             "target_reaction": false
           },
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -632,7 +626,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Melee"
           }
         }
@@ -791,7 +784,6 @@
           "ability"
         ],
         "attack": {
-          "trait": "None",
           "range": "Far"
         }
       }
