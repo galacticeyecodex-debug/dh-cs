@@ -9,6 +9,7 @@
  * - Inventory
  * - Downtime (rest & projects)
  * - Journal (relationships & reputation)
+ * - Settings (preferences & content access)
  * 
  * The drawer uses a backdrop overlay and slides up from the bottom of the
  * screen, following mobile-first design patterns.
@@ -16,7 +17,7 @@
 
 import React from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Backpack, Moon, BookOpen, X } from 'lucide-react';
+import { Backpack, Moon, BookOpen, Settings, X } from 'lucide-react';
 import clsx from 'clsx';
 import type { TabId } from '@/store/slices/ui-slice';
 
@@ -45,6 +46,12 @@ const menuItems: MoreMenuItem[] = [
         label: 'Journal',
         icon: BookOpen,
         description: 'Relationships & Reputation',
+    },
+    {
+        id: 'settings',
+        label: 'Settings',
+        icon: Settings,
+        description: 'Preferences & Content Access',
     },
 ];
 

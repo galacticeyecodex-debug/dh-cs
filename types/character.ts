@@ -52,6 +52,9 @@ export interface LibraryItem {
 export interface ContentAccess {
   srd: boolean;
   playtest: boolean;
+  homebrew?: {
+    [campaignName: string]: boolean;
+  };
 }
 
 export interface Profile {
