@@ -6,8 +6,11 @@
  * This component serves as the primary layout wrapper for the mobile-first
  * character sheet interface. It structures the application into three key zones:
  * 1. A top header displaying the character's name and providing authentication controls (Sign Out).
- * 2. A central scrollable content area where specific views (Character, Combat, Playmat, Inventory) are rendered.
- * 3. A persistent bottom navigation bar for seamless switching between these views.
+ * 2. A central scrollable content area where specific views are rendered.
+ * 3. A persistent bottom navigation bar with primary views + "More" menu access.
+ * 
+ * The "More" menu provides access to secondary views (Inventory, Downtime, Journal)
+ * without overcrowding the bottom navigation.
  * 
  * Additionally, it integrates a Floating Action Button (FAB) for quick access to 
  * the Dice Roller overlay, ensuring dice mechanics are always accessible regardless of the current view.
@@ -15,8 +18,9 @@
 
 import React from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { User, Layers, Backpack, Dices, Swords, LogOut, ChevronDown } from 'lucide-react';
+import { User, Layers, Dices, Swords, LogOut, ChevronDown, MoreHorizontal } from 'lucide-react';
 import DiceOverlay from '../dice/dice-overlay';
+import MoreMenu from './more-menu';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import useUser from '@/hooks/useUser';
@@ -30,7 +34,7 @@ interface NavButtonProps {
 }
 
 export default function MobileLayout({ children }: { children: React.ReactNode }) {
-  const { activeTab, setActiveTab, openDiceOverlay, character } = useCharacterStore();
+  const { activeTab, setActiveTab, openDiceOverlay, openMoreMenu, isMoreMenuOpen, character } = useCharacterStore();
   const router = useRouter();
   const { signOut } = useUser();
 
@@ -39,6 +43,9 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
     router.push('/auth/login');
     router.refresh();
   };
+
+  // Check if current tab is in the "More" menu (for highlighting More button)
+  const isMoreTabActive = ['inventory', 'downtime', 'journal'].includes(activeTab);
 
   return (
     <div className="flex flex-col h-[100dvh] bg-dagger-dark text-white overflow-hidden">
@@ -96,16 +103,19 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
             label="Playmat"
           />
           <NavButton
-            active={activeTab === 'inventory'}
-            onClick={() => setActiveTab('inventory')}
-            icon={Backpack}
-            label="Inventory"
+            active={isMoreTabActive || isMoreMenuOpen}
+            onClick={openMoreMenu}
+            icon={MoreHorizontal}
+            label="More"
           />
         </div>
       </nav>
 
       {/* Dice Overlay Portal */}
       <DiceOverlay />
+
+      {/* More Menu Drawer */}
+      <MoreMenu />
     </div>
   );
 }
