@@ -147,7 +147,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Very Far"
       }
     }
@@ -224,7 +223,6 @@
         "target_reaction": false
       },
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -431,6 +429,9 @@
     "enhancement": {
       "timing": "reaction",
       "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
       "keywords": [
         "damage",
         "magic",
@@ -637,7 +638,6 @@
         "ability"
       ],
       "attack": {
-        "trait": "None",
         "range": "Very Close"
       }
     }
@@ -694,7 +694,6 @@
         "ability"
       ],
       "attack": {
-        "trait": "None",
         "range": "Melee"
       }
     }
@@ -780,6 +779,9 @@
     "enhancement": {
       "timing": "reaction",
       "frequency": "at_will",
+      "costs": {
+        "hope": 3
+      },
       "keywords": [
         "healing",
         "healing",
@@ -1121,7 +1123,7 @@
     "type": "Ability",
     "recall": "0",
     "text": "Once per rest, **mark a Stress** to sprint anywhere within Far range without making an **Agility Roll** to get there.\n\nIf you end this movement within Melee range of an adversary and immediately make an attack against them, gain a +1 bonus to the attack roll.",
-    "enhancement_override": {
+    "enhancement": {
       "timing": "action",
       "frequency": "once_per_rest",
       "costs": {
@@ -1141,6 +1143,33 @@
           "source": "Deft Maneuvers"
         }
       ],
+      "attack": {
+        "trait": "Agility",
+        "range": "Far",
+        "combat_category": "passive_triggered"
+      }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_rest",
+      "costs": {
+        "stress": 1
+      },
+      "keywords": [
+        "stress_cost",
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "attack",
+          "value": 1,
+          "condition": {
+            "type": "when_active"
+          },
+          "source": "Deft Maneuvers"
+        }
+      ],
+      "duration": "conditional",
       "attack": {
         "trait": "Agility",
         "range": "Far",
@@ -1183,7 +1212,6 @@
         }
       ],
       "attack": {
-        "trait": "None",
         "range": "Melee"
       }
     }
@@ -1258,7 +1286,6 @@
         "token_source": "knowledge"
       },
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -1325,7 +1352,6 @@
         "ability"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -1349,7 +1375,6 @@
         "ability"
       ],
       "attack": {
-        "trait": "None",
         "range": "Melee"
       }
     }
@@ -1424,7 +1449,6 @@
         "ability"
       ],
       "attack": {
-        "trait": "None",
         "range": "Melee"
       }
     }
@@ -1629,7 +1653,6 @@
         }
       ],
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -1823,7 +1846,6 @@
         "target_reaction": false
       },
       "attack": {
-        "trait": "None",
         "range": "Melee"
       }
     }
@@ -1999,7 +2021,6 @@
       },
       "duration": "rest",
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -2025,7 +2046,6 @@
         "target_reaction": false
       },
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -2081,7 +2101,6 @@
         "max_tokens": null
       },
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -2105,7 +2124,6 @@
       },
       "duration": "rest",
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -2197,7 +2215,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -2258,7 +2275,6 @@
         "target_reaction": false
       },
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -2289,7 +2305,6 @@
       },
       "duration": "rest",
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -2556,7 +2571,6 @@
       ],
       "duration": "rest",
       "attack": {
-        "trait": "None",
         "range": "Very Far"
       }
     }
@@ -2677,7 +2691,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Melee"
       }
     }
@@ -3054,7 +3067,6 @@
         "target_reaction": false
       },
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -3078,7 +3090,6 @@
         "ability"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -3217,7 +3228,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -3263,7 +3273,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -3339,7 +3348,6 @@
         "target_reaction": true
       },
       "attack": {
-        "trait": "None",
         "range": "Very Close"
       }
     }
@@ -3364,7 +3372,6 @@
         "max_tokens": null
       },
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -3434,6 +3441,9 @@
     "enhancement": {
       "timing": "action",
       "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
       "keywords": [
         "hope_gain",
         "hope_cost",
@@ -3715,7 +3725,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -3745,7 +3754,6 @@
         "token_source": "spellcast"
       },
       "attack": {
-        "trait": "None",
         "range": "Melee"
       }
     }
@@ -3798,6 +3806,9 @@
     "enhancement": {
       "timing": "action",
       "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
       "keywords": [
         "damage",
         "hope_gain",
@@ -3816,7 +3827,6 @@
         }
       ],
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -3908,6 +3918,9 @@
     "enhancement": {
       "timing": "action",
       "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
       "keywords": [
         "damage",
         "hope_gain",
@@ -3963,7 +3976,6 @@
         "target_reaction": false
       },
       "attack": {
-        "trait": "None",
         "range": "Very Close"
       }
     }
@@ -4014,7 +4026,6 @@
         "target_reaction": false
       },
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -4051,6 +4062,41 @@
           "source": "Force of Nature"
         }
       ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false
+      },
+      "attack": {
+        "range": "Close"
+      }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "costs": {
+        "stress": 1,
+        "hope": 1
+      },
+      "keywords": [
+        "damage",
+        "hope_gain",
+        "stress_cost",
+        "hope_cost",
+        "control",
+        "spell"
+      ],
+      "modifiers": [
+        {
+          "stat": "damage",
+          "value": 10,
+          "condition": {
+            "type": "when_active"
+          },
+          "source": "Force of Nature"
+        }
+      ],
+      "duration": "conditional",
       "roll": {
         "type": "Spellcast Roll",
         "trait": "Spellcast",
@@ -4224,7 +4270,6 @@
         "target_reaction": false
       },
       "attack": {
-        "trait": "None",
         "range": "Melee"
       }
     }
@@ -4246,7 +4291,6 @@
         "ability"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -4318,7 +4362,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -4341,7 +4384,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -4418,7 +4460,6 @@
         "target_reaction": false
       },
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -4444,7 +4485,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -4498,7 +4538,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Very Close"
       }
     }
@@ -4514,6 +4553,9 @@
       "action_type": "attack",
       "timing": "reaction",
       "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
       "keywords": [
         "damage",
         "magic",
@@ -4601,7 +4643,6 @@
         "target_reaction": false
       },
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -4616,12 +4657,14 @@
     "enhancement": {
       "timing": "action",
       "frequency": "once_per_session",
+      "costs": {
+        "hope": 1
+      },
       "keywords": [
         "hope_cost",
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -4720,7 +4763,6 @@
         "ability"
       ],
       "attack": {
-        "trait": "None",
         "range": "Very Close"
       }
     }
@@ -4751,7 +4793,6 @@
         }
       ],
       "attack": {
-        "trait": "None",
         "range": "Melee"
       }
     }
@@ -4798,7 +4839,6 @@
         "ability"
       ],
       "attack": {
-        "trait": "None",
         "range": "Very Close"
       }
     }
@@ -4870,7 +4910,6 @@
         "ability"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -5078,7 +5117,6 @@
         "ability"
       ],
       "attack": {
-        "trait": "None",
         "range": "Very Close"
       }
     }

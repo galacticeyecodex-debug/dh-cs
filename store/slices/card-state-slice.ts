@@ -21,6 +21,8 @@ export interface CardState {
   used_this_long_rest: boolean;
   used_this_session: boolean;
   is_active: boolean;
+  /** Per-modifier activation state, keyed by modifier identifier (stat name or index) */
+  active_modifiers?: Record<string, boolean>;
 }
 
 export interface CardStateSlice {
@@ -38,6 +40,8 @@ export interface CardStateSlice {
 
   // Active state management
   toggleCardActive: (cardName: string) => Promise<void>;
+  toggleModifierActive: (cardName: string, modifierKey: string) => Promise<void>;
+  isModifierActive: (cardName: string, modifierKey: string) => boolean;
 
   // State helpers
   initializeCardState: (cardName: string) => void;
@@ -49,6 +53,7 @@ const defaultCardState: CardState = {
   used_this_long_rest: false,
   used_this_session: false,
   is_active: false,
+  active_modifiers: {},
 };
 
 export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStateSlice> = (set, get) => ({
@@ -241,5 +246,46 @@ export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStat
     if (success) {
       await state.recalculateDerivedStats();
     }
+  },
+
+  toggleModifierActive: async (cardName: string, modifierKey: string) => {
+    const state = get() as CharacterStore;
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+    const currentCardStates = state.cardStates || {};
+    const cardState = currentCardStates[cardName] || { ...defaultCardState };
+    const currentActiveModifiers = cardState.active_modifiers || {};
+    const isCurrentlyActive = currentActiveModifiers[modifierKey] || false;
+
+    const newActiveModifiers = {
+      ...currentActiveModifiers,
+      [modifierKey]: !isCurrentlyActive,
+    };
+    const newCardState = { ...cardState, active_modifiers: newActiveModifiers };
+    const newCardStates = { ...currentCardStates, [cardName]: newCardState };
+
+    const { success } = await withOptimisticUpdate(
+      () => {
+        const previousStates = { ...((get() as CharacterStore).cardStates || {}) };
+        set({ cardStates: newCardStates });
+        return () => {
+          set({ cardStates: previousStates });
+        };
+      },
+      async () => dataService.character.update(characterId, { card_states: newCardStates }),
+      'Failed to toggle modifier active state'
+    );
+
+    if (success) {
+      await state.recalculateDerivedStats();
+    }
+  },
+
+  isModifierActive: (cardName: string, modifierKey: string): boolean => {
+    const state = get() as CharacterStore;
+    const cardState = state.cardStates?.[cardName];
+    if (!cardState) return false;
+    return cardState.active_modifiers?.[modifierKey] || false;
   },
 });

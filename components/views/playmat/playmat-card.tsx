@@ -24,6 +24,7 @@ import CardTokenTrack from '@/components/views/playmat/card-token-track';
 import FrequencyCheckbox from '@/components/views/playmat/frequency-checkbox';
 import { DomainAbilityButton } from '@/components/views/playmat/domain-ability-button';
 import { DomainCostsRow } from '@/components/views/playmat/domain-costs-row';
+import ModifierActivationRow from '@/components/views/playmat/modifier-activation-row';
 import { AttackCard } from '@/components/views/combat';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { EnhancedAbilityCard } from '@/types/cards';
@@ -33,6 +34,7 @@ import {
   getAttack,
   getRoll,
   getCosts,
+  getModifiers,
   getActionType,
   hasTokens as checkHasTokens
 } from '@/lib/enhancement-utils';
@@ -153,9 +155,6 @@ export default function PlaymatCard({
           }}
           borderVariant={enhancement?.timing === 'reaction' ? 'reaction' : 'spell'}
           rollLabel={combatCategory === 'roll_only' ? 'Roll' : (rollLabel || 'Attack')}
-          costs={costs || undefined}
-          onSpendHope={() => character && updateHope(character.hope - (costs?.hope || 0))}
-          onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (costs?.stress || 0))}
           roll={roll || undefined}
         />
       </div>
@@ -234,8 +233,59 @@ export default function PlaymatCard({
           </div>
         )}
 
-        {/* Persistent Effect / Duration */}
-        {showDuration && enhancement?.duration && (
+        {/* Modifiers with when_active conditions */}
+        {(() => {
+          // Use enhancedData (the full EnhancedAbilityCard) for modifier extraction
+          // libraryItem.data only contains raw data (recall, description), NOT enhancement blocks
+          if (!enhancedData) return null;
+
+          const modifiers = getModifiers(enhancedData);
+          const whenActiveModifiers = modifiers.filter(mod => mod.condition?.type === 'when_active');
+
+          if (whenActiveModifiers.length === 0) return null;
+
+          // Helper to generate condition text
+          const getConditionText = (condition?: any) => {
+            if (!condition) return undefined;
+            switch (condition.type) {
+              case 'when_active':
+                return 'Activate to apply this bonus';
+              case 'when_armored':
+                return 'While wearing armor';
+              case 'when_unarmored':
+                return 'While not wearing armor';
+              case 'loadout_domain_count':
+                return `With ${condition.minCount}+ ${condition.domain} cards`;
+              default:
+                return undefined;
+            }
+          };
+
+          return (
+            <div className="space-y-1.5">
+              <h4 className="text-[10px] font-bold uppercase text-purple-400 tracking-wider text-center">
+                Modifiers
+              </h4>
+              {whenActiveModifiers.map((mod, index) => {
+                // Create a unique key for this modifier: cardName-stat-index
+                const modifierKey = `${mod.stat}-${index}`;
+                return (
+                  <ModifierActivationRow
+                    key={`${libraryItem.name}-${mod.stat}-${index}`}
+                    cardName={libraryItem.name}
+                    modifier={mod}
+                    modifierKey={modifierKey}
+                    conditionText={getConditionText(mod.condition)}
+                    className="text-sm"
+                  />
+                );
+              })}
+            </div>
+          );
+        })()}
+
+        {/* Persistent Effect / Duration - ONLY for cards without when_active modifiers */}
+        {showDuration && enhancement?.duration && enhancedData && !getModifiers(enhancedData).some(mod => mod.condition?.type === 'when_active') && (
           <div className="flex justify-center">
             <DomainAbilityButton
               cardName={libraryItem.name}
@@ -246,17 +296,17 @@ export default function PlaymatCard({
           </div>
         )}
 
-        {/* Embedded Attack Card */}
-        {attackCardNode}
-
-        {/* Action Costs (for non-attack cards) */}
-        {!hasAttackOrRoll && costs && (
+        {/* Action Costs - Show for ALL cards with costs (including attack cards) */}
+        {costs && (
           <DomainCostsRow
             cardName={libraryItem.name}
             costs={costs}
             className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5"
           />
         )}
+
+        {/* Embedded Attack Card */}
+        {attackCardNode}
 
         {/* Actions Row */}
         <div className="pt-1 border-t border-white/5 flex gap-2">

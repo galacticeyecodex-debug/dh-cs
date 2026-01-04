@@ -27,6 +27,7 @@ import useContentAccess from '@/hooks/useContentAccess';
 
 import { AttackCard, FrequencyCheckbox, CardTokenTrack } from './';
 import { hasCombatRelevance, enhanceFeature } from '@/lib/card-parser';
+import { getEnhancement } from '@/lib/enhancement-utils';
 import type { EnhancedAbilityCard, EnhancedAncestry, EnhancedCommunity, EnhancedFeature, Frequency } from '@/types/cards';
 
 export default function CombatView() {
@@ -144,7 +145,7 @@ export default function CombatView() {
         // Find enhanced data for this card
         const enhanced = enhancedAbilities.find(a => a.name === cardName);
 
-        if (enhanced && hasCombatRelevance(enhanced.enhancement)) {
+        if (enhanced && hasCombatRelevance(getEnhancement(enhanced))) {
           return enhanced;
         }
         return null;
@@ -339,8 +340,8 @@ export default function CombatView() {
                   const totalTraitValue = baseTraitValue + traitModifierSum;
 
                   // Calculate attack and damage modifiers from equipment
-                  const attackModifier = calculateAttackModifier(character, cardStates);
-                  const damageModifier = calculateDamageModifier(character, cardStates);
+                  const attackModifier = calculateAttackModifier(character, cardStates, enhancedAbilities);
+                  const damageModifier = calculateDamageModifier(character, cardStates, enhancedAbilities);
                   const totalAttackBonus = totalTraitValue + attackModifier;
 
                   const calculatedDamage = calculateWeaponDamage(baseDamage, totalProficiency);
@@ -379,8 +380,8 @@ export default function CombatView() {
               {/* Companion Attack */}
               {character.ranger_companion && (() => {
                 const companion = character.ranger_companion;
-                const companionAttackMod = calculateAttackModifier(character, cardStates);
-                const companionDamageMod = calculateDamageModifier(character, cardStates);
+                const companionAttackMod = calculateAttackModifier(character, cardStates, enhancedAbilities);
+                const companionDamageMod = calculateDamageModifier(character, cardStates, enhancedAbilities);
                 const calculatedDamage = calculateWeaponDamage(companion.damage_die, totalProficiency);
 
                 return (
@@ -443,8 +444,8 @@ export default function CombatView() {
                     const traitModifierSum = allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
                     const totalTraitValue = baseTraitValue + traitModifierSum;
 
-                    const attackModifier = calculateAttackModifier(character, cardStates);
-                    const damageModifier = calculateDamageModifier(character, cardStates);
+                    const attackModifier = calculateAttackModifier(character, cardStates, enhancedAbilities);
+                    const damageModifier = calculateDamageModifier(character, cardStates, enhancedAbilities);
                     const totalAttackBonus = totalTraitValue + attackModifier;
 
                     const calculatedDamage = calculateWeaponDamage(attack.damage, totalProficiency);
@@ -509,8 +510,8 @@ export default function CombatView() {
               const traitModifierSum = allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
               const totalTraitValue = baseTraitValue + traitModifierSum;
 
-              const attackModifier = calculateAttackModifier(character, cardStates);
-              const damageModifier = calculateDamageModifier(character, cardStates);
+              const attackModifier = calculateAttackModifier(character, cardStates, enhancedAbilities);
+              const damageModifier = calculateDamageModifier(character, cardStates, enhancedAbilities);
               const totalAttackBonus = totalTraitValue + attackModifier;
 
               // Calculate damage with proficiency
@@ -584,7 +585,8 @@ export default function CombatView() {
             </div>
 
             {showSpells && combatAbilities.map((ability) => {
-              const { enhancement } = ability;
+              const enhancement = getEnhancement(ability);
+              if (!enhancement) return null;
 
               // Calculate spellcast modifier
               const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
@@ -775,11 +777,11 @@ export default function CombatView() {
           const totalTraitValue = baseTraitValue + traitModifierSum;
 
           // Attack Modifiers
-          const systemAttackMods = getSystemModifiers(character, 'attack', cardStates);
+          const systemAttackMods = getSystemModifiers(character, 'attack', cardStates, enhancedAbilities);
           const userAttackMods = character.modifiers?.['attack'] || [];
 
           // Damage Modifiers
-          const systemDamageMods = getSystemModifiers(character, 'damage', cardStates);
+          const systemDamageMods = getSystemModifiers(character, 'damage', cardStates, enhancedAbilities);
           const userDamageMods = character.modifiers?.['damage'] || [];
 
           const weaponTabs = [
@@ -817,10 +819,13 @@ export default function CombatView() {
           const ability = combatAbilities.find(a => a.name === activeAbilityId);
           if (!ability) return null;
 
+          const abilityEnhancement = getEnhancement(ability);
+          if (!abilityEnhancement) return null;
+
           const tabs = [];
 
           // 1. Roll Tab (Spellcast or Trait)
-          const rollTrait = ability.enhancement.roll?.trait || ability.enhancement.attack?.trait;
+          const rollTrait = abilityEnhancement.roll?.trait || abilityEnhancement.attack?.trait;
           if (rollTrait) {
             if (rollTrait.toLowerCase() === 'spellcast') {
               const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
@@ -863,7 +868,7 @@ export default function CombatView() {
           }
 
           // 2. Damage Tab
-          if (ability.enhancement.attack?.damage) {
+          if (abilityEnhancement.attack?.damage) {
             const systemDamageMods = getSystemModifiers(character, 'damage', cardStates);
             const userDamageMods = character.modifiers?.['damage'] || [];
 

@@ -89,7 +89,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Very Close"
       }
     }
@@ -151,7 +150,6 @@
         "target_reaction": false
       },
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -252,7 +250,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -336,7 +333,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Very Close"
       }
     }
@@ -450,7 +446,6 @@
       ],
       "duration": "rest",
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -671,6 +666,9 @@
     "enhancement": {
       "timing": "action",
       "frequency": "once_per_rest",
+      "costs": {
+        "hope": 1
+      },
       "keywords": [
         "hope_cost",
         "tokens",
@@ -798,7 +796,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Melee"
       }
     }
@@ -822,7 +819,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -886,7 +882,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -970,7 +965,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Melee"
       }
     }
@@ -1020,7 +1014,6 @@
         "target_reaction": true
       },
       "attack": {
-        "trait": "None",
         "range": "Far"
       }
     }
@@ -1052,7 +1045,6 @@
         "target_reaction": false
       },
       "attack": {
-        "trait": "None",
         "range": "Very Close"
       }
     }
@@ -1144,7 +1136,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }
@@ -1189,7 +1180,6 @@
         "spell"
       ],
       "attack": {
-        "trait": "None",
         "range": "Close"
       }
     }

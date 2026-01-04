@@ -49,7 +49,6 @@
             }
           ],
           "attack": {
-            "trait": "None",
             "range": "Melee"
           }
         }
@@ -79,7 +78,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -370,7 +368,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Far"
           }
         }
@@ -393,7 +390,6 @@
             "target_reaction": false
           },
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -445,7 +441,6 @@
             }
           ],
           "attack": {
-            "trait": "None",
             "range": "Very Far"
           }
         }
@@ -803,7 +798,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Very Close"
           }
         }
@@ -847,7 +841,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -933,7 +926,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -999,7 +991,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Melee"
           }
         }
@@ -1026,7 +1017,6 @@
             }
           ],
           "attack": {
-            "trait": "None",
             "range": "Melee"
           }
         }
@@ -1068,7 +1058,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -1101,7 +1090,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Very Close"
           }
         }
@@ -1122,7 +1110,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -1144,7 +1131,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -1231,7 +1217,6 @@
             }
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -1459,7 +1444,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Far"
           }
         }
