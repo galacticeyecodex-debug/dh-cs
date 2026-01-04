@@ -141,7 +141,7 @@ export const DOWNTIME_MOVES: DowntimeMove[] = [
         id: 'tend_wounds',
         name: 'Tend to Wounds',
         description: 'Recover Hit Points by tending to your injuries.',
-        restTypes: ['short', 'long'],
+        restTypes: ['short'],
         rollRequired: true,
         rollDice: '1d4',
         rollModifier: 'tier',
@@ -151,7 +151,7 @@ export const DOWNTIME_MOVES: DowntimeMove[] = [
         id: 'clear_stress',
         name: 'Clear Stress',
         description: 'Relax and recover from the strain of your adventures.',
-        restTypes: ['short', 'long'],
+        restTypes: ['short'],
         rollRequired: true,
         rollDice: '1d4',
         rollModifier: 'tier',
@@ -161,7 +161,7 @@ export const DOWNTIME_MOVES: DowntimeMove[] = [
         id: 'repair_armor',
         name: 'Repair Armor',
         description: 'Mend and restore your damaged armor.',
-        restTypes: ['short', 'long'],
+        restTypes: ['short'],
         rollRequired: true,
         rollDice: '1d4',
         rollModifier: 'tier',
@@ -264,5 +264,5 @@ export function getAvailableMoves(
  * Get the number of moves available for a rest type
  */
 export function getMovesForRestType(restType: RestType): number {
-    return restType === 'short' ? 2 : 4;
+    return 2;
 }
