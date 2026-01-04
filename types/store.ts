@@ -3,9 +3,10 @@
  * ----------------------------------------------------------------------------
  * This file aggregates the various Zustand store slices into a single, unified
  * `CharacterStore` type. By intersecting the interfaces of all individual slices
- * (Auth, Character, Vitals, Inventory, UI, Homebrew, Leveling, Downtime), it provides a
- * complete type signature for the global application state, resolving circular
- * dependencies that would arise from direct imports in the slice files.
+ * (Auth, Character, Vitals, Inventory, UI, Homebrew, Leveling, Downtime, Journal),
+ * it provides a complete type signature for the global application state,
+ * resolving circular dependencies that would arise from direct imports in the
+ * slice files.
  */
 
 import { AuthSlice } from '@/store/slices/auth-slice';
@@ -17,6 +18,8 @@ import { HomebrewSlice } from '@/store/slices/homebrew-slice';
 import { LevelingSlice } from '@/store/slices/leveling-slice';
 import { CardStateSlice } from '@/store/slices/card-state-slice';
 import { DowntimeSlice } from '@/store/slices/downtime-slice';
+import { JournalSlice } from '@/store/slices/journal-slice';
 
-export type CharacterStore = AuthSlice & CharacterSlice & VitalsSlice & InventorySlice & UiSlice & HomebrewSlice & LevelingSlice & CardStateSlice & DowntimeSlice;
+export type CharacterStore = AuthSlice & CharacterSlice & VitalsSlice & InventorySlice & UiSlice & HomebrewSlice & LevelingSlice & CardStateSlice & DowntimeSlice & JournalSlice;
+
 
