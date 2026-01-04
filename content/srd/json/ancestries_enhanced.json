@@ -168,7 +168,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -216,7 +215,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -236,7 +234,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Melee"
           }
         }
@@ -405,7 +402,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Melee"
           }
         }
@@ -442,7 +438,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Very Close"
           }
         }
@@ -627,7 +622,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Melee"
           }
         }

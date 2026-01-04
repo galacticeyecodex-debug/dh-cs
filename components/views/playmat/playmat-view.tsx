@@ -28,7 +28,7 @@ import clsx from 'clsx';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import ModifierSheet from '@/components/shared/modifier-sheet';
-import { parseCardPassiveModifiers, parseCombatAbility, type PassiveModifier, type ModifierCondition, type CombatAbility } from '@/lib/card-parser';
+import { parseCardPassiveModifiers, parseCombatAbility, calculateDynamicValue, type PassiveModifier, type ModifierCondition, type CombatAbility } from '@/lib/card-parser';
 import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { uploadCharacterImage } from '@/lib/storage-service';
@@ -37,7 +37,7 @@ import { getSystemModifiers } from '@/lib/utils';
 import Image from 'next/image';
 import PlaymatCard from './playmat-card';
 import type { EnhancedAbilityCard } from '@/types/cards';
-import { getAttack, getRoll } from '@/lib/enhancement-utils';
+import { getAttack, getRoll, getModifiers, isModifierActive } from '@/lib/enhancement-utils';
 import useContentAccess from '@/hooks/useContentAccess';
 
 export default function PlaymatView() {
@@ -238,6 +238,52 @@ export default function PlaymatView() {
               loadoutCards.forEach(card => {
                 const cardName = card.library_item?.name || '';
                 const isCardActive = cardStates?.[cardName]?.is_active ?? false;
+
+                // FIRST: Check for enhanced JSON modifiers with proper condition evaluation
+                const enhancedData = enhancedAbilities.find(a => a.name === cardName);
+                if (enhancedData) {
+                  const jsonModifiers = getModifiers(enhancedData);
+                  if (jsonModifiers.length > 0) {
+                    let addedFromJson = false;
+                    jsonModifiers.forEach((mod, index) => {
+                      // For when_active conditions, check per-modifier activation state
+                      let active: boolean;
+                      if (mod.condition?.type === 'when_active' || mod.condition?.type === 'cost_activated') {
+                        // Per-modifier activation state: use modifierKey pattern matching the UI
+                        const modifierKey = `${mod.stat}-${index}`;
+                        active = cardStates?.[cardName]?.active_modifiers?.[modifierKey] ?? false;
+                      } else {
+                        // For other condition types, use the generic isModifierActive helper
+                        active = isModifierActive(mod, isCardActive, charForParsing);
+                      }
+
+                      if (active) {
+                        // Calculate the actual value - for dynamic formulas, evaluate them
+                        const calculatedValue = mod.formula
+                          ? calculateDynamicValue(mod.formula, charForParsing)
+                          : mod.value;
+
+                        allModifiers.push({
+                          stat: mod.stat,
+                          value: calculatedValue,
+                          formula: mod.formula,
+                          condition: mod.condition as ModifierCondition,
+                          isActive: true,
+                          source: mod.source || cardName
+                        });
+                        addedFromJson = true;
+                      }
+                    });
+                    // Only skip text parsing if we added at least one modifier from JSON
+                    // This ensures cards with all inactive conditions (like when_active) 
+                    // don't get fallback modifiers from text parsing
+                    if (addedFromJson || jsonModifiers.length > 0) {
+                      return; // Skip text parsing - JSON is authoritative for this card
+                    }
+                  }
+                }
+
+                // FALLBACK: Text parsing for cards without JSON modifiers
                 const mods = parseCardPassiveModifiers(card, charForParsing, isCardActive);
                 allModifiers.push(...mods.filter(m => m.isActive));
               });

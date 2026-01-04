@@ -50,7 +50,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Far"
           }
         }
@@ -356,7 +355,6 @@
             "token_source": "spellcast"
           },
           "attack": {
-            "trait": "None",
             "range": "Very Close"
           }
         }
@@ -408,7 +406,6 @@
             }
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           },
           "duration": "scene"
@@ -428,7 +425,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Far"
           }
         }
@@ -524,7 +520,6 @@
             "ability"
           ],
           "attack": {
-            "trait": "None",
             "range": "Close"
           }
         }
@@ -569,7 +564,6 @@
             "target_reaction": true
           },
           "attack": {
-            "trait": "None",
             "range": "Melee"
           }
         }
@@ -598,7 +592,6 @@
             }
           ],
           "attack": {
-            "trait": "None",
             "range": "Melee"
           }
         }

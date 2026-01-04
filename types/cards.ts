@@ -55,7 +55,7 @@ export interface CardCosts {
  * Attack mechanics for combat abilities
  */
 export interface CardAttack {
-  trait: string;
+  trait?: string;
   range: Range;
   targets?: TargetType;
   damage?: string;
@@ -98,12 +98,27 @@ export interface CardModifier {
 
 /**
  * Condition types for modifier activation
+ * ============================================================================
+ * These conditions determine WHEN a modifier is active. The UI component
+ * (DomainAbilityButton) handles the activation flow for most types.
+ * 
+ * See lib/card-parser.ts for full documentation on each condition type.
+ * 
+ * Quick Reference:
+ * - 'always': Active when card is in loadout
+ * - 'when_armored': Active when armor is equipped
+ * - 'when_unarmored': Active when NO armor is equipped
+ * - 'when_active': Requires user to click activation button (Mark Stress/Spend Hope/Activate)
+ * - 'cost_activated': DEPRECATED - use 'when_active' instead
+ * - 'loadout_domain_count': Active when loadout has enough cards from a domain
+ * - 'environment': Active based on environment (future feature)
  */
 export type ModifierCondition =
   | { type: 'always' }
   | { type: 'when_armored' }
   | { type: 'when_unarmored' }
   | { type: 'when_active' }
+  | { type: 'cost_activated' }  // DEPRECATED: Use 'when_active' instead
   | { type: 'loadout_domain_count'; domain: string; minCount: number }
   | { type: 'environment'; requirement: string };
 
@@ -191,7 +206,14 @@ export interface CharacterCardState {
   used_this_session: boolean;
   is_active: boolean; // For persistent effects
   last_roll_result?: number; // Last roll result for token generation
+  active_modifiers?: Record<string, boolean>; // Per-modifier activation state
 }
+
+/**
+ * CardStates map - keyed by card name
+ * Used by modifier aggregator and other services
+ */
+export type CardStates = Record<string, CharacterCardState>;
 
 /**
  * Card state slice for Zustand store

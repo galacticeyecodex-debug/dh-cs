@@ -148,6 +148,67 @@ export function hasTokens<T extends WithEnhancement>(item: T): boolean {
 }
 
 /**
+ * Get the modifiers from a card/feat, preferring override
+ *
+ * @param item - Card or feat with enhancement blocks
+ * @returns The effective modifiers array, or empty array if none
+ */
+export function getModifiers<T extends WithEnhancement>(item: T): CardModifier[] {
+    return getEnhancement(item)?.modifiers ?? [];
+}
+
+/**
+ * Evaluate whether a CardModifier is currently active based on its condition
+ * 
+ * @param modifier - The modifier with a condition to evaluate
+ * @param isCardActive - Whether the card is currently activated (via UI toggle)
+ * @param character - The character for armor/loadout checks (optional)
+ * @returns true if the modifier should be applied
+ */
+export function isModifierActive(
+    modifier: CardModifier,
+    isCardActive: boolean,
+    character?: { character_inventory?: Array<{ location: string }>; character_cards?: Array<{ location: string; library_item?: { domain?: string; data?: { domain?: string } } }> }
+): boolean {
+    const condition = modifier.condition;
+
+    // No condition = always active
+    if (!condition) return true;
+
+    switch (condition.type) {
+        case 'always':
+            return true;
+
+        case 'when_active':
+        case 'cost_activated':
+            // Only active when user has toggled the ability on
+            return isCardActive;
+
+        case 'when_armored':
+            return !!character?.character_inventory?.find(i => i.location === 'equipped_armor');
+
+        case 'when_unarmored':
+            return !character?.character_inventory?.find(i => i.location === 'equipped_armor');
+
+        case 'loadout_domain_count':
+            if (!character?.character_cards) return false;
+            const loadoutCards = character.character_cards.filter(c => c.location === 'loadout');
+            const domainCount = loadoutCards.filter(c => {
+                const domain = c.library_item?.domain || c.library_item?.data?.domain;
+                return domain?.toLowerCase() === condition.domain?.toLowerCase();
+            }).length;
+            return domainCount >= (condition.minCount || 0);
+
+        case 'environment':
+            // Not yet implemented - always inactive
+            return false;
+
+        default:
+            return false;
+    }
+}
+
+/**
  * Legacy interface for migration
  */
 interface LegacyAbilityCard {
