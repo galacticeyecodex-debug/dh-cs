@@ -3,7 +3,7 @@
  * ----------------------------------------------------------------------------
  * This slice manages the transient user interface state for the application.
  * It controls global UI elements such as the dice roller overlay, the active
- * navigation tab (Character, Playmat, Inventory, Combat, Downtime, Journal),
+ * navigation tab (Character, Playmat, Inventory, Combat, Downtime, Journal, Settings),
  * the "More" menu drawer, and displays results from dice rolls. This isolates
  * purely presentational state from the persistent game data, keeping the store
  * organization clean.
@@ -14,10 +14,10 @@ import { RollResult } from '@/types/character';
 import { CharacterStore } from '@/types/store';
 
 // Tab type definition - extended with new views
-export type TabId = 'character' | 'combat' | 'playmat' | 'inventory' | 'downtime' | 'journal';
+export type TabId = 'character' | 'combat' | 'playmat' | 'inventory' | 'downtime' | 'journal' | 'settings';
 
 // Valid tab values for validation
-const VALID_TABS: TabId[] = ['character', 'combat', 'playmat', 'inventory', 'downtime', 'journal'];
+const VALID_TABS: TabId[] = ['character', 'combat', 'playmat', 'inventory', 'downtime', 'journal', 'settings'];
 
 // localStorage key for persisting active tab
 const ACTIVE_TAB_STORAGE_KEY = 'dh:activeTab';

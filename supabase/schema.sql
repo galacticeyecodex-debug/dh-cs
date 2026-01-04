@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username TEXT,
   avatar_url TEXT,
-  content_access JSONB DEFAULT '{"srd": true, "playtest": false}'::jsonb, -- Controls access to content sources
+  content_access JSONB DEFAULT '{"srd": true, "playtest": false, "homebrew": {}}'::jsonb, -- Controls access to content sources (SRD, playtest, homebrew campaigns)
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
