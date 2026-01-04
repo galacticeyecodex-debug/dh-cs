@@ -8,15 +8,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, BookOpen, FlaskConical, Sparkles } from 'lucide-react';
+import { AlertTriangle, BookOpen, FlaskConical, Sparkles, Lock } from 'lucide-react';
 import { dataService } from '@/lib/data-service';
 import useUser from '@/hooks/useUser';
 import type { ContentAccess } from '@/types/character';
 import { AVAILABLE_CAMPAIGNS } from '@/hooks/useContentAccess';
+import clsx from 'clsx';
 
 export default function ContentAccessSettings() {
   const { user } = useUser();
@@ -92,41 +90,46 @@ export default function ContentAccessSettings() {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Content Access</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">Loading settings...</p>
-        </CardContent>
-      </Card>
+      <div className="bg-dagger-panel border border-white/10 rounded-xl p-6">
+        <div className="flex items-center gap-2 mb-2">
+          <BookOpen className="h-5 w-5 text-dagger-gold" />
+          <h2 className="text-lg font-semibold text-white">Content Access</h2>
+        </div>
+        <p className="text-gray-400 text-sm">Loading settings...</p>
+      </div>
     );
   }
 
   const hasAnyHomebrewEnabled = Object.values(contentAccess.homebrew ?? {}).some(Boolean);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5" />
-          Content Access
-        </CardTitle>
-        <CardDescription>
+    <div className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden">
+      {/* Header */}
+      <div className="p-6 border-b border-white/10">
+        <div className="flex items-center gap-2 mb-2">
+          <BookOpen className="h-5 w-5 text-dagger-gold" />
+          <h2 className="text-lg font-semibold text-white">Content Access</h2>
+        </div>
+        <p className="text-gray-400 text-sm">
           Control which game content is available for character creation and browsing.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        </p>
+      </div>
+
+      {/* Content */}
+      <div className="p-6 space-y-6">
         {/* SRD Content - Always enabled */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-1 flex-1">
             <div className="flex items-center gap-2">
-              <Label htmlFor="srd-content" className="font-medium">
+              <label htmlFor="srd-content" className="font-medium text-white">
                 Core Rules (SRD)
-              </Label>
-              <Badge variant="secondary">Always On</Badge>
+              </label>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 text-gray-300 text-xs font-medium">
+                <Lock size={12} />
+                Always On
+              </span>
             </div>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-gray-400 text-sm">
               Official Daggerheart System Reference Document content.
             </p>
           </div>
@@ -134,18 +137,18 @@ export default function ContentAccessSettings() {
         </div>
 
         {/* Playtest Content */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-1 flex-1">
             <div className="flex items-center gap-2">
-              <Label htmlFor="playtest-content" className="font-medium">
+              <label htmlFor="playtest-content" className="font-medium text-white">
                 Playtest Content
-              </Label>
-              <Badge variant="outline" className="gap-1">
-                <FlaskConical className="h-3 w-3" />
+              </label>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-gray-300 text-xs font-medium">
+                <FlaskConical size={12} />
                 The Void v1.5
-              </Badge>
+              </span>
             </div>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-gray-400 text-sm">
               Blood Hunter, Witch, Brawler classes and Blood & Dread domains.
             </p>
           </div>
@@ -162,8 +165,8 @@ export default function ContentAccessSettings() {
           <div className="flex gap-3 rounded-lg border border-amber-500/50 bg-amber-500/10 p-4">
             <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="text-sm font-medium text-amber-500">Playtest Content Notice</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm font-medium text-amber-400">Playtest Content Notice</p>
+              <p className="text-sm text-gray-400">
                 Playtest material is not final and may be unbalanced or subject to change.
                 Characters using this content may need adjustments in the future.
               </p>
@@ -174,7 +177,7 @@ export default function ContentAccessSettings() {
         {/* Homebrew Campaigns Section */}
         {AVAILABLE_CAMPAIGNS.length > 0 && (
           <>
-            <div className="border-t border-border pt-6">
+            <div className="border-t border-white/10 pt-6">
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="h-5 w-5 text-purple-400" />
                 <h3 className="font-semibold text-white">Homebrew Campaigns</h3>
@@ -183,23 +186,23 @@ export default function ContentAccessSettings() {
               <div className="space-y-4">
                 {AVAILABLE_CAMPAIGNS.map((campaign) => (
                   <div key={campaign.id} className="flex items-start justify-between gap-4">
-                    <div className="space-y-2">
+                    <div className="space-y-2 flex-1">
                       <div className="flex items-center gap-2">
-                        <Label htmlFor={`campaign-${campaign.id}`} className="font-medium">
+                        <label htmlFor={`campaign-${campaign.id}`} className="font-medium text-white">
                           {campaign.name}
-                        </Label>
-                        <Badge variant="outline" className="text-purple-400 border-purple-400/50">
+                        </label>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-medium">
                           Homebrew
-                        </Badge>
+                        </span>
                       </div>
-                      <p className="text-muted-foreground text-sm">
+                      <p className="text-gray-400 text-sm">
                         {campaign.description}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {campaign.features.map((feature) => (
-                          <Badge key={feature} variant="secondary" className="text-xs">
+                          <span key={feature} className="inline-flex items-center px-2 py-0.5 rounded-md bg-white/5 text-gray-300 text-xs">
                             {feature}
-                          </Badge>
+                          </span>
                         ))}
                       </div>
                     </div>
@@ -220,7 +223,7 @@ export default function ContentAccessSettings() {
                 <Sparkles className="h-5 w-5 text-purple-400 flex-shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-purple-400">Homebrew Content Active</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-400">
                     Homebrew content is custom material created for specific campaigns.
                     Features may include mechanics not found in the official rules.
                   </p>
@@ -229,8 +232,8 @@ export default function ContentAccessSettings() {
             )}
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
