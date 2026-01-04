@@ -13,7 +13,15 @@
  *   - Loading: Shows a spinner/message while fetching data.
  *   - Unauthenticated: Displays a welcome screen with a login prompt.
  *   - No Character: Prompts the user to create their first character if none exists.
- *   - Active Session: Renders the main `MobileLayout` and switches between views (Character, Combat, Playmat, Inventory) based on the active tab.
+ *   - Active Session: Renders the main `MobileLayout` and switches between views based on the active tab.
+ * 
+ * VIEWS:
+ * - Character: Core character sheet
+ * - Combat: Combat-focused view with attacks and abilities
+ * - Playmat: Domain card management (loadout/vault)
+ * - Inventory: Equipment and item management (via More menu)
+ * - Downtime: Rest and project management (via More menu)
+ * - Journal: Relationships and reputation (via More menu)
  */
 
 import MobileLayout from '@/components/core/mobile-layout';
@@ -21,6 +29,8 @@ import CharacterView from '@/components/views/character/character-view';
 import PlaymatView from '@/components/views/playmat/playmat-view';
 import InventoryView from '@/components/views/inventory/inventory-view';
 import CombatView from '@/components/views/combat/combat-view';
+import DowntimeView from '@/components/views/downtime/downtime-view';
+import JournalView from '@/components/views/journal/journal-view';
 import { useCharacterStore } from '@/store/character-store';
 import AuthButton from '@/components/auth/auth-buttons';
 import { useEffect, useState } from 'react';
@@ -113,6 +123,8 @@ export default function DaggerheartApp({ clientUser }: { clientUser: AppUser | n
         {activeTab === 'combat' && <CombatView />}
         {activeTab === 'playmat' && <PlaymatView />}
         {activeTab === 'inventory' && <InventoryView />}
+        {activeTab === 'downtime' && <DowntimeView />}
+        {activeTab === 'journal' && <JournalView />}
       </MobileLayout>
       <DevErrorTriggers />
     </ErrorBoundary>
