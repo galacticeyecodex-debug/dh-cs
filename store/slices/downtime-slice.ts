@@ -42,6 +42,7 @@ export interface DowntimeSlice {
     createProject: (input: CreateProjectInput) => Promise<Project | null>;
     advanceProject: (projectId: string, segments?: number) => Promise<void>;
     completeProject: (projectId: string) => Promise<void>;
+    updateProject: (projectId: string, updates: Partial<CreateProjectInput>) => Promise<void>;
     deleteProject: (projectId: string) => Promise<void>;
 
     // Study Token Actions
@@ -210,6 +211,29 @@ export const createDowntimeSlice: StateCreator<
             await fetchProjects();
         } catch (error) {
             console.error('Failed to complete project:', error);
+        }
+    },
+
+    updateProject: async (projectId: string, updates: Partial<CreateProjectInput>) => {
+        const { fetchProjects } = get();
+
+        try {
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('character_projects')
+                .update({
+                    name: updates.name,
+                    description: updates.description,
+                    countdown_total: updates.countdown_total,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq('id', projectId);
+
+            if (error) throw error;
+
+            await fetchProjects();
+        } catch (error) {
+            console.error('Failed to update project:', error);
         }
     },
 
