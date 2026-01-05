@@ -35,7 +35,7 @@ export interface UiSlice {
   activeTab: TabId;
   isDiceOverlayOpen: boolean;
   isMoreMenuOpen: boolean;
-  activeRoll: { label: string; modifier: number; dice?: string } | null;
+  activeRoll: { label: string; modifier: number; dice?: string; diceColor?: string } | null;
   lastRollResult: RollResult | null;
 
   setActiveTab: (tab: TabId) => void;
@@ -43,7 +43,7 @@ export interface UiSlice {
   closeDiceOverlay: () => void;
   openMoreMenu: () => void;
   closeMoreMenu: () => void;
-  prepareRoll: (label: string, modifier: number, dice?: string) => void;
+  prepareRoll: (label: string, modifier: number, dice?: string, diceColor?: string) => void;
   setLastRollResult: (result: RollResult | null) => void;
 }
 
@@ -67,6 +67,6 @@ export const createUiSlice: StateCreator<CharacterStore, [], [], UiSlice> = (set
   closeDiceOverlay: () => set({ isDiceOverlayOpen: false, activeRoll: null }),
   openMoreMenu: () => set({ isMoreMenuOpen: true }),
   closeMoreMenu: () => set({ isMoreMenuOpen: false }),
-  prepareRoll: (label, modifier, dice) => set({ isDiceOverlayOpen: true, activeRoll: { label, modifier, dice } }),
+  prepareRoll: (label, modifier, dice, diceColor) => set({ isDiceOverlayOpen: true, activeRoll: { label, modifier, dice, diceColor } }),
   setLastRollResult: (result) => set({ lastRollResult: result }),
 });
