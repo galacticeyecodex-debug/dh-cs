@@ -41,6 +41,7 @@ export interface DowntimeSlice {
     fetchProjects: () => Promise<void>;
     createProject: (input: CreateProjectInput) => Promise<Project | null>;
     advanceProject: (projectId: string, segments?: number) => Promise<void>;
+    setProjectProgress: (projectId: string, progress: number) => Promise<void>;
     completeProject: (projectId: string) => Promise<void>;
     updateProject: (projectId: string, updates: Partial<CreateProjectInput>) => Promise<void>;
     deleteProject: (projectId: string) => Promise<void>;
@@ -189,6 +190,38 @@ export const createDowntimeSlice: StateCreator<
             await fetchProjects();
         } catch (error) {
             console.error('Failed to advance project:', error);
+        }
+    },
+
+    setProjectProgress: async (projectId: string, progress: number) => {
+        const { projects, fetchProjects } = get();
+        const project = projects.find(p => p.id === projectId);
+        if (!project) return;
+
+        // Clamp progress between 0 and total
+        const newCurrent = Math.max(0, Math.min(progress, project.countdown_total));
+        const isNowComplete = newCurrent >= project.countdown_total;
+        const wasComplete = project.completed;
+
+        try {
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('character_projects')
+                .update({
+                    countdown_current: newCurrent,
+                    completed: isNowComplete,
+                    // Only set completed_at if transitioning to complete
+                    completed_at: isNowComplete && !wasComplete ? new Date().toISOString() :
+                        !isNowComplete ? null : project.completed_at,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq('id', projectId);
+
+            if (error) throw error;
+
+            await fetchProjects();
+        } catch (error) {
+            console.error('Failed to set project progress:', error);
         }
     },
 

@@ -12,6 +12,8 @@ import {
     Relationship,
     CreateRelationshipInput,
     ReputationEvent,
+    JournalNote,
+    CreateNoteInput,
 } from '@/types/journal';
 import createClient from '@/lib/supabase/client';
 
@@ -36,6 +38,12 @@ export interface JournalSlice {
     changeReputation: (change: number, description: string) => void;
     resetReputation: () => void;
 
+    // Notes
+    notes: JournalNote[];
+    createNote: (input: CreateNoteInput) => void;
+    updateNote: (id: string, updates: Partial<CreateNoteInput>) => void;
+    deleteNote: (id: string) => void;
+
     // Utility
     resetJournalState: () => void;
 }
@@ -52,6 +60,7 @@ export const createJournalSlice: StateCreator<
     relationshipsError: null,
     reputation: 0,
     reputationHistory: [],
+    notes: [],
 
     // ============================================================================
     // RELATIONSHIP ACTIONS
@@ -205,6 +214,44 @@ export const createJournalSlice: StateCreator<
     },
 
     // ============================================================================
+    // NOTE ACTIONS
+    // ============================================================================
+
+    createNote: (input: CreateNoteInput) => {
+        const newNote: JournalNote = {
+            id: crypto.randomUUID(),
+            title: input.title,
+            content: input.content,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        };
+
+        set(state => ({
+            notes: [newNote, ...state.notes],
+        }));
+    },
+
+    updateNote: (id: string, updates: Partial<CreateNoteInput>) => {
+        set(state => ({
+            notes: state.notes.map(note =>
+                note.id === id
+                    ? {
+                        ...note,
+                        ...updates,
+                        updated_at: new Date().toISOString(),
+                    }
+                    : note
+            ),
+        }));
+    },
+
+    deleteNote: (id: string) => {
+        set(state => ({
+            notes: state.notes.filter(note => note.id !== id),
+        }));
+    },
+
+    // ============================================================================
     // UTILITY
     // ============================================================================
 
@@ -215,6 +262,7 @@ export const createJournalSlice: StateCreator<
             relationshipsError: null,
             reputation: 0,
             reputationHistory: [],
+            notes: [],
         });
     },
 });

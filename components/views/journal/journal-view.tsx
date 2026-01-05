@@ -23,6 +23,7 @@ import {
     Meh,
     Smile,
     Settings,
+    FileText,
 } from 'lucide-react';
 import {
     getRelationshipTier,
@@ -33,8 +34,9 @@ import {
 import type { Relationship, RelationshipTier } from '@/types/journal';
 import clsx from 'clsx';
 import RelationshipChangeModal from './relationship-change-modal';
+import TextNotesPanel from './text-notes-panel';
 
-type JournalTab = 'relationships' | 'reputation';
+type JournalTab = 'relationships' | 'reputation' | 'notes';
 
 export default function JournalView() {
     const [activeTab, setActiveTab] = useState<JournalTab>('relationships');
@@ -43,10 +45,14 @@ export default function JournalView() {
         relationshipsLoading,
         reputation,
         reputationHistory,
+        notes,
         fetchRelationships,
         updateRelationshipPoints,
         deleteRelationship,
         changeReputation,
+        createNote,
+        updateNote,
+        deleteNote,
     } = useCharacterStore();
 
     // Fetch relationships on mount
@@ -63,16 +69,16 @@ export default function JournalView() {
                 </div>
                 <div>
                     <h1 className="text-2xl font-serif font-bold text-white">Journal</h1>
-                    <p className="text-sm text-gray-400">Track relationships and reputation</p>
+                    <p className="text-sm text-gray-400">Track relationships, reputation, and notes</p>
                 </div>
             </div>
 
             {/* Tab Selector */}
-            <div className="flex gap-2 p-1 bg-white/5 rounded-xl">
+            <div className="flex gap-2 p-1 bg-white/5 rounded-xl overflow-x-auto">
                 <button
                     onClick={() => setActiveTab('relationships')}
                     className={clsx(
-                        'flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-medium transition-colors',
+                        'flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-medium transition-colors whitespace-nowrap',
                         activeTab === 'relationships'
                             ? 'bg-dagger-gold text-black'
                             : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -84,7 +90,7 @@ export default function JournalView() {
                 <button
                     onClick={() => setActiveTab('reputation')}
                     className={clsx(
-                        'flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-medium transition-colors',
+                        'flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-medium transition-colors whitespace-nowrap',
                         activeTab === 'reputation'
                             ? 'bg-dagger-gold text-black'
                             : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -92,6 +98,18 @@ export default function JournalView() {
                 >
                     <Star size={18} />
                     Reputation
+                </button>
+                <button
+                    onClick={() => setActiveTab('notes')}
+                    className={clsx(
+                        'flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-medium transition-colors whitespace-nowrap',
+                        activeTab === 'notes'
+                            ? 'bg-dagger-gold text-black'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    )}
+                >
+                    <FileText size={18} />
+                    Notes
                 </button>
             </div>
 
@@ -103,11 +121,18 @@ export default function JournalView() {
                     onChangePoints={updateRelationshipPoints}
                     onDelete={deleteRelationship}
                 />
-            ) : (
+            ) : activeTab === 'reputation' ? (
                 <ReputationPanel
                     reputation={reputation}
                     history={reputationHistory}
                     onChangeReputation={changeReputation}
+                />
+            ) : (
+                <TextNotesPanel
+                    notes={notes}
+                    onCreate={createNote}
+                    onUpdate={updateNote}
+                    onDelete={deleteNote}
                 />
             )}
         </div>
