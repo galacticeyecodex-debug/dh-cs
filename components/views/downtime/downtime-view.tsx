@@ -10,13 +10,14 @@
  * - Study tokens (for enabled homebrew campaigns)
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import useContentAccess from '@/hooks/useContentAccess';
-import { Moon, Clock, Plus, Check, Trash2, ChevronRight } from 'lucide-react';
+import { Moon, Clock, Plus, Check, Trash2, ChevronRight, Settings, Pencil } from 'lucide-react';
 import { getAvailableMoves, getMovesForRestType, DOWNTIME_MOVES } from '@/types/downtime';
-import type { RestType, DowntimeMove, Project } from '@/types/downtime';
-import clsx from 'clsx';
+import type { RestType, DowntimeMove, Project, CreateProjectInput } from '@/types/downtime';
+import { clsx } from 'clsx';
+import { ProjectFormModal, WorkOnProjectModal } from './project-modals';
 
 export default function DowntimeView() {
     const {
@@ -25,21 +26,49 @@ export default function DowntimeView() {
         projectsLoading,
         startRest,
         endRest,
-        useMove,
+        useMove: executeMove,
         fetchProjects,
+        createProject,
+        updateProject,
         advanceProject,
         deleteProject,
     } = useCharacterStore();
 
     const { enabledCampaigns } = useContentAccess();
 
+    // Modal States
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isWorkModalOpen, setIsWorkModalOpen] = useState(false);
+    const [editingProject, setEditingProject] = useState<Project | null>(null);
+    const [isManageMode, setIsManageMode] = useState(false);
+
     // Fetch projects on mount
     useEffect(() => {
         fetchProjects();
     }, [fetchProjects]);
 
+    // Handlers
+    const handleWorkOnProjectMove = () => {
+        setIsWorkModalOpen(true);
+    };
+
+    const handleSelectProjectToWork = async (projectId: string) => {
+        await advanceProject(projectId);
+        executeMove();
+    };
+
+    const handleCreateProject = async (data: CreateProjectInput) => {
+        await createProject(data);
+    };
+
+    const handleUpdateProject = async (data: CreateProjectInput) => {
+        if (!editingProject) return;
+        await updateProject(editingProject.id, data);
+        setEditingProject(null);
+    };
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-20">
             {/* Header */}
             <div className="flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-dagger-gold/10">
@@ -59,7 +88,8 @@ export default function DowntimeView() {
                     movesTotal={currentRest.movesTotal}
                     enabledCampaigns={enabledCampaigns}
                     onEndRest={endRest}
-                    onUseMove={useMove}
+                    onUseMove={executeMove}
+                    onWorkOnProject={handleWorkOnProjectMove}
                 />
             ) : (
                 <RestTypeSelector onStartRest={startRest} />
@@ -69,8 +99,33 @@ export default function DowntimeView() {
             <ProjectsPanel
                 projects={projects}
                 loading={projectsLoading}
+                isManageMode={isManageMode}
+                onToggleManage={() => setIsManageMode(!isManageMode)}
+                onCreateClick={() => setIsCreateModalOpen(true)}
+                onEditClick={setEditingProject}
                 onAdvance={advanceProject}
                 onDelete={deleteProject}
+            />
+
+            {/* Modals */}
+            <ProjectFormModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSubmit={handleCreateProject}
+            />
+
+            <ProjectFormModal
+                isOpen={!!editingProject}
+                onClose={() => setEditingProject(null)}
+                onSubmit={handleUpdateProject}
+                initialData={editingProject || undefined}
+            />
+
+            <WorkOnProjectModal
+                isOpen={isWorkModalOpen}
+                onClose={() => setIsWorkModalOpen(false)}
+                projects={projects}
+                onSelect={handleSelectProjectToWork}
             />
         </div>
     );
@@ -117,6 +172,7 @@ interface ActiveRestPanelProps {
     enabledCampaigns: string[];
     onEndRest: () => void;
     onUseMove: () => void;
+    onWorkOnProject: () => void;
 }
 
 function ActiveRestPanel({
@@ -126,6 +182,7 @@ function ActiveRestPanel({
     enabledCampaigns,
     onEndRest,
     onUseMove,
+    onWorkOnProject,
 }: ActiveRestPanelProps) {
     const availableMoves = getAvailableMoves(restType, enabledCampaigns);
     const isComplete = movesRemaining <= 0;
@@ -181,7 +238,13 @@ function ActiveRestPanel({
                             key={move.id}
                             move={move}
                             disabled={isComplete}
-                            onUse={onUseMove}
+                            onUse={() => {
+                                if (move.id === 'work_on_project') {
+                                    onWorkOnProject();
+                                } else {
+                                    onUseMove();
+                                }
+                            }}
                         />
                     ))}
                 </div>
@@ -203,7 +266,6 @@ interface MoveButtonProps {
 function MoveButton({ move, disabled, onUse }: MoveButtonProps) {
     const handleClick = () => {
         if (disabled) return;
-        // For now, just decrement moves. Full implementation would show modal with roll
         onUse();
     };
 
@@ -233,11 +295,24 @@ function MoveButton({ move, disabled, onUse }: MoveButtonProps) {
 interface ProjectsPanelProps {
     projects: Project[];
     loading: boolean;
+    isManageMode: boolean;
+    onToggleManage: () => void;
+    onCreateClick: () => void;
+    onEditClick: (project: Project) => void;
     onAdvance: (id: string) => void;
     onDelete: (id: string) => void;
 }
 
-function ProjectsPanel({ projects, loading, onAdvance, onDelete }: ProjectsPanelProps) {
+function ProjectsPanel({
+    projects,
+    loading,
+    isManageMode,
+    onToggleManage,
+    onCreateClick,
+    onEditClick,
+    onAdvance,
+    onDelete
+}: ProjectsPanelProps) {
     const activeProjects = projects.filter(p => !p.completed);
     const completedProjects = projects.filter(p => p.completed);
 
@@ -245,10 +320,28 @@ function ProjectsPanel({ projects, loading, onAdvance, onDelete }: ProjectsPanel
         <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white">Projects</h2>
-                <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-dagger-gold/10 text-dagger-gold hover:bg-dagger-gold/20 transition-colors">
-                    <Plus size={16} />
-                    New Project
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={onToggleManage}
+                        className={clsx(
+                            "flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors",
+                            isManageMode
+                                ? "bg-white/20 text-white"
+                                : "bg-white/5 text-gray-400 hover:text-white"
+                        )}
+                        title="Manage Projects"
+                    >
+                        <Settings size={16} />
+                        {isManageMode ? 'Done' : 'Manage'}
+                    </button>
+                    <button
+                        onClick={onCreateClick}
+                        className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-dagger-gold/10 text-dagger-gold hover:bg-dagger-gold/20 transition-colors"
+                    >
+                        <Plus size={16} />
+                        New Project
+                    </button>
+                </div>
             </div>
 
             {loading ? (
@@ -269,6 +362,8 @@ function ProjectsPanel({ projects, loading, onAdvance, onDelete }: ProjectsPanel
                                 <ProjectCard
                                     key={project.id}
                                     project={project}
+                                    isManageMode={isManageMode}
+                                    onEdit={() => onEditClick(project)}
                                     onAdvance={onAdvance}
                                     onDelete={onDelete}
                                 />
@@ -285,6 +380,8 @@ function ProjectsPanel({ projects, loading, onAdvance, onDelete }: ProjectsPanel
                                     <ProjectCard
                                         key={project.id}
                                         project={project}
+                                        isManageMode={isManageMode}
+                                        onEdit={() => onEditClick(project)}
                                         onAdvance={onAdvance}
                                         onDelete={onDelete}
                                     />
@@ -304,13 +401,13 @@ function ProjectsPanel({ projects, loading, onAdvance, onDelete }: ProjectsPanel
 
 interface ProjectCardProps {
     project: Project;
+    isManageMode: boolean;
+    onEdit: () => void;
     onAdvance: (id: string) => void;
     onDelete: (id: string) => void;
 }
 
-function ProjectCard({ project, onAdvance, onDelete }: ProjectCardProps) {
-    const progress = project.countdown_current / project.countdown_total;
-
+function ProjectCard({ project, isManageMode, onEdit, onAdvance, onDelete }: ProjectCardProps) {
     return (
         <div
             className={clsx(
@@ -335,14 +432,14 @@ function ProjectCard({ project, onAdvance, onDelete }: ProjectCardProps) {
                     )}
                 </div>
 
-                {!project.completed && (
+                {isManageMode ? (
                     <div className="flex items-center gap-1">
                         <button
-                            onClick={() => onAdvance(project.id)}
+                            onClick={onEdit}
                             className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-                            title="Advance project"
+                            title="Edit project"
                         >
-                            <ChevronRight size={16} />
+                            <Pencil size={16} />
                         </button>
                         <button
                             onClick={() => onDelete(project.id)}
@@ -352,6 +449,14 @@ function ProjectCard({ project, onAdvance, onDelete }: ProjectCardProps) {
                             <Trash2 size={16} />
                         </button>
                     </div>
+                ) : !project.completed && (
+                    <button
+                        onClick={() => onAdvance(project.id)}
+                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                        title="Quick advance (GM)"
+                    >
+                        <ChevronRight size={16} />
+                    </button>
                 )}
             </div>
 
