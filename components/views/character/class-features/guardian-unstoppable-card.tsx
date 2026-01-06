@@ -81,7 +81,7 @@ export default function UnstoppableCard({
                     onClick={() => setShowInfo(!showInfo)}
                     className="p-1 hover:bg-white/10 rounded transition-colors"
                 >
-                    <Info size={14} className="text-gray-400" />
+                    <Info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
                 </button>
             </div>
 

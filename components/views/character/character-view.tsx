@@ -541,7 +541,7 @@ export default function CharacterView() {
                               className="p-1 hover:bg-white/10 rounded transition-colors"
                               title={showAncestryLore ? "Hide lore" : "Show lore"}
                             >
-                              <Info size={14} className="text-gray-400" />
+                              <Info size={14} className={showAncestryLore ? "text-dagger-gold" : "text-gray-400"} />
                             </button>
                           </div>
                           {showAncestryLore && (
@@ -595,7 +595,7 @@ export default function CharacterView() {
                               className="p-1 hover:bg-white/10 rounded transition-colors"
                               title={showCommunityLore ? "Hide lore" : "Show lore"}
                             >
-                              <Info size={14} className="text-gray-400" />
+                              <Info size={14} className={showCommunityLore ? "text-dagger-gold" : "text-gray-400"} />
                             </button>
                           </div>
                           {showCommunityLore && (
@@ -720,7 +720,7 @@ export default function CharacterView() {
                           className="p-1 hover:bg-white/10 rounded transition-colors"
                           title={showClassLore ? "Hide lore" : "Show lore"}
                         >
-                          <Info size={14} className="text-gray-400" />
+                          <Info size={14} className={showClassLore ? "text-dagger-gold" : "text-gray-400"} />
                         </button>
                       </div>
 
