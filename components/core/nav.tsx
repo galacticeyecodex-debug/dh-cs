@@ -10,7 +10,7 @@
 
 import Link from "next/link";
 
-import { Menu, Sparkle } from "lucide-react";
+import { Menu, Sword } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -37,16 +37,12 @@ interface MenuItem {
 const NAV_MENU_ITEMS: MenuItem[] = [
   { title: "Home", url: "/" },
   {
-    title: "Client",
-    url: "/client",
+    title: "Characters",
+    url: "/",
   },
   {
-    title: "Server",
-    url: "/server",
-  },
-  {
-    title: "Profile",
-    url: "/profile",
+    title: "Settings",
+    url: "/settings",
   },
 ];
 
@@ -103,8 +99,8 @@ export default function Nav() {
 const Logo = () => {
   return (
     <Link href="/" className="flex items-center gap-2">
-      <Sparkle className="size-5" />
-      <span className="text-lg font-semibold tracking-tighter">SHSF</span>
+      <Sword className="size-5 text-dagger-gold" />
+      <span className="text-lg font-serif font-semibold tracking-tight text-white">Daggerheart</span>
     </Link>
   );
 };

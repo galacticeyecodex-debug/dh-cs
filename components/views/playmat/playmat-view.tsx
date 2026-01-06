@@ -20,13 +20,14 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character-store';
-import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap, Shield, ShieldOff, Users, AlertCircle, Swords, Sparkles, Search, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap, Shield, ShieldOff, Users, AlertCircle, Swords, Sparkles, Search, Upload, Image as ImageIcon, Trash2, Layers } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AddItemModal from '@/components/views/inventory/add-item-modal';
 import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { ErrorBoundary } from '@/components/core/error-boundary';
+import ViewHeader from '@/components/shared/view-header';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import { parseCardPassiveModifiers, parseCombatAbility, calculateDynamicValue, type PassiveModifier, type ModifierCondition, type CombatAbility } from '@/lib/card-parser';
 import { toast } from 'react-hot-toast';
@@ -143,7 +144,14 @@ export default function PlaymatView() {
 
   return (
     <ErrorBoundary>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-24">
+        {/* Header */}
+        <ViewHeader
+          icon={Layers}
+          title="Playmat"
+          subtitle="Manage your domain cards and loadout"
+        />
+
         {/* Header & Toggle */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex bg-white/5 rounded-lg p-1 border border-white/10 w-full sm:w-auto">
