@@ -169,7 +169,7 @@ export default function PlaymatView() {
           />
 
           {/* Sticky Toggle Bar */}
-          <div className="sticky top-0 z-10 bg-dagger-dark/95 backdrop-blur border-b border-white/10 -mx-4 px-4 py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm">
+          <div className="sticky top-0 z-20 bg-dagger-dark/95 backdrop-blur border-b border-white/10 -mx-4 px-4 py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm">
             <div className="flex bg-white/5 rounded-lg p-1 border border-white/10 w-full sm:w-auto">
               <button
                 onClick={() => setViewMode('loadout')}
