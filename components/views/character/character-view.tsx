@@ -369,7 +369,7 @@ export default function CharacterView() {
         </div> {/* Closes Social Profile Header */}
 
         {/* Segmented Control (Sticky Tab Bar) */}
-        <div className="sticky top-0 z-10 bg-dagger-dark/95 backdrop-blur border-b border-white/10 px-4 py-2 flex justify-between items-center shadow-sm">
+        <div className="sticky top-0 z-20 bg-dagger-dark/95 backdrop-blur border-b border-white/10 px-4 py-2 flex justify-between items-center shadow-sm">
           <div className="flex p-1 bg-white/5 rounded-lg w-full">
             <button
               onClick={() => setActiveTab('stats')}
