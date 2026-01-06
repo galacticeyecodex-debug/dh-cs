@@ -96,7 +96,7 @@ export default function SubclassFeatureCard({
           className="p-1 hover:bg-white/10 rounded transition-colors"
           title={showLore ? "Hide lore" : "Show lore"}
         >
-          <Info size={14} className="text-gray-400" />
+          <Info size={14} className={showLore ? "text-dagger-gold" : "text-gray-400"} />
         </button>
       </div>
 

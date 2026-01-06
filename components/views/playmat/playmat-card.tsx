@@ -212,8 +212,8 @@ export default function PlaymatCard({
         hasCombatAbility={!!hasAttackOrRoll}
       />
 
-      {/* Top Right Icon Overlay - matches InventoryItemCard pattern */}
-      <div className="absolute top-2 right-2 z-40 flex items-center gap-1">
+      {/* Top Right Icon Overlay - positioned below domain card header */}
+      <div className="absolute top-4 right-4 z-40 flex items-center gap-1">
         {/* Info Toggle */}
         {libraryItem.data?.description && (
           <button
