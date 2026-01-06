@@ -30,6 +30,11 @@ import { hasCombatRelevance, enhanceFeature } from '@/lib/card-parser';
 import { getEnhancement } from '@/lib/enhancement-utils';
 import type { EnhancedAbilityCard, EnhancedAncestry, EnhancedCommunity, EnhancedFeature, Frequency } from '@/types/cards';
 
+import srdAncestries from '@/content/srd/json/ancestries_enhanced.json';
+import srdCommunities from '@/content/srd/json/communities_enhanced.json';
+import srdAbilities from '@/content/srd/json/abilities_enhanced.json';
+import playtestAbilities from '@/content/playtest/json/abilities_enhanced.json';
+
 export default function CombatView() {
   const { character, prepareRoll, updateModifiers, cardStates, updateHope, updateVitals } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
@@ -42,32 +47,13 @@ export default function CombatView() {
   const [activeWeaponId, setActiveWeaponId] = useState<string | null>(null);
   const [activeAbilityId, setActiveAbilityId] = useState<string | null>(null);
   const [transformationCard, setTransformationCard] = useState<any>(null);
-  const [enhancedAbilities, setEnhancedAbilities] = useState<EnhancedAbilityCard[]>([]);
   const [showFeatures, setShowFeatures] = useState(true);
-  const [ancestryData, setAncestryData] = useState<EnhancedAncestry | null>(null);
-  const [communityData, setCommunityData] = useState<EnhancedCommunity | null>(null);
 
-  // Load enhanced ability data from JSON files via dynamic import
-  useEffect(() => {
-    const loadEnhancedAbilities = async () => {
-      try {
-        // Load SRD abilities
-        const srdModule = await import('@/content/srd/json/abilities_enhanced.json');
-        const srdData = (srdModule.default || []) as EnhancedAbilityCard[];
-
-        // Load Playtest abilities if enabled
-        let playtestData: EnhancedAbilityCard[] = [];
-        if (includePlaytest) {
-          const playtestModule = await import('@/content/playtest/json/abilities_enhanced.json');
-          playtestData = (playtestModule.default || []) as EnhancedAbilityCard[];
-        }
-
-        setEnhancedAbilities([...srdData, ...playtestData]);
-      } catch (error) {
-        console.error('Failed to load enhanced abilities:', error);
-      }
-    };
-    loadEnhancedAbilities();
+  // Memoize enhanced abilities based on playtest setting
+  const enhancedAbilities = useMemo(() => {
+    const srdData = (srdAbilities || []) as EnhancedAbilityCard[];
+    const playtestData = includePlaytest ? ((playtestAbilities || []) as EnhancedAbilityCard[]) : [];
+    return [...srdData, ...playtestData];
   }, [includePlaytest]);
 
   // Fetch transformation data from library
@@ -96,41 +82,18 @@ export default function CombatView() {
     fetchTransformation();
   }, [character?.transformation, includePlaytest]);
 
-  // Load ancestry and community data from JSON files
-  useEffect(() => {
-    const loadHeritageData = async () => {
-      if (!character?.ancestry && !character?.community) {
-        setAncestryData(null);
-        setCommunityData(null);
-        return;
-      }
+  // Derive ancestry and community data directly from static imports
+  const ancestryData = useMemo(() => {
+    if (!character?.ancestry) return null;
+    const srdData = (srdAncestries || []) as EnhancedAncestry[];
+    return srdData.find(a => a.name === character.ancestry) || null;
+  }, [character?.ancestry]);
 
-      try {
-        // Load ancestries from SRD only (playtest ancestries don't exist yet)
-        if (character.ancestry) {
-          const srdAncestriesModule = await import('@/content/srd/json/ancestries_enhanced.json');
-          const srdAncestries = (srdAncestriesModule.default || []) as EnhancedAncestry[];
-          const ancestry = srdAncestries.find(a => a.name === character.ancestry);
-          setAncestryData(ancestry || null);
-        } else {
-          setAncestryData(null);
-        }
-
-        // Load communities from SRD only (playtest communities don't exist yet)
-        if (character.community) {
-          const srdCommunitiesModule = await import('@/content/srd/json/communities_enhanced.json');
-          const srdCommunities = (srdCommunitiesModule.default || []) as EnhancedCommunity[];
-          const community = srdCommunities.find(c => c.name === character.community);
-          setCommunityData(community || null);
-        } else {
-          setCommunityData(null);
-        }
-      } catch (error) {
-        console.error('Failed to load heritage data:', error);
-      }
-    };
-    loadHeritageData();
-  }, [character?.ancestry, character?.community]);
+  const communityData = useMemo(() => {
+    if (!character?.community) return null;
+    const srdData = (srdCommunities || []) as EnhancedCommunity[];
+    return srdData.find(c => c.name === character.community) || null;
+  }, [character?.community]);
 
   // Map character loadout cards to enhanced ability data
   // NOTE: This hook must be called before any early returns
