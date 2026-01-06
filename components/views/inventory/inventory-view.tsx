@@ -130,6 +130,12 @@ export default function InventoryView() {
     setEditingItem(null);
   };
 
+  const handleDeleteInstance = async () => {
+    if (!editingItem) return;
+    await deleteItemFromInventory(editingItem.id);
+    setEditingItem(null);
+  };
+
   // Memoize gold callbacks
   const handleHandfulsIncrement = useCallback(() => {
     if (!character) return;
@@ -343,6 +349,7 @@ export default function InventoryView() {
             onClose={() => setEditingItem(null)}
             onSave={handleSaveEditedItem}
             onDelete={editingItem.homebrew_item_id ? handleDeleteHomebrewDefinition : undefined}
+            onRemoveFromInventory={handleDeleteInstance}
             initialData={editingItem.library_item ? {
               name: editingItem.library_item.name,
               type: editingItem.library_item.type as any,

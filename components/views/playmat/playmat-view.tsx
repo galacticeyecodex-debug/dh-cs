@@ -40,6 +40,9 @@ import type { EnhancedAbilityCard } from '@/types/cards';
 import { getAttack, getRoll, getModifiers, isModifierActive } from '@/lib/enhancement-utils';
 import useContentAccess from '@/hooks/useContentAccess';
 
+import srdAbilities from '@/content/srd/json/abilities_enhanced.json';
+import playtestAbilities from '@/content/playtest/json/abilities_enhanced.json';
+
 export default function PlaymatView() {
   const { character, cardStates, moveCard, addCardToCollection, removeCard, updateCardImage, updateCardImagePosition, updateModifiers, user } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
@@ -60,33 +63,14 @@ export default function PlaymatView() {
     setSelectedCard(card);
   }, []);
   const [allLibraryItems, setAllLibraryItems] = useState<LibraryItem[]>([]);
-  const [enhancedAbilities, setEnhancedAbilities] = useState<EnhancedAbilityCard[]>([]);
   const [libraryLoading, setLibraryLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Load enhanced ability data from JSON files
-  useEffect(() => {
-    const loadEnhancedAbilities = async () => {
-      try {
-        const srdModule = await import('@/content/srd/json/abilities_enhanced.json');
-        const srdData = (srdModule.default || []) as EnhancedAbilityCard[];
-
-        let playtestData: EnhancedAbilityCard[] = [];
-        if (includePlaytest) {
-          try {
-            const playtestModule = await import('@/content/playtest/json/abilities_enhanced.json');
-            playtestData = (playtestModule.default || []) as EnhancedAbilityCard[];
-          } catch (e) {
-            console.warn('Playtest abilities not found');
-          }
-        }
-
-        setEnhancedAbilities([...srdData, ...playtestData]);
-      } catch (error) {
-        console.error('Failed to load enhanced abilities:', error);
-      }
-    };
-    loadEnhancedAbilities();
+  // Memoize enhanced abilities based on playtest setting
+  const enhancedAbilities = useMemo(() => {
+    const srdData = (srdAbilities || []) as EnhancedAbilityCard[];
+    const playtestData = includePlaytest ? ((playtestAbilities || []) as EnhancedAbilityCard[]) : [];
+    return [...srdData, ...playtestData];
   }, [includePlaytest]);
 
   useEffect(() => {
