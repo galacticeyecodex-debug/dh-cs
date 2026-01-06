@@ -148,7 +148,7 @@ export default function PrayerDiceCard({
           onClick={() => setShowInfo(!showInfo)}
           className="p-1 hover:bg-white/10 rounded transition-colors"
         >
-          <Info size={14} className="text-gray-400" />
+          <Info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
         </button>
       </div>
 
@@ -156,8 +156,8 @@ export default function PrayerDiceCard({
       {showInfo && (
         <div className="mb-3 p-3 bg-white/5 rounded-lg border border-white/5">
           <div className="text-xs text-gray-400">
-             <MarkdownText>
-                {description}
+            <MarkdownText>
+              {description}
             </MarkdownText>
           </div>
           <p className="text-xs text-gray-500 mt-2">
