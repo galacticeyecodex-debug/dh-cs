@@ -159,64 +159,66 @@ export default function PlaymatView() {
 
   return (
     <ErrorBoundary>
-      <div className="space-y-6 pb-24">
+      <div className="px-4 space-y-6 pb-24">
         {/* Header */}
-        <ViewHeader
-          icon={Layers}
-          title="Playmat"
-          subtitle="Manage your domain cards and loadout"
-        />
+        <div className="space-y-0">
+          <ViewHeader
+            icon={Layers}
+            title="Playmat"
+            subtitle="Manage your domain cards and loadout"
+          />
 
-        {/* Sticky Toggle Bar */}
-        <div className="sticky top-0 z-10 bg-dagger-dark/95 backdrop-blur border-b border-white/10 -mx-4 px-4 py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm">
-          <div className="flex bg-white/5 rounded-lg p-1 border border-white/10 w-full sm:w-auto">
-            <button
-              onClick={() => setViewMode('loadout')}
-              className={clsx(
-                "flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                viewMode === 'loadout' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
-              )}
-            >
-              <ScrollText size={16} /> Loadout
-            </button>
-            <button
-              onClick={() => setViewMode('vault')}
-              className={clsx(
-                "flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                viewMode === 'vault' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
-              )}
-            >
-              <Archive size={16} /> Vault
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            {/* Search Bar */}
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-              <input
-                type="text"
-                placeholder="Search cards..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-dagger-gold transition-colors"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-                >
-                  <X size={12} />
-                </button>
-              )}
+          {/* Sticky Toggle Bar */}
+          <div className="sticky top-0 z-10 bg-dagger-dark/95 backdrop-blur border-b border-white/10 -mx-4 px-4 py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm">
+            <div className="flex bg-white/5 rounded-lg p-1 border border-white/10 w-full sm:w-auto">
+              <button
+                onClick={() => setViewMode('loadout')}
+                className={clsx(
+                  "flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
+                  viewMode === 'loadout' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
+                )}
+              >
+                <ScrollText size={16} /> Loadout
+              </button>
+              <button
+                onClick={() => setViewMode('vault')}
+                className={clsx(
+                  "flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
+                  viewMode === 'vault' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
+                )}
+              >
+                <Archive size={16} /> Vault
+              </button>
             </div>
 
-            <button
-              onClick={() => setIsAddCardModalOpen(true)}
-              className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-full text-sm font-bold flex items-center gap-1 transition-colors border border-white/10 flex-shrink-0"
-            >
-              <Plus size={16} /> <span className="hidden xs:inline">Add Card</span>
-            </button>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              {/* Search Bar */}
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                <input
+                  type="text"
+                  placeholder="Search cards..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-dagger-gold transition-colors"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={() => setIsAddCardModalOpen(true)}
+                className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-full text-sm font-bold flex items-center gap-1 transition-colors border border-white/10 flex-shrink-0"
+              >
+                <Plus size={16} /> <span className="hidden xs:inline">Add Card</span>
+              </button>
+            </div>
           </div>
         </div>
 

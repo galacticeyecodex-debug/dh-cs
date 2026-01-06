@@ -199,7 +199,7 @@ export default function CombatView() {
 
   return (
     <ErrorBoundary>
-      <div className="space-y-6 pb-24">
+      <div className="p-4 space-y-6 pb-24">
         {/* Vitals Toggle & Display */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
