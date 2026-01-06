@@ -195,7 +195,7 @@ export default function InventoryView() {
 
   return (
     <ErrorBoundary>
-      <div className="space-y-6 pb-24">
+      <div className="p-4 space-y-6 pb-24">
         {/* Header */}
         <ViewHeader
           icon={Backpack}

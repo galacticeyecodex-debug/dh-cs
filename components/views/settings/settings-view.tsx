@@ -14,7 +14,7 @@ import ContentAccessSettings from '@/components/modals/content-access-settings';
 
 export default function SettingsView() {
     return (
-        <div className="space-y-6">
+        <div className="p-4 space-y-6">
             {/* Header */}
             <div className="flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-dagger-gold/10">

@@ -73,7 +73,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto scrollbar-hide pb-24 px-4 pt-4">
+      <main className="flex-1 overflow-y-auto scrollbar-hide pb-24">
         {children}
       </main>
 
