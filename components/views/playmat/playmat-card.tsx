@@ -16,8 +16,8 @@
 
 'use client';
 
-import React, { useState } from 'react';
-import { Box, ArrowRightLeft, Image as ImageIcon, Trash2, Info } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Box, ArrowRightLeft, Image as ImageIcon, Trash2, Info, Settings, Sliders } from 'lucide-react';
 import clsx from 'clsx';
 import { DomainCard } from '@/components/physical-cards/domain-card';
 import CardTokenTrack from '@/components/views/playmat/card-token-track';
@@ -60,8 +60,24 @@ export default function PlaymatCard({
   onRemove,
 }: PlaymatCardProps) {
   const [showDescription, setShowDescription] = useState(false);
+  const [showManageMenu, setShowManageMenu] = useState(false);
+  const manageMenuRef = useRef<HTMLDivElement>(null);
   const { character, cardStates, prepareRoll, updateHope, updateVitals } = useCharacterStore();
   const libraryItem = card.library_item;
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (manageMenuRef.current && !manageMenuRef.current.contains(event.target as Node)) {
+        setShowManageMenu(false);
+      }
+    };
+
+    if (showManageMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showManageMenu]);
 
   if (!libraryItem) return null;
 
@@ -196,19 +212,109 @@ export default function PlaymatCard({
         hasCombatAbility={!!hasAttackOrRoll}
       />
 
-      {/* Art Button (Top Right Overlay) */}
-      {onEditArt && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEditArt();
-          }}
-          className="absolute top-2 right-2 z-40 p-1.5 bg-black/50 hover:bg-black/80 text-white/70 hover:text-white rounded-full transition-colors backdrop-blur-sm border border-white/10"
-          title="Change Card Art"
-        >
-          <ImageIcon size={14} />
-        </button>
-      )}
+      {/* Top Right Icon Overlay - matches InventoryItemCard pattern */}
+      <div className="absolute top-2 right-2 z-40 flex items-center gap-1">
+        {/* Info Toggle */}
+        {libraryItem.data?.description && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDescription(!showDescription);
+            }}
+            className={clsx(
+              "p-1.5 rounded-full transition-colors backdrop-blur-sm border",
+              showDescription
+                ? "bg-dagger-gold/30 text-dagger-gold border-dagger-gold/50"
+                : "bg-black/50 hover:bg-black/80 text-white/70 hover:text-white border-white/10"
+            )}
+            title={showDescription ? "Hide description" : "Show description"}
+          >
+            <Info size={14} />
+          </button>
+        )}
+
+        {/* Art Button */}
+        {onEditArt && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEditArt();
+            }}
+            className="p-1.5 bg-black/50 hover:bg-black/80 text-white/70 hover:text-white rounded-full transition-colors backdrop-blur-sm border border-white/10"
+            title="Change Card Art"
+          >
+            <ImageIcon size={14} />
+          </button>
+        )}
+
+        {/* Settings/Manage Button */}
+        <div className="relative" ref={manageMenuRef}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowManageMenu(!showManageMenu);
+            }}
+            className={clsx(
+              "p-1.5 rounded-full transition-colors backdrop-blur-sm border",
+              showManageMenu
+                ? "bg-white/20 text-white border-white/30"
+                : "bg-black/50 hover:bg-black/80 text-white/70 hover:text-white border-white/10"
+            )}
+            title="Manage Card"
+          >
+            <Settings size={14} />
+          </button>
+
+          {/* Dropdown Menu */}
+          {showManageMenu && (
+            <div
+              className="absolute right-0 top-full mt-1 w-48 bg-dagger-panel border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Manage Modifiers */}
+              {onManageModifiers && (
+                <button
+                  onClick={() => {
+                    onManageModifiers();
+                    setShowManageMenu(false);
+                  }}
+                  className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-2 transition-colors"
+                >
+                  <Sliders size={14} /> Manage Modifiers
+                </button>
+              )}
+
+              {/* Move to Vault/Loadout */}
+              <button
+                onClick={() => {
+                  onMoveLocation(isLoadout ? 'vault' : 'loadout');
+                  setShowManageMenu(false);
+                }}
+                className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-2 transition-colors"
+              >
+                {isLoadout ? (
+                  <><Box size={14} /> Move to Vault</>
+                ) : (
+                  <><ArrowRightLeft size={14} /> Move to Loadout</>
+                )}
+              </button>
+
+              {/* Remove from Character */}
+              {onRemove && (
+                <button
+                  onClick={() => {
+                    onRemove();
+                    setShowManageMenu(false);
+                  }}
+                  className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/20 hover:text-red-300 flex items-center gap-2 transition-colors border-t border-white/5"
+                >
+                  <Trash2 size={14} /> Remove from Character
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Collapsible Description Panel */}
       {showDescription && libraryItem.data?.description && (
@@ -319,40 +425,8 @@ export default function PlaymatCard({
         {/* Embedded Attack Card */}
         {attackCardNode}
 
-        {/* Actions Row */}
+        {/* Actions Row - Move is the primary action */}
         <div className="pt-1 border-t border-white/5 flex gap-2">
-          {/* Info Toggle */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowDescription(!showDescription);
-            }}
-            className={clsx(
-              "p-1.5 rounded-md transition-colors",
-              showDescription
-                ? "bg-dagger-gold/20 text-dagger-gold"
-                : "bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
-            )}
-            title={showDescription ? "Hide description" : "Show description"}
-          >
-            <Info size={12} />
-          </button>
-
-          {/* Change Art */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onEditArt) {
-                onEditArt();
-              } else {
-                onView();
-              }
-            }}
-            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-white/5 hover:bg-white/10 rounded-md text-[10px] font-medium text-gray-400 hover:text-white transition-colors"
-          >
-            <ImageIcon size={12} /> Art
-          </button>
-
           {/* Move Toggle */}
           <button
             onClick={(e) => {
@@ -368,28 +442,14 @@ export default function PlaymatCard({
           >
             {isLoadout ? (
               <>
-                <Box size={12} /> Vault
+                <Box size={12} /> Move to Vault
               </>
             ) : (
               <>
-                <ArrowRightLeft size={12} /> Loadout
+                <ArrowRightLeft size={12} /> Add to Loadout
               </>
             )}
           </button>
-
-          {/* Delete */}
-          {onRemove && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove();
-              }}
-              className="p-1.5 rounded-md bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
-              title="Remove from character"
-            >
-              <Trash2 size={12} />
-            </button>
-          )}
         </div>
       </div>
     </div>
