@@ -48,6 +48,7 @@ interface PlaymatCardProps {
   onEditArt?: () => void;
   onManageModifiers?: () => void;
   onRemove?: () => void;
+  hasModifiersToManage?: boolean; // Whether the card has attack/roll that would have modifiers
 }
 
 export default function PlaymatCard({
@@ -58,6 +59,7 @@ export default function PlaymatCard({
   onEditArt,
   onManageModifiers,
   onRemove,
+  hasModifiersToManage = false,
 }: PlaymatCardProps) {
   const [showDescription, setShowDescription] = useState(false);
   const [showManageMenu, setShowManageMenu] = useState(false);
@@ -272,17 +274,23 @@ export default function PlaymatCard({
               onClick={(e) => e.stopPropagation()}
             >
               {/* Manage Modifiers */}
-              {onManageModifiers && (
-                <button
-                  onClick={() => {
+              <button
+                onClick={() => {
+                  if (hasModifiersToManage && onManageModifiers) {
                     onManageModifiers();
                     setShowManageMenu(false);
-                  }}
-                  className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-2 transition-colors"
-                >
-                  <Sliders size={14} /> Manage Modifiers
-                </button>
-              )}
+                  }
+                }}
+                disabled={!hasModifiersToManage}
+                className={clsx(
+                  "w-full px-3 py-2 text-left text-sm flex items-center gap-2 transition-colors",
+                  hasModifiersToManage
+                    ? "text-gray-300 hover:bg-white/10 hover:text-white cursor-pointer"
+                    : "text-gray-600 cursor-not-allowed"
+                )}
+              >
+                <Sliders size={14} /> Manage Modifiers
+              </button>
 
               {/* Move to Vault/Loadout */}
               <button

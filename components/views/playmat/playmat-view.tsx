@@ -167,8 +167,8 @@ export default function PlaymatView() {
           subtitle="Manage your domain cards and loadout"
         />
 
-        {/* Header & Toggle */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        {/* Sticky Toggle Bar */}
+        <div className="sticky top-0 z-10 bg-dagger-dark/95 backdrop-blur border-b border-white/10 -mx-4 px-4 py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm">
           <div className="flex bg-white/5 rounded-lg p-1 border border-white/10 w-full sm:w-auto">
             <button
               onClick={() => setViewMode('loadout')}
@@ -344,6 +344,8 @@ export default function PlaymatView() {
               {loadoutCards.length > 0 ? (
                 loadoutCards.map((charCard) => {
                   const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
+                  // Check if card has attack or roll (which means it has modifiers to manage)
+                  const hasModifiers = !!(enhancedData && (getAttack(enhancedData) || getRoll(enhancedData)));
                   return (
                     <PlaymatCard
                       key={charCard.id}
@@ -354,6 +356,7 @@ export default function PlaymatView() {
                       onEditArt={() => handleEditCardArt(charCard)}
                       onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
                       onRemove={() => handleRemoveCardClick(charCard)}
+                      hasModifiersToManage={hasModifiers}
                     />
                   );
                 })
@@ -390,6 +393,8 @@ export default function PlaymatView() {
               <div className="flex flex-col items-center gap-4">
                 {vaultCards.map((charCard) => {
                   const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
+                  // Check if card has attack or roll (which means it has modifiers to manage)
+                  const hasModifiers = !!(enhancedData && (getAttack(enhancedData) || getRoll(enhancedData)));
                   return (
                     <PlaymatCard
                       key={charCard.id}
@@ -400,6 +405,7 @@ export default function PlaymatView() {
                       onEditArt={() => handleEditCardArt(charCard)}
                       onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
                       onRemove={() => handleRemoveCardClick(charCard)}
+                      hasModifiersToManage={hasModifiers}
                     />
                   );
                 })}
