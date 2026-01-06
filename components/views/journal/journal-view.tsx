@@ -35,6 +35,7 @@ import type { Relationship, RelationshipTier } from '@/types/journal';
 import clsx from 'clsx';
 import RelationshipChangeModal from './relationship-change-modal';
 import TextNotesPanel from './text-notes-panel';
+import PromptModal from '@/components/shared/prompt-modal';
 
 type JournalTab = 'relationships' | 'reputation' | 'notes';
 
@@ -61,7 +62,7 @@ export default function JournalView() {
     }, [fetchRelationships]);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-24">
             {/* Header */}
             <div className="flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-dagger-gold/10">
@@ -328,95 +329,111 @@ function ReputationPanel({
 }: ReputationPanelProps) {
     const tier = getReputationTier(reputation);
     const tierInfo = getReputationTierInfo(tier);
+    const [promptOpen, setPromptOpen] = useState(false);
+    const [pendingChange, setPendingChange] = useState<number>(0);
+
+    const handleOpenPrompt = (change: number) => {
+        setPendingChange(change);
+        setPromptOpen(true);
+    };
+
+    const handleConfirmChange = (description: string) => {
+        onChangeReputation(pendingChange, description);
+    };
 
     return (
-        <div className="space-y-4">
-            {/* Current Reputation */}
-            <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-                <h2 className="text-lg font-semibold text-white mb-4">Current Standing</h2>
+        <>
+            <PromptModal
+                isOpen={promptOpen}
+                onClose={() => setPromptOpen(false)}
+                title={pendingChange > 0 ? "Reputation Increase" : "Reputation Decrease"}
+                description={pendingChange > 0 ? "What caused your reputation to improve?" : "What caused your reputation to decline?"}
+                placeholder="Describe the event..."
+                submitLabel="Confirm"
+                onSubmit={handleConfirmChange}
+            />
+            <div className="space-y-4">
+                {/* Current Reputation */}
+                <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                    <h2 className="text-lg font-semibold text-white mb-4">Current Standing</h2>
 
-                {/* Reputation meter */}
-                <div className="flex items-center justify-center gap-4 mb-4">
-                    <button
-                        onClick={() => {
-                            const desc = prompt('What caused the reputation decrease?');
-                            if (desc) onChangeReputation(-1, desc);
-                        }}
-                        className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
-                    >
-                        <ChevronDown size={24} />
-                    </button>
+                    {/* Reputation meter */}
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                        <button
+                            onClick={() => handleOpenPrompt(-1)}
+                            className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
+                        >
+                            <ChevronDown size={24} />
+                        </button>
 
-                    <div className="text-center">
-                        <div className={clsx('text-4xl font-bold mb-1', tierInfo.color)}>
-                            {reputation > 0 ? '+' : ''}{reputation}
-                        </div>
-                        <div className={clsx('text-lg font-semibold', tierInfo.color)}>
-                            {tierInfo.label}
-                        </div>
-                        <div className="text-sm text-gray-400 mt-1">
-                            {tierInfo.effect}
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={() => {
-                            const desc = prompt('What caused the reputation increase?');
-                            if (desc) onChangeReputation(1, desc);
-                        }}
-                        className="p-2 rounded-lg bg-white/5 hover:bg-green-500/20 text-gray-400 hover:text-green-400 transition-colors"
-                    >
-                        <ChevronUp size={24} />
-                    </button>
-                </div>
-
-                {/* Tier scale */}
-                <div className="flex justify-between text-xs text-gray-500 px-2">
-                    <span>Pariah</span>
-                    <span>Troubled</span>
-                    <span>Average</span>
-                    <span>Respected</span>
-                    <span>Legend</span>
-                </div>
-                <div className="h-2 rounded-full bg-gradient-to-r from-red-500 via-gray-500 to-dagger-gold mt-1 relative">
-                    {/* Position indicator */}
-                    <div
-                        className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-dagger-dark"
-                        style={{
-                            left: `${Math.min(Math.max((reputation + 6) / 12 * 100, 0), 100)}%`,
-                            transform: 'translate(-50%, -50%)',
-                        }}
-                    />
-                </div>
-            </div>
-
-            {/* History */}
-            <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-                <h2 className="text-lg font-semibold text-white mb-3">History</h2>
-
-                {history.length === 0 ? (
-                    <p className="text-gray-400 text-sm text-center py-4">
-                        No reputation changes recorded
-                    </p>
-                ) : (
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {history.slice(0, 10).map((event) => (
-                            <div
-                                key={event.id}
-                                className="flex items-center justify-between p-2 rounded bg-white/5"
-                            >
-                                <span className="text-sm text-gray-300">{event.description}</span>
-                                <span className={clsx(
-                                    'text-sm font-medium',
-                                    event.change > 0 ? 'text-green-400' : 'text-red-400'
-                                )}>
-                                    {event.change > 0 ? '+' : ''}{event.change}
-                                </span>
+                        <div className="text-center">
+                            <div className={clsx('text-4xl font-bold mb-1', tierInfo.color)}>
+                                {reputation > 0 ? '+' : ''}{reputation}
                             </div>
-                        ))}
+                            <div className={clsx('text-lg font-semibold', tierInfo.color)}>
+                                {tierInfo.label}
+                            </div>
+                            <div className="text-sm text-gray-400 mt-1">
+                                {tierInfo.effect}
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => handleOpenPrompt(1)}
+                            className="p-2 rounded-lg bg-white/5 hover:bg-green-500/20 text-gray-400 hover:text-green-400 transition-colors"
+                        >
+                            <ChevronUp size={24} />
+                        </button>
                     </div>
-                )}
+
+                    {/* Tier scale */}
+                    <div className="flex justify-between text-xs text-gray-500 px-2">
+                        <span>Pariah</span>
+                        <span>Troubled</span>
+                        <span>Average</span>
+                        <span>Respected</span>
+                        <span>Legend</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-gradient-to-r from-red-500 via-gray-500 to-dagger-gold mt-1 relative">
+                        {/* Position indicator */}
+                        <div
+                            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-dagger-dark"
+                            style={{
+                                left: `${Math.min(Math.max((reputation + 6) / 12 * 100, 0), 100)}%`,
+                                transform: 'translate(-50%, -50%)',
+                            }}
+                        />
+                    </div>
+                </div>
+
+                {/* History */}
+                <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                    <h2 className="text-lg font-semibold text-white mb-3">History</h2>
+
+                    {history.length === 0 ? (
+                        <p className="text-gray-400 text-sm text-center py-4">
+                            No reputation changes recorded
+                        </p>
+                    ) : (
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                            {history.slice(0, 10).map((event) => (
+                                <div
+                                    key={event.id}
+                                    className="flex items-center justify-between p-2 rounded bg-white/5"
+                                >
+                                    <span className="text-sm text-gray-300">{event.description}</span>
+                                    <span className={clsx(
+                                        'text-sm font-medium',
+                                        event.change > 0 ? 'text-green-400' : 'text-red-400'
+                                    )}>
+                                        {event.change > 0 ? '+' : ''}{event.change}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+        </>
     );
 }

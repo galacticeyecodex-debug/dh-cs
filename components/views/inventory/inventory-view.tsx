@@ -22,7 +22,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useCharacterStore, CharacterInventoryItem, LibraryItem } from '@/store/character-store';
-import { Coins, Package, Plus, Heart, Gem, Eye, EyeOff, Sword, Shield } from 'lucide-react';
+import { Coins, Package, Plus, Heart, Gem, Eye, EyeOff, Sword, Shield, Backpack } from 'lucide-react';
 import clsx from 'clsx';
 import AddItemModal from './add-item-modal';
 import CreateHomebrewItemModal, { HomebrewItemData } from './create-homebrew-item-modal';
@@ -30,6 +30,7 @@ import ItemArtModal from './item-art-modal';
 import InventoryItemCard from './inventory-item-card';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/core/error-boundary';
+import ViewHeader from '@/components/shared/view-header';
 
 export default function InventoryView() {
   const {
@@ -194,7 +195,14 @@ export default function InventoryView() {
 
   return (
     <ErrorBoundary>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-24">
+        {/* Header */}
+        <ViewHeader
+          icon={Backpack}
+          title="Inventory"
+          subtitle="Manage your gear, weapons, and wealth"
+        />
+
         {/* Gold Tracker */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
