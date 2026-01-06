@@ -29,6 +29,7 @@ import { MarkdownText } from '@/components/shared/markdown-text';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import ViewHeader from '@/components/shared/view-header';
 import ModifierSheet from '@/components/shared/modifier-sheet';
+import ConfirmDialog from '@/components/shared/confirm-dialog';
 import { parseCardPassiveModifiers, parseCombatAbility, calculateDynamicValue, type PassiveModifier, type ModifierCondition, type CombatAbility } from '@/lib/card-parser';
 import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
@@ -53,6 +54,7 @@ export default function PlaymatView() {
   const [selectedCard, setSelectedCard] = useState<CharacterCard | null>(null);
   const [cardDetailMode, setCardDetailMode] = useState<'full' | 'art-only'>('full');
   const [activeAbilityId, setActiveAbilityId] = useState<string | null>(null);
+  const [cardToRemove, setCardToRemove] = useState<CharacterCard | null>(null);
 
   const handleViewCard = useCallback((card: CharacterCard) => {
     setCardDetailMode('full');
@@ -63,6 +65,19 @@ export default function PlaymatView() {
     setCardDetailMode('art-only');
     setSelectedCard(card);
   }, []);
+
+  const handleRemoveCardClick = useCallback((card: CharacterCard) => {
+    setCardToRemove(card);
+  }, []);
+
+  const handleConfirmRemoveCard = useCallback(async () => {
+    if (cardToRemove) {
+      await removeCard(cardToRemove.id);
+      setCardToRemove(null);
+      toast.success(`"${cardToRemove.library_item?.name}" removed from character`);
+    }
+  }, [cardToRemove, removeCard]);
+
   const [allLibraryItems, setAllLibraryItems] = useState<LibraryItem[]>([]);
   const [libraryLoading, setLibraryLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -338,6 +353,7 @@ export default function PlaymatView() {
                       onView={() => handleViewCard(charCard)}
                       onEditArt={() => handleEditCardArt(charCard)}
                       onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
+                      onRemove={() => handleRemoveCardClick(charCard)}
                     />
                   );
                 })
@@ -383,6 +399,7 @@ export default function PlaymatView() {
                       onView={() => handleViewCard(charCard)}
                       onEditArt={() => handleEditCardArt(charCard)}
                       onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
+                      onRemove={() => handleRemoveCardClick(charCard)}
                     />
                   );
                 })}
@@ -495,6 +512,18 @@ export default function PlaymatView() {
             />
           );
         })()}
+
+        {/* Remove Card Confirmation Dialog */}
+        <ConfirmDialog
+          isOpen={!!cardToRemove}
+          onClose={() => setCardToRemove(null)}
+          onConfirm={handleConfirmRemoveCard}
+          title="Remove Card"
+          description={`Are you sure you want to remove "${cardToRemove?.library_item?.name}" from your character? This cannot be undone.`}
+          confirmText="Remove"
+          cancelText="Cancel"
+          variant="danger"
+        />
       </div>
     </ErrorBoundary>
   );
@@ -511,6 +540,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showImageOptions, setShowImageOptions] = useState(mode === 'art-only');
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
   // Local position state for immediate UI feedback (debounced save to DB)
   const [localPosition, setLocalPosition] = useState({
@@ -1077,18 +1107,29 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
         {/* Footer */}
         <div className="p-4 border-t border-white/10 flex justify-center">
           <button
-            onClick={async () => {
-              if (confirm(`Remove "${name}" from your character? This cannot be undone.`)) {
-                await removeCard(charCard.id);
-                onClose();
-              }
-            }}
+            onClick={() => setShowRemoveConfirm(true)}
             className="flex items-center gap-1.5 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-lg text-sm font-bold transition-colors border border-red-500/30"
           >
             <Trash2 size={14} /> Remove from Character
           </button>
         </div>
       </div>
+
+      {/* Remove Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showRemoveConfirm}
+        onClose={() => setShowRemoveConfirm(false)}
+        onConfirm={async () => {
+          await removeCard(charCard.id);
+          toast.success(`"${name}" removed from character`);
+          onClose();
+        }}
+        title="Remove Card"
+        description={`Are you sure you want to remove "${name}" from your character? This cannot be undone.`}
+        confirmText="Remove"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </div>
   );
 }
