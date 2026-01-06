@@ -62,7 +62,7 @@ export default function JournalView() {
     }, [fetchRelationships]);
 
     return (
-        <div className="space-y-6 pb-24">
+        <div className="p-4 space-y-6 pb-24">
             {/* Header */}
             <div className="flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-dagger-gold/10">

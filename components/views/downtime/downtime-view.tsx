@@ -80,7 +80,7 @@ export default function DowntimeView() {
     };
 
     return (
-        <div className="space-y-6 pb-20">
+        <div className="p-4 space-y-6 pb-20">
             {/* Header */}
             <div className="flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-dagger-gold/10">
