@@ -253,5 +253,107 @@ Import from `@/lib/styles` for consistency:
 - `BADGE.domainCard` - Purple styling for domain card modifiers
 - `BADGE.homebrew` - Purple styling for custom items
 
+## 9. Button Variants
+
+### 9.1 Standard Button Patterns
+Use consistent button styling across the app:
+
+**Primary CTA (Gold):**
+```tsx
+<button className="bg-dagger-gold hover:bg-yellow-500 text-black font-bold px-4 py-2 rounded-full transition-colors">
+  Add Item
+</button>
+```
+
+**Secondary (Subtle):**
+```tsx
+<button className="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2 rounded-lg border border-white/10 transition-colors">
+  Cancel
+</button>
+```
+
+**Tertiary/Ghost:**
+```tsx
+<button className="bg-transparent text-gray-400 hover:text-white hover:bg-white/5 px-3 py-2 rounded-lg transition-colors">
+  Skip
+</button>
+```
+
+**Accent (Gold-tinted):**
+```tsx
+<button className="bg-dagger-gold/10 text-dagger-gold hover:bg-dagger-gold/20 px-3 py-1.5 rounded-lg font-medium transition-colors">
+  Add NPC
+</button>
+```
+
+### 9.2 Button Shape Guidelines
+- **Pill (rounded-full)**: Primary CTAs, floating action buttons
+- **Rounded-lg**: Form actions, modal buttons, inline actions
+- **Rounded-md**: Small inline buttons, tabs
+
+## 10. Reusable Components
+
+### 10.1 ViewHeader
+Every main view should include a consistent header. Use the `ViewHeader` component:
+
+```tsx
+import ViewHeader from '@/components/shared/view-header';
+import { Package } from 'lucide-react';
+
+<ViewHeader
+  icon={Package}
+  title="Inventory"
+  subtitle="Manage your gear, weapons, and wealth"
+/>
+```
+
+### 10.2 EmptyState
+Use consistent empty states across the app:
+
+```tsx
+import EmptyState from '@/components/shared/empty-state';
+import { Package } from 'lucide-react';
+
+<EmptyState
+  icon={Package}
+  title="No items found"
+  description="Add items to get started"
+  actionLabel="Add Item"
+  onAction={() => setIsModalOpen(true)}
+  dashed={true}  // Optional: use dashed border style
+/>
+```
+
+### 10.3 PromptModal
+Replace browser `prompt()` with styled modals:
+
+```tsx
+import PromptModal from '@/components/shared/prompt-modal';
+
+<PromptModal
+  isOpen={showPrompt}
+  onClose={() => setShowPrompt(false)}
+  title="Add Reason"
+  description="What caused this change?"
+  placeholder="Enter reason..."
+  onSubmit={(value) => handleSubmit(value)}
+/>
+```
+
+**NEVER** use browser `prompt()`, `alert()`, or `confirm()`. Always use styled modal alternatives.
+
+## 11. Border Radius Hierarchy
+
+Maintain consistent border radius across component types:
+
+| Component Type | Radius Class | Usage |
+|----------------|--------------|-------|
+| Modals | `rounded-2xl` | Full-screen overlays, dialogs |
+| Primary Panels | `rounded-xl` | Content cards, view containers |
+| List Items | `rounded-lg` | Items within lists, cards |
+| Buttons | `rounded-lg` or `rounded-full` | Varies by context |
+| Badges/Pills | `rounded-full` | Tags, status indicators |
+
 ---
 *This guide is a living document. Update it when introducing new standard UI patterns.*
+
