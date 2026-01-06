@@ -16,8 +16,8 @@
 
 'use client';
 
-import React from 'react';
-import { Box, ArrowRightLeft, Settings, Image as ImageIcon } from 'lucide-react';
+import React, { useState } from 'react';
+import { Box, ArrowRightLeft, Image as ImageIcon, Trash2, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { DomainCard } from '@/components/physical-cards/domain-card';
 import CardTokenTrack from '@/components/views/playmat/card-token-track';
@@ -26,6 +26,7 @@ import { DomainAbilityButton } from '@/components/views/playmat/domain-ability-b
 import { DomainCostsRow } from '@/components/views/playmat/domain-costs-row';
 import ModifierActivationRow from '@/components/views/playmat/modifier-activation-row';
 import { AttackCard } from '@/components/views/combat';
+import { MarkdownText } from '@/components/shared/markdown-text';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { EnhancedAbilityCard } from '@/types/cards';
 import { getSystemModifiers, calculateWeaponDamage, parseDamageRoll } from '@/lib/utils';
@@ -46,6 +47,7 @@ interface PlaymatCardProps {
   onView: () => void;
   onEditArt?: () => void;
   onManageModifiers?: () => void;
+  onRemove?: () => void;
 }
 
 export default function PlaymatCard({
@@ -55,7 +57,9 @@ export default function PlaymatCard({
   onView,
   onEditArt,
   onManageModifiers,
+  onRemove,
 }: PlaymatCardProps) {
+  const [showDescription, setShowDescription] = useState(false);
   const { character, cardStates, prepareRoll, updateHope, updateVitals } = useCharacterStore();
   const libraryItem = card.library_item;
 
@@ -192,7 +196,7 @@ export default function PlaymatCard({
         hasCombatAbility={!!hasAttackOrRoll}
       />
 
-      {/* Modifiers Button (Top Right Overlay) */}
+      {/* Art Button (Top Right Overlay) */}
       {onEditArt && (
         <button
           onClick={(e) => {
@@ -202,8 +206,15 @@ export default function PlaymatCard({
           className="absolute top-2 right-2 z-40 p-1.5 bg-black/50 hover:bg-black/80 text-white/70 hover:text-white rounded-full transition-colors backdrop-blur-sm border border-white/10"
           title="Change Card Art"
         >
-          <Settings size={14} />
+          <ImageIcon size={14} />
         </button>
+      )}
+
+      {/* Collapsible Description Panel */}
+      {showDescription && libraryItem.data?.description && (
+        <div className="w-full p-3 bg-white/5 rounded-lg border border-white/5 text-sm text-gray-300">
+          <MarkdownText>{libraryItem.data.description}</MarkdownText>
+        </div>
       )}
 
       {/* Mechanics Tray */}
@@ -310,6 +321,23 @@ export default function PlaymatCard({
 
         {/* Actions Row */}
         <div className="pt-1 border-t border-white/5 flex gap-2">
+          {/* Info Toggle */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDescription(!showDescription);
+            }}
+            className={clsx(
+              "p-1.5 rounded-md transition-colors",
+              showDescription
+                ? "bg-dagger-gold/20 text-dagger-gold"
+                : "bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
+            )}
+            title={showDescription ? "Hide description" : "Show description"}
+          >
+            <Info size={12} />
+          </button>
+
           {/* Change Art */}
           <button
             onClick={(e) => {
@@ -322,7 +350,7 @@ export default function PlaymatCard({
             }}
             className="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-white/5 hover:bg-white/10 rounded-md text-[10px] font-medium text-gray-400 hover:text-white transition-colors"
           >
-            <ImageIcon size={12} /> Change Art
+            <ImageIcon size={12} /> Art
           </button>
 
           {/* Move Toggle */}
@@ -340,14 +368,28 @@ export default function PlaymatCard({
           >
             {isLoadout ? (
               <>
-                <Box size={12} /> To Vault
+                <Box size={12} /> Vault
               </>
             ) : (
               <>
-                <ArrowRightLeft size={12} /> To Loadout
+                <ArrowRightLeft size={12} /> Loadout
               </>
             )}
           </button>
+
+          {/* Delete */}
+          {onRemove && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+              className="p-1.5 rounded-md bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
+              title="Remove from character"
+            >
+              <Trash2 size={12} />
+            </button>
+          )}
         </div>
       </div>
     </div>
