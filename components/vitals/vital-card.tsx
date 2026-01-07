@@ -104,7 +104,7 @@ const VitalCard = React.memo(function VitalCard({
     }
 
     return (
-      <div className="flex flex-wrap justify-center gap-1.5 my-2 px-2">
+      <div className="flex flex-wrap justify-center gap-1 sm:gap-1.5 my-1.5 sm:my-2 px-1 sm:px-2">
         {icons}
       </div>
     );
@@ -122,12 +122,12 @@ const VitalCard = React.memo(function VitalCard({
         <div
           className={clsx(
             PANEL.base,
-            "p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
+            "p-1.5 sm:p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
             "w-full",
             getPanelBorder({ isModified }),
             className
           )}>
-          <div className="flex items-center justify-between w-full">
+          <div className="relative flex items-center justify-center w-full">
             <div className={clsx("flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide", color)}>
               <Icon size={12} />
               {label}
@@ -138,7 +138,7 @@ const VitalCard = React.memo(function VitalCard({
                   e.stopPropagation();
                   setShowModifierSheet(true);
                 }}
-                className="text-gray-500 hover:text-gray-300 transition-colors"
+                className="absolute right-0 text-gray-500 hover:text-gray-300 transition-colors"
                 aria-label={`Manage ${label} modifiers`}
               >
                 <Settings size={12} />
@@ -174,7 +174,7 @@ const VitalCard = React.memo(function VitalCard({
       <div
         className={clsx(
           PANEL.base,
-          "p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
+          "p-1.5 sm:p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
           "w-full",
           // Critical condition overrides modified border (handled by getPanelBorder)
           // Hide modified border for Evasion specifically
@@ -184,7 +184,7 @@ const VitalCard = React.memo(function VitalCard({
           }),
           className
         )}>
-        <div className="flex items-center justify-between w-full">
+        <div className="relative flex items-center justify-center w-full">
           <div className={clsx("flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide", color)}>
             <Icon size={12} />
             {label}
@@ -195,7 +195,7 @@ const VitalCard = React.memo(function VitalCard({
                 e.stopPropagation();
                 setShowModifierSheet(true);
               }}
-              className="text-gray-500 hover:text-gray-300 transition-colors"
+              className="absolute right-0 text-gray-500 hover:text-gray-300 transition-colors"
               aria-label={`Manage ${label} modifiers`}
             >
               <Settings size={12} />

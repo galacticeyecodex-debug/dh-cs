@@ -283,19 +283,19 @@ function RelationshipCard({
                         </div>
                         <button
                             onClick={() => setIsModalOpen(true)}
-                            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-dagger-gold transition-colors"
+                            className="p-1 rounded hover:bg-white/10 text-gray-400 hover:text-dagger-gold transition-colors"
                             title="Manage relationship"
                         >
-                            <Settings size={16} />
+                            <Settings size={12} />
                         </button>
 
                         {/* Delete button */}
                         <button
                             onClick={() => onDelete(relationship.id)}
-                            className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-colors"
+                            className="p-1 rounded hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-colors"
                             title="Remove NPC"
                         >
-                            <Trash2 size={14} />
+                            <Trash2 size={12} />
                         </button>
                     </div>
                 </div>
