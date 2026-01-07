@@ -85,7 +85,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
     // Sub-stats for ModifierSheet tabs
     // Note: We include "Generic" mods in Major/Severe base values for display context,
     // but the Generic tab allows editing the shared modifiers separately.
-    const genericBonus = genericStats.total; 
+    const genericBonus = genericStats.total;
 
     const subStats = [
       {
@@ -113,7 +113,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
         id: 'major',
         label: 'Major',
         // Base value includes generic bonus so "Total" looks correct relative to sheet
-        baseValue: majorThreshold + genericBonus, 
+        baseValue: majorThreshold + genericBonus,
         currentModifiers: majorStats.allMods,
         onUpdateModifiers: (mods: any[]) => updateModifiers('damage_threshold_major', mods)
       },
@@ -207,35 +207,37 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
 
   return (
     <div className="space-y-3">
-      {/* Row 1: Evasion & Armor (Squares) */}
-      <div className="grid grid-cols-2 gap-3">
-        <VitalCard
-          label="Evasion"
-          current={evasionDetails.total}
-          color="text-cyan-400"
-          icon={Eye}
-          isModified={evasionDetails.isModified}
-          expectedValue={evasionDetails.baseValue}
-          modifiers={evasionDetails.allMods}
-          onUpdateModifiers={handleUpdateEvasionMods}
-        />
-        <VitalCard
-          label="Armor"
-          current={character.vitals.armor_slots}
-          max={armorDetails.total}
-          color="text-blue-400"
-          icon={Shield}
-          onIncrement={handleArmorIncrement}
-          onDecrement={handleArmorDecrement}
-          isCriticalCondition={character.vitals.armor_slots === 0 && armorDetails.total > 0}
-          thresholds={character.damage_thresholds}
-          trackType="mark-bad"
-          disableCritColor={true}
-          modifiers={armorDetails.allMods}
-          onUpdateModifiers={handleUpdateArmorMods}
-          subStats={armorDetails.subStats}
-        />
-      </div>
+      {/* Evasion */}
+      <VitalCard
+        label="Evasion"
+        current={evasionDetails.total}
+        color="text-cyan-400"
+        icon={Eye}
+        variant="rectangle"
+        isModified={evasionDetails.isModified}
+        expectedValue={evasionDetails.baseValue}
+        modifiers={evasionDetails.allMods}
+        onUpdateModifiers={handleUpdateEvasionMods}
+      />
+
+      {/* Armor */}
+      <VitalCard
+        label="Armor"
+        current={character.vitals.armor_slots}
+        max={armorDetails.total}
+        color="text-blue-400"
+        icon={Shield}
+        variant="rectangle"
+        onIncrement={handleArmorIncrement}
+        onDecrement={handleArmorDecrement}
+        isCriticalCondition={character.vitals.armor_slots === 0 && armorDetails.total > 0}
+        thresholds={character.damage_thresholds}
+        trackType="mark-bad"
+        disableCritColor={true}
+        modifiers={armorDetails.allMods}
+        onUpdateModifiers={handleUpdateArmorMods}
+        subStats={armorDetails.subStats}
+      />
 
       {/* Row 2: Hit Points (Rectangle) */}
       <VitalCard

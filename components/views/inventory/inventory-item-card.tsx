@@ -69,13 +69,13 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                             setShowDescription(!showDescription);
                         }}
                         className={clsx(
-                            "transition-colors p-1 rounded hover:bg-white/10",
+                            "transition-colors p-0.5 rounded hover:bg-white/10",
                             showDescription ? "text-dagger-gold" : "text-gray-500 hover:text-gray-300"
                         )}
                         aria-label={`${showDescription ? 'Hide' : 'Show'} ${item.name} description`}
                         title={showDescription ? "Hide description" : "Show description"}
                     >
-                        <Info size={14} />
+                        <Info size={12} />
                     </button>
                 )}
                 <button
@@ -84,11 +84,11 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                         e.stopPropagation();
                         onEditArt(item);
                     }}
-                    className="text-gray-500 hover:text-dagger-gold transition-colors p-1 rounded hover:bg-white/10"
+                    className="text-gray-500 hover:text-dagger-gold transition-colors p-0.5 rounded hover:bg-white/10"
                     aria-label={`Edit ${item.name} artwork`}
                     title="Edit Artwork"
                 >
-                    <ImageIcon size={14} />
+                    <ImageIcon size={12} />
                 </button>
                 <button
                     type="button"
@@ -96,11 +96,11 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                         e.stopPropagation();
                         onManage(item);
                     }}
-                    className="text-gray-500 hover:text-gray-300 transition-colors p-1 rounded hover:bg-white/10"
+                    className="text-gray-500 hover:text-gray-300 transition-colors p-0.5 rounded hover:bg-white/10"
                     aria-label={`Manage ${item.name}`}
                     title="Manage Item"
                 >
-                    <Settings size={14} />
+                    <Settings size={12} />
                 </button>
             </div>
 

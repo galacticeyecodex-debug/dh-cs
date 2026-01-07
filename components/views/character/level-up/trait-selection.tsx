@@ -79,7 +79,7 @@ export default function TraitSelection({
         Choose 2 unmarked traits to permanently increase by +1. (Selected: {selectedTraits.length}/2)
       </p>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         {TRAIT_NAMES.map((trait) => {
           const currentValue = character.stats[trait.id as keyof typeof character.stats];
           const selected = isSelected(trait.id);
@@ -91,11 +91,11 @@ export default function TraitSelection({
               key={trait.id}
               onClick={() => toggleTrait(trait.id)}
               disabled={!selectable}
-              className={`relative p-4 rounded-lg border transition-all ${selected
-                  ? 'border-dagger-gold bg-dagger-gold/10'
-                  : selectable
-                    ? 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
-                    : 'border-gray-700 bg-black/20 opacity-50 cursor-not-allowed'
+              className={`relative p-3 sm:p-4 rounded-lg border transition-all ${selected
+                ? 'border-dagger-gold bg-dagger-gold/10'
+                : selectable
+                  ? 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
+                  : 'border-gray-700 bg-black/20 opacity-50 cursor-not-allowed'
                 }`}
             >
               <div className="flex items-start justify-between">
