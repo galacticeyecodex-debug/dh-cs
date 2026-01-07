@@ -123,11 +123,20 @@ export default function PlaymatView() {
     addCardToCollection(item);
   }, [addCardToCollection]);
 
-  const filteredCards = useMemo(() => {
-    const allCharacterCards = character?.character_cards || [];
-    if (!searchTerm) return allCharacterCards;
+
+  // Loadout cards never filtered by search - always show all 5 (max)
+  const loadoutCards = useMemo(() =>
+    (character?.character_cards || []).filter(card => card.location === 'loadout'),
+    [character?.character_cards]
+  );
+
+  // Vault cards can be filtered by search term
+  const vaultCards = useMemo(() => {
+    const allCards = character?.character_cards || [];
+    const vaultOnly = allCards.filter(card => card.location === 'vault');
+    if (!searchTerm) return vaultOnly;
     const term = searchTerm.toLowerCase();
-    return allCharacterCards.filter(card => {
+    return vaultOnly.filter(card => {
       const { name, domain, type } = card.library_item || {};
       return (
         name?.toLowerCase().includes(term) ||
@@ -136,9 +145,6 @@ export default function PlaymatView() {
       );
     });
   }, [character?.character_cards, searchTerm]);
-
-  const loadoutCards = filteredCards.filter(card => card.location === 'loadout');
-  const vaultCards = filteredCards.filter(card => card.location === 'vault');
 
   const handleMoveCard = useCallback((cardId: string, destination: 'loadout' | 'vault') => {
     // Basic check for loadout limit
@@ -168,36 +174,91 @@ export default function PlaymatView() {
             subtitle="Manage your domain cards and loadout"
           />
 
-          {/* Sticky Toggle Bar */}
-          <div className="sticky top-0 z-20 bg-dagger-dark/95 backdrop-blur border-b border-white/10 -mx-4 px-4 py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm">
-            <div className="flex bg-white/5 rounded-lg p-1 border border-white/10 w-full sm:w-auto">
+          {/* Sticky Toggle Bar - Loadout Quick Nav or Vault Search */}
+          <div className="sticky top-0 z-20 bg-dagger-dark/95 backdrop-blur border-b border-white/10 -mx-4 px-4 py-3 shadow-sm">
+            {/* Top row: Loadout/Vault toggle + Add Card button */}
+            <div className="flex justify-between items-center gap-2 mb-3">
+              <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
+                <button
+                  onClick={() => setViewMode('loadout')}
+                  className={clsx(
+                    "px-3 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
+                    viewMode === 'loadout' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
+                  )}
+                >
+                  <ScrollText size={14} /> Loadout
+                </button>
+                <button
+                  onClick={() => setViewMode('vault')}
+                  className={clsx(
+                    "px-3 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
+                    viewMode === 'vault' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
+                  )}
+                >
+                  <Archive size={14} /> Vault
+                </button>
+              </div>
+
               <button
-                onClick={() => setViewMode('loadout')}
-                className={clsx(
-                  "flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                  viewMode === 'loadout' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
-                )}
+                onClick={() => setIsAddCardModalOpen(true)}
+                className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-full text-sm font-bold flex items-center gap-1 transition-colors border border-white/10"
               >
-                <ScrollText size={16} /> Loadout
-              </button>
-              <button
-                onClick={() => setViewMode('vault')}
-                className={clsx(
-                  "flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                  viewMode === 'vault' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
-                )}
-              >
-                <Archive size={16} /> Vault
+                <Plus size={16} /> <span className="hidden xs:inline">Add Card</span>
               </button>
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              {/* Search Bar */}
-              <div className="relative flex-1 sm:w-64">
+            {/* Loadout Mode: Quick Nav with 5 slots */}
+            {viewMode === 'loadout' && (
+              <div className="space-y-1">
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const card = loadoutCards[i];
+                  const cardId = card?.id ? `loadout-card-${card.id}` : null;
+
+                  return (
+                    <div
+                      key={`slot-${i}`}
+                      className={clsx(
+                        "flex items-center justify-between rounded-lg px-2 py-1.5 transition-colors",
+                        card ? "bg-white/5 border border-white/10" : "bg-white/[0.02] border border-dashed border-white/10"
+                      )}
+                    >
+                      {card ? (
+                        <>
+                          <button
+                            onClick={() => {
+                              if (cardId) {
+                                const el = document.getElementById(cardId);
+                                el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              }
+                            }}
+                            className="flex-1 text-left text-sm font-medium text-white hover:text-dagger-gold transition-colors truncate"
+                          >
+                            {card.library_item?.name || 'Unknown Card'}
+                          </button>
+                          <button
+                            onClick={() => handleMoveCard(card.id, 'vault')}
+                            className="flex items-center gap-1 text-[10px] font-medium text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-1 rounded transition-colors border border-white/10 flex-shrink-0"
+                          >
+                            <ArrowRightLeft size={10} />
+                            <span className="hidden sm:inline">Vault</span>
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-xs text-gray-600 uppercase">Slot {i + 1} — Empty</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Vault Mode: Search Bar */}
+            {viewMode === 'vault' && (
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
                 <input
                   type="text"
-                  placeholder="Search cards..."
+                  placeholder="Search vault cards..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-dagger-gold transition-colors"
@@ -211,14 +272,7 @@ export default function PlaymatView() {
                   </button>
                 )}
               </div>
-
-              <button
-                onClick={() => setIsAddCardModalOpen(true)}
-                className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-full text-sm font-bold flex items-center gap-1 transition-colors border border-white/10 flex-shrink-0"
-              >
-                <Plus size={16} /> <span className="hidden xs:inline">Add Card</span>
-              </button>
-            </div>
+            )}
           </div>
         </div>
 
@@ -349,35 +403,32 @@ export default function PlaymatView() {
                   // Check if card has attack or roll (which means it has modifiers to manage)
                   const hasModifiers = !!(enhancedData && (getAttack(enhancedData) || getRoll(enhancedData)));
                   return (
-                    <PlaymatCard
-                      key={charCard.id}
-                      card={charCard}
-                      enhancedData={enhancedData}
-                      onMoveLocation={(loc) => handleMoveCard(charCard.id, loc)}
-                      onView={() => handleViewCard(charCard)}
-                      onEditArt={() => handleEditCardArt(charCard)}
-                      onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
-                      onRemove={() => handleRemoveCardClick(charCard)}
-                      hasModifiersToManage={hasModifiers}
-                    />
+                    <div key={charCard.id} id={`loadout-card-${charCard.id}`}>
+                      <PlaymatCard
+                        card={charCard}
+                        enhancedData={enhancedData}
+                        onMoveLocation={(loc) => handleMoveCard(charCard.id, loc)}
+                        onView={() => handleViewCard(charCard)}
+                        onEditArt={() => handleEditCardArt(charCard)}
+                        onManageModifiers={() => setActiveAbilityId(charCard.library_item?.name || null)}
+                        onRemove={() => handleRemoveCardClick(charCard)}
+                        hasModifiersToManage={hasModifiers}
+                      />
+                    </div>
                   );
                 })
               ) : (
                 <div className="relative flex flex-col items-center gap-2 p-2 bg-dagger-panel border-2 border-dashed border-white/5 rounded-xl w-full">
                   <div className="w-[240px] aspect-[2.5/3.5] flex flex-col items-center justify-center text-gray-600 p-4 text-center">
                     <LibraryBig size={24} className="mb-2" />
-                    <span className="text-sm">
-                      {searchTerm ? "No cards match your search." : "No cards in Loadout."}
-                    </span>
-                    <span className="text-xs">
-                      {searchTerm ? "Try a different search term." : "Add from Vault or create new!"}
-                    </span>
+                    <span className="text-sm">No cards in Loadout.</span>
+                    <span className="text-xs">Add from Vault or create new!</span>
                   </div>
                 </div>
               )}
 
-              {/* Fill remaining slots up to 5 only if not searching */}
-              {!searchTerm && Array.from({ length: Math.max(0, 5 - loadoutCards.length) }).map((_, i) => (
+              {/* Fill remaining slots up to 5 */}
+              {Array.from({ length: Math.max(0, 5 - loadoutCards.length) }).map((_, i) => (
                 <div key={`empty-${i}`} className="relative flex flex-col items-center gap-2 p-2 bg-dagger-panel border-2 border-dashed border-white/5 rounded-xl w-full">
                   <div className="w-[240px] aspect-[2.5/3.5] flex items-center justify-center text-gray-600">
                     <span className="text-xs uppercase">Slot {loadoutCards.length + i + 1}</span>
