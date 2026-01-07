@@ -81,6 +81,24 @@ Many domain cards require token tracking. These need dedicated interactive UI:
 |---------|--------|-------------|
 | Hybrid Ancestries | ❌ Todo | Allow mixing two ancestries, selecting one feat from each |
 
+## UI Design Standards
+
+This project follows consistent design patterns for a polished, cohesive interface:
+
+### Icon Sizing
+- **Utility Icons** (Info, Settings, Art, Delete): 12px - Used on card action buttons
+- **Navigation Icons** (Activity, Grid, Book): 14px - Used in tab bars
+- **Header Icons** (Sword, Layers): 16px - Used in section headers
+- **Feature Icons**: 24-28px - Used in ViewHeaders and FAB buttons
+
+### Card Components
+All interactive cards share a common pattern:
+- **Top-right action overlay**: Contains utility buttons (Info, Art, Settings) with consistent 12px icons
+- **Panel styling**: `bg-dagger-panel border border-white/10 rounded-xl`
+- **Hover states**: Subtle `hover:bg-white/10` transitions
+
+For detailed component specifications, see `.claude/rules/UI_CARD_REFERENCE.md`.
+
 ## Tech Stack
 
 - **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
