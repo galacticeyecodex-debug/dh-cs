@@ -68,6 +68,47 @@ Used for ancestry features, community features, class features:
 └───────────────────────────────────────────────────────────────┘
 ```
 
+### Icon Size Standardization
+
+**CRITICAL: All utility/action icons MUST use 12px sizing for consistency.**
+
+This applies to all top-right card utility buttons across the application. The reference implementation is `AttackCard` in the Combat View.
+
+**Standard Icon Buttons:**
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Button Pattern for Card Utility Icons:                      │
+│                                                              │
+│  className="p-0.5 rounded hover:bg-white/10 transition-colors│
+│             text-gray-500 hover:text-gray-300"               │
+│                                                              │
+│  Active State:  text-dagger-gold                             │
+│  Icon Size:     size={12} (ALWAYS)                           │
+│  Padding:       p-0.5 (compact) or p-1 (spacious)            │
+│  Border Radius: rounded (not rounded-full)                   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Icon Size Reference:**
+
+| Icon Type | Size | Usage |
+|-----------|------|-------|
+| **Utility Icons** (Info, Settings, ImageIcon, ArrowRightLeft) | `12px` | Top-right action buttons on cards |
+| **Toggle Icons** (Eye, EyeOff) | `12px` | Section show/hide toggles |
+| **Delete/Edit Icons** (Trash2, Pencil) | `12px` | Destructive/edit actions on cards |
+| **Tab/Nav Icons** (Activity, Grid, Book) | `14px` | Tab bar navigation (slightly larger for touch) |
+| **Header Icons** (Layers, Sword) | `16px` | Section headers and toggle buttons |
+| **Large Feature Icons** | `24-28px` | ViewHeader icons, FAB buttons |
+
+**Components Using 12px Utility Icons:**
+- `AttackCard` (Combat View) - ℹ️ Info, ⚙️ Gear
+- `PlaymatCard` (Playmat View) - ↔️ Move, ℹ️ Info, 🖼️ Art, ⚙️ Settings
+- `InventoryItemCard` (Inventory View) - ℹ️ Info, 🖼️ Art, ⚙️ Settings
+- `RelationshipCard` (Journal View) - ⚙️ Settings, 🗑️ Delete
+- `ProjectCard` (Downtime View) - ✏️ Edit, 🗑️ Delete
+- `SubclassFeatureCard` (Character View) - ℹ️ Lore toggle
+- `CharacterView` sections - ℹ️ Lore toggles, 👁️ Hide/Show toggles
+
 ---
 
 ## Character View Cards
@@ -879,17 +920,17 @@ Three buttons are positioned together in the absolute top-right corner:
   - Only shown if item has a description (`fullDescription`)
   - Toggles collapsible description section
   - Active state: `text-dagger-gold`, Inactive: `text-gray-500 hover:text-gray-300`
-  - Icon: `Info` from lucide-react (size 14)
+  - Icon: `Info` from lucide-react (size 12)
 
 - **🖼️ Art Button** (middle):
   - Opens ItemArtModal for uploading/editing artwork
-  - Style: `text-gray-500 hover:text-dagger-gold transition-colors p-1 rounded hover:bg-white/10`
-  - Icon: `ImageIcon` from lucide-react (size 14)
+  - Style: `text-gray-500 hover:text-dagger-gold transition-colors p-0.5 rounded hover:bg-white/10`
+  - Icon: `ImageIcon` from lucide-react (size 12)
   
 - **⚙️ Manage Button** (rightmost):
   - Opens homebrew editing modal (delete option inside)
-  - Style: `text-gray-500 hover:text-gray-300 transition-colors p-1 rounded hover:bg-white/10`
-  - Icon: `Settings` from lucide-react (size 14)
+  - Style: `text-gray-500 hover:text-gray-300 transition-colors p-0.5 rounded hover:bg-white/10`
+  - Icon: `Settings` from lucide-react (size 12)
 
 **Collapsible Description Section:**
 - Rendered when Info button is toggled on
@@ -1158,11 +1199,31 @@ Wraps the visual Domain Card with interactive gameplay mechanics in a panel wrap
 ║  bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full            ║
 ║                                                                                 ║
 ║  ┌─────────────────────────────────────────────────────────────────────────┐    ║
-║  │  [SETTINGS BUTTON - absolute top-right overlay on domain card]          │    ║
-║  │  absolute top-2 right-2 z-40                                            │    ║
-║  │  p-1.5 bg-black/50 hover:bg-black/80 rounded-full                       │    ║
-║  │  border border-white/10 backdrop-blur-sm                                │    ║
-║  │  ⚙️ (Settings icon)                                                     │    ║
+║  │  [TOP-RIGHT BUTTON OVERLAY - absolute, z-40]                            │    ║
+║  │  absolute top-1 right-1 z-40                                            │    ║
+║  │  flex items-center gap-0.5                                              │    ║
+║  │                                                                         │    ║
+║  │  ┌─────────────────────────────────────────────────────────────────┐    │    ║
+║  │  │ [Move to Vault/Loadout Button]                                  │    │    ║
+║  │  │ bg-black/50 hover:bg-white/10 rounded px-2.5 py-1              │    │    ║
+║  │  │ border border-white/20 backdrop-blur-md                        │    │    ║
+║  │  │ flex items-center gap-1 text-[10px] font-medium text-white     │    │    ║
+║  │  │ ↔️ Move to... (ArrowRightLeft icon, size 12)                   │    │    ║
+║  │  └─────────────────────────────────────────────────────────────────┘    │    ║
+║  │                                                                         │    ║
+║  │  [Three Icon Buttons - if applicable]                                   │    ║
+║  │  ┌────────┐  ┌────────┐  ┌────────┐                                    │    ║
+║  │  │  ℹ️    │  │  🖼️    │  │  ⚙️    │                                    │    ║
+║  │  │ Info   │  │  Art   │  │Settings│                                    │    ║
+║  │  │size=12 │  │size=12 │  │size=12 │                                    │    ║
+║  │  │  p-1   │  │  p-1   │  │  p-1   │                                    │    ║
+║  │  │rounded │  │rounded │  │rounded │                                    │    ║
+║  │  │hover:  │  │hover:  │  │hover:  │                                    │    ║
+║  │  │bg-wht/ │  │bg-wht/ │  │bg-wht/ │                                    │    ║
+║  │  │10      │  │10      │  │10      │                                    │    ║
+║  │  └────────┘  └────────┘  └────────┘                                    │    ║
+║  │                                                                         │    ║
+║  │  All icons use size={12} per global standard (see Icon Size section)   │    ║
 ║  └─────────────────────────────────────────────────────────────────────────┘    ║
 ║                                                                                 ║
 ║  ┌─────────────────────────────────────────────────────────────────────────┐    ║
