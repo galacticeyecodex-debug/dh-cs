@@ -24,6 +24,7 @@ import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import useContentAccess from '@/hooks/useContentAccess';
+import ViewHeader from '@/components/shared/view-header';
 
 import { AttackCard, FrequencyCheckbox, CardTokenTrack } from './';
 import { hasCombatRelevance, enhanceFeature } from '@/lib/card-parser';
@@ -200,6 +201,13 @@ export default function CombatView() {
   return (
     <ErrorBoundary>
       <div className="p-4 space-y-6 pb-24">
+        {/* Header */}
+        <ViewHeader
+          icon={Swords}
+          title="Combat"
+          subtitle="Manage your weapons, spells, and combat maneuvers"
+        />
+
         {/* Vitals Toggle & Display */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">

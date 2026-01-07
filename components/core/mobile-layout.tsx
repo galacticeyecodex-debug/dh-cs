@@ -21,6 +21,7 @@ import { useCharacterStore } from '@/store/character-store';
 import { User, Layers, Dices, Swords, LogOut, ChevronDown, MoreHorizontal } from 'lucide-react';
 import DiceOverlay from '../dice/dice-overlay';
 import MoreMenu from './more-menu';
+import MiniVitalsBanner from '../vitals/mini-vitals-banner';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import useUser from '@/hooks/useUser';
@@ -114,6 +115,9 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
           />
         </div>
       </nav>
+
+      {/* Mini Vitals Banner */}
+      <MiniVitalsBanner />
 
       {/* Dice Overlay Portal */}
       <DiceOverlay />

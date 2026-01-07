@@ -193,7 +193,7 @@ export default function PlaymatCard({
 
   return (
     <div
-      className="relative flex flex-col items-center gap-2 p-2 bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full transition-colors"
+      className="relative flex flex-col items-center gap-2 p-2 pt-14 bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full transition-colors"
     >
       {/* Visual Domain Card */}
       <DomainCard
@@ -214,8 +214,26 @@ export default function PlaymatCard({
         hasCombatAbility={!!hasAttackOrRoll}
       />
 
-      {/* Top Right Icon Overlay - positioned below domain card header */}
-      <div className="absolute top-4 right-4 z-40 flex items-center gap-1">
+      {/* Top Right Icon Overlay - positioned over top padding area */}
+      <div className="absolute top-3 right-3 z-40 flex items-center gap-1.5">
+        {/* Toggle Location Button (Vault/Loadout) */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onMoveLocation(isLoadout ? 'vault' : 'loadout');
+          }}
+          className={clsx(
+            "flex items-center gap-1 px-2.5 py-1 rounded-full transition-all backdrop-blur-md border text-[10px] font-bold uppercase shadow-lg",
+            isLoadout
+              ? "bg-black/60 hover:bg-black/80 text-gray-300 hover:text-white border-white/20"
+              : "bg-dagger-gold/30 border-dagger-gold/50 text-dagger-gold hover:bg-dagger-gold/40 shadow-dagger-gold/10"
+          )}
+          title={isLoadout ? "Move to Vault" : "Add to Loadout"}
+        >
+          <ArrowRightLeft size={12} />
+          {isLoadout ? "Vault" : "Loadout"}
+        </button>
+
         {/* Info Toggle */}
         {libraryItem.data?.description && (
           <button
@@ -224,14 +242,14 @@ export default function PlaymatCard({
               setShowDescription(!showDescription);
             }}
             className={clsx(
-              "p-1.5 rounded-full transition-colors backdrop-blur-sm border",
+              "p-1 rounded transition-colors backdrop-blur-sm",
               showDescription
-                ? "bg-dagger-gold/30 text-dagger-gold border-dagger-gold/50"
-                : "bg-black/50 hover:bg-black/80 text-white/70 hover:text-white border-white/10"
+                ? "bg-dagger-gold/30 text-dagger-gold border border-dagger-gold/50"
+                : "text-white/70 hover:text-white hover:bg-white/10"
             )}
             title={showDescription ? "Hide description" : "Show description"}
           >
-            <Info size={14} />
+            <Info size={12} />
           </button>
         )}
 
@@ -242,10 +260,10 @@ export default function PlaymatCard({
               e.stopPropagation();
               onEditArt();
             }}
-            className="p-1.5 bg-black/50 hover:bg-black/80 text-white/70 hover:text-white rounded-full transition-colors backdrop-blur-sm border border-white/10"
+            className="p-1 text-white/70 hover:text-white rounded transition-colors hover:bg-white/10"
             title="Change Card Art"
           >
-            <ImageIcon size={14} />
+            <ImageIcon size={12} />
           </button>
         )}
 
@@ -257,14 +275,14 @@ export default function PlaymatCard({
               setShowManageMenu(!showManageMenu);
             }}
             className={clsx(
-              "p-1.5 rounded-full transition-colors backdrop-blur-sm border",
+              "p-1 rounded transition-colors",
               showManageMenu
-                ? "bg-white/20 text-white border-white/30"
-                : "bg-black/50 hover:bg-black/80 text-white/70 hover:text-white border-white/10"
+                ? "bg-white/20 text-white"
+                : "text-white/70 hover:text-white hover:bg-white/10"
             )}
             title="Manage Card"
           >
-            <Settings size={14} />
+            <Settings size={12} />
           </button>
 
           {/* Dropdown Menu */}
@@ -332,134 +350,109 @@ export default function PlaymatCard({
       )}
 
       {/* Mechanics Tray */}
-      <div
-        className="bg-black/40 border border-white/10 rounded-lg p-2 space-y-2 w-full"
-        onClick={(e) => {
-          // Allow clicking empty space in tray to trigger View (bubble up)
-        }}
-      >
-        {/* Token Track */}
-        {showTokenTrack && enhancement && (
-          <CardTokenTrack
-            cardName={libraryItem.name}
-            maxTokens={enhancement.tokens?.max_tokens ?? null}
-            tokenSource={enhancement.tokens?.token_source}
-          />
-        )}
-
-        {/* Frequency */}
-        {showFrequency && enhancement?.frequency && (
-          <div className="flex justify-center">
-            <FrequencyCheckbox
+      {showMechanics && (
+        <div
+          className="bg-black/40 border border-white/10 rounded-lg p-2 space-y-2 w-full"
+          onClick={(e) => {
+            // Allow clicking empty space in tray to trigger View (bubble up)
+          }}
+        >
+          {/* Token Track */}
+          {showTokenTrack && enhancement && (
+            <CardTokenTrack
               cardName={libraryItem.name}
-              frequency={enhancement.frequency}
-              className="bg-white/5 px-3 py-1.5 w-full justify-center"
+              maxTokens={enhancement.tokens?.max_tokens ?? null}
+              tokenSource={enhancement.tokens?.token_source}
             />
-          </div>
-        )}
+          )}
 
-        {/* Modifiers with when_active conditions */}
-        {(() => {
-          // Use enhancedData (the full EnhancedAbilityCard) for modifier extraction
-          // libraryItem.data only contains raw data (recall, description), NOT enhancement blocks
-          if (!enhancedData) return null;
-
-          const modifiers = getModifiers(enhancedData);
-          const whenActiveModifiers = modifiers.filter(mod => mod.condition?.type === 'when_active');
-
-          if (whenActiveModifiers.length === 0) return null;
-
-          // Helper to generate condition text
-          const getConditionText = (condition?: any) => {
-            if (!condition) return undefined;
-            switch (condition.type) {
-              case 'when_active':
-                return 'Activate to apply this bonus';
-              case 'when_armored':
-                return 'While wearing armor';
-              case 'when_unarmored':
-                return 'While not wearing armor';
-              case 'loadout_domain_count':
-                return `With ${condition.minCount}+ ${condition.domain} cards`;
-              default:
-                return undefined;
-            }
-          };
-
-          return (
-            <div className="space-y-1.5">
-              <h4 className="text-[10px] font-bold uppercase text-purple-400 tracking-wider text-center">
-                Modifiers
-              </h4>
-              {whenActiveModifiers.map((mod, index) => {
-                // Create a unique key for this modifier: cardName-stat-index
-                const modifierKey = `${mod.stat}-${index}`;
-                return (
-                  <ModifierActivationRow
-                    key={`${libraryItem.name}-${mod.stat}-${index}`}
-                    cardName={libraryItem.name}
-                    modifier={mod}
-                    modifierKey={modifierKey}
-                    conditionText={getConditionText(mod.condition)}
-                    className="text-sm"
-                  />
-                );
-              })}
+          {/* Frequency */}
+          {showFrequency && enhancement?.frequency && (
+            <div className="flex justify-center">
+              <FrequencyCheckbox
+                cardName={libraryItem.name}
+                frequency={enhancement.frequency}
+                className="bg-white/5 px-3 py-1.5 w-full justify-center"
+              />
             </div>
-          );
-        })()}
+          )}
 
-        {/* Persistent Effect / Duration - ONLY for cards without when_active modifiers */}
-        {showDuration && enhancement?.duration && enhancedData && !getModifiers(enhancedData).some(mod => mod.condition?.type === 'when_active') && (
-          <div className="flex justify-center">
-            <DomainAbilityButton
+          {/* Modifiers with when_active conditions */}
+          {(() => {
+            // Use enhancedData (the full EnhancedAbilityCard) for modifier extraction
+            // libraryItem.data only contains raw data (recall, description), NOT enhancement blocks
+            if (!enhancedData) return null;
+
+            const modifiers = getModifiers(enhancedData);
+            const whenActiveModifiers = modifiers.filter(mod => mod.condition?.type === 'when_active');
+
+            if (whenActiveModifiers.length === 0) return null;
+
+            // Helper to generate condition text
+            const getConditionText = (condition?: any) => {
+              if (!condition) return undefined;
+              switch (condition.type) {
+                case 'when_active':
+                  return 'Activate to apply this bonus';
+                case 'when_armored':
+                  return 'While wearing armor';
+                case 'when_unarmored':
+                  return 'While not wearing armor';
+                case 'loadout_domain_count':
+                  return `With ${condition.minCount}+ ${condition.domain} cards`;
+                default:
+                  return undefined;
+              }
+            };
+
+            return (
+              <div className="space-y-1.5">
+                <h4 className="text-[10px] font-bold uppercase text-purple-400 tracking-wider text-center">
+                  Modifiers
+                </h4>
+                {whenActiveModifiers.map((mod, index) => {
+                  // Create a unique key for this modifier: cardName-stat-index
+                  const modifierKey = `${mod.stat}-${index}`;
+                  return (
+                    <ModifierActivationRow
+                      key={`${libraryItem.name}-${mod.stat}-${index}`}
+                      cardName={libraryItem.name}
+                      modifier={mod}
+                      modifierKey={modifierKey}
+                      conditionText={getConditionText(mod.condition)}
+                      className="text-sm"
+                    />
+                  );
+                })}
+              </div>
+            );
+          })()}
+
+          {/* Persistent Effect / Duration - ONLY for cards without when_active modifiers */}
+          {showDuration && enhancement?.duration && enhancedData && !getModifiers(enhancedData).some(mod => mod.condition?.type === 'when_active') && (
+            <div className="flex justify-center">
+              <DomainAbilityButton
+                cardName={libraryItem.name}
+                costType="duration"
+                label={enhancement.duration === 'scene' ? 'Active (Scene)' : 'Active'}
+                className="w-full justify-center"
+              />
+            </div>
+          )}
+
+          {/* Action Costs - Show for ALL cards with costs (including attack cards) */}
+          {costs && (
+            <DomainCostsRow
               cardName={libraryItem.name}
-              costType="duration"
-              label={enhancement.duration === 'scene' ? 'Active (Scene)' : 'Active'}
-              className="w-full justify-center"
+              costs={costs}
+              className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5"
             />
-          </div>
-        )}
+          )}
 
-        {/* Action Costs - Show for ALL cards with costs (including attack cards) */}
-        {costs && (
-          <DomainCostsRow
-            cardName={libraryItem.name}
-            costs={costs}
-            className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5"
-          />
-        )}
-
-        {/* Embedded Attack Card */}
-        {attackCardNode}
-
-        {/* Actions Row - Move is the primary action */}
-        <div className="pt-1 border-t border-white/5 flex gap-2">
-          {/* Move Toggle */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onMoveLocation(isLoadout ? 'vault' : 'loadout');
-            }}
-            className={clsx(
-              "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[10px] font-bold transition-colors border",
-              isLoadout
-                ? "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10"
-                : "bg-dagger-gold/10 border-dagger-gold/30 text-dagger-gold hover:bg-dagger-gold/20"
-            )}
-          >
-            {isLoadout ? (
-              <>
-                <Box size={12} /> Move to Vault
-              </>
-            ) : (
-              <>
-                <ArrowRightLeft size={12} /> Add to Loadout
-              </>
-            )}
-          </button>
+          {/* Embedded Attack Card */}
+          {attackCardNode}
         </div>
-      </div>
+      )}
     </div>
   );
 }

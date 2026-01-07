@@ -13,7 +13,7 @@
  * - Provides quick toggles to show/hide sections for a cleaner interface.
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
 import Image from 'next/image';
@@ -23,6 +23,7 @@ import { MarkdownText } from '@/components/shared/markdown-text';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
 import ExperienceSheet from './experience-manager';
 import LevelUpModal from './level-up/level-up-modal';
+import ModifierSheet from '@/components/shared/modifier-sheet';
 import ManageCharacterModal from './manage-character-modal';
 import AdvancementHistory from './level-up/advancement-history';
 import SubclassFeatureCard from './subclass-features/subclass-feature-card';
@@ -61,6 +62,7 @@ export default function CharacterView() {
   const [classes, setClasses] = useState<any[]>([]);
   const [showAncestry, setShowAncestry] = useState(true);
   const [showCommunity, setShowCommunity] = useState(true);
+  const [isTraitModifierSheetOpen, setIsTraitModifierSheetOpen] = useState(false);
   const [showClassFeatures, setShowClassFeatures] = useState(true);
   const [showSubclassFeatures, setShowSubclassFeatures] = useState(true);
   const [showCompanion, setShowCompanion] = useState(true);
@@ -79,6 +81,26 @@ export default function CharacterView() {
   const [savingField, setSavingField] = useState<string>('');
   const [savedField, setSavedField] = useState<string>('');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Memoize trait tabs for centralized ModifierSheet
+  const traitTabs = useMemo(() => {
+    if (!character) return [];
+    return Object.entries(character.stats).map(([key, value]) => {
+      // Helper to calculate totals and combine modifiers for Traits
+      const systemMods = getSystemModifiers(character, key);
+      const userMods = character.modifiers?.[key] || [];
+      const allMods = [...systemMods, ...userMods];
+      const uniqueMods = Array.from(new Map(allMods.map(mod => [mod.id, mod])).values());
+
+      return {
+        id: key,
+        label: key.charAt(0).toUpperCase() + key.slice(1),
+        baseValue: value,
+        currentModifiers: uniqueMods,
+        onUpdateModifiers: (mods: any[]) => updateModifiers(key, mods)
+      };
+    });
+  }, [character, updateModifiers]);
 
   // Debounced save handler for lore fields
   const handleLoreChange = (field: string, value: string) => {
@@ -410,9 +432,9 @@ export default function CharacterView() {
                   <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Vitals</h3>
                   <button
                     onClick={() => setShowVitals(!showVitals)}
-                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                    className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
                   >
-                    {showVitals ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showVitals ? <EyeOff size={12} /> : <Eye size={12} />}
                     {showVitals ? 'Hide' : 'Show'}
                   </button>
                 </div>
@@ -423,16 +445,24 @@ export default function CharacterView() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Traits</h3>
-                  <button
-                    onClick={() => setShowTraits(!showTraits)}
-                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                  >
-                    {showTraits ? <EyeOff size={14} /> : <Eye size={14} />}
-                    {showTraits ? 'Hide' : 'Show'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setIsTraitModifierSheetOpen(true)}
+                      className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                    >
+                      <Settings size={12} /> Manage
+                    </button>
+                    <button
+                      onClick={() => setShowTraits(!showTraits)}
+                      className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
+                    >
+                      {showTraits ? <EyeOff size={12} /> : <Eye size={12} />}
+                      {showTraits ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
                 </div>
                 {showTraits && (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     {Object.entries(character.stats).map(([key, value]) => {
                       const { total, allMods } = getStatDetails(key, value);
                       const isMarked = character.marked_traits_jsonb?.[key] || false;
@@ -455,6 +485,7 @@ export default function CharacterView() {
                             baseValue={value}
                             modifiers={allMods}
                             onUpdateModifiers={(mods) => updateModifiers(key, mods)}
+                            hideModifierButton={true}
                           />
                           <button
                             onClick={toggleMark}
@@ -474,22 +505,22 @@ export default function CharacterView() {
               {/* Experiences Section */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Experiences</h3>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Experiences</h3>
                     <button
                       onClick={() => setIsExperienceSheetOpen(true)}
                       className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
                     >
                       <Settings size={12} /> Manage
                     </button>
+                    <button
+                      onClick={() => setShowExperiences(!showExperiences)}
+                      className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
+                    >
+                      {showExperiences ? <EyeOff size={12} /> : <Eye size={12} />}
+                      {showExperiences ? 'Hide' : 'Show'}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => setShowExperiences(!showExperiences)}
-                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                  >
-                    {showExperiences ? <EyeOff size={14} /> : <Eye size={14} />}
-                    {showExperiences ? 'Hide' : 'Show'}
-                  </button>
                 </div>
 
                 {showExperiences && (<div className="space-y-2">
@@ -523,9 +554,9 @@ export default function CharacterView() {
                     <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Ancestry</h3>
                     <button
                       onClick={() => setShowAncestry(!showAncestry)}
-                      className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                      className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
                     >
-                      {showAncestry ? <EyeOff size={14} /> : <Eye size={14} />}
+                      {showAncestry ? <EyeOff size={12} /> : <Eye size={12} />}
                       {showAncestry ? 'Hide' : 'Show'}
                     </button>
                   </div>
@@ -541,7 +572,7 @@ export default function CharacterView() {
                               className="p-1 hover:bg-white/10 rounded transition-colors"
                               title={showAncestryLore ? "Hide lore" : "Show lore"}
                             >
-                              <Info size={14} className={showAncestryLore ? "text-dagger-gold" : "text-gray-400"} />
+                              <Info size={12} className={showAncestryLore ? "text-dagger-gold" : "text-gray-400"} />
                             </button>
                           </div>
                           {showAncestryLore && (
@@ -577,9 +608,9 @@ export default function CharacterView() {
                     <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Community</h3>
                     <button
                       onClick={() => setShowCommunity(!showCommunity)}
-                      className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                      className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
                     >
-                      {showCommunity ? <EyeOff size={14} /> : <Eye size={14} />}
+                      {showCommunity ? <EyeOff size={12} /> : <Eye size={12} />}
                       {showCommunity ? 'Hide' : 'Show'}
                     </button>
                   </div>
@@ -595,7 +626,7 @@ export default function CharacterView() {
                               className="p-1 hover:bg-white/10 rounded transition-colors"
                               title={showCommunityLore ? "Hide lore" : "Show lore"}
                             >
-                              <Info size={14} className={showCommunityLore ? "text-dagger-gold" : "text-gray-400"} />
+                              <Info size={12} className={showCommunityLore ? "text-dagger-gold" : "text-gray-400"} />
                             </button>
                           </div>
                           {showCommunityLore && (
@@ -631,9 +662,9 @@ export default function CharacterView() {
                     <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Transformation</h3>
                     <button
                       onClick={() => setShowTransformation(!showTransformation)}
-                      className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                      className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
                     >
-                      {showTransformation ? <EyeOff size={14} /> : <Eye size={14} />}
+                      {showTransformation ? <EyeOff size={12} /> : <Eye size={12} />}
                       {showTransformation ? 'Hide' : 'Show'}
                     </button>
                   </div>
@@ -649,7 +680,7 @@ export default function CharacterView() {
                               className="p-1 hover:bg-white/10 rounded transition-colors"
                               title={showTransformationLore ? "Hide lore" : "Show lore"}
                             >
-                              <Info size={14} className="text-gray-400" />
+                              <Info size={12} className="text-gray-400" />
                             </button>
                           </div>
                           {showTransformationLore && (
@@ -703,9 +734,9 @@ export default function CharacterView() {
                     </h3>
                     <button
                       onClick={() => setShowClassFeatures(!showClassFeatures)}
-                      className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                      className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
                     >
-                      {showClassFeatures ? <EyeOff size={14} /> : <Eye size={14} />}
+                      {showClassFeatures ? <EyeOff size={12} /> : <Eye size={12} />}
                       {showClassFeatures ? 'Hide' : 'Show'}
                     </button>
                   </div>
@@ -720,7 +751,7 @@ export default function CharacterView() {
                           className="p-1 hover:bg-white/10 rounded transition-colors"
                           title={showClassLore ? "Hide lore" : "Show lore"}
                         >
-                          <Info size={14} className={showClassLore ? "text-dagger-gold" : "text-gray-400"} />
+                          <Info size={12} className={showClassLore ? "text-dagger-gold" : "text-gray-400"} />
                         </button>
                       </div>
 
@@ -1409,6 +1440,16 @@ export default function CharacterView() {
           onUpdateCompanion={updateCompanion}
           characterId={character.id}
           userId={user?.id}
+        />
+
+        <ModifierSheet
+          isOpen={isTraitModifierSheetOpen}
+          onClose={() => setIsTraitModifierSheetOpen(false)}
+          statLabel="Traits"
+          baseValue={0} // Not used when tabs are provided
+          currentModifiers={[]} // Not used when tabs are provided
+          onUpdateModifiers={() => { }} // Not used when tabs are provided
+          tabs={traitTabs}
         />
       </div>
     </ErrorBoundary>

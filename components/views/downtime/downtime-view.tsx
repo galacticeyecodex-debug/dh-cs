@@ -823,17 +823,17 @@ function ProjectCard({ project, isManageMode, onEdit, onSetProgress, onDelete }:
                     <div className="flex items-center gap-1">
                         <button
                             onClick={onEdit}
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                            className="p-1 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
                             title="Edit project"
                         >
-                            <Pencil size={16} />
+                            <Pencil size={12} />
                         </button>
                         <button
                             onClick={() => onDelete(project.id)}
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
+                            className="p-1 rounded hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
                             title="Delete project"
                         >
-                            <Trash2 size={16} />
+                            <Trash2 size={12} />
                         </button>
                     </div>
                 )}

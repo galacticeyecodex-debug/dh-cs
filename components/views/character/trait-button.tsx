@@ -37,9 +37,10 @@ interface StatButtonProps {
   baseValue?: number;
   modifiers?: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[];
   onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[]) => void;
+  hideModifierButton?: boolean;
 }
 
-const StatButton = React.memo(function StatButton({ label, value, baseValue, modifiers, onUpdateModifiers }: StatButtonProps) {
+const StatButton = React.memo(function StatButton({ label, value, baseValue, modifiers, onUpdateModifiers, hideModifierButton }: StatButtonProps) {
   const { prepareRoll } = useCharacterStore();
   const [showModifierSheet, setShowModifierSheet] = useState(false);
 
@@ -51,7 +52,7 @@ const StatButton = React.memo(function StatButton({ label, value, baseValue, mod
     <>
       <div className="relative flex bg-white/5 border border-white/5 rounded-lg overflow-hidden transition-colors group hover:border-white/20">
         {/* Gear button for modifiers - top right corner of entire card */}
-        {onUpdateModifiers && (
+        {onUpdateModifiers && !hideModifierButton && (
           <button
             type="button"
             onClick={(e) => {
@@ -72,7 +73,7 @@ const StatButton = React.memo(function StatButton({ label, value, baseValue, mod
         <button
           type="button"
           onClick={() => prepareRoll(label, value)}
-          className="relative flex-1 p-3 flex items-center justify-start text-left hover:bg-white/5 transition-colors"
+          className="relative flex-1 p-2 sm:p-3 flex items-center justify-start text-left hover:bg-white/5 transition-colors"
         >
           {/* Dice icon for roll action - top right of this compartment */}
           <div
@@ -82,13 +83,13 @@ const StatButton = React.memo(function StatButton({ label, value, baseValue, mod
             <Dices size={12} />
           </div>
 
-          <span className="capitalize font-medium text-gray-300 group-hover:text-white">{label}</span>
+          <span className="capitalize font-medium text-gray-300 group-hover:text-white text-sm sm:text-base">{label}</span>
         </button>
 
         {/* Value Display (Right/Number) */}
         <div
           className={clsx(
-            "p-3 min-w-[3rem] flex items-center justify-center font-bold text-xl border-l border-white/5",
+            "p-2 sm:p-3 min-w-[2.5rem] sm:min-w-[3rem] flex items-center justify-center font-bold text-lg sm:text-xl border-l border-white/5",
             getValueColor(isModified)
           )}
         >
