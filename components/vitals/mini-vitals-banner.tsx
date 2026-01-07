@@ -81,72 +81,76 @@ export function MiniVitalsPanel({
 export default function CharacterVitalsBanner() {
     const { character, cardStates } = useCharacterStore();
 
-    if (!character) return null;
+    // --- VITAL CALCULATIONS (must be before any early returns) ---
+    // We compute all values in a single useMemo to avoid hook ordering issues
+    const vitalData = useMemo(() => {
+        if (!character) return null;
 
-    // --- VITAL CALCULATIONS ---
-    const hpMax = useMemo(() => {
-        const base = getClassBaseStat(character, 'hp');
-        const mod = getStatModifierTotal(character, 'hit_points', cardStates as any || {});
-        return base + mod;
-    }, [character, cardStates]);
+        const hpMax = getClassBaseStat(character, 'hp') +
+            getStatModifierTotal(character, 'hit_points', cardStates as any || {});
 
-    const stressMax = useMemo(() => {
-        const base = 6;
-        const mod = getStatModifierTotal(character, 'stress', cardStates as any || {});
-        return base + mod;
-    }, [character, cardStates]);
+        const stressMax = 6 +
+            getStatModifierTotal(character, 'stress', cardStates as any || {});
 
-    const hopeMax = useMemo(() => {
-        const base = 6;
-        const mod = getStatModifierTotal(character, 'hope', cardStates as any || {});
-        return base + mod;
-    }, [character, cardStates]);
+        const hopeMax = 6 +
+            getStatModifierTotal(character, 'hope', cardStates as any || {});
 
-    const evasionTotal = useMemo(() => {
-        const base = getClassBaseStat(character, 'evasion');
-        const mod = getStatModifierTotal(character, 'evasion', cardStates as any || {});
-        return base + mod;
-    }, [character, cardStates]);
+        const evasionTotal = getClassBaseStat(character, 'evasion') +
+            getStatModifierTotal(character, 'evasion', cardStates as any || {});
 
-    const armorMax = useMemo(() => {
         const armorItem = character.character_inventory?.find(item => item.location === 'equipped_armor');
         const armorBaseScore = armorItem?.library_item?.data?.base_score || 0;
-        const mod = getStatModifierTotal(character, 'armor', cardStates as any || {});
-        return (typeof armorBaseScore === 'string' ? parseInt(armorBaseScore) : armorBaseScore) + mod;
+        const armorMax = (typeof armorBaseScore === 'string' ? parseInt(armorBaseScore) : armorBaseScore) +
+            getStatModifierTotal(character, 'armor', cardStates as any || {});
+
+        return {
+            hpMax,
+            stressMax,
+            hopeMax,
+            evasionTotal,
+            armorMax,
+            hp_current: character.vitals.hit_points_current,
+            stress_current: character.vitals.stress_current,
+            hope_current: character.hope,
+            armor_current: character.vitals.armor_slots,
+        };
     }, [character, cardStates]);
+
+    // Early return after hooks
+    if (!vitalData) return null;
 
     const vitals: VitalEntry[] = [
         {
             label: 'Evasion',
-            current: evasionTotal,
+            current: vitalData.evasionTotal,
             icon: Eye,
             color: 'text-cyan-400',
         },
         {
             label: 'Armor',
-            current: character.vitals.armor_slots,
-            max: armorMax,
+            current: vitalData.armor_current,
+            max: vitalData.armorMax,
             icon: Shield,
             color: 'text-blue-400',
         },
         {
             label: 'HP',
-            current: character.vitals.hit_points_current,
-            max: hpMax,
+            current: vitalData.hp_current,
+            max: vitalData.hpMax,
             icon: Heart,
             color: 'text-red-400',
         },
         {
             label: 'Stress',
-            current: character.vitals.stress_current,
-            max: stressMax,
+            current: vitalData.stress_current,
+            max: vitalData.stressMax,
             icon: Zap,
             color: 'text-purple-400',
         },
         {
             label: 'Hope',
-            current: character.hope,
-            max: hopeMax,
+            current: vitalData.hope_current,
+            max: vitalData.hopeMax,
             icon: Zap,
             color: 'text-dagger-gold',
         }
