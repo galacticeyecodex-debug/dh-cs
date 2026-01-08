@@ -214,38 +214,38 @@ export default function DevModifiersView() {
             });
         }
 
-        // Dynamically categorize stats
+        // Define ALL known modifier types (shown even if 0)
         const knownTraits = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
         const knownCombat = ['attack', 'damage', 'proficiency', 'spellcast'];
         const knownDefensive = ['evasion', 'armor', 'armor_score'];
         const knownVitals = ['hp', 'hit_points', 'stress', 'hope'];
         const knownThresholds = ['minor_threshold', 'major_threshold', 'severe_threshold'];
 
-        const categorizedStats = {
-            traits: [] as string[],
-            combat: [] as string[],
-            defensive: [] as string[],
-            vitals: [] as string[],
-            thresholds: [] as string[],
-            other: [] as string[],
-        };
+        // Combine all known stats
+        const allKnownStats = new Set([
+            ...knownTraits,
+            ...knownCombat,
+            ...knownDefensive,
+            ...knownVitals,
+            ...knownThresholds,
+        ]);
 
+        // Find any discovered stats that aren't in our known lists (truly dynamic ones)
+        const otherStats: string[] = [];
         stats.forEach(stat => {
-            if (knownTraits.includes(stat)) categorizedStats.traits.push(stat);
-            else if (knownCombat.includes(stat)) categorizedStats.combat.push(stat);
-            else if (knownDefensive.includes(stat)) categorizedStats.defensive.push(stat);
-            else if (knownVitals.includes(stat)) categorizedStats.vitals.push(stat);
-            else if (knownThresholds.includes(stat)) categorizedStats.thresholds.push(stat);
-            else categorizedStats.other.push(stat);
+            if (!allKnownStats.has(stat)) {
+                otherStats.push(stat);
+            }
         });
 
+        // Build categories with ALL known stats (not just discovered)
         const categoryList: ModifierCategory[] = [
-            { name: 'traits', stats: categorizedStats.traits.sort() },
-            { name: 'combat', stats: categorizedStats.combat.sort() },
-            { name: 'defensive', stats: categorizedStats.defensive.sort() },
-            { name: 'vitals', stats: categorizedStats.vitals.sort() },
-            { name: 'thresholds', stats: categorizedStats.thresholds.sort() },
-            { name: 'other', stats: categorizedStats.other.sort() },
+            { name: 'traits', stats: knownTraits },
+            { name: 'combat', stats: knownCombat },
+            { name: 'defensive', stats: knownDefensive },
+            { name: 'vitals', stats: knownVitals },
+            { name: 'thresholds', stats: knownThresholds },
+            { name: 'other', stats: otherStats.sort() },
         ].filter(cat => cat.stats.length > 0);
 
         return { allModifiers: modifiers, discoveredStats: stats, categories: categoryList };
