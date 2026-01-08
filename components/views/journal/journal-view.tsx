@@ -325,16 +325,14 @@ function RelationshipCard({
                         {getTierIcon(tier)}
                     </div>
 
-                    {/* Name and tier label */}
+                    {/* Name and tier label - stacked */}
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                            <span className="font-medium text-white truncate">
-                                {relationship.npc_name}
-                            </span>
-                            <span className={clsx('text-xs font-medium flex-shrink-0', tierInfo.color)}>
-                                {tierInfo.label}
-                            </span>
-                        </div>
+                        <span className="font-medium text-white truncate block">
+                            {relationship.npc_name}
+                        </span>
+                        <span className={clsx('text-xs font-medium', tierInfo.color)}>
+                            {tierInfo.label}
+                        </span>
                     </div>
 
                     {/* Points - clickable to adjust */}
