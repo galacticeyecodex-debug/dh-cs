@@ -20,7 +20,8 @@
 
 import React, { useMemo, useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Code2, ChevronDown, ChevronRight, CheckCircle, XCircle, AlertTriangle, Sparkles } from 'lucide-react';
+import { Sliders, ChevronDown, ChevronRight, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { ViewHeader } from '@/components/shared/view-header';
 import { getSystemModifiers } from '@/lib/utils';
 import { getModifiers, isModifierActive } from '@/lib/enhancement-utils';
 import { parseCardPassiveModifiers, calculateDynamicValue, type PassiveModifier, type ModifierCondition } from '@/lib/card-parser';
@@ -292,20 +293,16 @@ export default function DevModifiersView() {
     return (
         <div className="p-4 space-y-6 pb-24">
             {/* Header */}
-            <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-purple-500/10">
-                    <Code2 size={28} className="text-purple-400" />
-                </div>
-                <div>
-                    <h1 className="text-2xl font-serif font-bold text-white">Dev Tools</h1>
-                    <p className="text-sm text-gray-400">Modifier Inspector</p>
-                </div>
-            </div>
+            <ViewHeader
+                icon={Sliders}
+                title="Modifiers"
+                subtitle="View all active stat modifiers"
+            />
 
             {/* Summary Stats */}
             <div className="grid grid-cols-3 gap-3">
                 <div className="bg-dagger-panel border border-white/10 rounded-xl p-3 text-center">
-                    <div className="text-2xl font-bold text-purple-400">{discoveredStats.size}</div>
+                    <div className="text-2xl font-bold text-dagger-gold">{discoveredStats.size}</div>
                     <div className="text-[10px] uppercase text-gray-500">Stats Found</div>
                 </div>
                 <div className="bg-dagger-panel border border-white/10 rounded-xl p-3 text-center">
@@ -322,17 +319,7 @@ export default function DevModifiersView() {
                 </div>
             </div>
 
-            {/* Info Banner */}
-            <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 text-sm">
-                <div className="flex items-start gap-2">
-                    <Sparkles size={16} className="text-purple-400 mt-0.5 flex-shrink-0" />
-                    <div className="text-purple-200">
-                        <strong>Dynamic Discovery:</strong> All modifier types shown here are automatically
-                        discovered from your equipped items, domain cards, and user-added modifiers.
-                        No hardcoded lists – the view evolves with your character.
-                    </div>
-                </div>
-            </div>
+
 
             {/* Categories */}
             <div className="space-y-3">
@@ -442,7 +429,7 @@ export default function DevModifiersView() {
 
                 {categories.length === 0 && (
                     <div className="bg-dagger-panel border border-white/10 rounded-xl p-8 text-center text-gray-500">
-                        <Code2 size={32} className="mx-auto mb-3 opacity-50" />
+                        <Sliders size={32} className="mx-auto mb-3 opacity-50" />
                         <p>No modifiers discovered</p>
                         <p className="text-sm mt-1">Equip items or add domain cards to your loadout</p>
                     </div>
