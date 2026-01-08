@@ -255,116 +255,117 @@ function RelationshipCard({
 
     return (
         <>
-            <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-                <div className="flex items-start justify-between gap-3">
+            <div className="relative p-3 pt-2 rounded-lg bg-white/5 border border-white/10">
+                {/* Top-right action buttons - overlay */}
+                <div className="absolute top-2 right-2 flex items-center gap-1 z-10">
+                    {/* Info Button - toggle description */}
+                    {relationship.npc_description && (
+                        <button
+                            onClick={() => setShowDescription(!showDescription)}
+                            className={clsx(
+                                "p-1 rounded transition-colors",
+                                showDescription
+                                    ? "bg-dagger-gold/30 text-dagger-gold border border-dagger-gold/50"
+                                    : "text-gray-400 hover:text-white hover:bg-white/10"
+                            )}
+                            title={showDescription ? "Hide description" : "Show description"}
+                        >
+                            <Info size={12} />
+                        </button>
+                    )}
+
+                    {/* Settings Menu */}
+                    <div className="relative" ref={menuRef}>
+                        <button
+                            onClick={() => setShowMenu(!showMenu)}
+                            className={clsx(
+                                "p-1 rounded transition-colors",
+                                showMenu
+                                    ? "bg-white/20 text-white"
+                                    : "text-gray-400 hover:text-white hover:bg-white/10"
+                            )}
+                            title="More options"
+                        >
+                            <Settings size={12} />
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {showMenu && (
+                            <div
+                                className="absolute right-0 top-full mt-1 w-44 bg-dagger-panel border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button
+                                    onClick={() => {
+                                        setIsModalOpen(true);
+                                        setShowMenu(false);
+                                    }}
+                                    className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-2 transition-colors"
+                                >
+                                    <ChevronUp size={14} /> Adjust Points
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        onDelete(relationship.id);
+                                        setShowMenu(false);
+                                    }}
+                                    className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/20 hover:text-red-300 flex items-center gap-2 transition-colors border-t border-white/5"
+                                >
+                                    <Trash2 size={14} /> Remove NPC
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Main content row */}
+                <div className="flex items-center gap-3 pr-14">
+                    {/* Tier icon */}
+                    <div className="flex-shrink-0">
+                        {getTierIcon(tier)}
+                    </div>
+
+                    {/* Name and tier label */}
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                            {getTierIcon(tier)}
+                        <div className="flex items-center gap-2">
                             <span className="font-medium text-white truncate">
                                 {relationship.npc_name}
                             </span>
-                            <span className={clsx('text-xs font-medium', tierInfo.color)}>
+                            <span className={clsx('text-xs font-medium flex-shrink-0', tierInfo.color)}>
                                 {tierInfo.label}
                             </span>
                         </div>
-
-                        {/* Bond effects */}
-                        <div className="flex flex-wrap gap-2 text-xs">
-                            {relationship.bond_boon && tier === 'friend' || tier === 'beloved' ? (
-                                <span className="px-2 py-0.5 rounded bg-green-500/10 text-green-400">
-                                    {relationship.bond_boon}
-                                </span>
-                            ) : null}
-                            {relationship.bond_bane && (tier === 'rival' || tier === 'enemy') ? (
-                                <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-400">
-                                    {relationship.bond_bane}
-                                </span>
-                            ) : null}
-                        </div>
                     </div>
 
-                    {/* Points display and actions */}
-                    <div className="flex items-center gap-1.5">
-                        {/* Points */}
-                        <div className="text-center mr-1">
-                            <div className={clsx(
-                                'text-lg font-bold',
-                                relationship.points > 0 ? 'text-green-400' :
-                                    relationship.points < 0 ? 'text-red-400' : 'text-gray-400'
-                            )}>
-                                {relationship.points > 0 ? '+' : ''}{relationship.points}
-                            </div>
-                        </div>
-
-                        {/* Info Button - toggle description */}
-                        {relationship.npc_description && (
-                            <button
-                                onClick={() => setShowDescription(!showDescription)}
-                                className={clsx(
-                                    "p-1.5 rounded transition-colors",
-                                    showDescription
-                                        ? "bg-dagger-gold/30 text-dagger-gold border border-dagger-gold/50"
-                                        : "text-gray-400 hover:text-white hover:bg-white/10"
-                                )}
-                                title={showDescription ? "Hide description" : "Show description"}
-                            >
-                                <Info size={14} />
-                            </button>
+                    {/* Points - clickable to adjust */}
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className={clsx(
+                            'text-lg font-bold flex-shrink-0 hover:opacity-80 transition-opacity',
+                            relationship.points > 0 ? 'text-green-400' :
+                                relationship.points < 0 ? 'text-red-400' : 'text-gray-400'
                         )}
-
-                        {/* Manage Points Button */}
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="p-1.5 rounded hover:bg-white/10 text-gray-400 hover:text-dagger-gold transition-colors"
-                            title="Manage relationship"
-                        >
-                            <ChevronUp size={14} />
-                        </button>
-
-                        {/* Settings Menu with Delete */}
-                        <div className="relative" ref={menuRef}>
-                            <button
-                                onClick={() => setShowMenu(!showMenu)}
-                                className={clsx(
-                                    "p-1.5 rounded transition-colors",
-                                    showMenu
-                                        ? "bg-white/20 text-white"
-                                        : "text-gray-400 hover:text-white hover:bg-white/10"
-                                )}
-                                title="More options"
-                            >
-                                <Settings size={14} />
-                            </button>
-
-                            {/* Dropdown Menu */}
-                            {showMenu && (
-                                <div
-                                    className="absolute right-0 top-full mt-1 w-44 bg-dagger-panel border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    <button
-                                        onClick={() => {
-                                            setIsModalOpen(true);
-                                            setShowMenu(false);
-                                        }}
-                                        className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-2 transition-colors"
-                                    >
-                                        <ChevronUp size={14} /> Adjust Points
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            onDelete(relationship.id);
-                                            setShowMenu(false);
-                                        }}
-                                        className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/20 hover:text-red-300 flex items-center gap-2 transition-colors border-t border-white/5"
-                                    >
-                                        <Trash2 size={14} /> Remove NPC
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                        title="Click to adjust points"
+                    >
+                        {relationship.points > 0 ? '+' : ''}{relationship.points}
+                    </button>
                 </div>
+
+                {/* Bond effects - second row */}
+                {(relationship.bond_boon || relationship.bond_bane) && (
+                    <div className="flex flex-wrap gap-2 text-xs mt-2 ml-7">
+                        {relationship.bond_boon && (tier === 'friend' || tier === 'beloved') ? (
+                            <span className="px-2 py-0.5 rounded bg-green-500/10 text-green-400">
+                                {relationship.bond_boon}
+                            </span>
+                        ) : null}
+                        {relationship.bond_bane && (tier === 'rival' || tier === 'enemy') ? (
+                            <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-400">
+                                {relationship.bond_bane}
+                            </span>
+                        ) : null}
+                    </div>
+                )}
 
                 {/* Collapsible Description Panel */}
                 {showDescription && relationship.npc_description && (
