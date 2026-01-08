@@ -35,7 +35,7 @@ export function MiniVitalsPanel({
     return (
         <div
             className={cn(
-                "fixed left-0 right-0 z-40 bg-dagger-panel/95 backdrop-blur-md border-t border-white/10 shadow-xl transition-all",
+                "fixed left-0 right-0 z-40 bg-dagger-panel backdrop-blur-lg border-t border-white/10 shadow-xl transition-all",
                 className
             )}
             style={{ bottom: bottomOffset }}
