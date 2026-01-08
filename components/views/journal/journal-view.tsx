@@ -24,6 +24,7 @@ import {
     Smile,
     Settings,
     FileText,
+    Info,
 } from 'lucide-react';
 import {
     getRelationshipTier,
@@ -212,8 +213,25 @@ function RelationshipCard({
     onDelete,
 }: RelationshipCardProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showDescription, setShowDescription] = useState(false);
+    const [showMenu, setShowMenu] = useState(false);
+    const menuRef = React.useRef<HTMLDivElement>(null);
     const tier = getRelationshipTier(relationship.points);
     const tierInfo = getRelationshipTierInfo(tier);
+
+    // Close menu when clicking outside
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setShowMenu(false);
+            }
+        };
+
+        if (showMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [showMenu]);
 
     const getTierIcon = (tier: RelationshipTier) => {
         switch (tier) {
@@ -249,11 +267,6 @@ function RelationshipCard({
                                 {tierInfo.label}
                             </span>
                         </div>
-                        {relationship.npc_description && (
-                            <p className="text-xs text-gray-400 line-clamp-1 mb-2">
-                                {relationship.npc_description}
-                            </p>
-                        )}
 
                         {/* Bond effects */}
                         <div className="flex flex-wrap gap-2 text-xs">
@@ -270,9 +283,10 @@ function RelationshipCard({
                         </div>
                     </div>
 
-                    {/* Points display and Manage button */}
-                    <div className="flex items-center gap-2">
-                        <div className="text-center">
+                    {/* Points display and actions */}
+                    <div className="flex items-center gap-1.5">
+                        {/* Points */}
+                        <div className="text-center mr-1">
                             <div className={clsx(
                                 'text-lg font-bold',
                                 relationship.points > 0 ? 'text-green-400' :
@@ -281,24 +295,83 @@ function RelationshipCard({
                                 {relationship.points > 0 ? '+' : ''}{relationship.points}
                             </div>
                         </div>
+
+                        {/* Info Button - toggle description */}
+                        {relationship.npc_description && (
+                            <button
+                                onClick={() => setShowDescription(!showDescription)}
+                                className={clsx(
+                                    "p-1.5 rounded transition-colors",
+                                    showDescription
+                                        ? "bg-dagger-gold/30 text-dagger-gold border border-dagger-gold/50"
+                                        : "text-gray-400 hover:text-white hover:bg-white/10"
+                                )}
+                                title={showDescription ? "Hide description" : "Show description"}
+                            >
+                                <Info size={14} />
+                            </button>
+                        )}
+
+                        {/* Manage Points Button */}
                         <button
                             onClick={() => setIsModalOpen(true)}
-                            className="p-1 rounded hover:bg-white/10 text-gray-400 hover:text-dagger-gold transition-colors"
+                            className="p-1.5 rounded hover:bg-white/10 text-gray-400 hover:text-dagger-gold transition-colors"
                             title="Manage relationship"
                         >
-                            <Settings size={12} />
+                            <ChevronUp size={14} />
                         </button>
 
-                        {/* Delete button */}
-                        <button
-                            onClick={() => onDelete(relationship.id)}
-                            className="p-1 rounded hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-colors"
-                            title="Remove NPC"
-                        >
-                            <Trash2 size={12} />
-                        </button>
+                        {/* Settings Menu with Delete */}
+                        <div className="relative" ref={menuRef}>
+                            <button
+                                onClick={() => setShowMenu(!showMenu)}
+                                className={clsx(
+                                    "p-1.5 rounded transition-colors",
+                                    showMenu
+                                        ? "bg-white/20 text-white"
+                                        : "text-gray-400 hover:text-white hover:bg-white/10"
+                                )}
+                                title="More options"
+                            >
+                                <Settings size={14} />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {showMenu && (
+                                <div
+                                    className="absolute right-0 top-full mt-1 w-44 bg-dagger-panel border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <button
+                                        onClick={() => {
+                                            setIsModalOpen(true);
+                                            setShowMenu(false);
+                                        }}
+                                        className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-2 transition-colors"
+                                    >
+                                        <ChevronUp size={14} /> Adjust Points
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            onDelete(relationship.id);
+                                            setShowMenu(false);
+                                        }}
+                                        className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/20 hover:text-red-300 flex items-center gap-2 transition-colors border-t border-white/5"
+                                    >
+                                        <Trash2 size={14} /> Remove NPC
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
+
+                {/* Collapsible Description Panel */}
+                {showDescription && relationship.npc_description && (
+                    <div className="mt-3 p-3 bg-white/5 rounded-lg border border-white/5 text-sm text-gray-300">
+                        {relationship.npc_description}
+                    </div>
+                )}
             </div>
 
             {/* Relationship Change Modal */}
