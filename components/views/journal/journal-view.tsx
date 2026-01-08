@@ -158,8 +158,25 @@ function RelationshipsPanel({
     onChangePoints,
     onDelete,
 }: RelationshipsPanelProps) {
-    // Group by tier for display
-    const sortedRelationships = [...relationships].sort((a, b) => b.points - a.points);
+    // Sort: positive points first (highest to lowest), then negative (by magnitude), then zero last
+    const sortedRelationships = [...relationships].sort((a, b) => {
+        // Priority: positive > negative > zero
+        const getPriority = (points: number) => {
+            if (points > 0) return 0; // Positive first
+            if (points < 0) return 1; // Negative second
+            return 2; // Zero last
+        };
+
+        const priorityA = getPriority(a.points);
+        const priorityB = getPriority(b.points);
+
+        if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+        }
+
+        // Within same priority, sort by magnitude (highest first)
+        return Math.abs(b.points) - Math.abs(a.points);
+    });
 
     return (
         <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
