@@ -18,7 +18,7 @@
 
 import React, { useMemo } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Backpack, Moon, BookOpen, Settings, X, Code2 } from 'lucide-react';
+import { Backpack, Moon, BookOpen, Settings, X, Sliders } from 'lucide-react';
 import clsx from 'clsx';
 import type { TabId } from '@/store/slices/ui-slice';
 import { useDevMode } from '@/components/views/settings/settings-view';
@@ -59,9 +59,9 @@ const baseMenuItems: MoreMenuItem[] = [
 
 const devMenuItem: MoreMenuItem = {
     id: 'dev',
-    label: 'Dev Tools',
-    icon: Code2,
-    description: 'Modifier Inspector & Debugging',
+    label: 'Modifiers',
+    icon: Sliders,
+    description: 'View all active modifiers',
 };
 
 export default function MoreMenu() {
@@ -129,16 +129,10 @@ export default function MoreMenu() {
                             className={clsx(
                                 'w-full flex items-center gap-4 p-4 rounded-xl',
                                 'bg-white/5 hover:bg-white/10 transition-colors',
-                                'text-left group',
-                                item.id === 'dev' && 'border border-purple-500/30'
+                                'text-left group'
                             )}
                         >
-                            <div className={clsx(
-                                'p-3 rounded-xl transition-colors',
-                                item.id === 'dev'
-                                    ? 'bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20'
-                                    : 'bg-dagger-gold/10 text-dagger-gold group-hover:bg-dagger-gold/20'
-                            )}>
+                            <div className="p-3 rounded-xl bg-dagger-gold/10 text-dagger-gold group-hover:bg-dagger-gold/20 transition-colors">
                                 <item.icon size={24} />
                             </div>
                             <div className="flex-1">
