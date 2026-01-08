@@ -14,10 +14,10 @@ import { RollResult } from '@/types/character';
 import { CharacterStore } from '@/types/store';
 
 // Tab type definition - extended with new views
-export type TabId = 'character' | 'combat' | 'playmat' | 'inventory' | 'downtime' | 'journal' | 'settings';
+export type TabId = 'character' | 'combat' | 'playmat' | 'inventory' | 'downtime' | 'journal' | 'settings' | 'dev';
 
 // Valid tab values for validation
-const VALID_TABS: TabId[] = ['character', 'combat', 'playmat', 'inventory', 'downtime', 'journal', 'settings'];
+const VALID_TABS: TabId[] = ['character', 'combat', 'playmat', 'inventory', 'downtime', 'journal', 'settings', 'dev'];
 
 // localStorage key for persisting active tab
 const ACTIVE_TAB_STORAGE_KEY = 'dh:activeTab';
