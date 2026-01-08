@@ -32,6 +32,7 @@ import CombatView from '@/components/views/combat/combat-view';
 import DowntimeView from '@/components/views/downtime/downtime-view';
 import JournalView from '@/components/views/journal/journal-view';
 import SettingsView from '@/components/views/settings/settings-view';
+import DevModifiersView from '@/components/views/dev/dev-modifiers-view';
 import { useCharacterStore } from '@/store/character-store';
 import AuthButton from '@/components/auth/auth-buttons';
 import { useEffect, useState } from 'react';
@@ -127,6 +128,7 @@ export default function DaggerheartApp({ clientUser }: { clientUser: AppUser | n
         {activeTab === 'downtime' && <DowntimeView />}
         {activeTab === 'journal' && <JournalView />}
         {activeTab === 'settings' && <SettingsView />}
+        {activeTab === 'dev' && <DevModifiersView />}
       </MobileLayout>
       <DevErrorTriggers />
     </ErrorBoundary>
