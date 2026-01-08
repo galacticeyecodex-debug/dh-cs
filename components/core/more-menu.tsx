@@ -10,16 +10,18 @@
  * - Downtime (rest & projects)
  * - Journal (relationships & reputation)
  * - Settings (preferences & content access)
+ * - Dev Tools (only when developer mode is enabled)
  * 
  * The drawer uses a backdrop overlay and slides up from the bottom of the
  * screen, following mobile-first design patterns.
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Backpack, Moon, BookOpen, Settings, X } from 'lucide-react';
+import { Backpack, Moon, BookOpen, Settings, X, Code2 } from 'lucide-react';
 import clsx from 'clsx';
 import type { TabId } from '@/store/slices/ui-slice';
+import { useDevMode } from '@/components/views/settings/settings-view';
 
 interface MoreMenuItem {
     id: TabId;
@@ -28,7 +30,7 @@ interface MoreMenuItem {
     description: string;
 }
 
-const menuItems: MoreMenuItem[] = [
+const baseMenuItems: MoreMenuItem[] = [
     {
         id: 'inventory',
         label: 'Inventory',
@@ -55,8 +57,23 @@ const menuItems: MoreMenuItem[] = [
     },
 ];
 
+const devMenuItem: MoreMenuItem = {
+    id: 'dev',
+    label: 'Dev Tools',
+    icon: Code2,
+    description: 'Modifier Inspector & Debugging',
+};
+
 export default function MoreMenu() {
     const { isMoreMenuOpen, closeMoreMenu, setActiveTab } = useCharacterStore();
+    const { devMode } = useDevMode();
+
+    const menuItems = useMemo(() => {
+        if (devMode) {
+            return [...baseMenuItems, devMenuItem];
+        }
+        return baseMenuItems;
+    }, [devMode]);
 
     const handleItemClick = (tabId: TabId) => {
         setActiveTab(tabId);
@@ -112,10 +129,16 @@ export default function MoreMenu() {
                             className={clsx(
                                 'w-full flex items-center gap-4 p-4 rounded-xl',
                                 'bg-white/5 hover:bg-white/10 transition-colors',
-                                'text-left group'
+                                'text-left group',
+                                item.id === 'dev' && 'border border-purple-500/30'
                             )}
                         >
-                            <div className="p-3 rounded-xl bg-dagger-gold/10 text-dagger-gold group-hover:bg-dagger-gold/20 transition-colors">
+                            <div className={clsx(
+                                'p-3 rounded-xl transition-colors',
+                                item.id === 'dev'
+                                    ? 'bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20'
+                                    : 'bg-dagger-gold/10 text-dagger-gold group-hover:bg-dagger-gold/20'
+                            )}>
                                 <item.icon size={24} />
                             </div>
                             <div className="flex-1">

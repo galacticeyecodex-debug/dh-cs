@@ -50,7 +50,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
   };
 
   // Check if current tab is in the "More" menu (for highlighting More button)
-  const isMoreTabActive = ['inventory', 'downtime', 'journal', 'settings'].includes(activeTab);
+  const isMoreTabActive = ['inventory', 'downtime', 'journal', 'settings', 'dev'].includes(activeTab);
 
   return (
     <div className="flex flex-col h-[100dvh] bg-dagger-dark text-white overflow-hidden">

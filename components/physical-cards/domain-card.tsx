@@ -76,7 +76,8 @@ export function DomainCard({
   return (
     <div
       // A thin gold border around the domain cards
-      className={`relative aspect-card overflow-hidden rounded-lg shadow-lg transition-shadow bg-white text-black border border-dagger-gold ${onClick ? 'cursor-pointer hover:shadow-2xl' : ''}`}
+      // 'isolate' creates a stacking context so internal z-indices don't leak out
+      className={`relative isolate aspect-card overflow-hidden rounded-lg shadow-lg transition-shadow bg-white text-black border border-dagger-gold ${onClick ? 'cursor-pointer hover:shadow-2xl' : ''}`}
       style={{ width: cardWidth }}
       onClick={onClick}
     >
