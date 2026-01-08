@@ -14,12 +14,14 @@ import ContentAccessSettings from '@/components/modals/content-access-settings';
 import { Switch } from '@/components/ui/switch';
 
 const DEV_MODE_STORAGE_KEY = 'dh:devMode';
+const DEV_MODE_CHANGE_EVENT = 'dh:devModeChange';
 
 export function useDevMode() {
     const [devMode, setDevModeState] = useState(false);
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
+        // Initial load from localStorage
         try {
             const stored = localStorage.getItem(DEV_MODE_STORAGE_KEY);
             setDevModeState(stored === 'true');
@@ -27,12 +29,35 @@ export function useDevMode() {
             console.warn('Failed to load dev mode setting:', error);
         }
         setLoaded(true);
+
+        // Listen for changes from other components (same tab)
+        const handleDevModeChange = (e: Event) => {
+            const customEvent = e as CustomEvent<boolean>;
+            setDevModeState(customEvent.detail);
+        };
+
+        // Listen for changes from other tabs
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === DEV_MODE_STORAGE_KEY) {
+                setDevModeState(e.newValue === 'true');
+            }
+        };
+
+        window.addEventListener(DEV_MODE_CHANGE_EVENT, handleDevModeChange);
+        window.addEventListener('storage', handleStorageChange);
+
+        return () => {
+            window.removeEventListener(DEV_MODE_CHANGE_EVENT, handleDevModeChange);
+            window.removeEventListener('storage', handleStorageChange);
+        };
     }, []);
 
     const setDevMode = (enabled: boolean) => {
         setDevModeState(enabled);
         try {
             localStorage.setItem(DEV_MODE_STORAGE_KEY, String(enabled));
+            // Dispatch custom event so other components in the same tab can react
+            window.dispatchEvent(new CustomEvent(DEV_MODE_CHANGE_EVENT, { detail: enabled }));
         } catch (error) {
             console.warn('Failed to save dev mode setting:', error);
         }
