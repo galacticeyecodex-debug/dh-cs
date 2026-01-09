@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import createClient from "@/lib/supabase/client";
 import { CircleAlert, LoaderCircle, Coffee, Heart, Shield, Sparkles } from "lucide-react";
@@ -8,13 +8,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
+/**
+ * Validates a redirect path to prevent open redirect attacks.
+ * Defense-in-depth: validates on client even though callback also validates.
+ */
+function isValidRedirectPath(path: string): boolean {
+  if (!path.startsWith('/')) return false;
+  if (path.startsWith('//')) return false;
+  if (path.includes(':')) return false;
+  if (path.includes('\\')) return false;
+  return true;
+}
+
 export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const supabase = createClient();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/client/characters";
+
+  // Validate the redirect path to prevent open redirect attacks
+  const next = useMemo(() => {
+    const rawNext = searchParams.get("next") ?? "/client/characters";
+    return isValidRedirectPath(rawNext) ? rawNext : "/client/characters";
+  }, [searchParams]);
 
   const loginWithGoogle = async () => {
     setIsGoogleLoading(true);
