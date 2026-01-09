@@ -986,17 +986,12 @@ export function parseTargetType(text: string): TargetType | undefined {
 export function parseActionType(text: string, cardType: string, attack?: CardAttack, roll?: CardRoll): ActionType {
   const cleanText = stripMarkdown(text).toLowerCase();
 
-  // DEBUG LOGGING
-  const debug = text.includes('give yourself flight') || text.includes('halve the damage') || text.includes('spiritual weapon') || text.includes('minor visual illusion');
-  if (debug) {
-    console.log(`[ParseActionType] Analyzing: ${text.substring(0, 50)}...`);
-    console.log(`[ParseActionType] CleanText: ${cleanText}`);
-  }
+
 
   // Special Case: Natural Weapons (e.g., "Your kick is a natural weapon...")
   // These are passive abilities describing a weapon, not an active attack action.
   if (/\bnatural\s+weapon\b/i.test(cleanText)) {
-    if (debug) console.log(`[ParseActionType] Matched Natural Weapon`);
+
     return undefined; // Will be passive
   }
 
@@ -1066,15 +1061,11 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
   // e.g. "When you mark an Armor Slot... make a Strength Roll against..."
   const hasRollAgainst = /make (?:a |an )?\*?\*?(?:\w+\s+)?roll\*?\*? against/i.test(text);
 
-  if (reactionPatterns.some(pattern => {
-    const match = pattern.test(cleanText);
-    if (match && debug) console.log(`[ParseActionType] Matched Reaction: ${pattern}`);
-    return match;
-  })) {
+  if (reactionPatterns.some(pattern => pattern.test(cleanText))) {
     // Exception: If it's a reaction that involves making an attack roll against someone,
     // treat it as 'attack' for UI purposes (Splintering Strike)
     if (hasRollAgainst) {
-      if (debug) console.log(`[ParseActionType] Counter-Attack detected (Reaction + Attack)`);
+
       return 'attack';
     }
     return undefined;
@@ -1091,7 +1082,7 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     cleanText.includes('as an additional downtime') ||
     cleanText.includes('as a downtime move')
   ) {
-    if (debug) console.log(`[ParseActionType] Matched Downtime`);
+
     return undefined;
   }
 
@@ -1100,7 +1091,7 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
   // catching abilities like Ranger's Focus which are attacks that grant bonuses.
   const hasExplicitAttackCommand = /(?:spend|mark).*?(?:to|and)\s+make\s+(?:a\s+|an\s+)?attack/i.test(cleanText);
   if (hasExplicitAttackCommand) {
-    if (debug) console.log(`[ParseActionType] Early ATTACK: explicit attack command`);
+
     return 'attack';
   }
 
@@ -1188,16 +1179,12 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
 
   // Active buffs: Must have proactive choice AND buff patterns AND NOT be passive triggered
   if ((hasProactiveChoice || hasWhileClauseActive) && !hasPassiveTrigger && buffPatterns.some(pattern => pattern.test(cleanText))) {
-    if (debug) console.log(`[ParseActionType] Matched Active Buff`);
+
     return undefined;
   }
 
   // Regular buff check - only if no passive trigger
-  if (!hasPassiveTrigger && buffPatterns.some(pattern => {
-    const match = pattern.test(cleanText);
-    if (match && debug) console.log(`[ParseActionType] Matched Buff Pattern: ${pattern}`);
-    return match;
-  })) {
+  if (!hasPassiveTrigger && buffPatterns.some(pattern => pattern.test(cleanText))) {
     return undefined;
   }
 
@@ -1259,11 +1246,7 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
     /\balter\s+reality\b/i,
     /\btake\s+on\s+the\s+form\b/i,
   ];
-  if (utilityPatterns.some(pattern => {
-    const match = pattern.test(cleanText);
-    if (match && debug) console.log(`[ParseActionType] Matched Utility: ${pattern}`);
-    return match;
-  })) {
+  if (utilityPatterns.some(pattern => pattern.test(cleanText))) {
     return undefined;
   }
 
@@ -1290,7 +1273,7 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
   // e.g. "Make a Presence Roll (10)" -> This is an action
   const hasMakeRoll = /make (?:a |an )?\*?\*?(?:\w+\s+)?roll\*?\*?(?:\s+\(\d+\))?/i.test(text) && !/reaction roll/i.test(text);
 
-  if (debug && hasMakeRoll) console.log(`[ParseActionType] Detected hasMakeRoll`);
+
 
   // But exclude simple "when you make a successful attack" passive triggers (without extension)
   const isSimpleAttackTrigger = /when you (?:make a success|succeed|critically succeed|fail)/i.test(cleanText) && !hasAttackExtension;
@@ -1314,7 +1297,7 @@ export function parseActionType(text: string, cardType: string, attack?: CardAtt
   const hasAttackIndicators = attack || hasRollAgainst || hasAttackWith || hasExplicitAttack || hasAttackExtension || hasPerformAttack || hasDirectAttackVerb || hasMakeRollForAttack;
   const isTriggeredBonusAttack = attack?.is_triggered_bonus;
   if (hasAttackIndicators && !isSimpleAttackTrigger && !isTriggeredBonusAttack && !isPassiveAttackModifier) {
-    if (debug) console.log(`[ParseActionType] Returning ATTACK`);
+
     return 'attack';
   }
 
@@ -1447,7 +1430,6 @@ export function parseTiming(text: string, actionType: ActionType): Timing {
 
   for (const p of reactionPatterns) {
     if (p.test(cleanText)) {
-      console.log(`MATCHED Reaction: pattern=${p}, text="${cleanText.substring(0, 30)}..."`);
       return 'reaction';
     }
   }
@@ -2042,6 +2024,8 @@ export function parseStatBonuses(text: string): {
 
 /**
  * Enhance a basic ability card with parsed metadata
+ * @param card The raw ability card to enhance
+ * @param verbose If true, log override usage to console (used by enhance_json.ts script)
  */
 export function enhanceAbilityCard(card: {
   name: string;
@@ -2056,7 +2040,7 @@ export function enhanceAbilityCard(card: {
   frequency_override?: Frequency;
   keywords_override?: string[];
   costs_override?: CardCosts;
-}): EnhancedAbilityCard {
+}, verbose = false): EnhancedAbilityCard {
   const text = card.text;
   const cardType = card.type as 'Spell' | 'Ability';
 
@@ -2066,14 +2050,14 @@ export function enhanceAbilityCard(card: {
   const costs = card.costs_override || parseCosts(text); // Override takes precedence
   const frequency = card.frequency_override || parseFrequency(text);
   const hasTokens = hasTokenMechanics(text);
+
+  // 2. Parse action type using all available context
+  const actionType = card.action_type_override || parseActionType(text, cardType, attack ?? undefined, roll ?? undefined);
+  const timing = card.timing_override || parseTiming(text, actionType);
   const keywords = card.keywords_override || extractKeywords(text, cardType);
 
-  // 2. Determine action type (with override)
-  const actionType = card.action_type_override || parseActionType(text, cardType, attack, roll);
-  const timing = card.timing_override || parseTiming(text, actionType);
-
-  // Log overrides for visibility
-  if (card.action_type_override || card.timing_override || card.frequency_override || card.keywords_override || card.costs_override) {
+  // Log overrides for visibility (only when running enhance_json script)
+  if (verbose && (card.action_type_override || card.timing_override || card.frequency_override || card.keywords_override || card.costs_override)) {
     const overrides = [];
     if (card.action_type_override) overrides.push(`action_type=${card.action_type_override}`);
     if (card.timing_override) overrides.push(`timing=${card.timing_override}`);
