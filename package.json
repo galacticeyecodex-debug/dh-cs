@@ -17,7 +17,16 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "enhance-json": "npx tsx scripts/enhance_json.ts"
+    "enhance-json": "npx tsx scripts/enhance_json.ts",
+    "e2e": "playwright test --project=chromium",
+    "e2e:all": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:headed": "playwright test --headed --project=chromium",
+    "e2e:mobile": "playwright test --project=mobile",
+    "e2e:tablet": "playwright test --project=tablet",
+    "e2e:screenshot": "playwright test e2e/visual-check.spec.ts --project=chromium",
+    "e2e:update-snapshots": "playwright test --update-snapshots --project=chromium",
+    "e2e:debug": "playwright test --debug --project=chromium"
   },
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",
@@ -49,6 +58,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

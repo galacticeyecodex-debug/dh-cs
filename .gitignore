@@ -69,3 +69,8 @@ gha-creds-*.json
 reference/
 screenshots/
 docs/
+
+# Playwright
+/e2e/screenshots/
+/playwright-report/
+/test-results/
