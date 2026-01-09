@@ -11,7 +11,7 @@
  * - Cancel behavior
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import CreateHomebrewItemModal from '@/components/views/inventory/create-homebrew-item-modal';
 
@@ -265,7 +265,7 @@ describe('CreateHomebrewItemModal', () => {
     it('should call onClose when X button is clicked', () => {
       render(<CreateHomebrewItemModal {...defaultProps} />);
 
-      const closeButton = screen.getByRole('button', { name: '' });
+      const closeButton = screen.getByRole('button', { name: 'Close' });
       fireEvent.click(closeButton);
 
       expect(mockOnClose).toHaveBeenCalled();
