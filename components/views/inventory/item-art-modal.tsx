@@ -134,7 +134,7 @@ export default function ItemArtModal({ item, onClose }: ItemArtModalProps) {
                         </h2>
                         <p className="text-sm text-gray-400">{item.name}</p>
                     </div>
-                    <button onClick={onClose} className="text-white/70 hover:text-white">
+                    <button onClick={onClose} aria-label="Close" className="text-white/70 hover:text-white">
                         <X size={20} />
                     </button>
                 </div>

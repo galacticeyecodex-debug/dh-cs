@@ -502,10 +502,10 @@ export default function CompanionSheet({
                         className="flex-1 bg-black/40 border border-white/20 rounded px-3 py-2 text-sm text-white focus:border-dagger-gold outline-none transition-colors"
                       />
                       <div className="flex items-center bg-black/40 rounded border border-white/10">
-                        <button onClick={() => setNewExpValue(v => Math.max(0, v - 1))} className="px-2 py-1 hover:bg-white/10 text-white">-</button>
+                        <button onClick={() => setNewExpValue(v => Math.max(0, v - 1))} aria-label="Decrease value" className="px-2 py-1 hover:bg-white/10 text-white">-</button>
                         {/* Experience values are base values, use white (VALUE_COLORS.default) */}
                         <span className={clsx("w-8 text-center font-bold", VALUE_COLORS.default)}>+{newExpValue}</span>
-                        <button onClick={() => setNewExpValue(v => v + 1)} className="px-2 py-1 hover:bg-white/10 text-white">+</button>
+                        <button onClick={() => setNewExpValue(v => v + 1)} aria-label="Increase value" className="px-2 py-1 hover:bg-white/10 text-white">+</button>
                       </div>
                     </div>
                     <button
@@ -537,14 +537,14 @@ export default function CompanionSheet({
                             />
                             <div className="flex items-center justify-between">
                               <div className="flex items-center bg-black/40 rounded border border-white/20">
-                                <button onClick={() => setEditExpValue(v => Math.max(0, v - 1))} className="px-2 py-0.5 hover:bg-white/10 text-white">-</button>
+                                <button onClick={() => setEditExpValue(v => Math.max(0, v - 1))} aria-label="Decrease value" className="px-2 py-0.5 hover:bg-white/10 text-white">-</button>
                                 {/* Experience values are base values, use white */}
                                 <span className={clsx("w-8 text-center font-bold", VALUE_COLORS.default)}>+{editExpValue}</span>
-                                <button onClick={() => setEditExpValue(v => v + 1)} className="px-2 py-0.5 hover:bg-white/10 text-white">+</button>
+                                <button onClick={() => setEditExpValue(v => v + 1)} aria-label="Increase value" className="px-2 py-0.5 hover:bg-white/10 text-white">+</button>
                               </div>
                               <div className="flex gap-2">
-                                <button onClick={() => setEditingExpIndex(null)} className="p-1 text-gray-400 hover:text-white"><X size={16} /></button>
-                                <button onClick={saveEditExperience} className="p-1 text-dagger-gold hover:text-dagger-gold/80"><Check size={16} /></button>
+                                <button onClick={() => setEditingExpIndex(null)} aria-label="Cancel edit" className="p-1 text-gray-400 hover:text-white"><X size={16} /></button>
+                                <button onClick={saveEditExperience} aria-label="Save edit" className="p-1 text-dagger-gold hover:text-dagger-gold/80"><Check size={16} /></button>
                               </div>
                             </div>
                           </div>
@@ -560,7 +560,7 @@ export default function CompanionSheet({
                             <div className="flex items-center gap-3">
                               {/* Experience values are base values, use white */}
                               <div className={clsx("font-bold", VALUE_COLORS.default)}>+{exp.value}</div>
-                              <button onClick={() => handleDeleteExperience(index)} className="text-gray-500 hover:text-red-400 p-1">
+                              <button onClick={() => handleDeleteExperience(index)} aria-label="Delete experience" className="text-gray-500 hover:text-red-400 p-1">
                                 <Trash2 size={16} />
                               </button>
                             </div>
@@ -629,6 +629,7 @@ export default function CompanionSheet({
                                 {count > 0 && (
                                   <button
                                     onClick={() => decrementLevelUpOption(option.key)}
+                                    aria-label={`Decrease ${option.name}`}
                                     className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
                                   >
                                     <ChevronDown size={16} />
@@ -637,6 +638,7 @@ export default function CompanionSheet({
                                 <button
                                   onClick={() => toggleLevelUpOption(option.key, true)}
                                   disabled={isMaxed}
+                                  aria-label={`Increase ${option.name}`}
                                   className={clsx(
                                     "w-8 h-8 rounded flex items-center justify-center transition-colors",
                                     isMaxed
@@ -653,6 +655,7 @@ export default function CompanionSheet({
                               <button
                                 onClick={() => toggleLevelUpOption(option.key, false)}
                                 disabled={isMaxed && isActive}
+                                aria-label={`Toggle ${option.name}`}
                                 className={clsx(
                                   "w-8 h-8 rounded border-2 transition-colors flex items-center justify-center",
                                   isActive ? "bg-dagger-gold border-dagger-gold" : "bg-transparent border-white/20 hover:border-dagger-gold"
