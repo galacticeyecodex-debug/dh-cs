@@ -23,7 +23,6 @@ import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character
 import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap, Shield, ShieldOff, Users, AlertCircle, Swords, Sparkles, Search, Upload, Image as ImageIcon, Trash2, Layers } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import AddItemModal from '@/components/views/inventory/add-item-modal';
-import { dataService } from '@/lib/data-service';
 import clsx from 'clsx';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { ErrorBoundary } from '@/components/core/error-boundary';
@@ -41,6 +40,7 @@ import PlaymatCard from './playmat-card';
 import type { EnhancedAbilityCard } from '@/types/cards';
 import { getAttack, getRoll, getModifiers, isModifierActive } from '@/lib/enhancement-utils';
 import useContentAccess from '@/hooks/useContentAccess';
+import { useLibraryItems, LibraryPresets } from '@/hooks/useLibraryItems';
 
 import srdAbilities from '@/content/srd/json/abilities_enhanced.json';
 import playtestAbilities from '@/content/playtest/json/abilities_enhanced.json';
@@ -78,8 +78,6 @@ export default function PlaymatView() {
     }
   }, [cardToRemove, removeCard]);
 
-  const [allLibraryItems, setAllLibraryItems] = useState<LibraryItem[]>([]);
-  const [libraryLoading, setLibraryLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Memoize enhanced abilities based on playtest setting
@@ -89,34 +87,15 @@ export default function PlaymatView() {
     return [...srdData, ...playtestData];
   }, [includePlaytest]);
 
-  useEffect(() => {
-    const fetchAllLibraryItems = async () => {
-      setLibraryLoading(true);
-
-      try {
-        // Fetch card-related types (including domains for filter dropdown)
-        // Include playtest content if user has access
-        const [abilitiesData, spellsData, grimoiresData, domainsData] = await Promise.all([
-          dataService.library.getByType('ability', { includePlaytest }),
-          dataService.library.getByType('spell', { includePlaytest }),
-          dataService.library.getByType('grimoire', { includePlaytest }),
-          dataService.library.getByType('domain', { includePlaytest }),
-        ]);
-
-        setAllLibraryItems([
-          ...abilitiesData,
-          ...spellsData,
-          ...grimoiresData,
-          ...domainsData,
-        ]);
-      } catch (error) {
-        console.error("Failed to load library data:", error);
-      }
-      setLibraryLoading(false);
-    };
-
-    fetchAllLibraryItems();
-  }, [includePlaytest]);
+  // Use centralized library hook instead of duplicated fetch logic
+  const {
+    items: allLibraryItems,
+    loading: libraryLoading
+  } = useLibraryItems({
+    types: LibraryPresets.CARDS,
+    includePlaytest,
+    cacheTimeMs: 5 * 60 * 1000, // Cache for 5 minutes
+  });
 
   // Memoize callbacks BEFORE early return (hooks must be unconditional)
   const handleAddCard = useCallback((item: LibraryItem) => {
