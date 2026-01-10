@@ -74,6 +74,7 @@ const TIER_LIMITS: Record<string, number> = {
  * Minimum level requirements for advancements.
  */
 const MIN_LEVEL_REQUIREMENTS: Record<string, number> = {
+  subclass_card: 5,
   multiclass: 5,
 };
 
