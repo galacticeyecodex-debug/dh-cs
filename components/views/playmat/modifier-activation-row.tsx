@@ -99,6 +99,7 @@ export default function ModifierActivationRow({
             ? 'bg-dagger-gold/20 border-dagger-gold text-dagger-gold'
             : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
         )}
+        aria-label={`${isActive ? 'Deactivate' : 'Activate'} ${modifier.value} ${statLabel} modifier for ${cardName}`}
       >
         {isActive && <Check size={12} />}
         <span>{isActive ? 'Active' : 'Activate'}</span>

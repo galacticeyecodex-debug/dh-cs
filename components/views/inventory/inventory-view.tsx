@@ -212,6 +212,7 @@ export default function InventoryView() {
             <button
               onClick={() => setShowWealth(!showWealth)}
               className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+              aria-label={showWealth ? "Hide wealth details" : "Show wealth details"}
             >
               {showWealth ? <EyeOff size={14} /> : <Eye size={14} />}
               {showWealth ? 'Hide' : 'Show'}
@@ -253,6 +254,7 @@ export default function InventoryView() {
             <button
               onClick={() => setShowFilter(!showFilter)}
               className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+              aria-label={showFilter ? "Hide filters" : "Show filters"}
             >
               {showFilter ? <EyeOff size={14} /> : <Eye size={14} />}
               {showFilter ? 'Hide' : 'Show'}
@@ -385,8 +387,8 @@ const GoldCounter = React.memo(function GoldCounter({ label, value, onIncrement,
       <div className="text-2xl font-bold text-white">{value}</div>
       <div className="text-[10px] uppercase text-gray-500">{label}</div>
       <div className="flex w-full gap-1 mt-1 max-w-[80px]">
-        <button type="button" onClick={onDecrement} className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-sm font-bold text-gray-300">-</button>
-        <button type="button" onClick={onIncrement} className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-sm font-bold text-gray-300">+</button>
+        <button type="button" onClick={onDecrement} aria-label={`Decrease ${label}`} className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-sm font-bold text-gray-300">-</button>
+        <button type="button" onClick={onIncrement} aria-label={`Increase ${label}`} className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-sm font-bold text-gray-300">+</button>
       </div>
     </div>
   );

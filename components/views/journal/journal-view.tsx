@@ -278,13 +278,16 @@ function RelationshipCard({
                     {/* Info Button - toggle description */}
                     {relationship.npc_description && (
                         <button
-                            onClick={() => setShowDescription(!showDescription)}
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowDescription(!showDescription);
+                            }}
                             className={clsx(
-                                "p-1 rounded transition-colors",
-                                showDescription
-                                    ? "bg-dagger-gold/30 text-dagger-gold border border-dagger-gold/50"
-                                    : "text-gray-400 hover:text-white hover:bg-white/10"
+                                "transition-colors p-0.5 rounded hover:bg-white/10",
+                                showDescription ? "text-dagger-gold" : "text-gray-500 hover:text-gray-300"
                             )}
+                            aria-label={showDescription ? `Hide description for ${relationship.npc_name}` : `Show description for ${relationship.npc_name}`}
                             title={showDescription ? "Hide description" : "Show description"}
                         >
                             <Info size={12} />
@@ -294,13 +297,16 @@ function RelationshipCard({
                     {/* Settings Menu */}
                     <div className="relative" ref={menuRef}>
                         <button
-                            onClick={() => setShowMenu(!showMenu)}
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowMenu(!showMenu);
+                            }}
                             className={clsx(
-                                "p-1 rounded transition-colors",
-                                showMenu
-                                    ? "bg-white/20 text-white"
-                                    : "text-gray-400 hover:text-white hover:bg-white/10"
+                                "transition-colors p-0.5 rounded hover:bg-white/10",
+                                showMenu ? "text-white bg-white/10" : "text-gray-500 hover:text-gray-300"
                             )}
+                            aria-label={`Settings for ${relationship.npc_name}`}
                             title="More options"
                         >
                             <Settings size={12} />
@@ -360,6 +366,7 @@ function RelationshipCard({
                             relationship.points > 0 ? 'text-green-400' :
                                 relationship.points < 0 ? 'text-red-400' : 'text-gray-400'
                         )}
+                        aria-label={`Adjust relationship points for ${relationship.npc_name}`}
                         title="Click to adjust points"
                     >
                         {relationship.points > 0 ? '+' : ''}{relationship.points}
@@ -451,6 +458,7 @@ function ReputationPanel({
                         <button
                             onClick={() => handleOpenPrompt(-1)}
                             className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
+                            aria-label="Decrease reputation"
                         >
                             <ChevronDown size={24} />
                         </button>
@@ -470,6 +478,7 @@ function ReputationPanel({
                         <button
                             onClick={() => handleOpenPrompt(1)}
                             className="p-2 rounded-lg bg-white/5 hover:bg-green-500/20 text-gray-400 hover:text-green-400 transition-colors"
+                            aria-label="Increase reputation"
                         >
                             <ChevronUp size={24} />
                         </button>
