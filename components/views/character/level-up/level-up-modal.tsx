@@ -92,7 +92,7 @@ const ADVANCEMENT_OPTIONS = [
   { id: 'increase_experience', name: 'Increase Experience', description: 'Choose 2 experiences and gain +1 to each', cost: 1 },
   { id: 'additional_domain_card', name: 'Additional Domain Card', description: 'Gain an additional domain card', cost: 1 },
   { id: 'increase_evasion', name: 'Increase Evasion', description: 'Gain +1 to your Evasion', cost: 1 },
-  { id: 'subclass_card', name: 'Upgraded Subclass Card', description: 'Take your next subclass card (Specialization or Mastery)', cost: 1 },
+  { id: 'subclass_card', name: 'Upgraded Subclass Card', description: 'Take your next subclass card (Specialization or Mastery)', cost: 1, minLevel: 5 },
   { id: 'increase_proficiency', name: 'Increase Proficiency', description: 'Gain +1 to Proficiency (+1 damage die)', cost: 2 },
   { id: 'multiclass', name: 'Multiclass', description: 'Gain access to a second class and domain (available at level 5+)', cost: 2, minLevel: 5 },
 ];
