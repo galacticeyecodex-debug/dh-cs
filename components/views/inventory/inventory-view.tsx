@@ -22,7 +22,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useCharacterStore, CharacterInventoryItem, LibraryItem } from '@/store/character-store';
-import { Coins, Package, Plus, Heart, Gem, Eye, EyeOff, Sword, Shield, Backpack } from 'lucide-react';
+import { Coins, Package, Plus, Gem, Eye, EyeOff, Sword, Shield, Backpack, FlaskConical } from 'lucide-react';
 import clsx from 'clsx';
 import AddItemModal from './add-item-modal';
 import CreateHomebrewItemModal, { HomebrewItemData } from './create-homebrew-item-modal';
@@ -280,7 +280,7 @@ export default function InventoryView() {
                 )}
                 onClick={() => setSelectedCategory('consumable')}
               >
-                <Heart size={16} /> Consumables
+                <FlaskConical size={16} /> Consumables
               </button>
               <button
                 className={clsx(
