@@ -328,7 +328,11 @@ export default function DiceOverlay() {
           ref={containerRef}
           className="absolute inset-0 w-screen h-screen z-[65]"
           style={{ pointerEvents: isDiceOverlayOpen && !hasRolled ? 'auto' : 'none' }}
+          data-testid="dice-tray"
+          data-ready={isReady}
         />
+        {/* Hidden element for tests to detect ready state */}
+        {isReady && <div data-testid="dice-ready" className="hidden" />}
       </div>
 
       <AnimatePresence>
@@ -369,12 +373,12 @@ export default function DiceOverlay() {
                   )}
                 </div>
 
-                <div className="flex flex-col items-center gap-2 pointer-events-auto">
-                  <div className="flex items-center gap-2 bg-black/75 p-1 rounded-full border border-white/10">
+                <div className="flex flex-col items-center gap-2 pointer-events-auto" data-testid="dice-controls">
+                  <div className="flex items-center gap-2 bg-black/75 p-1 rounded-full border border-white/10" data-testid="modifier-control">
                     <span className="text-xs text-gray-300 pl-3 font-bold uppercase">Mod</span>
-                    <button onClick={() => setTempModifier(m => m - 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20">-</button>
-                    <span className="w-8 text-center font-mono font-bold">{totalModifierDisplay >= 0 ? `+${totalModifierDisplay}` : totalModifierDisplay}</span>
-                    <button onClick={() => setTempModifier(m => m + 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20">+</button>
+                    <button onClick={() => setTempModifier(m => m - 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20" data-testid="modifier-decrease" aria-label="Decrease modifier">-</button>
+                    <span className="w-8 text-center font-mono font-bold" data-testid="modifier-value">{totalModifierDisplay >= 0 ? `+${totalModifierDisplay}` : totalModifierDisplay}</span>
+                    <button onClick={() => setTempModifier(m => m + 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20" data-testid="modifier-increase" aria-label="Increase modifier">+</button>
                   </div>
 
                   {/* PLAN C: DICE BUILDER UI */}
@@ -382,9 +386,9 @@ export default function DiceOverlay() {
                     <div className="flex flex-col gap-2 mt-2 w-full max-w-md">
 
                       {/* Pool Display */}
-                      <div className="flex flex-wrap justify-center gap-2 bg-black/75 p-2 rounded-xl border border-white/10 min-h-[4rem]">
+                      <div className="flex flex-wrap justify-center gap-2 bg-black/75 p-2 rounded-xl border border-white/10 min-h-[4rem]" data-testid="dice-pool">
                         {dicePool.map((die) => (
-                          <div key={die.id} className="relative group">
+                          <div key={die.id} className="relative group" data-testid={`die-chip-${die.id}`}>
                             <button
                               onClick={() => cycleRole(die.id)}
                               className={clsx(
@@ -395,6 +399,10 @@ export default function DiceOverlay() {
                                       die.role === 'minus' ? "bg-gray-800/40 border-gray-400" :
                                         "bg-green-900/40 border-green-500"
                               )}
+                              data-testid={`die-button-${die.role}-d${die.sides}`}
+                              data-die-role={die.role}
+                              data-die-sides={die.sides}
+                              aria-label={`Cycle role for d${die.sides} (currently ${die.role})`}
                             >
                               <span className={clsx("text-[8px] font-bold uppercase",
                                 die.role === 'hope' ? "text-dagger-gold" :
@@ -408,6 +416,8 @@ export default function DiceOverlay() {
                             <button
                               onClick={() => removeDie(die.id)}
                               className="absolute -top-3 -right-3 bg-red-500/50 text-white rounded-full p-1 shadow-md opacity-50 group-hover:opacity-100 transition-opacity"
+                              data-testid={`die-remove-${die.id}`}
+                              aria-label={`Remove ${die.role} d${die.sides}`}
                             >
                               <X size={12} />
                             </button>
@@ -416,12 +426,14 @@ export default function DiceOverlay() {
                       </div>
 
                       {/* Dice Picker */}
-                      <div className="flex justify-center gap-2 bg-black/75 p-2 rounded-xl border border-white/10">
+                      <div className="flex justify-center gap-2 bg-black/75 p-2 rounded-xl border border-white/10" data-testid="dice-picker">
                         {[4, 6, 8, 10, 12, 20].map(sides => (
                           <button
                             key={sides}
                             onClick={() => addDie(sides)}
                             className="w-10 h-10 flex flex-col items-center justify-center bg-white/5 hover:bg-white/15 rounded border border-white/5 hover:border-white/20 transition-all"
+                            data-testid={`add-d${sides}`}
+                            aria-label={`Add d${sides}`}
                           >
                             <span className="text-xs font-bold text-gray-400">d{sides}</span>
                             <Plus size={12} className="text-white" />
@@ -456,14 +468,14 @@ export default function DiceOverlay() {
 
                   {/* Experiences & Hope Section */}
                   {experiences.length > 0 && !activeRoll?.dice && (
-                    <div className="flex flex-col items-center gap-2 w-full max-w-md px-4 mt-2">
+                    <div className="flex flex-col items-center gap-2 w-full max-w-md px-4 mt-2" data-testid="experiences-section">
                       <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
-                        <span className="text-dagger-gold">Hope: {currentHope}</span>
+                        <span className="text-dagger-gold" data-testid="current-hope">Hope: {currentHope}</span>
                         {hopeCost > 0 && (
                           <span className="text-red-400 animate-pulse">- {hopeCost}</span>
                         )}
                       </div>
-                      <div className="flex flex-wrap justify-center gap-2">
+                      <div className="flex flex-wrap justify-center gap-2" data-testid="experiences-list">
                         {experiences.map((exp, idx) => {
                           const isSelected = selectedExpIndices.includes(idx);
                           const canAfford = currentHope - hopeCost >= 1;
@@ -481,6 +493,9 @@ export default function DiceOverlay() {
                                     ? "bg-black/75 text-gray-300 border-white/20 hover:bg-white/10"
                                     : "bg-black/50 text-gray-600 border-white/5 opacity-50 cursor-not-allowed"
                               )}
+                              data-testid={`experience-${idx}`}
+                              data-selected={isSelected}
+                              aria-label={`Toggle ${exp.name} experience (+${exp.value})`}
                             >
                               {isCompanionExp && <span className="text-xs opacity-70">🐾</span>}
                               {exp.name} <span className="opacity-80">+{exp.value}</span>
@@ -494,6 +509,7 @@ export default function DiceOverlay() {
                   <button
                     onClick={() => handleRoll()}
                     className="mt-2 px-8 py-3 bg-dagger-gold/75 text-black font-bold rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 text-lg cursor-pointer pointer-events-auto"
+                    data-testid="roll-button"
                   >
                     <RotateCcw size={20} />
                     ROLL
@@ -518,6 +534,7 @@ export default function DiceOverlay() {
                   initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-md pointer-events-auto z-20"
+                  data-testid="roll-result"
                 >
                   <div
                     className="bg-dagger-panel/75 border border-white/10 p-6 rounded-2xl shadow-2xl text-center relative"
@@ -537,7 +554,7 @@ export default function DiceOverlay() {
                     </button>
 
                     <div className="text-sm text-gray-400 uppercase tracking-wider mb-1">Result</div>
-                    <div className="text-6xl font-serif font-black text-white mb-4">{lastRollResult.total}</div>
+                    <div className="text-6xl font-serif font-black text-white mb-4" data-testid="roll-total">{lastRollResult.total}</div>
                     <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4">
                       {lastRollResult.dice?.map((die, index) => (
                         <div key={index} className="flex flex-col items-center">
@@ -569,7 +586,10 @@ export default function DiceOverlay() {
                           lastRollResult.type === 'Hope' ? "bg-dagger-gold/20 text-dagger-gold border border-dagger-gold/50" :
                             lastRollResult.type === 'Fear' ? "bg-purple-500/20 text-purple-300 border border-purple-500/50" :
                               "bg-white/10 text-white border border-white/20"
-                      )}>
+                      )}
+                        data-testid="roll-type"
+                        data-roll-type={lastRollResult.type}
+                      >
                         {lastRollResult.type === 'Critical' ? 'Critical Success!' : `With ${lastRollResult.type}`}
                       </div>
                     )}

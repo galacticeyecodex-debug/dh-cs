@@ -228,6 +228,7 @@ export default function PlaymatCard({
               ? "bg-black/60 hover:bg-black/80 text-gray-300 hover:text-white border-white/20"
               : "bg-dagger-gold/30 border-dagger-gold/50 text-dagger-gold hover:bg-dagger-gold/40 shadow-dagger-gold/10"
           )}
+          aria-label={isLoadout ? `Move ${libraryItem.name} to vault` : `Move ${libraryItem.name} to loadout`}
           title={isLoadout ? "Move to Vault" : "Add to Loadout"}
         >
           <ArrowRightLeft size={12} />
@@ -247,6 +248,7 @@ export default function PlaymatCard({
                 ? "bg-dagger-gold/30 text-dagger-gold border border-dagger-gold/50"
                 : "text-white/70 hover:text-white hover:bg-white/10"
             )}
+            aria-label={`${showDescription ? 'Hide' : 'Show'} ${libraryItem.name} description`}
             title={showDescription ? "Hide description" : "Show description"}
           >
             <Info size={12} />
@@ -262,6 +264,7 @@ export default function PlaymatCard({
             }}
             className="p-1 text-white/70 hover:text-white rounded transition-colors hover:bg-white/10"
             title="Change Card Art"
+            aria-label={`Change art for ${libraryItem.name}`}
           >
             <ImageIcon size={12} />
           </button>
@@ -281,6 +284,7 @@ export default function PlaymatCard({
                 : "text-white/70 hover:text-white hover:bg-white/10"
             )}
             title="Manage Card"
+            aria-label={`Manage options for ${libraryItem.name}`}
           >
             <Settings size={12} />
           </button>
@@ -306,6 +310,7 @@ export default function PlaymatCard({
                     ? "text-gray-300 hover:bg-white/10 hover:text-white cursor-pointer"
                     : "text-gray-600 cursor-not-allowed"
                 )}
+                aria-label={`Manage modifiers for ${libraryItem.name}`}
               >
                 <Sliders size={14} /> Manage Modifiers
               </button>

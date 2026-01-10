@@ -708,6 +708,7 @@ function ProjectsPanel({
                                 ? "bg-white/20 text-white"
                                 : "bg-white/5 text-gray-400 hover:text-white"
                         )}
+                        aria-label={isManageMode ? "Finish managing projects" : "Toggle project management mode"}
                         title="Manage Projects"
                     >
                         <Settings size={16} />
@@ -825,6 +826,7 @@ function ProjectCard({ project, isManageMode, onEdit, onSetProgress, onDelete }:
                             onClick={onEdit}
                             className="p-1 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
                             title="Edit project"
+                            aria-label={`Edit project ${project.name}`}
                         >
                             <Pencil size={12} />
                         </button>
@@ -832,6 +834,7 @@ function ProjectCard({ project, isManageMode, onEdit, onSetProgress, onDelete }:
                             onClick={() => onDelete(project.id)}
                             className="p-1 rounded hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
                             title="Delete project"
+                            aria-label={`Delete project ${project.name}`}
                         >
                             <Trash2 size={12} />
                         </button>
@@ -852,6 +855,7 @@ function ProjectCard({ project, isManageMode, onEdit, onSetProgress, onDelete }:
                                 : "bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
                         )}
                         title="Decrease progress"
+                        aria-label={`Decrease progress for ${project.name}`}
                     >
                         <Minus size={14} />
                     </button>
@@ -882,6 +886,7 @@ function ProjectCard({ project, isManageMode, onEdit, onSetProgress, onDelete }:
                                 : "bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
                         )}
                         title="Increase progress"
+                        aria-label={`Increase progress for ${project.name}`}
                     >
                         <Plus size={14} />
                     </button>

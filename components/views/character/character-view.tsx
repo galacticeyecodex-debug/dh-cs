@@ -305,6 +305,7 @@ export default function CharacterView() {
             <button
               onClick={() => setIsManageOpen(true)}
               className="bg-black/40 hover:bg-black/60 text-white backdrop-blur-md px-4 py-2 rounded-full transition-all flex items-center gap-2 border border-white/10 shadow-lg"
+              aria-label="Manage character settings"
             >
               <Settings size={16} />
               <span className="text-sm font-bold hidden sm:inline">Manage</span>
@@ -433,6 +434,7 @@ export default function CharacterView() {
                   <button
                     onClick={() => setShowVitals(!showVitals)}
                     className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
+                    aria-label={showVitals ? "Hide vitals" : "Show vitals"}
                   >
                     {showVitals ? <EyeOff size={12} /> : <Eye size={12} />}
                     {showVitals ? 'Hide' : 'Show'}
@@ -455,6 +457,7 @@ export default function CharacterView() {
                     <button
                       onClick={() => setShowTraits(!showTraits)}
                       className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
+                      aria-label={showTraits ? "Hide traits" : "Show traits"}
                     >
                       {showTraits ? <EyeOff size={12} /> : <Eye size={12} />}
                       {showTraits ? 'Hide' : 'Show'}
@@ -493,6 +496,7 @@ export default function CharacterView() {
                               ? 'bg-dagger-gold'
                               : 'bg-transparent hover:bg-white/10'
                               }`}
+                            aria-label={isMarked ? `Unmark ${key} trait` : `Mark ${key} trait`}
                             title={isMarked ? 'Trait is marked (cannot be increased until tier clear)' : 'Mark trait as used'}
                           />
                         </div>
@@ -516,6 +520,7 @@ export default function CharacterView() {
                     <button
                       onClick={() => setShowExperiences(!showExperiences)}
                       className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
+                      aria-label={showExperiences ? "Hide experiences" : "Show experiences"}
                     >
                       {showExperiences ? <EyeOff size={12} /> : <Eye size={12} />}
                       {showExperiences ? 'Hide' : 'Show'}
@@ -555,6 +560,7 @@ export default function CharacterView() {
                     <button
                       onClick={() => setShowAncestry(!showAncestry)}
                       className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
+                      aria-label={showAncestry ? "Hide ancestry features" : "Show ancestry features"}
                     >
                       {showAncestry ? <EyeOff size={12} /> : <Eye size={12} />}
                       {showAncestry ? 'Hide' : 'Show'}
@@ -570,6 +576,7 @@ export default function CharacterView() {
                             <button
                               onClick={() => setShowAncestryLore(!showAncestryLore)}
                               className="p-1 hover:bg-white/10 rounded transition-colors"
+                              aria-label={showAncestryLore ? `Hide lore for ${ancestryCard.name}` : `Show lore for ${ancestryCard.name}`}
                               title={showAncestryLore ? "Hide lore" : "Show lore"}
                             >
                               <Info size={12} className={showAncestryLore ? "text-dagger-gold" : "text-gray-400"} />
@@ -609,6 +616,7 @@ export default function CharacterView() {
                     <button
                       onClick={() => setShowCommunity(!showCommunity)}
                       className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
+                      aria-label={showCommunity ? "Hide community features" : "Show community features"}
                     >
                       {showCommunity ? <EyeOff size={12} /> : <Eye size={12} />}
                       {showCommunity ? 'Hide' : 'Show'}
@@ -624,6 +632,7 @@ export default function CharacterView() {
                             <button
                               onClick={() => setShowCommunityLore(!showCommunityLore)}
                               className="p-1 hover:bg-white/10 rounded transition-colors"
+                              aria-label={showCommunityLore ? `Hide lore for ${communityCard.name}` : `Show lore for ${communityCard.name}`}
                               title={showCommunityLore ? "Hide lore" : "Show lore"}
                             >
                               <Info size={12} className={showCommunityLore ? "text-dagger-gold" : "text-gray-400"} />
@@ -663,6 +672,7 @@ export default function CharacterView() {
                     <button
                       onClick={() => setShowTransformation(!showTransformation)}
                       className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
+                      aria-label={showTransformation ? "Hide transformation features" : "Show transformation features"}
                     >
                       {showTransformation ? <EyeOff size={12} /> : <Eye size={12} />}
                       {showTransformation ? 'Hide' : 'Show'}
@@ -678,6 +688,7 @@ export default function CharacterView() {
                             <button
                               onClick={() => setShowTransformationLore(!showTransformationLore)}
                               className="p-1 hover:bg-white/10 rounded transition-colors"
+                              aria-label={showTransformationLore ? `Hide lore for ${transformationCard.name}` : `Show lore for ${transformationCard.name}`}
                               title={showTransformationLore ? "Hide lore" : "Show lore"}
                             >
                               <Info size={12} className="text-gray-400" />
@@ -735,6 +746,7 @@ export default function CharacterView() {
                     <button
                       onClick={() => setShowClassFeatures(!showClassFeatures)}
                       className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
+                      aria-label={showClassFeatures ? "Hide class features" : "Show class features"}
                     >
                       {showClassFeatures ? <EyeOff size={12} /> : <Eye size={12} />}
                       {showClassFeatures ? 'Hide' : 'Show'}
@@ -749,6 +761,7 @@ export default function CharacterView() {
                         <button
                           onClick={() => setShowClassLore(!showClassLore)}
                           className="p-1 hover:bg-white/10 rounded transition-colors"
+                          aria-label={showClassLore ? `Hide lore for ${character.class_data.name}` : `Show lore for ${character.class_data.name}`}
                           title={showClassLore ? "Hide lore" : "Show lore"}
                         >
                           <Info size={12} className={showClassLore ? "text-dagger-gold" : "text-gray-400"} />
