@@ -72,10 +72,18 @@ export async function withOptimisticUpdate<T>(
 
   } catch (error: any) {
     // 3. Handle error: rollback and notify user
-    console.error('Database operation failed:', error);
+    // Extract meaningful error info - PostgrestError properties may not be enumerable
+    const errorDetails = {
+      message: error?.message,
+      code: error?.code,
+      details: error?.details,
+      hint: error?.hint,
+      name: error?.name,
+    };
+    console.error('Database operation failed:', errorDetails, error);
     rollback();
     toast.error(errorMessage, {
-      description: error.message || 'Please try again',
+      description: error?.message || error?.details || 'Please try again',
       duration: 5000,
     });
     return { success: false };
