@@ -18,7 +18,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Sword, Shield, ArrowRightLeft, ImageIcon, Settings, Info } from 'lucide-react';
+import { Sword, Shield, ArrowRightLeft, ImageIcon, Settings, Info, Pill } from 'lucide-react';
 import clsx from 'clsx';
 import { CharacterInventoryItem } from '@/store/character-store';
 import { MarkdownText } from '@/components/shared/markdown-text';
@@ -32,6 +32,8 @@ export interface InventoryItemCardProps {
     onManage: (item: CharacterInventoryItem) => void;
     /** Callback when the art button is clicked (opens art modal) */
     onEditArt: (item: CharacterInventoryItem) => void;
+    /** Optional callback when using a consumable item */
+    onUse?: (item: CharacterInventoryItem) => void;
 }
 
 const InventoryItemCard = React.memo(function InventoryItemCard({
@@ -39,6 +41,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
     onEquip,
     onManage,
     onEditArt,
+    onUse,
 }: InventoryItemCardProps) {
     const type = item.library_item?.type;
     const isEquipped = item.location.startsWith('equipped');
@@ -191,6 +194,17 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
 
             {/* Equip Controls */}
             <div className="flex gap-2 mt-1">
+                {/* Consumable Use Button */}
+                {type === 'consumable' && onUse && (
+                    <button
+                        onClick={() => onUse(item)}
+                        className="text-[10px] font-bold uppercase px-2 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded flex items-center gap-1 border border-green-500/30"
+                        aria-label={`Use ${item.name}`}
+                    >
+                        <Pill size={12} /> Use
+                    </button>
+                )}
+
                 {type === 'weapon' && (
                     <>
                         {item.location !== 'equipped_primary' && (
