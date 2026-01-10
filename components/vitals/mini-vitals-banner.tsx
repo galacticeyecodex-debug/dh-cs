@@ -46,6 +46,7 @@ export function MiniVitalsPanel({
                         key={vital.label}
                         onClick={vital.onClick}
                         disabled={!vital.onClick}
+                        aria-label={`${vital.label}: ${vital.current}${vital.max !== undefined ? ` of ${vital.max}` : ''}`}
                         className={cn(
                             "flex flex-col items-center gap-0.5 min-w-[60px] transition-transform",
                             vital.onClick ? "active:scale-95 cursor-pointer" : "cursor-default"
