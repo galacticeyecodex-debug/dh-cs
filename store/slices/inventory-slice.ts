@@ -391,10 +391,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
       const actualHealed = newHp - currentHp;
 
       if (actualHealed > 0) {
-        await state.updateVitals?.({
-          ...state.character.vitals,
-          hit_points_current: newHp
-        });
+        await state.updateVitals?.('hit_points_current', newHp);
         effectApplied = true;
         effectDescription = `Healed ${actualHealed} HP`;
       } else {
@@ -416,10 +413,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
       const actualCleared = currentStress - newStress;
 
       if (actualCleared > 0) {
-        await state.updateVitals?.({
-          ...state.character.vitals,
-          stress_current: newStress
-        });
+        await state.updateVitals?.('stress_current', newStress);
         effectApplied = true;
         effectDescription = `Cleared ${actualCleared} Stress`;
       } else {
@@ -433,10 +427,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
 
       if (armorSlots < armorScore) {
         // Repair 1 armor slot
-        await state.updateVitals?.({
-          ...state.character.vitals,
-          armor_slots: Math.min(armorSlots + 1, armorScore)
-        });
+        await state.updateVitals?.('armor_slots', Math.min(armorSlots + 1, armorScore));
         effectApplied = true;
         effectDescription = 'Repaired 1 armor slot';
       } else {
