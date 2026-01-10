@@ -62,15 +62,15 @@ export default function ModifierSheet({
   tabs
 }: ModifierSheetProps) {
   // If tabs are provided, use them. Otherwise, create a single "virtual" tab from props.
-  const effectiveTabs: ModifierTab[] = tabs && tabs.length > 0 
-    ? tabs 
-    : [{ 
-        id: 'default', 
-        label: statLabel, 
-        baseValue, 
-        currentModifiers, 
-        onUpdateModifiers 
-      }];
+  const effectiveTabs: ModifierTab[] = tabs && tabs.length > 0
+    ? tabs
+    : [{
+      id: 'default',
+      label: statLabel,
+      baseValue,
+      currentModifiers,
+      onUpdateModifiers
+    }];
 
   const [activeTabId, setActiveTabId] = useState<string>(effectiveTabs[0].id);
   const activeTab = effectiveTabs.find(t => t.id === activeTabId) || effectiveTabs[0];
@@ -193,8 +193,8 @@ export default function ModifierSheet({
                     onClick={() => setActiveTabId(tab.id)}
                     className={clsx(
                       "py-3 px-1 text-sm font-bold uppercase tracking-wider transition-colors whitespace-nowrap border-b-2",
-                      activeTabId === tab.id 
-                        ? "text-dagger-gold border-dagger-gold" 
+                      activeTabId === tab.id
+                        ? "text-dagger-gold border-dagger-gold"
                         : "text-gray-500 border-transparent hover:text-gray-300"
                     )}
                   >
@@ -223,6 +223,7 @@ export default function ModifierSheet({
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setPendingValue(prev => prev - 1)}
+                  aria-label="Decrease modifier"
                   className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-2xl font-bold text-white transition-colors"
                 >
                   -
@@ -237,6 +238,7 @@ export default function ModifierSheet({
 
                 <button
                   onClick={() => setPendingValue(prev => prev + 1)}
+                  aria-label="Increase modifier"
                   className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-2xl font-bold text-white transition-colors"
                 >
                   +
@@ -278,7 +280,7 @@ export default function ModifierSheet({
                             className="bg-black/40 border border-white/20 rounded px-2 py-1 text-sm w-full focus:border-dagger-gold outline-none"
                             onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
                           />
-                          <button onClick={saveEdit} className="p-1 text-green-400 hover:bg-white/10 rounded"><Check size={16} /></button>
+                          <button onClick={saveEdit} aria-label="Save edit" className="p-1 text-green-400 hover:bg-white/10 rounded"><Check size={16} /></button>
                         </div>
                       ) : (
                         <div>
@@ -308,7 +310,7 @@ export default function ModifierSheet({
                         {mod.value >= 0 ? `+${mod.value}` : mod.value}
                       </div>
                       {mod.source === 'user' && (
-                        <button onClick={() => handleDelete(mod.id)} className="text-gray-500 hover:text-red-400 p-1">
+                        <button onClick={() => handleDelete(mod.id)} aria-label="Delete modifier" className="text-gray-500 hover:text-red-400 p-1">
                           <X size={18} />
                         </button>
                       )}

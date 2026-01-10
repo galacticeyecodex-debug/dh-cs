@@ -757,14 +757,14 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
         {!isFull && (
           <div className="flex justify-between items-center p-4 border-b border-white/10">
             <h2 className="text-lg font-bold font-eveleth text-white">Change Art</h2>
-            <button onClick={onClose} className="text-white/70 hover:text-white">
+            <button onClick={onClose} aria-label="Close" className="text-white/70 hover:text-white">
               <X size={20} />
             </button>
           </div>
         )}
 
         {isFull && (
-          <button onClick={onClose} className="absolute top-2 right-2 text-white/70 hover:text-white bg-black/50 rounded-full p-1 z-20">
+          <button onClick={onClose} aria-label="Close" className="absolute top-2 right-2 text-white/70 hover:text-white bg-black/50 rounded-full p-1 z-20">
             <X size={20} />
           </button>
         )}
