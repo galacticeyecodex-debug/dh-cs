@@ -28,9 +28,9 @@ import AddItemModal from './add-item-modal';
 import CreateHomebrewItemModal, { HomebrewItemData } from './create-homebrew-item-modal';
 import ItemArtModal from './item-art-modal';
 import InventoryItemCard from './inventory-item-card';
-import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import ViewHeader from '@/components/shared/view-header';
+import { useLibraryItems, LibraryPresets } from '@/hooks/useLibraryItems';
 
 export default function InventoryView() {
   const {
@@ -50,38 +50,16 @@ export default function InventoryView() {
   const [showWealth, setShowWealth] = useState(true);
   const [showFilter, setShowFilter] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [allLibraryItems, setAllLibraryItems] = useState<LibraryItem[]>([]);
-  const [libraryLoading, setLibraryLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchAllLibraryItems = async () => {
-      setLibraryLoading(true);
-      setError(null);
-
-      try {
-        const [weaponsData, armorData, consumablesData, itemsData] = await Promise.all([
-          dataService.library.getByType('weapon'),
-          dataService.library.getByType('armor'),
-          dataService.library.getByType('consumable'),
-          dataService.library.getByType('item'),
-        ]);
-
-        setAllLibraryItems([
-          ...weaponsData,
-          ...armorData,
-          ...consumablesData,
-          ...itemsData,
-        ]);
-      } catch (error) {
-        setError("Failed to load library data: " + (error instanceof Error ? error.message : String(error)));
-        console.error(error);
-      }
-      setLibraryLoading(false);
-    };
-
-    fetchAllLibraryItems();
-  }, []); // Run only once on mount
+  // Use centralized library hook instead of duplicated fetch logic
+  const {
+    items: allLibraryItems,
+    loading: libraryLoading,
+    error
+  } = useLibraryItems({
+    types: LibraryPresets.INVENTORY,
+    cacheTimeMs: 5 * 60 * 1000, // Cache for 5 minutes
+  });
 
   // Memoize callbacks BEFORE early return (hooks must be unconditional)
   const handleEquip = useCallback((itemId: string, slot: 'equipped_primary' | 'equipped_secondary' | 'equipped_armor' | 'backpack') => {
