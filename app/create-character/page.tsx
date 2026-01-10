@@ -22,15 +22,15 @@ import { X } from 'lucide-react';
 import { uploadCharacterAvatar } from '@/lib/storage-service';
 import { calculateDamageThresholds } from '@/lib/gameLogic';
 import { getTemplateForClass } from '@/lib/character-templates';
-import { 
-  BasicInfoStep, 
-  HeritageStep, 
-  ClassDomainsStep, 
-  DomainCardsStep, 
-  AssignTraitsStep, 
-  ExperiencesStep, 
-  CompanionStep, 
-  EquipmentStep, 
+import {
+  BasicInfoStep,
+  HeritageStep,
+  ClassDomainsStep,
+  DomainCardsStep,
+  AssignTraitsStep,
+  ExperiencesStep,
+  CompanionStep,
+  EquipmentStep,
   ConfirmCreateStep,
   CharacterFormData,
   LibraryData,
@@ -128,7 +128,7 @@ export default function CreateCharacterPage() {
     if (formData.class_id && libraryData.classes.length > 0) {
       if (prevClassIdRef.current !== formData.class_id) {
         prevClassIdRef.current = formData.class_id;
-        
+
         const selectedClass = libraryData.classes.find(c => c.id === formData.class_id);
         if (selectedClass) {
           setCalculatedVitals({
@@ -155,7 +155,7 @@ export default function CreateCharacterPage() {
           if (selectedClass.data.class_items_raw) {
             if (selectedClass.data.class_items_raw.includes('Minor Health Potion')) initialMiscItems.push('consumable-minor-health-potion');
             else if (selectedClass.data.class_items_raw.includes('Minor Stamina Potion')) initialMiscItems.push('consumable-minor-stamina-potion');
-            
+
             ['torch', '50 feet of rope', 'basic supplies'].forEach(itemName => {
               if (selectedClass.data.class_items_raw.toLowerCase().includes(itemName)) {
                 initialMiscItems.push(`misc-${itemName.replace(/\s/g, '-')}`);
@@ -170,7 +170,7 @@ export default function CreateCharacterPage() {
             misc: initialMiscItems,
             gold: { handfuls: 1, bags: 0, chests: 0 }
           });
-          
+
           if (!isTemplateApplied) {
             setFormData(prev => ({
               ...prev,
@@ -198,12 +198,12 @@ export default function CreateCharacterPage() {
       // Wait, isTemplateApplied is in dependency array.
       // So setting it true triggers effect. Ref matches (if class same). 
       // If class different, Ref differs.
-      
+
       // If we select template for NEW class:
       // setIsTemplateApplied(true) -> Effect runs. prevClassIdRef != newClassId (NO, formData not updated yet).
       // setFormData(...) -> Effect runs. prevClassIdRef != newClassId.
       // Inside effect: isTemplateApplied is true. So we skip clearing. set false.
-      
+
       setFormData(prev => ({ ...prev, ...templateData }));
     }
   }, [libraryData]);
@@ -235,8 +235,8 @@ export default function CreateCharacterPage() {
 
   const assignTraitValue = useCallback((statName: keyof CharacterFormData['stats'], value: number | '') => {
     if (value === '') {
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         stats: prev.stats ? { ...prev.stats, [statName]: 0 } : { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0, [statName]: 0 }
       }));
       setSelectedTraitIndex(null);
@@ -249,9 +249,9 @@ export default function CreateCharacterPage() {
       if (assignedCount < poolCount) {
         setFormData(prev => ({
           ...prev,
-          stats: { 
-            ...(prev.stats || { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }), 
-            [statName]: val 
+          stats: {
+            ...(prev.stats || { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }),
+            [statName]: val
           }
         }));
         setSelectedTraitIndex(null);
@@ -286,7 +286,7 @@ export default function CreateCharacterPage() {
     const isBeastbond = formData.subclass_id && libraryData.subclasses.find(s => s.id === formData.subclass_id)?.name?.toLowerCase() === 'beastbound';
     switch (step) {
       case 1: return true; // Name is optional, defaults to "New Character"
-      case 2: 
+      case 2:
         if (formData.is_mixed_ancestry) {
           return !!formData.ancestry_id && !!formData.ancestry_id_2 && !!formData.community_id;
         }
@@ -327,16 +327,16 @@ export default function CreateCharacterPage() {
     try {
       const selectedAncestry = libraryData.ancestries.find(a => a.id === formData.ancestry_id);
       const selectedAncestry2 = formData.is_mixed_ancestry ? libraryData.ancestries.find(a => a.id === formData.ancestry_id_2) : null;
-      
+
       const ancestryName = formData.is_mixed_ancestry
         ? (formData.mixed_ancestry_name || (selectedAncestry2 ? `${selectedAncestry?.name}-${selectedAncestry2?.name}` : selectedAncestry?.name))
         : selectedAncestry?.name;
 
       const ancestryFeatures = formData.is_mixed_ancestry
         ? [
-            selectedAncestry?.data?.features?.[formData.ancestry_feat_index_1 ?? 0], 
-            selectedAncestry2?.data?.features?.[formData.ancestry_feat_index_2 ?? 1]
-          ]
+          selectedAncestry?.data?.features?.[formData.ancestry_feat_index_1 ?? 0],
+          selectedAncestry2?.data?.features?.[formData.ancestry_feat_index_2 ?? 1]
+        ]
         : selectedAncestry?.data?.features;
 
       const selectedCommunity = libraryData.communities.find(c => c.id === formData.community_id);
@@ -389,10 +389,10 @@ export default function CreateCharacterPage() {
           ...(finalPrimaryWeapon ? [{ item_id: finalPrimaryWeapon.id, name: finalPrimaryWeapon.name, description: finalPrimaryWeapon.data.markdown || '', location: 'equipped_primary', quantity: 1 }] : []),
           ...(finalSecondaryWeapon ? [{ item_id: finalSecondaryWeapon.id, name: finalSecondaryWeapon.name, description: finalSecondaryWeapon.data.markdown || '', location: 'equipped_secondary', quantity: 1 }] : []),
           ...(finalArmor ? [{ item_id: finalArmor.id, name: finalArmor.name, description: finalArmor.data.markdown || '', location: 'equipped_armor', quantity: 1 }] : []),
-          { 
+          {
             item_id: libraryData.consumables.find(c => c.name === (formData.selectedPotionType === 'health' ? 'Minor Health Potion' : 'Minor Stamina Potion'))?.id || null,
             name: formData.selectedPotionType === 'health' ? 'Minor Health Potion' : 'Minor Stamina Potion',
-            description: '', location: 'backpack', quantity: 1 
+            description: '', location: 'backpack', quantity: 1
           },
           ...['Torch', '50 Feet of Rope', 'Basic Supplies'].map(name => ({
             item_id: libraryData.consumables.find(c => c.name === name)?.id || null,
@@ -418,7 +418,7 @@ export default function CreateCharacterPage() {
   return (
     <div className="min-h-[100dvh] bg-dagger-dark text-white p-4 flex items-center justify-center relative">
       <div className="max-w-md w-full bg-dagger-panel border border-white/10 rounded-xl shadow-lg p-6 space-y-6 relative">
-        <button 
+        <button
           type="button"
           onClick={() => {
             if (confirm('Are you sure you want to abort character creation? All progress will be lost.')) {
@@ -427,6 +427,7 @@ export default function CreateCharacterPage() {
           }}
           className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors p-1"
           title="Abort creation"
+          aria-label="Cancel character creation"
         >
           <X size={20} />
         </button>
@@ -440,8 +441,8 @@ export default function CreateCharacterPage() {
         {error && <div className="p-3 bg-red-800/50 border border-red-500 rounded text-red-300 text-sm">{error}</div>}
         <form onSubmit={handleSubmit}>
           {currentStep === 1 && (
-            <BasicInfoStep 
-              formData={formData} handleInputChange={handleInputChange} 
+            <BasicInfoStep
+              formData={formData} handleInputChange={handleInputChange}
               imagePreview={imagePreview} selectedImageFile={selectedImageFile}
               handleImageFileChange={handleImageFileChange} setSelectedImageFile={setSelectedImageFile}
               setImagePreview={setImagePreview} onNext={() => setCurrentStep(2)} isValid={validateStep(1)}
@@ -450,29 +451,29 @@ export default function CreateCharacterPage() {
             />
           )}
           {currentStep === 2 && (
-            <HeritageStep 
+            <HeritageStep
               formData={formData} libraryData={libraryData} handleInputChange={handleInputChange}
               setFormData={setFormData}
               onNext={() => setCurrentStep(3)} onBack={() => setCurrentStep(1)} isValid={validateStep(2)}
             />
           )}
           {currentStep === 3 && (
-            <ClassDomainsStep 
+            <ClassDomainsStep
               formData={formData} libraryData={libraryData} handleInputChange={handleInputChange}
               handleDomainChange={handleDomainChange} onNext={() => setCurrentStep(4)} onBack={() => setCurrentStep(2)} isValid={validateStep(3)}
             />
           )}
           {currentStep === 4 && (
-            <DomainCardsStep 
+            <DomainCardsStep
               formData={formData} libraryData={libraryData} handleCardSelection={handleCardSelection}
               onNext={() => setCurrentStep(5)} onBack={() => setCurrentStep(3)} isValid={validateStep(4)}
             />
           )}
           {currentStep === 5 && (
-            <AssignTraitsStep 
+            <AssignTraitsStep
               formData={formData} traitAssignmentPool={TRAIT_ASSIGNMENT_POOL}
               suggestedTraits={
-                libraryData.classes.find(c => c.id === formData.class_id)?.data?.suggested?.traits || 
+                libraryData.classes.find(c => c.id === formData.class_id)?.data?.suggested?.traits ||
                 libraryData.classes.find(c => c.id === formData.class_id)?.data?.suggested_traits
               }
               classSource={libraryData.classes.find(c => c.id === formData.class_id)?.source}
@@ -481,25 +482,25 @@ export default function CreateCharacterPage() {
             />
           )}
           {currentStep === 6 && (
-            <ExperiencesStep 
+            <ExperiencesStep
               formData={formData} handleExperienceChange={handleExperienceChange}
               onNext={() => setCurrentStep(isBeastbond ? 7 : 8)} onBack={() => setCurrentStep(5)} isValid={validateStep(6)}
             />
           )}
           {currentStep === 7 && isBeastbond && (
-            <CompanionStep 
+            <CompanionStep
               formData={formData} setFormData={setFormData}
               onNext={() => setCurrentStep(8)} onBack={() => setCurrentStep(6)} isValid={validateStep(7)}
             />
           )}
           {currentStep === 8 && (
-            <EquipmentStep 
+            <EquipmentStep
               formData={formData} libraryData={libraryData} setFormData={setFormData}
               onNext={() => setCurrentStep(9)} onBack={() => setCurrentStep(isBeastbond ? 7 : 6)} isValid={validateStep(8)}
             />
           )}
           {currentStep === 9 && (
-            <ConfirmCreateStep 
+            <ConfirmCreateStep
               formData={formData} libraryData={libraryData} calculatedVitals={calculatedVitals}
               startingItemsAndCards={startingItemsAndCards} isSubmitting={isSubmitting}
               uploadingImage={uploadingImage} onBack={() => setCurrentStep(8)}
