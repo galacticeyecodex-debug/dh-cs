@@ -174,11 +174,12 @@ export default function DiceOverlay() {
     }
   }, [isDiceOverlayOpen, isReady]);
 
-  // Fallback dice roll function for when 3D dice isn't available
-  const rollDice = (sides: number): number => Math.floor(Math.random() * sides) + 1;
-
   const handleRoll = async () => {
-    const use3DDice = boxInstanceRef.current && isReady;
+    if (!boxInstanceRef.current || !isReady) {
+      console.warn("DiceBox not ready");
+      toast.error("Dice roller is initializing...");
+      return;
+    }
 
     // Mark that we've rolled to trigger UI fade
     setHasRolled(true);
@@ -190,10 +191,7 @@ export default function DiceOverlay() {
     const baseModifier = activeRoll?.modifier || 0;
     const totalModifier = baseModifier + tempModifier + experienceModifier;
 
-    // Clear 3D dice if available
-    if (use3DDice) {
-      boxInstanceRef.current.clear();
-    }
+    boxInstanceRef.current.clear();
 
     // Case 1: Custom Dice Roll (Damage)
     if (activeRoll?.dice) {
@@ -224,26 +222,15 @@ export default function DiceOverlay() {
           }
           return;
         }
-
+        const result = await boxInstanceRef.current.roll(diceConfig);
         let diceTotal = 0;
         const individualDieResults: { role: DiceRole, value: number, sides: number }[] = [];
 
-        if (use3DDice) {
-          // Use 3D dice
-          const result = await boxInstanceRef.current.roll(diceConfig);
-          if (Array.isArray(result)) {
-            result.forEach((die: any, index: number) => {
-              diceTotal += die.value;
-              const sides = diceConfig[index]?.sides || 0;
-              individualDieResults.push({ role: 'damage', value: die.value, sides });
-            });
-          }
-        } else {
-          // Fallback: generate random results
-          diceConfig.forEach((die) => {
-            const value = rollDice(die.sides);
-            diceTotal += value;
-            individualDieResults.push({ role: 'damage', value, sides: die.sides });
+        if (Array.isArray(result)) {
+          result.forEach((die: any, index: number) => {
+            diceTotal += die.value;
+            const sides = diceConfig[index]?.sides || 0;
+            individualDieResults.push({ role: 'damage', value: die.value, sides });
           });
         }
 
@@ -274,30 +261,17 @@ export default function DiceOverlay() {
         return;
       }
 
-      let hopeRoll = 0;
-      let fearRoll = 0;
-      let plusTotal = 0;
-      let minusTotal = 0;
-      const individualDieResults: { role: DiceRole, value: number, sides: number }[] = [];
+      const result = await boxInstanceRef.current.roll(diceConfig);
 
-      if (use3DDice) {
-        // Use 3D dice
-        const result = await boxInstanceRef.current.roll(diceConfig);
-        if (Array.isArray(result)) {
-          dicePool.forEach((die, idx) => {
-            const val = result[idx].value;
-            individualDieResults.push({ role: die.role, value: val, sides: die.sides });
+      if (Array.isArray(result)) {
+        let hopeRoll = 0;
+        let fearRoll = 0;
+        let plusTotal = 0;
+        let minusTotal = 0;
+        const individualDieResults: { role: DiceRole, value: number, sides: number }[] = [];
 
-            if (die.role === 'hope' && hopeRoll === 0) hopeRoll = val;
-            else if (die.role === 'fear' && fearRoll === 0) fearRoll = val;
-            else if (die.role === 'plus') plusTotal += val;
-            else if (die.role === 'minus') minusTotal += val;
-          });
-        }
-      } else {
-        // Fallback: generate random results
-        dicePool.forEach((die) => {
-          const val = rollDice(die.sides);
+        dicePool.forEach((die, idx) => {
+          const val = result[idx].value;
           individualDieResults.push({ role: die.role, value: val, sides: die.sides });
 
           if (die.role === 'hope' && hopeRoll === 0) hopeRoll = val;
@@ -305,25 +279,25 @@ export default function DiceOverlay() {
           else if (die.role === 'plus') plusTotal += val;
           else if (die.role === 'minus') minusTotal += val;
         });
+
+        const total = hopeRoll + fearRoll + totalModifier + plusTotal - minusTotal;
+
+        let type: 'Critical' | 'Hope' | 'Fear' | 'Damage' = 'Hope';
+        if (hopeRoll === fearRoll && hopeRoll !== 0) type = 'Critical';
+        else if (hopeRoll > fearRoll) type = 'Hope';
+        else type = 'Fear';
+
+        setLastRollResult({
+          hope: hopeRoll,
+          fear: fearRoll,
+          total,
+          plusTotal: plusTotal,
+          minusTotal: minusTotal,
+          modifier: totalModifier,
+          type,
+          dice: individualDieResults
+        });
       }
-
-      const total = hopeRoll + fearRoll + totalModifier + plusTotal - minusTotal;
-
-      let type: 'Critical' | 'Hope' | 'Fear' | 'Damage' = 'Hope';
-      if (hopeRoll === fearRoll && hopeRoll !== 0) type = 'Critical';
-      else if (hopeRoll > fearRoll) type = 'Hope';
-      else type = 'Fear';
-
-      setLastRollResult({
-        hope: hopeRoll,
-        fear: fearRoll,
-        total,
-        plusTotal: plusTotal,
-        minusTotal: minusTotal,
-        modifier: totalModifier,
-        type,
-        dice: individualDieResults
-      });
     } catch (e) {
       console.error("Roll failed", e);
     }
