@@ -168,6 +168,7 @@ CREATE TABLE IF NOT EXISTS public.character_inventory (
   description TEXT,
   location TEXT NOT NULL DEFAULT 'backpack',
   quantity INT DEFAULT 1,
+  state JSONB DEFAULT '{}'::jsonb, -- Stores custom_image_url, custom_image_position_x, custom_image_position_y
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
