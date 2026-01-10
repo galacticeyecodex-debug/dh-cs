@@ -18,7 +18,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Sword, Shield, ArrowRightLeft, ImageIcon, Settings, Info, Pill } from 'lucide-react';
+import { Sword, Shield, ArrowRightLeft, ImageIcon, Settings, Info, FlaskConical } from 'lucide-react';
 import clsx from 'clsx';
 import { CharacterInventoryItem } from '@/store/character-store';
 import { MarkdownText } from '@/components/shared/markdown-text';
@@ -201,7 +201,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                         className="text-[10px] font-bold uppercase px-2 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded flex items-center gap-1 border border-green-500/30"
                         aria-label={`Use ${item.name}`}
                     >
-                        <Pill size={12} /> Use
+                        <FlaskConical size={12} /> Use
                     </button>
                 )}
 
