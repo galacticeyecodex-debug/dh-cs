@@ -197,6 +197,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                             <button
                                 onClick={() => onEquip(item.id, 'equipped_primary')}
                                 className="text-[10px] font-bold uppercase px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white flex items-center gap-1"
+                                aria-label={`Equip ${item.name} to primary slot`}
                             >
                                 <Sword size={12} /> Primary
                             </button>
@@ -205,6 +206,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                             <button
                                 onClick={() => onEquip(item.id, 'equipped_secondary')}
                                 className="text-[10px] font-bold uppercase px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white flex items-center gap-1"
+                                aria-label={`Equip ${item.name} to secondary slot`}
                             >
                                 <Sword size={12} /> Secondary
                             </button>
@@ -216,6 +218,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                     <button
                         onClick={() => onEquip(item.id, 'equipped_armor')}
                         className="text-[10px] font-bold uppercase px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white flex items-center gap-1"
+                        aria-label={`Equip ${item.name}`}
                     >
                         <Shield size={12} /> Equip
                     </button>
@@ -225,6 +228,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                     <button
                         onClick={() => onEquip(item.id, 'backpack')}
                         className="text-[10px] font-bold uppercase px-2 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded flex items-center gap-1 ml-auto"
+                        aria-label={`Unequip ${item.name}`}
                     >
                         <ArrowRightLeft size={12} /> Unequip
                     </button>

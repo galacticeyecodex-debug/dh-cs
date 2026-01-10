@@ -215,6 +215,7 @@ export default function CombatView() {
             <button
               onClick={() => setShowVitals(!showVitals)}
               className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+              aria-label={showVitals ? "Hide vitals" : "Show vitals"}
             >
               {showVitals ? <EyeOff size={14} /> : <Eye size={14} />}
               {showVitals ? 'Hide' : 'Show'}
@@ -233,6 +234,7 @@ export default function CombatView() {
               <button
                 onClick={() => setShowArmor(!showArmor)}
                 className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                aria-label={showArmor ? "Hide active armor" : "Show active armor"}
               >
                 {showArmor ? <EyeOff size={14} /> : <Eye size={14} />}
                 {showArmor ? 'Hide' : 'Show'}
@@ -268,6 +270,7 @@ export default function CombatView() {
             <button
               onClick={() => setShowWeapons(!showWeapons)}
               className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+              aria-label={showWeapons ? "Hide active weapons" : "Show active weapons"}
             >
               {showWeapons ? <EyeOff size={14} /> : <Eye size={14} />}
               {showWeapons ? 'Hide' : 'Show'}
@@ -284,6 +287,7 @@ export default function CombatView() {
                     ? 'bg-dagger-gold/10 border border-dagger-gold/20 text-dagger-gold hover:bg-dagger-gold/20'
                     : 'bg-white/10 border border-white/10 text-white hover:bg-white/20'
                     }`}
+                  aria-label={`Adjust proficiency (currently ${totalProficiency})`}
                 >
                   <Crosshair size={12} />
                   {totalProficiency}
@@ -392,6 +396,7 @@ export default function CombatView() {
               <button
                 onClick={() => setShowTransformation(!showTransformation)}
                 className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                aria-label={showTransformation ? "Hide transformation details" : "Show transformation details"}
               >
                 {showTransformation ? <EyeOff size={14} /> : <Eye size={14} />}
                 {showTransformation ? 'Hide' : 'Show'}
@@ -462,6 +467,7 @@ export default function CombatView() {
               <button
                 onClick={() => setShowFeatures(!showFeatures)}
                 className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                aria-label={showFeatures ? "Hide traits and features" : "Show traits and features"}
               >
                 {showFeatures ? <EyeOff size={14} /> : <Eye size={14} />}
                 {showFeatures ? 'Hide' : 'Show'}
@@ -549,6 +555,7 @@ export default function CombatView() {
               <button
                 onClick={() => setShowSpells(!showSpells)}
                 className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
+                aria-label={showSpells ? "Hide spells and abilities" : "Show spells and abilities"}
               >
                 {showSpells ? <EyeOff size={14} /> : <Eye size={14} />}
                 {showSpells ? 'Hide' : 'Show'}

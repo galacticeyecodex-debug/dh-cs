@@ -25,61 +25,69 @@ You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](ht
 
 ## Features & Roadmap
 
+### Core Features
 - [x] **Mobile-First Design** - Optimized for portrait mobile usage with touch interactions
 - [x] **Cloud Sync** - Character data stored securely in Supabase
 - [x] **Google OAuth** - Easy authentication with your Google account
 - [x] **3D Dice Rolling** - Interactive dice roller with physics simulation and customizable Hope and Fear dice
 - [x] **Card-Based UI** - Manage abilities, equipment, and features as interactive cards
-- [X] **Multiclassing Support** - Full support for multiclassing
-- [X] **Homebrew Content** - Support for custom domains and cards
+- [x] **Multiclassing Support** - Full support for multiclassing
+- [x] **Homebrew Content** - Create and manage custom weapons, armor, consumables, and items
+
+### Domain Card Integration (✅ Complete)
+- [x] **Passive Modifiers** - Domain cards automatically apply stat bonuses when in loadout
+- [x] **Conditional Modifiers** - Equipment-based and loadout composition conditions evaluated
+- [x] **Combat Spells & Abilities** - Full "Spells & Abilities" section in Combat View
+- [x] **Token Tracking** - Cards with token mechanics have interactive counters
+- [x] **Frequency Tracking** - Once-per-rest/session abilities with usage checkboxes
+- [x] **Enhanced Playmat UI** - Combat badges, passive indicators, search/filter, mobile optimized
+
+### Extended Views (✅ Complete)
+- [x] **Downtime View** - Rest type selection, downtime moves with dice rolling, project tracking
+- [x] **Journal View** - NPC relationships with tier tracking, reputation system, text notes
+
+### Level-Up System (✅ Complete)
+- [x] **All Advancement Types** - Traits, HP, Stress, Experience, Domain Cards, Evasion, Subclass, Proficiency, Multiclass
+- [x] **Tier System** - Proper Tier 1-4 progression with level mapping
+- [x] **Advancement History** - Full tracking with de-leveling support
 
 ## Development Roadmap
+
+### In Progress / Planned
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Consumable Usage | ⚠️ Partial | Consumables can be added to inventory but need "Use" button implementation |
+| Social Features | 📋 Planned | Campaigns, real-time play, GM screen, homebrew sharing (Issue #67) |
+| Hybrid Ancestries | 📋 Planned | Allow mixing two ancestries, selecting one feat from each |
 
 ### Class & Subclass Interactive Features
 
 | Class | Subclass | Feature | Status | Description |
 |-------|----------|---------|--------|-------------|
 | Ranger | Beastbound | Companion Card | ✅ Done | Interactive companion sheet with image upload, training options, and companion level-up |
-| Bard | All | Rally Die | ❌ Todo | d6 die tracker (upgrades to d8 at level 5) to give to party members |
-| Druid | All | Beastform | ❌ Todo | Creature form selector with stats from Beastform creature list (Tiers 1-4) |
-| Druid | Warden of the Elements | Elemental Incarnation | ❌ Todo | Element selection (Fire, Earth, Water, Air) for channeling |
-| Guardian | All | Unstoppable Die | ❌ Todo | d4 escalating die tracker (upgrades to d6 at level 5) for damage bonus |
-| Seraph | All | Prayer Dice | ❌ Todo | d4 roller with prayer dice result tracker (dice equal to Spellcast trait) |
-| Sorcerer | Elemental Origin | Element Selection | ❌ Todo | Choose element (air, earth, fire, lightning, water) at character creation |
-| Warrior | Call of the Slayer | Slayer Dice | ❌ Todo | d6 dice pool tracker (up to Proficiency dice) for Slayer abilities |
-| Wizard | All | Strange Patterns | ❌ Todo | Number selector (1-12) for Strange Patterns class feature |
+| Bard | All | Rally Die | 📋 Planned | d6 die tracker (upgrades to d8 at level 5) to give to party members |
+| Druid | All | Beastform | 📋 Planned | Creature form selector with stats from Beastform creature list (Tiers 1-4) |
+| Druid | Warden of the Elements | Elemental Incarnation | 📋 Planned | Element selection (Fire, Earth, Water, Air) for channeling |
+| Guardian | All | Unstoppable Die | 📋 Planned | d4 escalating die tracker (upgrades to d6 at level 5) for damage bonus |
+| Seraph | All | Prayer Dice | 📋 Planned | d4 roller with prayer dice result tracker (dice equal to Spellcast trait) |
+| Sorcerer | Elemental Origin | Element Selection | 📋 Planned | Choose element (air, earth, fire, lightning, water) at character creation |
+| Warrior | Call of the Slayer | Slayer Dice | 📋 Planned | d6 dice pool tracker (up to Proficiency dice) for Slayer abilities |
+| Wizard | All | Strange Patterns | 📋 Planned | Number selector (1-12) for Strange Patterns class feature |
 
-### Interactive Domain Cards with Tokens
+### Domain Cards with Advanced Token Mechanics
 
-Many domain cards require token tracking. These need dedicated interactive UI:
+Basic token tracking is implemented. These cards have more complex token mechanics that may need enhanced UI:
 
 | Domain | Card | Level | Token Type | Description |
 |--------|------|-------|------------|-------------|
 | Arcana | Unleash Chaos | 1 | Spellcast tokens | Tokens equal to Spellcast trait, spend for damage dice |
 | Arcana | Flight | 3 | Agility tokens | Tokens spent on action rolls while flying |
 | Arcana | Confusing Aura | 8 | Layer tokens | Illusion layers that protect against attacks |
-| Arcana | Rune Ward | 1 | Ward Die (d8) | Tracks ward status and damage reduction |
-| Bone | Strategic Approach | 2 | Knowledge tokens | Combat enhancement tokens |
 | Codex | Sigil of Retribution | 6 | d8 dice pool | Accumulates d8s when marked target deals damage |
-| Grace | Inspirational Words | 1 | Presence tokens | Healing/support tokens |
-| Grace | Invisibility | 3 | Spellcast tokens | Action tokens before invisibility ends |
-| Grace | Never Upstaged | 6 | Damage tokens | Bonus damage based on HP marked |
-| Midnight | Uncanny Disguise | 1 | Spellcast tokens | Action tokens before disguise drops |
-| Midnight | Spellcharge | 8 | Damage tokens | Store magic damage as bonus damage |
-| Midnight | Twilight Toll | 9 | Success tokens | Accumulate tokens for bonus damage dice |
-| Midnight | Mass Disguise | 6 | Countdown (8) | Ticking countdown until disguise drops |
-| Sage | Thorn Skin | 5 | Spellcast tokens | Damage reduction/reflection tokens |
 | Sage | Wild Fortress | 5 | HP tokens | Dome hit point tracking (thresholds 15/30) |
 | Sage | Wild Surge | 7 | Escalating d6 | Die value increases each roll |
-| Sage | Fane of the Wilds | 9 | Domain tokens | Tokens based on Sage cards in loadout/vault |
 | Splendor | Zone of Protection | 6 | Escalating d6 | Protection die that increments |
-| Splendor | Restoration | 6 | Spellcast tokens | Healing resource tokens |
-
-### Other Features
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Hybrid Ancestries | ❌ Todo | Allow mixing two ancestries, selecting one feat from each |
 
 ## UI Design Standards
 
@@ -248,17 +256,53 @@ dh-cs/
 ├── components/           # Reusable UI components
 │   ├── ui/               # Shadcn/ui primitives
 │   ├── views/            # Feature-specific views
+│   │   ├── character/    # Character sheet view
+│   │   ├── combat/       # Combat view with weapons & spells
+│   │   ├── downtime/     # Downtime activities & projects
+│   │   ├── inventory/    # Equipment & homebrew management
+│   │   ├── journal/      # Relationships & reputation
+│   │   └── playmat/      # Domain card management
 │   └── ...               # Various logic-heavy components
 ├── constants/            # Global constants and config
 ├── hooks/                # Custom React hooks
 ├── lib/                  # Utility functions
 │   ├── supabase/         # Supabase client utilities
+│   ├── card-parser.ts    # Domain card parsing & enhancement
 │   └── ...               # Game logic helpers
 ├── public/               # Static assets
 ├── scripts/              # Node.js data processing scripts
 ├── srd/                  # Source of Truth for game data (JSON files)
 ├── store/                # Zustand state management
+│   └── slices/           # Modular store slices (character, inventory, homebrew, etc.)
+├── __tests__/            # Test suites (Vitest)
+│   ├── components/       # Component tests
+│   ├── content/          # NLU-based parser tests
+│   └── lib/              # Utility function tests
 └── types/                # TypeScript type definitions
+```
+
+## Testing
+
+This project uses [Vitest](https://vitest.dev/) for testing with comprehensive coverage of game logic and UI components.
+
+```bash
+npm run test:run      # Run all tests once
+npm run test          # Watch mode
+npm run test:ui       # Interactive dashboard
+npm run test:coverage # Coverage report
+```
+
+### Test Structure
+- **`__tests__/lib/`** - Game logic tests (dice, vitals, modifiers, armor calculations)
+- **`__tests__/content/`** - NLU-based domain card parser tests (9 domains + ancestries, communities, classes)
+- **`__tests__/components/`** - UI component tests
+- **`__tests__/config/`** - Configuration tests (CSP headers for dice roller)
+
+### E2E Testing (Playwright)
+```bash
+npm run e2e              # Run all E2E tests
+npm run e2e:screenshot   # Visual verification tests
+npm run e2e:headed       # Run with visible browser
 ```
 
 ## Deployment

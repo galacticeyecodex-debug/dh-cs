@@ -184,6 +184,7 @@ export default function PlaymatView() {
                   "px-3 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
                   viewMode === 'loadout' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
                 )}
+                aria-label="Show loadout cards"
               >
                 <ScrollText size={14} /> Loadout
               </button>
@@ -193,6 +194,7 @@ export default function PlaymatView() {
                   "px-3 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
                   viewMode === 'vault' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
                 )}
+                aria-label="Show vault cards"
               >
                 <Archive size={14} /> Vault
               </button>
@@ -221,6 +223,7 @@ export default function PlaymatView() {
                       }}
                       className="flex-shrink-0 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-white hover:bg-white/10 hover:text-dagger-gold transition-colors truncate max-w-[120px]"
                       title={card.library_item?.name || 'Unknown Card'}
+                      aria-label={`Scroll to ${card.library_item?.name || 'card'} in loadout`}
                     >
                       {card.library_item?.name || 'Card'}
                     </button>
@@ -253,6 +256,7 @@ export default function PlaymatView() {
                 <button
                   onClick={() => setSearchTerm('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                  aria-label="Clear search"
                 >
                   <X size={12} />
                 </button>
