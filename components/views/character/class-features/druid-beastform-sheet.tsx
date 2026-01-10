@@ -90,7 +90,7 @@ export default function BeastformSheet({
                         </h2>
                         <p className="text-xs text-gray-400">Choose a form to transform</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white">
+                    <button onClick={onClose} aria-label="Close" className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white">
                         <X size={20} />
                     </button>
                 </div>

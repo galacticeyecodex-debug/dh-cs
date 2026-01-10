@@ -113,10 +113,10 @@ export default function ExperienceSheet({
                   className="flex-1 bg-black/40 border border-white/20 rounded px-3 py-2 text-sm focus:border-dagger-gold outline-none text-white"
                 />
                 <div className="flex items-center bg-white/5 rounded border border-white/10">
-                  <button onClick={() => setNewValue(v => v - 1)} className="px-2 py-1 hover:bg-white/10 text-white">-</button>
+                  <button onClick={() => setNewValue(v => v - 1)} aria-label="Decrease value" className="px-2 py-1 hover:bg-white/10 text-white">-</button>
                   {/* Experience values are base values, use white */}
                   <span className={clsx("w-8 text-center font-bold", VALUE_COLORS.default)}>+{newValue}</span>
-                  <button onClick={() => setNewValue(v => v + 1)} className="px-2 py-1 hover:bg-white/10 text-white">+</button>
+                  <button onClick={() => setNewValue(v => v + 1)} aria-label="Increase value" className="px-2 py-1 hover:bg-white/10 text-white">+</button>
                 </div>
               </div>
               <button
@@ -147,14 +147,14 @@ export default function ExperienceSheet({
                         />
                         <div className="flex items-center justify-between">
                           <div className="flex items-center bg-black/40 rounded border border-white/20">
-                            <button onClick={() => setEditValue(v => v - 1)} className="px-2 py-0.5 hover:bg-white/10 text-white">-</button>
+                            <button onClick={() => setEditValue(v => v - 1)} aria-label="Decrease value" className="px-2 py-0.5 hover:bg-white/10 text-white">-</button>
                             {/* Experience values are base values, use white */}
                             <span className={clsx("w-8 text-center font-bold", VALUE_COLORS.default)}>+{editValue}</span>
-                            <button onClick={() => setEditValue(v => v + 1)} className="px-2 py-0.5 hover:bg-white/10 text-white">+</button>
+                            <button onClick={() => setEditValue(v => v + 1)} aria-label="Increase value" className="px-2 py-0.5 hover:bg-white/10 text-white">+</button>
                           </div>
                           <div className="flex gap-2">
-                            <button onClick={() => setEditingIndex(null)} className="p-1 text-gray-400 hover:text-white"><X size={16} /></button>
-                            <button onClick={saveEdit} className="p-1 text-green-400 hover:text-green-300"><Check size={16} /></button>
+                            <button onClick={() => setEditingIndex(null)} aria-label="Cancel edit" className="p-1 text-gray-400 hover:text-white"><X size={16} /></button>
+                            <button onClick={saveEdit} aria-label="Save edit" className="p-1 text-green-400 hover:text-green-300"><Check size={16} /></button>
                           </div>
                         </div>
                       </div>
@@ -170,7 +170,7 @@ export default function ExperienceSheet({
                           <div className={clsx("font-medium", VALUE_COLORS.default)}>
                             +{exp.value}
                           </div>
-                          <button onClick={() => handleDelete(index)} className="text-gray-500 hover:text-red-400 p-1">
+                          <button onClick={() => handleDelete(index)} aria-label="Delete experience" className="text-gray-500 hover:text-red-400 p-1">
                             <Trash2 size={16} />
                           </button>
                         </div>
