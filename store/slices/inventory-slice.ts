@@ -19,6 +19,7 @@ export interface InventorySlice {
   equipItem: (itemId: string, slot: 'equipped_primary' | 'equipped_secondary' | 'equipped_armor' | 'backpack') => Promise<void>;
   addItemToInventory: (item: LibraryItem) => Promise<void>;
   deleteItemFromInventory: (inventoryItemId: string) => Promise<void>;
+  useConsumable: (inventoryItemId: string) => Promise<void>;
   moveCard: (cardId: string, destination: 'loadout' | 'vault') => Promise<void>;
   addCardToCollection: (item: LibraryItem) => Promise<void>;
   removeCard: (cardId: string) => Promise<void>;
@@ -343,6 +344,162 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
     if (state.recalculateDerivedStats) {
       await state.recalculateDerivedStats();
     }
+  },
+
+  useConsumable: async (inventoryItemId) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const inventory = [...(state.character.character_inventory || [])];
+    const itemIndex = inventory.findIndex((i: any) => i.id === inventoryItemId);
+    if (itemIndex === -1) {
+      toast.error('Item not found');
+      return;
+    }
+
+    const item = inventory[itemIndex];
+    const itemType = item.library_item?.type;
+
+    // Only consumables can be used
+    if (itemType !== 'consumable') {
+      toast.error('This item cannot be used');
+      return;
+    }
+
+    const itemName = item.name || item.library_item?.name || 'Item';
+    const itemData = item.library_item?.data || {};
+    const currentQuantity = item.quantity || 1;
+
+    // Determine what effect to apply based on item name/data
+    const lowerName = itemName.toLowerCase();
+    let effectApplied = false;
+    let effectDescription = '';
+
+    // Health Potions: Clear HP
+    if (lowerName.includes('health potion') || lowerName.includes('healing potion')) {
+      const currentHp = state.character.vitals?.hit_points_current || 0;
+      const maxHp = state.character.vitals?.hit_points_max || 6;
+
+      // Parse healing amount from item data or use defaults
+      let healAmount = 1;
+      if (lowerName.includes('minor') || lowerName.includes('small')) healAmount = 1;
+      else if (lowerName.includes('medium')) healAmount = 2;
+      else if (lowerName.includes('major') || lowerName.includes('large')) healAmount = 3;
+      else if (itemData.heal_amount) healAmount = itemData.heal_amount;
+
+      const newHp = Math.min(currentHp + healAmount, maxHp);
+      const actualHealed = newHp - currentHp;
+
+      if (actualHealed > 0) {
+        await state.updateVitals?.({
+          ...state.character.vitals,
+          hit_points_current: newHp
+        });
+        effectApplied = true;
+        effectDescription = `Healed ${actualHealed} HP`;
+      } else {
+        effectDescription = 'Already at full HP';
+      }
+    }
+    // Stamina Potions: Clear Stress
+    else if (lowerName.includes('stamina potion') || lowerName.includes('stress potion')) {
+      const currentStress = state.character.vitals?.stress_current || 0;
+
+      // Parse stress clear amount from item data or use defaults
+      let clearAmount = 1;
+      if (lowerName.includes('minor') || lowerName.includes('small')) clearAmount = 1;
+      else if (lowerName.includes('medium')) clearAmount = 2;
+      else if (lowerName.includes('major') || lowerName.includes('large')) clearAmount = 3;
+      else if (itemData.clear_stress) clearAmount = itemData.clear_stress;
+
+      const newStress = Math.max(currentStress - clearAmount, 0);
+      const actualCleared = currentStress - newStress;
+
+      if (actualCleared > 0) {
+        await state.updateVitals?.({
+          ...state.character.vitals,
+          stress_current: newStress
+        });
+        effectApplied = true;
+        effectDescription = `Cleared ${actualCleared} Stress`;
+      } else {
+        effectDescription = 'No stress to clear';
+      }
+    }
+    // Armor Repair items
+    else if (lowerName.includes('armor repair') || lowerName.includes('repair kit')) {
+      const armorSlots = state.character.vitals?.armor_slots || 0;
+      const armorScore = state.character.vitals?.armor_score || 0;
+
+      if (armorSlots < armorScore) {
+        // Repair 1 armor slot
+        await state.updateVitals?.({
+          ...state.character.vitals,
+          armor_slots: Math.min(armorSlots + 1, armorScore)
+        });
+        effectApplied = true;
+        effectDescription = 'Repaired 1 armor slot';
+      } else {
+        effectDescription = 'Armor is already fully repaired';
+      }
+    }
+    // Generic consumable - just consume it
+    else {
+      effectApplied = true;
+      effectDescription = 'Used';
+    }
+
+    // Decrement quantity or remove item
+    if (currentQuantity <= 1) {
+      // Remove item entirely
+      await withOptimisticUpdate(
+        () => {
+          const previousInventory = [...((get() as any).character?.character_inventory || [])];
+          set((s: any) => ({
+            character: s.character ? {
+              ...s.character,
+              character_inventory: s.character.character_inventory?.filter((i: any) => i.id !== inventoryItemId)
+            } : null,
+          }));
+          return () => {
+            set((s: any) => ({
+              character: s.character ? { ...s.character, character_inventory: previousInventory } : null,
+            }));
+          };
+        },
+        async () => dataService.inventory.remove(inventoryItemId),
+        'Failed to use consumable'
+      );
+    } else {
+      // Decrement quantity
+      const newQuantity = currentQuantity - 1;
+      inventory[itemIndex] = { ...item, quantity: newQuantity };
+
+      await withOptimisticUpdate(
+        () => {
+          set((s: any) => ({
+            character: s.character ? { ...s.character, character_inventory: inventory } : null,
+          }));
+          return () => {
+            const rollbackInventory = [...((get() as any).character?.character_inventory || [])];
+            const idx = rollbackInventory.findIndex((i: any) => i.id === inventoryItemId);
+            if (idx !== -1) {
+              rollbackInventory[idx] = { ...rollbackInventory[idx], quantity: currentQuantity };
+            }
+            set((s: any) => ({
+              character: s.character ? { ...s.character, character_inventory: rollbackInventory } : null,
+            }));
+          };
+        },
+        async () => dataService.inventory.update(inventoryItemId, { quantity: newQuantity }),
+        'Failed to use consumable'
+      );
+    }
+
+    // Show toast notification
+    toast.success(`Used ${itemName}`, {
+      description: effectDescription,
+    });
   },
 
   updateInventoryItemImage: async (itemId, imageUrl, position) => {

@@ -41,7 +41,8 @@ export default function InventoryView() {
     updateHomebrewItem,
     deleteHomebrewItem,
     convertItemToHomebrew,
-    deleteItemFromInventory
+    deleteItemFromInventory,
+    useConsumable: consumeItem
   } = useCharacterStore();
 
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
@@ -73,6 +74,10 @@ export default function InventoryView() {
   const handleEditClick = useCallback((item: CharacterInventoryItem) => {
     setEditingItem(item);
   }, []);
+
+  const handleUseConsumable = useCallback((item: CharacterInventoryItem) => {
+    consumeItem(item.id);
+  }, [consumeItem]);
 
   const handleEditArt = useCallback((item: CharacterInventoryItem) => {
     setArtEditingItem(item);
@@ -314,6 +319,7 @@ export default function InventoryView() {
                 onEquip={handleEquip}
                 onManage={handleEditClick}
                 onEditArt={handleEditArt}
+                onUse={handleUseConsumable}
               />
             ))
           ) : (
