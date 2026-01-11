@@ -206,6 +206,7 @@ CREATE TABLE IF NOT EXISTS public.character_projects (
 CREATE TABLE IF NOT EXISTS public.character_relationships (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   character_id UUID REFERENCES public.characters(id) ON DELETE CASCADE NOT NULL,
+  character_name TEXT, -- Denormalized for easier debugging/troubleshooting
   
   -- NPC data
   npc_name TEXT NOT NULL,
