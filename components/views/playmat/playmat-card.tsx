@@ -202,7 +202,7 @@ export default function PlaymatCard({
         tier={libraryItem.tier || 1}
         type={libraryItem.type}
         description={libraryItem.data?.description}
-        recallCost={libraryItem.data?.recall ?? 0}
+        recallCost={libraryItem.data?.recall_cost ?? 0}
         customImageUrl={card.state?.custom_image_url || '/assets/card/domain-placeholder.png'}
         customImageType={card.state?.custom_image_type || 'artwork'}
         customImagePosition={{
