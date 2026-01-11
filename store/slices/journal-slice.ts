@@ -4,6 +4,7 @@
  * This slice manages the journal system state including:
  * - NPC Relationship tracking
  * - Reputation management
+ * - Campaign-specific NPC seeding (e.g., Strixhaven)
  */
 
 import { StateCreator } from 'zustand';
@@ -16,6 +17,7 @@ import {
     CreateNoteInput,
 } from '@/types/journal';
 import createClient from '@/lib/supabase/client';
+import { getStrixhavenNPCsForSeeding } from '@/data/campaigns/strixhaven-npcs';
 
 export interface JournalSlice {
     // Relationships
@@ -33,6 +35,8 @@ export interface JournalSlice {
     updateRelationshipPoints: (relationshipId: string, change: number) => Promise<void>;
     updateRelationship: (relationshipId: string, updates: Partial<Relationship>) => Promise<void>;
     deleteRelationship: (relationshipId: string) => Promise<void>;
+    seedCampaignNPCs: (campaignId: string) => Promise<{ success: boolean; seeded: number }>;
+    removeCampaignNPCs: (campaignId: string) => Promise<{ success: boolean; removed: number }>;
 
     // Reputation Actions
     changeReputation: (change: number, description: string) => void;
@@ -102,6 +106,7 @@ export const createJournalSlice: StateCreator<
                 .from('character_relationships')
                 .insert({
                     character_id: character.id,
+                    character_name: character.name, // For debugging
                     npc_name: input.npc_name,
                     npc_description: input.npc_description || null,
                     npc_image_url: input.npc_image_url || null,
@@ -249,6 +254,123 @@ export const createJournalSlice: StateCreator<
         set(state => ({
             notes: state.notes.filter(note => note.id !== id),
         }));
+    },
+
+    // ============================================================================
+    // CAMPAIGN NPC SEEDING
+    // ============================================================================
+
+    /**
+     * Seeds campaign-specific NPCs for the current character.
+     * This is called when a user enables a campaign (e.g., Strixhaven).
+     * Only creates NPCs that don't already exist for this character.
+     */
+    seedCampaignNPCs: async (campaignId: string) => {
+        const { character, relationships, fetchRelationships } = get();
+        if (!character?.id) {
+            return { success: false, seeded: 0 };
+        }
+
+        try {
+            // Get NPCs to seed based on campaign
+            let npcsToSeed: CreateRelationshipInput[] = [];
+
+            if (campaignId === 'strixhaven') {
+                npcsToSeed = getStrixhavenNPCsForSeeding();
+            }
+            // Add more campaigns here as needed:
+            // else if (campaignId === 'other_campaign') { ... }
+
+            if (npcsToSeed.length === 0) {
+                return { success: true, seeded: 0 };
+            }
+
+            // Filter out NPCs that already exist for this character
+            const existingNpcNames = new Set(
+                relationships
+                    .filter(r => r.campaign === campaignId)
+                    .map(r => r.npc_name)
+            );
+
+            const newNpcs = npcsToSeed.filter(
+                npc => !existingNpcNames.has(npc.npc_name)
+            );
+
+            if (newNpcs.length === 0) {
+                return { success: true, seeded: 0 };
+            }
+
+            // Insert all new NPCs in a single batch
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('character_relationships')
+                .insert(
+                    newNpcs.map(npc => ({
+                        character_id: character.id,
+                        character_name: character.name, // For debugging
+                        npc_name: npc.npc_name,
+                        npc_description: npc.npc_description || null,
+                        npc_image_url: npc.npc_image_url || null,
+                        points: npc.points ?? 0,
+                        bond_boon: npc.bond_boon || null,
+                        bond_bane: npc.bond_bane || null,
+                        notes: npc.notes || null,
+                        campaign: npc.campaign || null,
+                    }))
+                );
+
+            if (error) throw error;
+
+            // Refresh relationships to include the new NPCs
+            await fetchRelationships();
+
+            return { success: true, seeded: newNpcs.length };
+        } catch (error) {
+            console.error(`Failed to seed ${campaignId} NPCs:`, error);
+            return { success: false, seeded: 0 };
+        }
+    },
+
+    /**
+     * Removes campaign-specific NPCs for the current character.
+     * This is called when a user disables a campaign.
+     * Only removes NPCs that are tagged with the campaign and have 0 points
+     * (i.e., the player hasn't interacted with them).
+     */
+    removeCampaignNPCs: async (campaignId: string) => {
+        const { character, relationships, fetchRelationships } = get();
+        if (!character?.id) {
+            return { success: false, removed: 0 };
+        }
+
+        try {
+            // Find campaign NPCs that haven't been modified (still at 0 points)
+            const npcsToRemove = relationships.filter(
+                r => r.campaign === campaignId && r.points === 0
+            );
+
+            if (npcsToRemove.length === 0) {
+                return { success: true, removed: 0 };
+            }
+
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('character_relationships')
+                .delete()
+                .eq('character_id', character.id)
+                .eq('campaign', campaignId)
+                .eq('points', 0);
+
+            if (error) throw error;
+
+            // Refresh relationships
+            await fetchRelationships();
+
+            return { success: true, removed: npcsToRemove.length };
+        } catch (error) {
+            console.error(`Failed to remove ${campaignId} NPCs:`, error);
+            return { success: false, removed: 0 };
+        }
     },
 
     // ============================================================================
