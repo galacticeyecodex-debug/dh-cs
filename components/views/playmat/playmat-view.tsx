@@ -562,7 +562,7 @@ export default function PlaymatView() {
 function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: CharacterCard, onClose: () => void, mode?: 'full' | 'art-only' }) {
   const { character, cardStates, updateCardImage, updateCardImagePosition, removeCard, user } = useCharacterStore();
   const { name, domain, tier, type, data } = charCard.library_item || { name: 'Unknown', domain: '', tier: 0, type: '', data: {} };
-  const recallCost = data?.recall || '0';
+  const recallCost = data?.recall_cost ?? 0;
   const theme = getDomainTheme(domain);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
