@@ -6,6 +6,7 @@
  * Main view for managing the character's journal including:
  * - NPC Relationships with tier tracking
  * - Reputation tracking with history
+ * - Automatic campaign NPC seeding (e.g., Strixhaven)
  */
 
 import React, { useEffect, useState } from 'react';
@@ -35,13 +36,17 @@ import {
 import type { Relationship, RelationshipTier } from '@/types/journal';
 import clsx from 'clsx';
 import RelationshipChangeModal from './relationship-change-modal';
+import AddNPCModal from './add-npc-modal';
 import TextNotesPanel from './text-notes-panel';
 import PromptModal from '@/components/shared/prompt-modal';
+import useCampaignNPCs from '@/hooks/useCampaignNPCs';
+import type { CreateRelationshipInput } from '@/types/journal';
 
 type JournalTab = 'relationships' | 'reputation' | 'notes';
 
 export default function JournalView() {
     const [activeTab, setActiveTab] = useState<JournalTab>('relationships');
+    const [isAddNPCModalOpen, setIsAddNPCModalOpen] = useState(false);
     const {
         relationships,
         relationshipsLoading,
@@ -49,6 +54,7 @@ export default function JournalView() {
         reputationHistory,
         notes,
         fetchRelationships,
+        createRelationship,
         updateRelationshipPoints,
         deleteRelationship,
         changeReputation,
@@ -57,10 +63,18 @@ export default function JournalView() {
         deleteNote,
     } = useCharacterStore();
 
+    // Hook to automatically seed campaign NPCs (e.g., Strixhaven) when content is enabled
+    useCampaignNPCs();
+
     // Fetch relationships on mount
     useEffect(() => {
         fetchRelationships();
     }, [fetchRelationships]);
+
+    // Handler for creating a new NPC
+    const handleAddNPC = async (input: CreateRelationshipInput) => {
+        await createRelationship(input);
+    };
 
     return (
         <div className="p-4 space-y-6 pb-24">
@@ -122,6 +136,7 @@ export default function JournalView() {
                     loading={relationshipsLoading}
                     onChangePoints={updateRelationshipPoints}
                     onDelete={deleteRelationship}
+                    onAddNPC={() => setIsAddNPCModalOpen(true)}
                 />
             ) : activeTab === 'reputation' ? (
                 <ReputationPanel
@@ -137,6 +152,13 @@ export default function JournalView() {
                     onDelete={deleteNote}
                 />
             )}
+
+            {/* Add NPC Modal */}
+            <AddNPCModal
+                isOpen={isAddNPCModalOpen}
+                onClose={() => setIsAddNPCModalOpen(false)}
+                onSubmit={handleAddNPC}
+            />
         </div>
     );
 }
@@ -150,6 +172,7 @@ interface RelationshipsPanelProps {
     loading: boolean;
     onChangePoints: (id: string, change: number) => void;
     onDelete: (id: string) => void;
+    onAddNPC: () => void;
 }
 
 function RelationshipsPanel({
@@ -157,6 +180,7 @@ function RelationshipsPanel({
     loading,
     onChangePoints,
     onDelete,
+    onAddNPC,
 }: RelationshipsPanelProps) {
     // Sort: positive points first (highest to lowest), then negative (by magnitude), then zero last
     const sortedRelationships = [...relationships].sort((a, b) => {
@@ -182,7 +206,10 @@ function RelationshipsPanel({
         <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white">NPCs</h2>
-                <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-dagger-gold/10 text-dagger-gold hover:bg-dagger-gold/20 transition-colors">
+                <button
+                    onClick={onAddNPC}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-dagger-gold/10 text-dagger-gold hover:bg-dagger-gold/20 transition-colors"
+                >
                     <Plus size={16} />
                     Add NPC
                 </button>

@@ -19,6 +19,7 @@ export type RelationshipTier =
 export interface Relationship {
     id: string;
     character_id: string;
+    character_name?: string; // Denormalized for debugging
     npc_name: string;
     npc_description?: string;
     npc_image_url?: string;
