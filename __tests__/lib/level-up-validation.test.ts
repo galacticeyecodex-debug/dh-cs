@@ -61,7 +61,8 @@ describe('validateAdvancementSelections', () => {
   });
 
   it('should accept valid 2-slot advancement', () => {
-    const errors = validateAdvancementSelections(['increase_proficiency'], 2, false);
+    // increase_proficiency costs 2 slots but requires level 5+, so test at level 5
+    const errors = validateAdvancementSelections(['increase_proficiency'], 5, false);
     expect(errors).toEqual([]);
   });
 
