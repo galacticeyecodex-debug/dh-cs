@@ -268,7 +268,13 @@ describe('withOptimisticUpdate', () => {
 
       await withOptimisticUpdate(updateFn, dbOperation);
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Database operation failed:', error);
+      // Code logs: console.error('Database operation failed:', errorDetails, error)
+      // where errorDetails is { message, code, details, hint, name }
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Database operation failed:',
+        expect.objectContaining({ message: 'DB connection failed' }),
+        error
+      );
 
       consoleErrorSpy.mockRestore();
     });
