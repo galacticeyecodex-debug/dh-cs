@@ -17,7 +17,7 @@
 
 import React from 'react';
 import { Check } from 'lucide-react';
-import { getAllClassNames, getClassDomains } from '@/lib/level-up-helpers';
+import { getClassDomainsFromData, getClassNamesFromData, getSubclassesFromData } from '@/lib/level-up-helpers';
 
 interface MulticlassSelectionProps {
   primaryClassId?: string;
@@ -42,26 +42,16 @@ export default function MulticlassSelection({
   subclasses = [],
   classes = [],
 }: MulticlassSelectionProps) {
-  const allClasses = getAllClassNames();
-  const selectedClassDomains = selectedClass ? getClassDomains(selectedClass) : [];
+  // Use dynamic data from library instead of hard-coded SRD values
+  const allClassNames = getClassNamesFromData(classes);
 
-  // Filter subclasses for the selected class
-  // Use data from the classes table to find valid subclass names
-  // avoiding hardcoded maps.
-  let validSubclassNames: string[] = [];
-  if (selectedClass && classes.length > 0) {
-    const classData = classes.find(c => c.name === selectedClass);
-    if (classData?.data?.subclass_names) {
-      validSubclassNames = classData.data.subclass_names;
-    }
-  }
-  
-  const filteredSubclasses = selectedClass 
-    ? subclasses.filter(sc => 
-        // Match by explicit DB link (parent_class_id) OR by name found in class definition
-        sc.data?.parent_class_id === `class-${selectedClass.toLowerCase()}` ||
-        validSubclassNames.includes(sc.name)
-      )
+  // Find the selected class data for domain lookup
+  const selectedClassData = selectedClass ? classes.find((c: any) => c.name === selectedClass) : null;
+  const selectedClassDomains = getClassDomainsFromData(selectedClassData);
+
+  // Use dynamic subclass filtering with library data
+  const filteredSubclasses = selectedClassData
+    ? getSubclassesFromData(selectedClassData, subclasses)
     : [];
 
   return (
@@ -73,29 +63,30 @@ export default function MulticlassSelection({
           Select a second class to gain access to one of its domains
         </p>
         <div className="grid grid-cols-2 gap-2">
-          {allClasses.map((className) => {
+          {allClassNames.map((className: string) => {
+            const classData = classes.find((c: any) => c.name === className);
             const isSelected = selectedClass === className;
             const isPrimary = primaryClassId === className;
             const canSelect = !isPrimary;
-            const domains = getClassDomains(className);
+            const domains = getClassDomainsFromData(classData);
 
             return (
               <button
                 key={className}
                 onClick={() => {
-                    if (canSelect) {
-                        onSelectClass(className);
-                        // Reset subclass and domain when class changes
-                        onSelectSubclass('');
-                        onSelectDomain('');
-                    }
+                  if (canSelect) {
+                    onSelectClass(className);
+                    // Reset subclass and domain when class changes
+                    onSelectSubclass('');
+                    onSelectDomain('');
+                  }
                 }}
                 disabled={isPrimary}
                 className={`text-left p-3 rounded-lg border transition-all ${isSelected
-                    ? 'border-dagger-gold bg-dagger-gold/10'
-                    : isPrimary
-                      ? 'border-gray-700 bg-black/20 opacity-50 cursor-not-allowed'
-                      : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
+                  ? 'border-dagger-gold bg-dagger-gold/10'
+                  : isPrimary
+                    ? 'border-gray-700 bg-black/20 opacity-50 cursor-not-allowed'
+                    : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
                   }`}
               >
                 <div className="flex items-start justify-between">
@@ -127,44 +118,44 @@ export default function MulticlassSelection({
           </p>
           {filteredSubclasses.length === 0 ? (
             <div className="p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg text-yellow-200 text-sm">
-                No subclasses found for {selectedClass}. Check library data.
+              No subclasses found for {selectedClass}. Check library data.
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-2">
-                {filteredSubclasses.map((sub) => {
-                    const isSelected = selectedSubclass === sub.id;
-                    const description = sub.data?.description || '';
-                    const foundationFeatures = sub.data?.foundation_features || [];
+              {filteredSubclasses.map((sub) => {
+                const isSelected = selectedSubclass === sub.id;
+                const description = sub.data?.description || '';
+                const foundationFeatures = sub.data?.foundation_features || [];
 
-                    return (
-                        <button
-                            key={sub.id}
-                            onClick={() => onSelectSubclass(sub.id)}
-                            className={`text-left p-3 rounded-lg border transition-all ${isSelected
-                                ? 'border-dagger-gold bg-dagger-gold/10'
-                                : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
-                            }`}
-                        >
-                            <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1">
-                                    <p className="font-bold text-white">{sub.name}</p>
-                                    <p className="text-sm text-gray-300 line-clamp-2 mb-2">{description}</p>
-                                    
-                                    {/* Preview Foundation Feature(s) */}
-                                    {foundationFeatures.length > 0 && (
-                                        <div className="mt-2 p-2 bg-black/40 rounded border border-white/10">
-                                            <p className="text-xs font-bold text-dagger-gold uppercase mb-1">Foundation: {foundationFeatures[0].name}</p>
-                                            <p className="text-xs text-gray-400 line-clamp-3">{foundationFeatures[0].text}</p>
-                                        </div>
-                                    )}
-                                </div>
-                                {isSelected && (
-                                    <Check size={16} className="text-dagger-gold flex-shrink-0 mt-0.5" />
-                                )}
-                            </div>
-                        </button>
-                    );
-                })}
+                return (
+                  <button
+                    key={sub.id}
+                    onClick={() => onSelectSubclass(sub.id)}
+                    className={`text-left p-3 rounded-lg border transition-all ${isSelected
+                      ? 'border-dagger-gold bg-dagger-gold/10'
+                      : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
+                      }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="font-bold text-white">{sub.name}</p>
+                        <p className="text-sm text-gray-300 line-clamp-2 mb-2">{description}</p>
+
+                        {/* Preview Foundation Feature(s) */}
+                        {foundationFeatures.length > 0 && (
+                          <div className="mt-2 p-2 bg-black/40 rounded border border-white/10">
+                            <p className="text-xs font-bold text-dagger-gold uppercase mb-1">Foundation: {foundationFeatures[0].name}</p>
+                            <p className="text-xs text-gray-400 line-clamp-3">{foundationFeatures[0].text}</p>
+                          </div>
+                        )}
+                      </div>
+                      {isSelected && (
+                        <Check size={16} className="text-dagger-gold flex-shrink-0 mt-0.5" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -178,7 +169,7 @@ export default function MulticlassSelection({
             Select one domain from {selectedClass} to add to your character
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {selectedClassDomains.map((domain) => {
+            {selectedClassDomains.map((domain: string) => {
               const isSelected = selectedDomain === domain;
 
               return (
@@ -186,8 +177,8 @@ export default function MulticlassSelection({
                   key={domain}
                   onClick={() => onSelectDomain(domain)}
                   className={`text-left p-3 rounded-lg border transition-all ${isSelected
-                      ? 'border-dagger-gold bg-dagger-gold/10'
-                      : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
+                    ? 'border-dagger-gold bg-dagger-gold/10'
+                    : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
                     }`}
                 >
                   <div className="flex items-start justify-between">
@@ -211,7 +202,7 @@ export default function MulticlassSelection({
             <span className="font-bold text-white">{selectedDomain}</span> domain from{' '}
             <span className="font-bold text-white">{selectedClass}</span>, plus the{' '}
             <span className="font-bold text-white">
-                {subclasses.find(s => s.id === selectedSubclass)?.name || 'Unknown'}
+              {subclasses.find(s => s.id === selectedSubclass)?.name || 'Unknown'}
             </span> subclass Foundation Feature.
           </p>
         </div>
