@@ -11,7 +11,7 @@
 import { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
-import { Experience, RangerCompanion, SeraphPrayerDice, BardRallyDice, GuardianUnstoppable, WizardStrangePatterns, DruidBeastform, RangerFocus } from '@/types/character';
+import { Experience, RangerCompanion, SeraphPrayerDice, BardRallyDice, GuardianUnstoppable, WizardStrangePatterns, DruidBeastform, RangerFocus, WarriorSlayerDice, SorcererElement, DruidElementalIncarnation } from '@/types/character';
 import { CharacterStore } from '@/types/store';
 
 export interface VitalsSlice {
@@ -28,6 +28,9 @@ export interface VitalsSlice {
   updateWizardStrangePatterns: (patterns: WizardStrangePatterns) => Promise<void>;
   updateDruidBeastform: (data: DruidBeastform) => Promise<void>;
   updateRangerFocus: (data: RangerFocus) => Promise<void>;
+  updateWarriorSlayerDice: (slayerDice: WarriorSlayerDice) => Promise<void>;
+  updateSorcererElement: (element: SorcererElement) => Promise<void>;
+  updateDruidElementalIncarnation: (data: DruidElementalIncarnation) => Promise<void>;
 }
 
 export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice> = (set, get) => ({
@@ -349,6 +352,75 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
       },
       async () => dataService.character.update(characterId, { ranger_focus: data }),
       'Failed to update ranger focus'
+    );
+  },
+
+  updateWarriorSlayerDice: async (slayerDice: WarriorSlayerDice) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const prev = (get() as any).character!.warrior_slayer_dice;
+        set((s: any) => ({
+          character: s.character ? { ...s.character, warrior_slayer_dice: slayerDice } : null,
+        }));
+        return () => {
+          set((s: any) => ({
+            character: s.character ? { ...s.character, warrior_slayer_dice: prev } : null,
+          }));
+        };
+      },
+      async () => dataService.character.update(characterId, { warrior_slayer_dice: slayerDice }),
+      'Failed to update slayer dice'
+    );
+  },
+
+  updateSorcererElement: async (element: SorcererElement) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const prev = (get() as any).character!.sorcerer_element;
+        set((s: any) => ({
+          character: s.character ? { ...s.character, sorcerer_element: element } : null,
+        }));
+        return () => {
+          set((s: any) => ({
+            character: s.character ? { ...s.character, sorcerer_element: prev } : null,
+          }));
+        };
+      },
+      async () => dataService.character.update(characterId, { sorcerer_element: element }),
+      'Failed to update sorcerer element'
+    );
+  },
+
+  updateDruidElementalIncarnation: async (data: DruidElementalIncarnation) => {
+    const state = get() as any;
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+
+    await withOptimisticUpdate(
+      () => {
+        const prev = (get() as any).character!.druid_elemental_incarnation;
+        set((s: any) => ({
+          character: s.character ? { ...s.character, druid_elemental_incarnation: data } : null,
+        }));
+        return () => {
+          set((s: any) => ({
+            character: s.character ? { ...s.character, druid_elemental_incarnation: prev } : null,
+          }));
+        };
+      },
+      async () => dataService.character.update(characterId, { druid_elemental_incarnation: data }),
+      'Failed to update elemental incarnation'
     );
   },
 });

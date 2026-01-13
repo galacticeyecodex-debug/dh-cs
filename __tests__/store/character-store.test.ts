@@ -1062,3 +1062,84 @@ describe('Character Store - Complex Scenarios', () => {
     });
   });
 });
+
+// ============================================================================
+// CLASS FEATURES TESTS
+// ============================================================================
+
+describe('Character Store - Class Features', () => {
+  beforeEach(() => {
+    // Reset mockSupabase.from to default success state
+    mockSupabase.from = vi.fn((table) => ({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    }));
+
+    const character = createMockCharacter({
+      warrior_slayer_dice: { dice: [], lastRolled: '' },
+      sorcerer_element: undefined,
+      druid_elemental_incarnation: { is_active: false },
+    });
+    useCharacterStore.getState().setCharacter(character);
+  });
+
+  describe('updateWarriorSlayerDice', () => {
+    it('should update slayer dice with optimistic update', async () => {
+      const state = useCharacterStore.getState();
+      const newDice = {
+        dice: [{ id: 'die1', value: 0, used: false }],
+        lastRolled: '2024-01-01T00:00:00Z',
+      };
+
+      await state.updateWarriorSlayerDice(newDice);
+
+      const updatedChar = useCharacterStore.getState().character!;
+      expect(updatedChar.warrior_slayer_dice).toEqual(newDice);
+    });
+
+    it('should rollback on error', async () => {
+      const state = useCharacterStore.getState();
+      
+      // Mock DB error
+      mockSupabase.from = vi.fn(() => ({
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ error: new Error('DB Error') })
+      }));
+
+      await state.updateWarriorSlayerDice({ dice: [], lastRolled: 'fail' });
+
+      // Should be back to initial (empty)
+      const updatedChar = useCharacterStore.getState().character!;
+      expect(updatedChar.warrior_slayer_dice?.dice).toHaveLength(0);
+    });
+  });
+
+  describe('updateSorcererElement', () => {
+    it('should update element with optimistic update', async () => {
+      const state = useCharacterStore.getState();
+      
+      await state.updateSorcererElement('fire');
+
+      const updatedChar = useCharacterStore.getState().character!;
+      expect(updatedChar.sorcerer_element).toBe('fire');
+    });
+  });
+
+  describe('updateDruidElementalIncarnation', () => {
+    it('should update incarnation with optimistic update', async () => {
+      const state = useCharacterStore.getState();
+      const newData = { is_active: true, selected_element: 'earth' as const };
+      
+      await state.updateDruidElementalIncarnation(newData);
+
+      const updatedChar = useCharacterStore.getState().character!;
+      expect(updatedChar.druid_elemental_incarnation).toEqual(newData);
+    });
+  });
+});
+
