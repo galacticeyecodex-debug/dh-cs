@@ -1,3 +1,17 @@
+/**
+ * CHARACTER TEMPLATES (SRD-ONLY)
+ * ----------------------------------------------------------------------------
+ * Quick-fill templates for character creation. These templates provide
+ * pre-configured builds for each SRD class/subclass combination.
+ * 
+ * LIMITATION: These templates only support SRD classes.
+ * Playtest classes are not included and will return null from getTemplateForClass().
+ * 
+ * To add support for playtest classes, templates would need to be stored in the
+ * database alongside the class definitions, or a dynamic template generator
+ * would need to be created.
+ */
+
 import { CharacterFormData, LibraryData, LibraryLookupItem } from '@/components/character-creation/types';
 import { RangerCompanion } from '@/types/character';
 import classesData from '@/content/public/srd/json/classes.json';

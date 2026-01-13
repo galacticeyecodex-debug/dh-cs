@@ -321,8 +321,23 @@ export function getLevelUpConfig(newLevel: number): {
 }
 
 /**
- * Gets the two domains for a given class.
+ * Gets the two domains for a given class from its library data.
  *
+ * This is the preferred dynamic version that works with any class (SRD or playtest).
+ *
+ * @param classData - The class LibraryItem with data.domains array
+ * @returns Array of domain names, or empty array if not found
+ */
+export function getClassDomainsFromData(classData: { data?: { domains?: string[] } } | null | undefined): string[] {
+  return classData?.data?.domains || [];
+}
+
+/**
+ * Gets the two domains for a given class by name.
+ *
+ * @deprecated Use getClassDomainsFromData() with library data instead.
+ * This function only works for SRD classes and will not support playtest content.
+ * 
  * Reference: srd/markdown/contents/Classes.md
  */
 export function getClassDomains(className: string): string[] {
@@ -342,25 +357,62 @@ export function getClassDomains(className: string): string[] {
 }
 
 /**
- * Gets all available class names.
+ * Gets all class names from library data.
+ *
+ * This is the preferred dynamic version that includes playtest classes.
+ *
+ * @param classes - Array of class LibraryItems
+ * @returns Array of class names
+ */
+export function getClassNamesFromData(classes: Array<{ name: string }>): string[] {
+  return classes.map(c => c.name);
+}
+
+/**
+ * Gets all available SRD class names.
+ *
+ * @deprecated Use getClassNamesFromData() with library data instead.
+ * This function only returns SRD classes and will not include playtest content.
  */
 export function getAllClassNames(): string[] {
   return ['Bard', 'Druid', 'Guardian', 'Ranger', 'Rogue', 'Seraph', 'Sorcerer', 'Warrior', 'Wizard'];
 }
 
 /**
- * Gets valid subclasses for a given class.
+ * Gets valid subclasses for a given class from library data.
+ *
+ * This is the preferred dynamic version that works with any class.
+ *
+ * @param classData - The parent class LibraryItem
+ * @param allSubclasses - Array of all subclass LibraryItems
+ * @returns Array of subclass LibraryItems that belong to this class
+ */
+export function getSubclassesFromData<T extends { id: string; name: string; data?: { parent_class_id?: string } }>(
+  classData: { id: string; name: string; data?: { subclass_names?: string[] } } | null | undefined,
+  allSubclasses: T[]
+): T[] {
+  if (!classData) return [];
+
+  const validSubclassNames = classData.data?.subclass_names || [];
+  const classIdSlug = `class-${classData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
+  return allSubclasses.filter(sc =>
+    sc.data?.parent_class_id === classIdSlug ||
+    validSubclassNames.includes(sc.name)
+  );
+}
+
+/**
+ * Gets valid subclasses for a given class by name.
+ *
+ * @deprecated Use getSubclassesFromData() with library data instead.
+ * This function is a placeholder that returns an empty array.
  *
  * @param className - The class name (e.g., "Warrior", "Bard")
- * @returns Array of subclass IDs for the class
- *
- * TODO: This should query the library table for subclasses:
- *   WHERE type='subclass' AND class_id=className
- * For now, returns empty array as placeholder.
+ * @returns Empty array (placeholder)
  */
 export function getSubclassesForClass(className: string): string[] {
-  // Placeholder implementation
-  // In production, this should query the library table
+  // Deprecated placeholder - use getSubclassesFromData instead
   return [];
 }
 
