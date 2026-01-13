@@ -126,6 +126,9 @@ CREATE TABLE IF NOT EXISTS public.characters (
   wizard_strange_patterns JSONB, -- Stores Strange Patterns state for Wizard
   druid_beastform JSONB,        -- Stores Beastform active state for Druid
   ranger_focus JSONB,           -- Stores Ranger's Focus state for Ranger
+  warrior_slayer_dice JSONB,    -- Stores Slayer Dice pool for Warrior (Call of the Slayer)
+  sorcerer_element TEXT,        -- Stores chosen element for Sorcerer (Elemental Origin)
+  druid_elemental_incarnation JSONB, -- Stores Elemental Incarnation state for Druid (Warden of the Elements)
 
   -- Card State tracking (tokens, frequency usage for domain cards)
   card_states JSONB DEFAULT '{}'::jsonb, -- Keyed by card name, stores tokens/usage state
