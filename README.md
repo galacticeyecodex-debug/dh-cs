@@ -73,20 +73,6 @@ You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](ht
 | Warrior | Call of the Slayer | Slayer Dice | 📋 Planned | d6 dice pool tracker (up to Proficiency dice) for Slayer abilities |
 | Wizard | All | Strange Patterns | ✅ Done | Number selector (1-12) for Strange Patterns class feature |
 
-### Domain Cards with Advanced Token Mechanics
-
-Basic token tracking is implemented. These cards have more complex token mechanics that may need enhanced UI:
-
-| Domain | Card | Level | Token Type | Description |
-|--------|------|-------|------------|-------------|
-| Arcana | Unleash Chaos | 1 | Spellcast tokens | Tokens equal to Spellcast trait, spend for damage dice |
-| Arcana | Flight | 3 | Agility tokens | Tokens spent on action rolls while flying |
-| Arcana | Confusing Aura | 8 | Layer tokens | Illusion layers that protect against attacks |
-| Codex | Sigil of Retribution | 6 | d8 dice pool | Accumulates d8s when marked target deals damage |
-| Sage | Wild Fortress | 5 | HP tokens | Dome hit point tracking (thresholds 15/30) |
-| Sage | Wild Surge | 7 | Escalating d6 | Die value increases each roll |
-| Splendor | Zone of Protection | 6 | Escalating d6 | Protection die that increments |
-
 ## UI Design Standards
 
 This project follows consistent design patterns for a polished, cohesive interface:
