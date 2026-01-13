@@ -21,7 +21,7 @@ import {
   calculateDerivedStats,
   clampVitalValue,
   parseDiceNotation,
-} from '@/lib/gameLogic';
+} from '@/lib/game-logic';
 import { getSystemModifiers } from '@/lib/utils';
 
 // ============================================================================

@@ -1,15 +1,11 @@
 /**
- * GAME LOGIC TESTS
- * ----------------------------------------------------------------------------
- * This test suite verifies the core mathematical rules of the Daggerheart system implemented in `lib/gameLogic.ts`.
+ * This test suite verifies the core mathematical rules of the Daggerheart system implemented in `lib/game-logic.ts`.
  * 
- * FUNCTIONALITY TESTED:
- * - Armor Score: Calculates total armor based on base stats + modifiers, capping at 12 (SRD rule).
- * - Damage Thresholds: Verifies correct scaling of Minor/Major/Severe thresholds based on Level and Armor.
- * - Vitals: Tests calculation of Max HP and Stress, including stacking modifiers from multiple sources.
- * - Clamping: Ensures values like HP remaining do not exceed their maximums or drop below zero.
- * - Dice Parsing: Validates the Regex logic for splitting dice strings (e.g., "1d8+2") into components.
- * - Integration: Checks `calculateDerivedStats` to ensure all rules are applied together correctly character-wide.
+ * Includes tests for:
+ * - Armor score calculation (including caps)
+ * - Damage thresholds (base and armor-modified)
+ * - Max HP and Stress (including modifiers)
+ * - Clamping vital values
  */
 
 import { describe, it, expect } from 'vitest';
@@ -20,9 +16,8 @@ import {
   calculateMaxStress,
   calculateDerivedStats,
   clampVitalValue,
-  parseDiceNotation,
-  Modifier,
-} from '@/lib/gameLogic';
+  parseDiceNotation
+} from '@/lib/game-logic';
 
 // ============================================================================
 // ARMOR SCORE TESTS
