@@ -2,7 +2,7 @@
   "name": "dh-cs",
   "version": "0.1.0",
   "private": true,
-  "description": "Daggerheart Web Companion - A mobile-first digital character sheet for the Daggerheart TTRPG",
+  "description": "Character Codex - A mobile-first digital character sheet for the Daggerheart TTRPG",
   "author": "Alex <galactic.eye.codex@gmail.com>",
   "repository": {
     "type": "git",
