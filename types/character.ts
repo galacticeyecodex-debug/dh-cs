@@ -216,6 +216,15 @@ export interface Character {
   // Ranger Focus
   ranger_focus?: RangerFocus;
 
+  // Warrior Slayer Dice (Call of the Slayer subclass)
+  warrior_slayer_dice?: WarriorSlayerDice;
+
+  // Sorcerer Element (Elemental Origin subclass)
+  sorcerer_element?: SorcererElement;
+
+  // Druid Elemental Incarnation (Warden of the Elements subclass)
+  druid_elemental_incarnation?: DruidElementalIncarnation;
+
   // Card State tracking (tokens, frequency usage)
   card_states?: Record<string, {
     current_tokens: number;
@@ -307,6 +316,29 @@ export interface DruidBeastform {
 export interface RangerFocus {
   is_active: boolean;
   target_name?: string;
+}
+
+// Warrior Slayer Dice Types (Call of the Slayer subclass)
+export interface SlayerDie {
+  id: string;
+  value: number; // 1-6 (d6 result)
+  used: boolean;
+}
+
+export interface WarriorSlayerDice {
+  dice: SlayerDie[];
+  lastRolled?: string; // ISO timestamp
+}
+
+// Sorcerer Element Type (Elemental Origin subclass)
+export type SorcererElement = 'air' | 'earth' | 'fire' | 'lightning' | 'water';
+
+// Druid Elemental Incarnation Types (Warden of the Elements subclass)
+export type DruidElement = 'fire' | 'earth' | 'water' | 'air';
+
+export interface DruidElementalIncarnation {
+  is_active: boolean;
+  selected_element?: DruidElement;
 }
 
 // Seraph Prayer Dice Types

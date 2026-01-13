@@ -20,7 +20,6 @@ import useContentAccess from '@/hooks/useContentAccess';
 import clsx from 'clsx';
 import { X } from 'lucide-react';
 import { uploadCharacterAvatar } from '@/lib/storage-service';
-import { DEFAULT_VITAL_MODIFIERS } from '@/store/character-store';
 import { calculateDamageThresholds } from '@/lib/game-logic';
 import { Button } from '@/components/ui/button';
 import { getTemplateForClass } from '@/lib/character-templates';

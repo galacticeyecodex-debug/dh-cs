@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
 import Image from 'next/image';
 import { getSystemModifiers } from '@/lib/utils';
+import { getProficiency } from '@/lib/modifier-aggregator';
 import StatButton from '@/components/views/character/trait-button';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
@@ -34,6 +35,9 @@ import UnstoppableCard from './class-features/guardian-unstoppable-card';
 import StrangePatternsCard from './class-features/wizard-strange-patterns-card';
 import BeastformCard from './class-features/druid-beastform-card';
 import RangerFocusCard from './class-features/ranger-focus-card';
+import SlayerDiceCard from './class-features/warrior-slayer-dice-card';
+import SorcererElementCard from './subclass-features/sorcerer-element-card';
+import ElementalIncarnationCard from './subclass-features/druid-elemental-incarnation-card';
 import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap, Info, Sparkles, PawPrint } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/storage-service';
@@ -45,7 +49,8 @@ import useContentAccess from '@/hooks/useContentAccess';
 
 export default function CharacterView() {
   const router = useRouter();
-  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice, updateBardRallyDice, updateGuardianUnstoppable, updateWizardStrangePatterns, updateDruidBeastform, updateRangerFocus } = useCharacterStore();
+  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice, updateBardRallyDice, updateGuardianUnstoppable, updateWizardStrangePatterns, updateDruidBeastform, updateRangerFocus, updateWarriorSlayerDice, updateSorcererElement, updateDruidElementalIncarnation } = useCharacterStore();
+  const effectiveProficiency = useMemo(() => character ? getProficiency(character, character.card_states as any) : 1, [character]);
   const { includePlaytest } = useContentAccess();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
@@ -947,6 +952,40 @@ export default function CharacterView() {
                           onToggleLore={() => setShowMulticlassLore(!showMulticlassLore)}
                         />
                       )}
+
+                      {/* Warrior Call of the Slayer - Slayer Dice */}
+                      {character.class_id?.toLowerCase() === 'warrior' &&
+                        character.subclass_data?.name?.toLowerCase()?.includes('slayer') &&
+                        character.subclass_progression?.foundation_obtained && (
+                          <SlayerDiceCard
+                            slayerDice={character.warrior_slayer_dice}
+                            proficiency={effectiveProficiency}
+                            description={character.subclass_data?.data?.foundation_features?.[0]?.text || 'You gain a pool of dice called Slayer Dice.'}
+                            onUpdateSlayerDice={updateWarriorSlayerDice}
+                          />
+                        )}
+
+                      {/* Sorcerer Elemental Origin - Element Selection */}
+                      {character.class_id?.toLowerCase() === 'sorcerer' &&
+                        character.subclass_data?.name?.toLowerCase()?.includes('elemental') &&
+                        character.subclass_progression?.foundation_obtained && (
+                          <SorcererElementCard
+                            element={character.sorcerer_element}
+                            description={character.subclass_data?.data?.foundation_features?.[0]?.text || 'Choose one of the following elements at character creation: air, earth, fire, lightning, water.'}
+                            onUpdateElement={updateSorcererElement}
+                          />
+                        )}
+
+                      {/* Druid Warden of the Elements - Elemental Incarnation */}
+                      {character.class_id?.toLowerCase() === 'druid' &&
+                        character.subclass_data?.name?.toLowerCase()?.includes('element') &&
+                        character.subclass_progression?.foundation_obtained && (
+                          <ElementalIncarnationCard
+                            incarnation={character.druid_elemental_incarnation}
+                            description={character.subclass_data?.data?.foundation_features?.[0]?.text || 'Mark a Stress to Channel one of the following elements until you take Severe damage or until your next rest.'}
+                            onUpdateIncarnation={updateDruidElementalIncarnation}
+                          />
+                        )}
                     </div>
                   )}
                 </div>
