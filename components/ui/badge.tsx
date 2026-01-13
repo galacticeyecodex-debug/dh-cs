@@ -9,7 +9,7 @@
  *
  * Usage Examples:
  * - Content Access: Labeling the SRD toggle as "Always On" (variant="secondary")
- * - Versioning: Indicating the playtest version "The Void v1.5" (variant="outline")
+ * - Versioning: Indicating playtest pack versions (variant="outline")
  */
 
 import * as React from "react"

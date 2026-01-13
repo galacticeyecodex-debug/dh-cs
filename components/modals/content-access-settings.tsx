@@ -2,7 +2,10 @@
  * CONTENT ACCESS SETTINGS
  * ----------------------------------------------------------------------------
  * A component that allows users to toggle access to different content sources
- * like SRD (core rules), Playtest material (The Void), and Homebrew campaigns.
+ * like SRD (core rules), Playtest material, and Homebrew campaigns.
+ * 
+ * Campaigns are fetched dynamically from Supabase, so new campaigns can be
+ * added without any code changes.
  */
 
 'use client';
@@ -12,12 +15,15 @@ import { Switch } from '@/components/ui/switch';
 import { AlertTriangle, BookOpen, FlaskConical, Sparkles, Lock } from 'lucide-react';
 import { dataService } from '@/lib/data-service';
 import useUser from '@/hooks/useUser';
+import useAvailableCampaigns from '@/hooks/useAvailableCampaigns';
+import usePlaytestPacks from '@/hooks/usePlaytestPacks';
 import type { ContentAccess } from '@/types/character';
-import { AVAILABLE_CAMPAIGNS } from '@/hooks/useContentAccess';
 import clsx from 'clsx';
 
 export default function ContentAccessSettings() {
   const { user } = useUser();
+  const { campaigns: availableCampaigns, loading: campaignsLoading } = useAvailableCampaigns();
+  const { packs: playtestPacks, loading: packsLoading } = usePlaytestPacks();
   const [contentAccess, setContentAccess] = useState<ContentAccess>({
     srd: true,
     playtest: false,
@@ -55,6 +61,28 @@ export default function ContentAccessSettings() {
 
     setSaving(true);
     const newAccess = { ...contentAccess, playtest: enabled };
+
+    try {
+      await dataService.profile.updateContentAccess(user.id, newAccess);
+      setContentAccess(newAccess);
+    } catch (error) {
+      console.error('Failed to update content access:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTogglePlaytestPack = async (packId: string, enabled: boolean) => {
+    if (!user?.id) return;
+
+    setSaving(true);
+    const newAccess = {
+      ...contentAccess,
+      playtest_packs: {
+        ...contentAccess.playtest_packs,
+        [packId]: enabled,
+      },
+    };
 
     try {
       await dataService.profile.updateContentAccess(user.id, newAccess);
@@ -136,46 +164,87 @@ export default function ContentAccessSettings() {
           <Switch id="srd-content" checked={true} disabled />
         </div>
 
-        {/* Playtest Content */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="space-y-1 flex-1">
-            <div className="flex items-center gap-2">
-              <label htmlFor="playtest-content" className="font-medium text-white">
-                Playtest Content
-              </label>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-gray-300 text-xs font-medium">
-                <FlaskConical size={12} />
-                The Void v1.5
-              </span>
-            </div>
-            <p className="text-gray-400 text-sm">
-              Blood Hunter, Witch, Brawler classes and Blood & Dread domains.
-            </p>
-          </div>
-          <Switch
-            id="playtest-content"
-            checked={contentAccess.playtest}
-            onCheckedChange={handleTogglePlaytest}
-            disabled={saving}
-          />
-        </div>
+        {/* Playtest Content Packs */}
+        {(playtestPacks.length > 0 || contentAccess.playtest) && (
+          <>
+            <div className="border-t border-white/10 pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <FlaskConical className="h-5 w-5 text-amber-500" />
+                <h3 className="font-semibold text-white">Playtest Material</h3>
+              </div>
 
-        {/* Warning when playtest is enabled */}
-        {contentAccess.playtest && (
-          <div className="flex gap-3 rounded-lg border border-amber-500/50 bg-amber-500/10 p-4">
-            <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-amber-400">Playtest Content Notice</p>
-              <p className="text-sm text-gray-400">
-                Playtest material is not final and may be unbalanced or subject to change.
-                Characters using this content may need adjustments in the future.
-              </p>
+              <div className="space-y-4">
+                {/* Legacy Toggle - Only show if enabled to allow disabling */}
+                {contentAccess.playtest && (
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-1 flex-1">
+                      <div className="flex items-center gap-2">
+                        <label htmlFor="legacy-playtest" className="font-medium text-white">
+                          Legacy Playtest Content
+                        </label>
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] uppercase tracking-wider font-semibold">
+                          <AlertTriangle size={10} />
+                          Legacy
+                        </span>
+                      </div>
+                      <p className="text-gray-400 text-sm">
+                        Generic playtest content enabled via old settings.
+                      </p>
+                    </div>
+                    <Switch
+                      id="legacy-playtest"
+                      checked={contentAccess.playtest}
+                      onCheckedChange={handleTogglePlaytest}
+                      disabled={saving}
+                    />
+                  </div>
+                )}
+
+                {/* Dynamic Packs */}
+                {playtestPacks.map((pack) => (
+                  <div key={pack.id} className="flex items-start justify-between gap-4">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-2">
+                        <label htmlFor={`pack-${pack.id}`} className="font-medium text-white">
+                          {pack.name}
+                        </label>
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] uppercase tracking-wider font-semibold">
+                          <FlaskConical size={10} />
+                          Playtest
+                        </span>
+                      </div>
+                      <p className="text-gray-400 text-sm">
+                        {pack.description}
+                      </p>
+                    </div>
+                    <Switch
+                      id={`pack-${pack.id}`}
+                      checked={contentAccess.playtest_packs?.[pack.id] ?? false}
+                      onCheckedChange={(enabled) => handleTogglePlaytestPack(pack.id, enabled)}
+                      disabled={saving}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+
+            {/* Warning when any playtest is enabled */}
+            {(contentAccess.playtest || Object.values(contentAccess.playtest_packs ?? {}).some(Boolean)) && (
+              <div className="flex gap-3 rounded-lg border border-amber-500/50 bg-amber-500/10 p-4 mt-4">
+                <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-amber-400">Playtest Content Notice</p>
+                  <p className="text-sm text-gray-400">
+                    Playtest material is not final and may be unbalanced or subject to change.
+                  </p>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* Homebrew Campaigns Section */}
-        {AVAILABLE_CAMPAIGNS.length > 0 && (
+        {availableCampaigns.length > 0 && (
           <>
             <div className="border-t border-white/10 pt-6">
               <div className="flex items-center gap-2 mb-4">
@@ -184,36 +253,40 @@ export default function ContentAccessSettings() {
               </div>
 
               <div className="space-y-4">
-                {AVAILABLE_CAMPAIGNS.map((campaign) => (
-                  <div key={campaign.id} className="flex items-start justify-between gap-4">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-2">
-                        <label htmlFor={`campaign-${campaign.id}`} className="font-medium text-white">
-                          {campaign.name}
-                        </label>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-medium">
-                          Homebrew
-                        </span>
-                      </div>
-                      <p className="text-gray-400 text-sm">
-                        {campaign.description}
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {campaign.features.map((feature) => (
-                          <span key={feature} className="inline-flex items-center px-2 py-0.5 rounded-md bg-white/5 text-gray-300 text-xs">
-                            {feature}
+                {campaignsLoading ? (
+                  <p className="text-gray-400 text-sm">Loading available campaigns...</p>
+                ) : (
+                  availableCampaigns.map((campaign) => (
+                    <div key={campaign.id} className="flex items-start justify-between gap-4">
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2">
+                          <label htmlFor={`campaign-${campaign.id}`} className="font-medium text-white">
+                            {campaign.name}
+                          </label>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-medium">
+                            Homebrew
                           </span>
-                        ))}
+                        </div>
+                        <p className="text-gray-400 text-sm">
+                          {campaign.description}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {campaign.features.map((feature) => (
+                            <span key={feature} className="inline-flex items-center px-2 py-0.5 rounded-md bg-white/5 text-gray-300 text-xs">
+                              {feature}
+                            </span>
+                          ))}
+                        </div>
                       </div>
+                      <Switch
+                        id={`campaign-${campaign.id}`}
+                        checked={contentAccess.homebrew?.[campaign.id] ?? false}
+                        onCheckedChange={(enabled) => handleToggleHomebrew(campaign.id, enabled)}
+                        disabled={saving}
+                      />
                     </div>
-                    <Switch
-                      id={`campaign-${campaign.id}`}
-                      checked={contentAccess.homebrew?.[campaign.id] ?? false}
-                      onCheckedChange={(enabled) => handleToggleHomebrew(campaign.id, enabled)}
-                      disabled={saving}
-                    />
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 

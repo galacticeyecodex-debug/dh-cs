@@ -265,10 +265,10 @@ describe('Journal - Add NPC', () => {
       // Set mock data for this test
       mockSupabase.setMockData({
         id: 'rel3',
-        npc_name: 'Strixhaven Professor',
-        npc_description: 'A mysterious professor from Strixhaven',
+        npc_name: 'Campaign Professor',
+        npc_description: 'A mysterious professor from the campaign',
         points: 1,
-        campaign: 'strixhaven',
+        campaign: 'test-campaign',
       });
 
       const { result } = renderHook(() => useCharacterStore());
@@ -278,9 +278,9 @@ describe('Journal - Add NPC', () => {
       });
 
       const input: CreateRelationshipInput = {
-        npc_name: 'Strixhaven Professor',
-        npc_description: 'A mysterious professor from Strixhaven',
-        campaign: 'strixhaven',
+        npc_name: 'Campaign Professor',
+        npc_description: 'A mysterious professor from the campaign',
+        campaign: 'test-campaign',
         points: 1,
       };
 
@@ -290,8 +290,8 @@ describe('Journal - Add NPC', () => {
       });
 
       expect(createdRelationship).toBeDefined();
-      expect(createdRelationship?.npc_name).toBe('Strixhaven Professor');
-      expect(createdRelationship?.campaign).toBe('strixhaven');
+      expect(createdRelationship?.npc_name).toBe('Campaign Professor');
+      expect(createdRelationship?.campaign).toBe('test-campaign');
     });
 
     it('should return null if no character is set', async () => {

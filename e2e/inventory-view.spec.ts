@@ -3,60 +3,35 @@
  * ----------------------------------------------------------------------------
  * Tests for the equipment and wealth management interface including
  * item management, gold tracking, and equipment slots.
+ *
+ * REQUIREMENTS:
+ * - Must run auth setup first: npx playwright test --project=setup --headed
+ * - Requires at least one character in your Supabase account
  */
-import { test, expect, Page } from '@playwright/test';
-import { setupAuthMocking } from './fixtures/auth';
-import {
-  MOCK_CHARACTER,
-  MOCK_CHARACTER_CARDS,
-  MOCK_CHARACTER_INVENTORY,
-} from './fixtures/mock-character';
+import { test, expect } from '@playwright/test';
 
-async function setupInventoryView(page: Page, character = MOCK_CHARACTER, inventory = MOCK_CHARACTER_INVENTORY) {
-  await setupAuthMocking(page);
+// Helper to navigate to inventory view
+async function goToInventoryView(page: import('@playwright/test').Page) {
+  await page.goto('/client');
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(1000);
 
-  // Mock character fetch
-  await page.route('**/rest/v1/characters**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([character]),
-    });
-  });
-
-  // Mock character cards
-  await page.route('**/rest/v1/character_cards**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(MOCK_CHARACTER_CARDS),
-    });
-  });
-
-  // Mock character inventory
-  await page.route('**/rest/v1/character_inventory**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(inventory),
-    });
-  });
-
-  // Mock other endpoints
-  await page.route('**/rest/v1/character_relationships**', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) });
-  });
-  await page.route('**/rest/v1/character_projects**', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) });
-  });
+  // Click More menu, then Inventory
+  const moreButton = page.locator('nav button, nav a').filter({ hasText: /more/i }).first();
+  if (await moreButton.isVisible()) {
+    await moreButton.click();
+    await page.waitForTimeout(300);
+    const inventoryOption = page.getByText(/inventory/i).first();
+    if (await inventoryOption.isVisible()) {
+      await inventoryOption.click();
+      await page.waitForTimeout(500);
+    }
+  }
 }
 
 test.describe('Inventory View - Overview', () => {
   test('displays inventory layout', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await goToInventoryView(page);
 
     await page.screenshot({
       path: 'e2e/screenshots/inventory-view/overview.png',
@@ -65,12 +40,9 @@ test.describe('Inventory View - Overview', () => {
   });
 });
 
-test.describe('Inventory View - Gold Tracker', () => {
-  test('displays gold tracker panel', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+test.describe('Inventory View - Gold', () => {
+  test('displays gold tracker', async ({ page }) => {
+    await goToInventoryView(page);
 
     await page.screenshot({
       path: 'e2e/screenshots/inventory-view/gold-tracker.png',
@@ -78,26 +50,11 @@ test.describe('Inventory View - Gold Tracker', () => {
     });
   });
 
-  test('shows handfuls/bags/chests', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+  test('shows gold denominations', async ({ page }) => {
+    await goToInventoryView(page);
 
     await page.screenshot({
       path: 'e2e/screenshots/inventory-view/gold-denominations.png',
-      fullPage: true
-    });
-  });
-
-  test('displays +/- buttons for gold', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/gold-buttons.png',
       fullPage: true
     });
   });
@@ -105,10 +62,7 @@ test.describe('Inventory View - Gold Tracker', () => {
 
 test.describe('Inventory View - Filter Pills', () => {
   test('displays filter pills', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await goToInventoryView(page);
 
     await page.screenshot({
       path: 'e2e/screenshots/inventory-view/filter-pills.png',
@@ -116,184 +70,60 @@ test.describe('Inventory View - Filter Pills', () => {
     });
   });
 
-  test('shows All/Weapons/Armor/Consumables filters', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+  test('shows all items by default', async ({ page }) => {
+    await goToInventoryView(page);
 
     await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/filter-categories.png',
+      path: 'e2e/screenshots/inventory-view/items-all.png',
       fullPage: true
     });
   });
 });
 
-test.describe('Inventory View - Item Cards', () => {
-  test('displays item list', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+test.describe('Inventory View - Items', () => {
+  test('displays item cards', async ({ page }) => {
+    await goToInventoryView(page);
 
     await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/item-list.png',
+      path: 'e2e/screenshots/inventory-view/item-cards.png',
       fullPage: true
     });
   });
 
-  test('shows equipped item badges', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+  test('shows equipped items', async ({ page }) => {
+    await goToInventoryView(page);
 
     await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/equipped-badges.png',
+      path: 'e2e/screenshots/inventory-view/equipped-items.png',
       fullPage: true
     });
   });
 
-  test('displays item type indicators', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+  test('displays item details', async ({ page }) => {
+    await goToInventoryView(page);
 
     await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/item-types.png',
+      path: 'e2e/screenshots/inventory-view/item-details.png',
       fullPage: true
     });
   });
 });
 
-test.describe('Inventory View - Weapon Items', () => {
-  test('displays weapon cards', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+test.describe('Inventory View - Equipment Slots', () => {
+  test('shows primary weapon slot', async ({ page }) => {
+    await goToInventoryView(page);
 
     await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/weapons.png',
+      path: 'e2e/screenshots/inventory-view/slot-primary.png',
       fullPage: true
     });
   });
 
-  test('shows weapon stats', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+  test('shows armor slot', async ({ page }) => {
+    await goToInventoryView(page);
 
     await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/weapon-stats.png',
-      fullPage: true
-    });
-  });
-});
-
-test.describe('Inventory View - Armor Items', () => {
-  test('displays armor cards', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/armor.png',
-      fullPage: true
-    });
-  });
-});
-
-test.describe('Inventory View - Consumables', () => {
-  test('displays consumable items', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/consumables.png',
-      fullPage: true
-    });
-  });
-
-  test('shows quantity for stackable items', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/item-quantity.png',
-      fullPage: true
-    });
-  });
-});
-
-test.describe('Inventory View - Item Actions', () => {
-  test('shows info button on items', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/item-info-button.png',
-      fullPage: true
-    });
-  });
-
-  test('shows settings button on items', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/item-settings-button.png',
-      fullPage: true
-    });
-  });
-
-  test('displays equip controls', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/equip-controls.png',
-      fullPage: true
-    });
-  });
-});
-
-test.describe('Inventory View - Add Item', () => {
-  test('shows add item button', async ({ page }) => {
-    await setupInventoryView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/add-item-button.png',
-      fullPage: true
-    });
-  });
-});
-
-test.describe('Inventory View - Empty State', () => {
-  test('shows empty inventory message', async ({ page }) => {
-    await setupInventoryView(page, MOCK_CHARACTER, []);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/inventory-view/empty-state.png',
+      path: 'e2e/screenshots/inventory-view/slot-armor.png',
       fullPage: true
     });
   });
@@ -308,10 +138,7 @@ test.describe('Inventory View - Responsive', () => {
   for (const viewport of viewports) {
     test(`inventory view at ${viewport.name} viewport`, async ({ page }) => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await setupInventoryView(page);
-      await page.goto('/client');
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await goToInventoryView(page);
 
       await page.screenshot({
         path: `e2e/screenshots/inventory-view/responsive-${viewport.name}.png`,

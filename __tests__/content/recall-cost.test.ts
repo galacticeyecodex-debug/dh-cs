@@ -20,8 +20,7 @@ import { describe, it, expect } from 'vitest';
 import { getCardRecallCost, CardLike } from '@/lib/card-helpers';
 
 // Import source data to validate recall values exist
-import srdAbilities from '@/content/srd/json/abilities_enhanced.json';
-import playtestAbilities from '@/content/playtest/json/abilities_enhanced.json';
+import { srdAbilities, getPlaytestAbilities } from '@/lib/content-loaders';
 
 interface AbilityJson {
   name: string;
@@ -35,7 +34,7 @@ interface AbilityJson {
 describe('recall-cost', () => {
   describe('Source JSON validation', () => {
     it('should have recall field on all SRD abilities', () => {
-      const abilities = srdAbilities as AbilityJson[];
+      const abilities = srdAbilities as unknown as AbilityJson[];
 
       // Every ability should have a recall field
       abilities.forEach(ability => {
@@ -44,7 +43,7 @@ describe('recall-cost', () => {
     });
 
     it('should have valid recall values (0-4) on SRD abilities', () => {
-      const abilities = srdAbilities as AbilityJson[];
+      const abilities = srdAbilities as unknown as AbilityJson[];
       // Valid recall values are 0-4 based on actual SRD data
       const validRecallValues = ['0', '1', '2', '3', '4'];
 
@@ -57,7 +56,7 @@ describe('recall-cost', () => {
     });
 
     it('should have distribution of recall costs in SRD (not all zeros)', () => {
-      const abilities = srdAbilities as AbilityJson[];
+      const abilities = srdAbilities as unknown as AbilityJson[];
 
       const recallCounts: Record<string, number> = { '0': 0, '1': 0, '2': 0, '3': 0, '4': 0 };
       abilities.forEach(ability => {
@@ -73,8 +72,16 @@ describe('recall-cost', () => {
       console.log('SRD Recall Cost Distribution:', recallCounts);
     });
 
-    it('should have valid recall values on playtest abilities', () => {
-      const abilities = playtestAbilities as AbilityJson[];
+    it('should have valid recall values on playtest abilities (if available)', () => {
+      const playtestAbilities = getPlaytestAbilities();
+
+      // Skip if playtest content not available
+      if (playtestAbilities.length === 0) {
+        console.log('Skipping playtest recall test - content not available');
+        return;
+      }
+
+      const abilities = playtestAbilities as unknown as AbilityJson[];
       // Valid recall values are 0-4 based on actual SRD data
       const validRecallValues = ['0', '1', '2', '3', '4'];
 

@@ -18,17 +18,19 @@ import type { EnhancedAbilityCard } from '@/types/cards';
 // Load the enhanced JSON files
 const srdAbilities: EnhancedAbilityCard[] = JSON.parse(
     fs.readFileSync(
-        path.join(process.cwd(), 'content/srd/json/abilities_enhanced.json'),
+        path.join(process.cwd(), 'content/public/srd/json/abilities_enhanced.json'),
         'utf-8'
     )
 );
 
-const playtestAbilities: EnhancedAbilityCard[] = JSON.parse(
-    fs.readFileSync(
-        path.join(process.cwd(), 'content/playtest/json/abilities.json'),
-        'utf-8'
-    )
-);
+// Playtest content is optional (lives in gitignored private folder)
+let playtestAbilities: EnhancedAbilityCard[] = [];
+const playtestPath = path.join(process.cwd(), 'content/private/playtest/json/abilities.json');
+if (fs.existsSync(playtestPath)) {
+    playtestAbilities = JSON.parse(fs.readFileSync(playtestPath, 'utf-8'));
+} else {
+    console.log('Note: Playtest content not available (content/private/playtest not present)');
+}
 
 const allAbilities = [...srdAbilities, ...playtestAbilities];
 

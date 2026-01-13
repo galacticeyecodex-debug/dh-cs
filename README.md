@@ -57,23 +57,21 @@ You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](ht
 
 | Feature | Status | Description |
 |---------|--------|-------------|
-| Consumable Usage | ⚠️ Partial | Consumables can be added to inventory but need "Use" button implementation |
 | Social Features | 📋 Planned | Campaigns, real-time play, GM screen, homebrew sharing (Issue #67) |
-| Hybrid Ancestries | 📋 Planned | Allow mixing two ancestries, selecting one feat from each |
 
 ### Class & Subclass Interactive Features
 
 | Class | Subclass | Feature | Status | Description |
 |-------|----------|---------|--------|-------------|
 | Ranger | Beastbound | Companion Card | ✅ Done | Interactive companion sheet with image upload, training options, and companion level-up |
-| Bard | All | Rally Die | 📋 Planned | d6 die tracker (upgrades to d8 at level 5) to give to party members |
-| Druid | All | Beastform | 📋 Planned | Creature form selector with stats from Beastform creature list (Tiers 1-4) |
+| Bard | All | Rally Die | ✅ Done | d6 die tracker (upgrades to d8 at level 5) to give to party members |
+| Druid | All | Beastform | ✅ Done | Creature form selector with stats from Beastform creature list (Tiers 1-4) |
 | Druid | Warden of the Elements | Elemental Incarnation | 📋 Planned | Element selection (Fire, Earth, Water, Air) for channeling |
-| Guardian | All | Unstoppable Die | 📋 Planned | d4 escalating die tracker (upgrades to d6 at level 5) for damage bonus |
-| Seraph | All | Prayer Dice | 📋 Planned | d4 roller with prayer dice result tracker (dice equal to Spellcast trait) |
+| Guardian | All | Unstoppable Die | ✅ Done | d4 escalating die tracker (upgrades to d6 at level 5) for damage bonus |
+| Seraph | All | Prayer Dice | ✅ Done | d4 roller with prayer dice result tracker (dice equal to Spellcast trait) |
 | Sorcerer | Elemental Origin | Element Selection | 📋 Planned | Choose element (air, earth, fire, lightning, water) at character creation |
 | Warrior | Call of the Slayer | Slayer Dice | 📋 Planned | d6 dice pool tracker (up to Proficiency dice) for Slayer abilities |
-| Wizard | All | Strange Patterns | 📋 Planned | Number selector (1-12) for Strange Patterns class feature |
+| Wizard | All | Strange Patterns | ✅ Done | Number selector (1-12) for Strange Patterns class feature |
 
 ### Domain Cards with Advanced Token Mechanics
 

@@ -42,8 +42,7 @@ import { getAttack, getRoll, getModifiers, isModifierActive } from '@/lib/enhanc
 import useContentAccess from '@/hooks/useContentAccess';
 import { useLibraryItems, LibraryPresets } from '@/hooks/useLibraryItems';
 
-import srdAbilities from '@/content/srd/json/abilities_enhanced.json';
-import playtestAbilities from '@/content/playtest/json/abilities_enhanced.json';
+import { getAllAbilities } from '@/lib/content-loaders';
 
 export default function PlaymatView() {
   const { character, cardStates, moveCard, addCardToCollection, removeCard, updateCardImage, updateCardImagePosition, updateModifiers, user } = useCharacterStore();
@@ -82,9 +81,7 @@ export default function PlaymatView() {
 
   // Memoize enhanced abilities based on playtest setting
   const enhancedAbilities = useMemo(() => {
-    const srdData = (srdAbilities || []) as EnhancedAbilityCard[];
-    const playtestData = includePlaytest ? ((playtestAbilities || []) as EnhancedAbilityCard[]) : [];
-    return [...srdData, ...playtestData];
+    return getAllAbilities(includePlaytest);
   }, [includePlaytest]);
 
   // Use centralized library hook instead of duplicated fetch logic

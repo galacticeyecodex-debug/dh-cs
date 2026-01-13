@@ -56,6 +56,7 @@ next-env.d.ts
 # AI & Tooling
 .gemini/
 .agent/
+.claude/
 CLAUDE.md
 GEMINI.md
 
@@ -74,3 +75,7 @@ docs/
 /e2e/screenshots/
 /playwright-report/
 /test-results/
+/.auth/
+
+# Private campaign content (managed in separate private repo)
+content/private/

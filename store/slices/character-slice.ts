@@ -17,7 +17,7 @@ import { withOptimisticUpdate } from '@/lib/state-helpers';
 import { CharacterStore } from '@/types/store';
 import ModifierService from '@/lib/modifier-service';
 import { Modifier } from '@/types/modifiers';
-import enhancedAbilitiesDataRaw from '@/content/srd/json/abilities_enhanced.json';
+import enhancedAbilitiesDataRaw from '@/content/public/srd/json/abilities_enhanced.json';
 import { WithEnhancement } from '@/lib/enhancement-utils';
 
 // Cast the JSON import to the correct type

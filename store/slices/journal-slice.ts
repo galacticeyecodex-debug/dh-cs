@@ -4,7 +4,7 @@
  * This slice manages the journal system state including:
  * - NPC Relationship tracking
  * - Reputation management
- * - Campaign-specific NPC seeding (e.g., Strixhaven)
+ * - Campaign-specific NPC seeding (fetched from Supabase library table)
  */
 
 import { StateCreator } from 'zustand';
@@ -17,7 +17,46 @@ import {
     CreateNoteInput,
 } from '@/types/journal';
 import createClient from '@/lib/supabase/client';
-import { getStrixhavenNPCsForSeeding } from '@/data/campaigns/strixhaven-npcs';
+
+/**
+ * Fetches campaign NPC presets from the library table.
+ * Campaign NPCs are stored with type='campaign_npcs' and name=campaignId.
+ */
+async function fetchCampaignNPCsFromLibrary(campaignId: string): Promise<CreateRelationshipInput[]> {
+    try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+            .from('library')
+            .select('data')
+            .eq('type', 'campaign_npcs')
+            .eq('name', campaignId)
+            .single();
+
+        if (error) {
+            // No data found is not an error - just means no preset for this campaign
+            if (error.code === 'PGRST116') {
+                console.log(`No NPC preset found for campaign: ${campaignId}`);
+                return [];
+            }
+            throw error;
+        }
+
+        // data.data contains the array of NPCs
+        const npcs = data?.data as Omit<CreateRelationshipInput, 'points'>[] | undefined;
+        if (!npcs || !Array.isArray(npcs)) {
+            return [];
+        }
+
+        // Add points: 0 to each NPC (default starting relationship)
+        return npcs.map(npc => ({
+            ...npc,
+            points: 0,
+        }));
+    } catch (error) {
+        console.error(`Failed to fetch campaign NPCs for ${campaignId}:`, error);
+        return [];
+    }
+}
 
 export interface JournalSlice {
     // Relationships
@@ -262,8 +301,9 @@ export const createJournalSlice: StateCreator<
 
     /**
      * Seeds campaign-specific NPCs for the current character.
-     * This is called when a user enables a campaign (e.g., Strixhaven).
+     * This is called when a user enables a campaign.
      * Only creates NPCs that don't already exist for this character.
+     * NPCs are fetched from the library table (type='campaign_npcs').
      */
     seedCampaignNPCs: async (campaignId: string) => {
         const { character, relationships, fetchRelationships } = get();
@@ -272,14 +312,8 @@ export const createJournalSlice: StateCreator<
         }
 
         try {
-            // Get NPCs to seed based on campaign
-            let npcsToSeed: CreateRelationshipInput[] = [];
-
-            if (campaignId === 'strixhaven') {
-                npcsToSeed = getStrixhavenNPCsForSeeding();
-            }
-            // Add more campaigns here as needed:
-            // else if (campaignId === 'other_campaign') { ... }
+            // Fetch NPCs to seed from the library table
+            const npcsToSeed = await fetchCampaignNPCsFromLibrary(campaignId);
 
             if (npcsToSeed.length === 0) {
                 return { success: true, seeded: 0 };

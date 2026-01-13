@@ -2,11 +2,20 @@
  * PLAYWRIGHT CONFIGURATION
  * ----------------------------------------------------------------------------
  * Configuration for visual browser testing of the Daggerheart Character Sheet.
- * Used for autonomous development workflow where Claude can:
- * 1. Start the dev server
- * 2. Open browser and navigate
- * 3. Take screenshots for visual verification
- * 4. Iterate on fixes if issues found
+ *
+ * TEST PROJECTS:
+ * - setup: One-time auth setup (run: npx playwright test --project=setup)
+ * - public: Tests for public routes (no auth required)
+ * - chromium/mobile/tablet: Authenticated tests (require setup first)
+ *
+ * AUTHENTICATION:
+ * Authenticated tests require a saved session. To set up:
+ * 1. Create a test user in Supabase with email/password auth
+ * 2. Add credentials to .env.local:
+ *    E2E_TEST_EMAIL=your-test-email@example.com
+ *    E2E_TEST_PASSWORD=your-test-password
+ * 3. Run: npx playwright test --project=setup
+ * 4. Session is saved to .auth/user.json (gitignored)
  *
  * Visual Regression Testing:
  * - Use `npm run e2e -- --update-snapshots` to create/update baseline screenshots
@@ -14,6 +23,13 @@
  * - Snapshots stored in e2e/snapshots/
  */
 import { defineConfig, devices } from '@playwright/test';
+import path from 'path';
+import { config } from 'dotenv';
+
+// Load environment variables from .env.local
+config({ path: '.env.local' });
+
+const authFile = path.join(__dirname, '.auth/user.json');
 
 export default defineConfig({
   testDir: './e2e',
@@ -62,32 +78,71 @@ export default defineConfig({
 
     // Consistent rendering for visual tests
     colorScheme: 'dark',
-
-    // Disable animations for consistent screenshots
-    // (uncomment if needed for visual regression)
-    // launchOptions: {
-    //   slowMo: 0,
-    // },
   },
 
   projects: [
+    // === AUTH SETUP PROJECT ===
+    // Run manually: npx playwright test --project=setup --headed
     {
-      name: 'chromium',
+      name: 'setup',
+      testMatch: /auth\.setup\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 800 },
       },
     },
+
+    // === PUBLIC TESTS (NO AUTH) ===
+    // Tests that verify unauthenticated/public behavior
+    {
+      name: 'public',
+      testMatch: [
+        /visual-check\.spec\.ts/,
+        /auth\.spec\.ts/,
+        /navigation\.spec\.ts/,
+        /components\.spec\.ts/,
+      ],
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 800 },
+        // No storageState - runs without authentication
+      },
+    },
+
+    // === AUTHENTICATED TESTS ===
+    // These require running setup first and use real auth/data
+    {
+      name: 'chromium',
+      testIgnore: [
+        /auth\.setup\.ts/,
+        /visual-check\.spec\.ts/,
+        /auth\.spec\.ts/,
+        /navigation\.spec\.ts/,
+        /components\.spec\.ts/,
+      ],
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 800 },
+        storageState: authFile,
+      },
+    },
     {
       name: 'mobile',
+      testIgnore: [/auth\.setup\.ts/, /visual-check\.spec\.ts/],
+      dependencies: ['setup'],
       use: {
         ...devices['iPhone 14'],
+        storageState: authFile,
       },
     },
     {
       name: 'tablet',
+      testIgnore: [/auth\.setup\.ts/, /visual-check\.spec\.ts/],
+      dependencies: ['setup'],
       use: {
         ...devices['iPad Mini'],
+        storageState: authFile,
       },
     },
   ],
