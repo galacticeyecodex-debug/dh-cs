@@ -49,7 +49,7 @@ import React, { useState } from 'react';
 import { X, Zap, Check, Search, PawPrint, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RangerCompanion } from '@/types/character';
-import { calculateTierAchievements, calculateNewDamageThresholds, getTier, getMaxCardLevelForDomain, getClassDomains } from '@/lib/level-up-helpers';
+import { calculateTierAchievements, calculateNewDamageThresholds, getTier, getMaxCardLevelForDomain, getClassDomainsFromData } from '@/lib/level-up-helpers';
 import { validateNewLevel, validateAdvancementSelections } from '@/lib/level-up-validation';
 import { getCardLevel, getCardDescription, getCardType, isCardInDomain, isCardAvailableAtLevel } from '@/lib/card-helpers';
 import MulticlassSelection from './multiclass-selection';
@@ -205,7 +205,8 @@ export default function LevelUpModal({
     // 3. Max Level Rule - Use helper function to apply half-level rule for multiclass domains
     // Get primary domains from the character's actual domains (not hardcoded class domains)
     // This handles characters with non-standard domain choices correctly
-    const primaryDomains = character.domains || (character.class_id ? getClassDomains(character.class_id) : []);
+    const classData = character.class_id ? classes.find((c: any) => c.name === character.class_id) : null;
+    const primaryDomains = character.domains || getClassDomainsFromData(classData);
 
     // Determine multiclass domain to apply half-level rule (SRD: multiclass cards limited to half character level)
     // This handles two scenarios:
@@ -218,7 +219,8 @@ export default function LevelUpModal({
     } else if (character.multiclass_id) {
       // Scenario B: Character already has a multiclass - find the domain from the multiclass class
       // Use the multiclass class's domains to identify which domain came from multiclassing
-      const multiclassClassDomains = getClassDomains(character.multiclass_id);
+      const multiclassClassData = classes.find((c: any) => c.name === character.multiclass_id);
+      const multiclassClassDomains = getClassDomainsFromData(multiclassClassData);
       const existingMulticlassDomain = character.domains?.find(
         d => multiclassClassDomains.map(m => m.toLowerCase()).includes(d.toLowerCase())
       );
