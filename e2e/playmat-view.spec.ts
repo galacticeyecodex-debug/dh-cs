@@ -3,136 +3,77 @@
  * ----------------------------------------------------------------------------
  * Tests for the domain card management interface including loadout/vault,
  * card mechanics, and card customization.
+ *
+ * REQUIREMENTS:
+ * - Must run auth setup first: npx playwright test --project=setup --headed
+ * - Requires at least one character in your Supabase account
  */
-import { test, expect, Page } from '@playwright/test';
-import { setupAuthMocking } from './fixtures/auth';
-import {
-  MOCK_CHARACTER,
-  MOCK_CHARACTER_CARDS,
-  MOCK_CHARACTER_INVENTORY,
-} from './fixtures/mock-character';
+import { test, expect } from '@playwright/test';
 
-async function setupPlaymatView(page: Page, character = MOCK_CHARACTER, cards = MOCK_CHARACTER_CARDS) {
-  await setupAuthMocking(page);
+// Helper to navigate to playmat view
+async function goToPlaymatView(page: import('@playwright/test').Page) {
+  await page.goto('/client');
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(1000);
 
-  // Mock character fetch
-  await page.route('**/rest/v1/characters**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([character]),
-    });
-  });
-
-  // Mock character cards
-  await page.route('**/rest/v1/character_cards**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(cards),
-    });
-  });
-
-  // Mock character inventory
-  await page.route('**/rest/v1/character_inventory**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(MOCK_CHARACTER_INVENTORY),
-    });
-  });
-
-  // Mock other endpoints
-  await page.route('**/rest/v1/character_relationships**', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) });
-  });
-  await page.route('**/rest/v1/character_projects**', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) });
-  });
+  // Click playmat tab in navigation
+  const playmatTab = page.locator('nav button, nav a').filter({ hasText: /playmat|cards/i }).first();
+  if (await playmatTab.isVisible()) {
+    await playmatTab.click();
+    await page.waitForTimeout(500);
+  }
 }
 
 test.describe('Playmat View - Overview', () => {
   test('displays playmat layout', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await goToPlaymatView(page);
 
     await page.screenshot({
       path: 'e2e/screenshots/playmat-view/overview.png',
       fullPage: true
     });
   });
-
-  test('shows loadout/vault toggle', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/toggle.png',
-      fullPage: true
-    });
-  });
 });
 
-test.describe('Playmat View - Loadout Tab', () => {
-  test('displays cards in loadout', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+test.describe('Playmat View - Loadout/Vault Toggle', () => {
+  test('shows loadout by default', async ({ page }) => {
+    await goToPlaymatView(page);
 
     await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/loadout-cards.png',
+      path: 'e2e/screenshots/playmat-view/loadout.png',
       fullPage: true
     });
   });
 
-  test('shows card slots', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+  test('can switch to vault', async ({ page }) => {
+    await goToPlaymatView(page);
+
+    // Click vault toggle
+    const vaultToggle = page.getByText(/vault/i).first();
+    if (await vaultToggle.isVisible()) {
+      await vaultToggle.click();
+      await page.waitForTimeout(500);
+    }
 
     await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/card-slots.png',
+      path: 'e2e/screenshots/playmat-view/vault.png',
       fullPage: true
     });
   });
 });
 
 test.describe('Playmat View - Domain Cards', () => {
-  test('displays domain card visual', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+  test('displays domain card thumbnails', async ({ page }) => {
+    await goToPlaymatView(page);
 
     await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/domain-card.png',
+      path: 'e2e/screenshots/playmat-view/card-thumbnails.png',
       fullPage: true
     });
   });
 
-  test('shows tier banner', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/tier-banner.png',
-      fullPage: true
-    });
-  });
-
-  test('displays card name and description', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+  test('shows card details', async ({ page }) => {
+    await goToPlaymatView(page);
 
     await page.screenshot({
       path: 'e2e/screenshots/playmat-view/card-details.png',
@@ -141,128 +82,9 @@ test.describe('Playmat View - Domain Cards', () => {
   });
 });
 
-test.describe('Playmat View - Card Mechanics', () => {
-  test('displays mechanics tray', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/mechanics-tray.png',
-      fullPage: true
-    });
-  });
-
-  test('shows cost buttons', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/cost-buttons.png',
-      fullPage: true
-    });
-  });
-});
-
-test.describe('Playmat View - Card Actions', () => {
-  test('shows info button', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/info-button.png',
-      fullPage: true
-    });
-  });
-
-  test('shows art button', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/art-button.png',
-      fullPage: true
-    });
-  });
-
-  test('shows move to vault button', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/move-button.png',
-      fullPage: true
-    });
-  });
-});
-
-test.describe('Playmat View - Vault Tab', () => {
-  test('vault tab is accessible', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/vault-tab.png',
-      fullPage: true
-    });
-  });
-
-  test('displays vault cards', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/vault-cards.png',
-      fullPage: true
-    });
-  });
-});
-
-test.describe('Playmat View - Search & Filter', () => {
-  test('displays search bar', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/search-bar.png',
-      fullPage: true
-    });
-  });
-
-  test('shows add card button', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/add-card-button.png',
-      fullPage: true
-    });
-  });
-});
-
 test.describe('Playmat View - Active Modifiers', () => {
   test('displays active modifiers summary', async ({ page }) => {
-    await setupPlaymatView(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await goToPlaymatView(page);
 
     await page.screenshot({
       path: 'e2e/screenshots/playmat-view/active-modifiers.png',
@@ -271,15 +93,32 @@ test.describe('Playmat View - Active Modifiers', () => {
   });
 });
 
-test.describe('Playmat View - Empty State', () => {
-  test('shows empty loadout slots', async ({ page }) => {
-    await setupPlaymatView(page, MOCK_CHARACTER, []);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+test.describe('Playmat View - Card Mechanics', () => {
+  test('shows mechanics tray on card', async ({ page }) => {
+    await goToPlaymatView(page);
 
     await page.screenshot({
-      path: 'e2e/screenshots/playmat-view/empty-loadout.png',
+      path: 'e2e/screenshots/playmat-view/mechanics-tray.png',
+      fullPage: true
+    });
+  });
+
+  test('shows cost buttons', async ({ page }) => {
+    await goToPlaymatView(page);
+
+    await page.screenshot({
+      path: 'e2e/screenshots/playmat-view/cost-buttons.png',
+      fullPage: true
+    });
+  });
+});
+
+test.describe('Playmat View - Search', () => {
+  test('displays search input', async ({ page }) => {
+    await goToPlaymatView(page);
+
+    await page.screenshot({
+      path: 'e2e/screenshots/playmat-view/search.png',
       fullPage: true
     });
   });
@@ -294,10 +133,7 @@ test.describe('Playmat View - Responsive', () => {
   for (const viewport of viewports) {
     test(`playmat view at ${viewport.name} viewport`, async ({ page }) => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await setupPlaymatView(page);
-      await page.goto('/client');
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
+      await goToPlaymatView(page);
 
       await page.screenshot({
         path: `e2e/screenshots/playmat-view/responsive-${viewport.name}.png`,

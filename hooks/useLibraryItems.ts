@@ -57,6 +57,8 @@ export interface UseLibraryItemsOptions {
     fetchAll?: boolean;
     /** If true, includes playtest content. Default: false */
     includePlaytest?: boolean;
+    /** List of specific content sources to include (e.g. 'srd', 'playtest-pack-1', 'campaign-mycampaign') */
+    enabledSources?: string[];
     /** If false, disables automatic fetching on mount. Default: true */
     enabled?: boolean;
     /** Cache time in milliseconds. If set, results are cached. Default: 0 (no cache) */
@@ -80,7 +82,8 @@ const cache = new Map<string, { data: LibraryItem[]; timestamp: number }>();
 function getCacheKey(options: UseLibraryItemsOptions): string {
     const types = options.fetchAll ? 'all' : (options.types?.sort().join(',') || 'none');
     const playtest = options.includePlaytest ? 'playtest' : 'srd';
-    return `${types}-${playtest}`;
+    const sources = options.enabledSources ? options.enabledSources.sort().join('|') : 'default';
+    return `${types}-${playtest}-${sources}`;
 }
 
 function getFromCache(key: string, cacheTimeMs: number): LibraryItem[] | null {
@@ -103,6 +106,7 @@ export function useLibraryItems(options: UseLibraryItemsOptions = {}): UseLibrar
         types = [],
         fetchAll = false,
         includePlaytest = false,
+        enabledSources,
         enabled = true,
         cacheTimeMs = 0,
     } = options;
@@ -121,7 +125,7 @@ export function useLibraryItems(options: UseLibraryItemsOptions = {}): UseLibrar
             return;
         }
 
-        const cacheKey = getCacheKey({ types, fetchAll, includePlaytest });
+        const cacheKey = getCacheKey({ types, fetchAll, includePlaytest, enabledSources });
 
         // Check cache first
         if (cacheTimeMs > 0) {
@@ -139,12 +143,13 @@ export function useLibraryItems(options: UseLibraryItemsOptions = {}): UseLibrar
         try {
             let fetchedItems: LibraryItem[];
 
+            const contentOptions = { includePlaytest, enabledSources };
+
             if (fetchAll) {
                 // Fetch all items
-                fetchedItems = await dataService.library.getAll({ includePlaytest });
+                fetchedItems = await dataService.library.getAll(contentOptions);
             } else {
                 // Fetch specific types in parallel
-                const contentOptions = { includePlaytest };
                 const queries = types.map(type => dataService.library.getByType(type, contentOptions));
                 const results = await Promise.all(queries);
 
@@ -173,7 +178,7 @@ export function useLibraryItems(options: UseLibraryItemsOptions = {}): UseLibrar
                 setLoading(false);
             }
         }
-    }, [types.join(','), fetchAll, includePlaytest, enabled, cacheTimeMs]);
+    }, [types.join(','), fetchAll, includePlaytest, enabledSources?.join(','), enabled, cacheTimeMs]);
 
     // Fetch on mount and when dependencies change
     useEffect(() => {

@@ -22,7 +22,9 @@ export interface RestState {
 // DOWNTIME MOVES
 // ============================================================================
 
-export type DowntimeMoveId =
+// Core downtime move IDs (SRD content)
+// Campaign-specific moves are loaded dynamically from Supabase
+export type CoreDowntimeMoveId =
     // Core moves (available on any rest)
     | 'tend_wounds'
     | 'clear_stress'
@@ -32,11 +34,10 @@ export type DowntimeMoveId =
     | 'tend_all_wounds'
     | 'clear_all_stress'
     | 'repair_all_armor'
-    | 'work_on_project'
-    // Campaign-specific (Strixhaven)
-    | 'study'
-    | 'go_to_club'
-    | 'go_to_work';
+    | 'work_on_project';
+
+// Allow any string for campaign-specific moves loaded from Supabase
+export type DowntimeMoveId = CoreDowntimeMoveId | string;
 
 export interface DowntimeMove {
     id: DowntimeMoveId;
@@ -59,12 +60,12 @@ export interface DowntimeMove {
 // PROJECTS
 // ============================================================================
 
-export type ProjectType =
-    | 'generic'           // Core rules crafting/research
-    | 'study_token'       // Strixhaven: Academic study
-    | 'signature_spell'   // Strixhaven: Custom spell development
-    | 'job'               // Strixhaven: Campus employment
-    | 'extracurricular';  // Strixhaven: Club activities
+// Core project types (SRD content)
+// Campaign-specific project types are stored in JSON data
+export type CoreProjectType = 'generic';
+
+// Allow any string for campaign-specific project types
+export type ProjectType = CoreProjectType | string;
 
 export interface Project {
     id: string;
@@ -113,7 +114,8 @@ export interface CreateProjectInput {
 }
 
 // ============================================================================
-// STUDY TOKENS (Strixhaven-specific)
+// STUDY TOKENS (Campaign-specific, e.g., Strixhaven)
+// Note: These types support campaign features but aren't hardcoded to any campaign
 // ============================================================================
 
 export interface StudyToken {
@@ -209,35 +211,8 @@ export const DOWNTIME_MOVES: DowntimeMove[] = [
         rollRequired: false,
         effect: { type: 'advance_project', value: 1 },
     },
-
-    // Strixhaven Campaign Moves
-    {
-        id: 'study',
-        name: 'Study',
-        description: 'Study for your classes and earn a Study Token.',
-        restTypes: ['long'],
-        requiresCampaign: 'strixhaven',
-        rollRequired: false,
-        effect: { type: 'earn_study_token' },
-    },
-    {
-        id: 'go_to_club',
-        name: 'Go to Club',
-        description: 'Attend your extracurricular activities.',
-        restTypes: ['long'],
-        requiresCampaign: 'strixhaven',
-        rollRequired: false,
-        effect: { type: 'custom' },
-    },
-    {
-        id: 'go_to_work',
-        name: 'Go to Work',
-        description: 'Work your campus job and earn gold.',
-        restTypes: ['long'],
-        requiresCampaign: 'strixhaven',
-        rollRequired: false,
-        effect: { type: 'custom' },
-    },
+    // Campaign-specific moves are loaded dynamically from Supabase
+    // See: hooks/useCampaignDowntimeMoves.ts
 ];
 
 /**

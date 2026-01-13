@@ -70,7 +70,7 @@ interface Discrepancy {
     reason: string;
 }
 
-const JSON_DIR = path.join(__dirname, '../content/srd/json');
+const JSON_DIR = path.join(__dirname, '../content/public/srd/json');
 
 const FILES_TO_AUDIT = [
     'abilities_enhanced.json',

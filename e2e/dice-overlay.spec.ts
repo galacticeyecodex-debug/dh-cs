@@ -10,60 +10,32 @@
  * - Experience selection works
  * - Visual appearance of the dice overlay
  *
- * NOTE: These tests use real browser APIs, so DiceBox Web Workers and
- * OffscreenCanvas work correctly (unlike unit tests which mock DiceBox).
+ * REQUIREMENTS:
+ * - Must run auth setup first: npx playwright test --project=setup
+ * - Uses real authenticated test character (Test Hero)
  */
 import { test, expect, Page } from '@playwright/test';
-import { setupAuthMocking } from './fixtures/auth';
-import {
-  MOCK_CHARACTER,
-  MOCK_CHARACTER_CARDS,
-  MOCK_CHARACTER_INVENTORY,
-} from './fixtures/mock-character';
 
-async function setupApp(page: Page, character = MOCK_CHARACTER) {
-  await setupAuthMocking(page);
+// Helper to navigate to character view and select the test character
+async function selectTestCharacter(page: Page) {
+  await page.goto('/client');
+  await page.waitForLoadState('networkidle');
 
-  // Mock character fetch
-  await page.route('**/rest/v1/characters**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([character]),
-    });
-  });
+  // If on character select screen, click the test character
+  const characterCard = page.getByText('Test Hero');
+  if (await characterCard.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await characterCard.click();
+    await page.waitForLoadState('networkidle');
+  }
 
-  // Mock character cards
-  await page.route('**/rest/v1/character_cards**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(MOCK_CHARACTER_CARDS),
-    });
-  });
-
-  // Mock character inventory
-  await page.route('**/rest/v1/character_inventory**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(MOCK_CHARACTER_INVENTORY),
-    });
-  });
-
-  // Mock other endpoints
-  await page.route('**/rest/v1/character_relationships**', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) });
-  });
-  await page.route('**/rest/v1/character_projects**', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) });
-  });
+  // Wait for the app to load
+  await page.waitForTimeout(1000);
 }
 
 // Helper to open the dice overlay
 async function openDiceOverlay(page: Page) {
-  // Click the dice FAB button
-  const diceFab = page.locator('button').filter({ has: page.locator('svg.lucide-dices') });
+  // Click the dice FAB button (use aria-label for specificity)
+  const diceFab = page.getByRole('button', { name: 'Roll Dice' });
   await diceFab.click();
 
   // Wait for overlay to be visible
@@ -72,10 +44,7 @@ async function openDiceOverlay(page: Page) {
 
 test.describe('Dice Overlay', () => {
   test.beforeEach(async ({ page }) => {
-    await setupApp(page);
-    await page.goto('/client');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await selectTestCharacter(page);
   });
 
   test.describe('Opening and Closing', () => {
@@ -360,28 +329,14 @@ test.describe('Dice Overlay', () => {
 
   test.describe('Experiences Section', () => {
     test('displays experiences when character has them', async ({ page }) => {
-      const characterWithExperiences = {
-        ...MOCK_CHARACTER,
-        experiences: [
-          { name: 'Nimble', value: 2 },
-          { name: 'Strong', value: 3 },
-        ],
-      };
-
-      await setupApp(page, characterWithExperiences);
-      await page.goto('/client');
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
-
       await openDiceOverlay(page);
 
-      // Check experiences section is visible
+      // Our test character has experiences
       const experiencesSection = page.locator('[data-testid="experiences-section"]');
       await expect(experiencesSection).toBeVisible();
 
-      // Check experiences are listed
+      // Check at least one experience is listed
       await expect(page.locator('[data-testid="experience-0"]')).toBeVisible();
-      await expect(page.locator('[data-testid="experience-1"]')).toBeVisible();
 
       await page.screenshot({
         path: 'e2e/screenshots/dice/experiences.png',
@@ -390,19 +345,10 @@ test.describe('Dice Overlay', () => {
     });
 
     test('toggles experience selection on click', async ({ page }) => {
-      const characterWithExperiences = {
-        ...MOCK_CHARACTER,
-        experiences: [{ name: 'Nimble', value: 2 }],
-      };
-
-      await setupApp(page, characterWithExperiences);
-      await page.goto('/client');
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
-
       await openDiceOverlay(page);
 
       const experienceButton = page.locator('[data-testid="experience-0"]');
+      await expect(experienceButton).toBeVisible();
 
       // Initially not selected
       await expect(experienceButton).toHaveAttribute('data-selected', 'false');

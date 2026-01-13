@@ -14,7 +14,7 @@
  *   - Parsing Logic: dh-cs/lib/card-parser.ts
  *
  * HOW IT WORKS:
- * 1. Reads raw content files from `content/srd/json/` and `content/playtest/json/`.
+ * 1. Reads raw content files from `content/public/srd/json/` and `content/private/playtest/json/`.
  * 2. Parses the `text` of every card/feat using the shared `lib/card-parser.ts`.
  *    - This parser uses NLU (Natural Language Understanding) patterns to extract
  *      mechanics like attacks, costs, tokens, and modifiers.
@@ -528,61 +528,61 @@ function main(): void {
     // Abilities
     {
       type: 'abilities',
-      input: path.join(projectRoot, 'content/srd/json/abilities.json'),
-      output: path.join(projectRoot, 'content/srd/json/abilities_enhanced.json'),
+      input: path.join(projectRoot, 'content/public/srd/json/abilities.json'),
+      output: path.join(projectRoot, 'content/public/srd/json/abilities_enhanced.json'),
     },
     {
       type: 'abilities',
-      input: path.join(projectRoot, 'content/playtest/json/abilities.json'),
-      output: path.join(projectRoot, 'content/playtest/json/abilities_enhanced.json'),
+      input: path.join(projectRoot, 'content/private/playtest/json/abilities.json'),
+      output: path.join(projectRoot, 'content/private/playtest/json/abilities_enhanced.json'),
     },
 
     // Ancestries
     {
       type: 'ancestries',
-      input: path.join(projectRoot, 'content/srd/json/ancestries.json'),
-      output: path.join(projectRoot, 'content/srd/json/ancestries_enhanced.json'),
+      input: path.join(projectRoot, 'content/public/srd/json/ancestries.json'),
+      output: path.join(projectRoot, 'content/public/srd/json/ancestries_enhanced.json'),
     },
     {
       type: 'ancestries',
-      input: path.join(projectRoot, 'content/playtest/json/ancestries.json'),
-      output: path.join(projectRoot, 'content/playtest/json/ancestries_enhanced.json'),
+      input: path.join(projectRoot, 'content/private/playtest/json/ancestries.json'),
+      output: path.join(projectRoot, 'content/private/playtest/json/ancestries_enhanced.json'),
     },
 
     // Communities
     {
       type: 'communities',
-      input: path.join(projectRoot, 'content/srd/json/communities.json'),
-      output: path.join(projectRoot, 'content/srd/json/communities_enhanced.json'),
+      input: path.join(projectRoot, 'content/public/srd/json/communities.json'),
+      output: path.join(projectRoot, 'content/public/srd/json/communities_enhanced.json'),
     },
     {
       type: 'communities',
-      input: path.join(projectRoot, 'content/playtest/json/communities.json'),
-      output: path.join(projectRoot, 'content/playtest/json/communities_enhanced.json'),
+      input: path.join(projectRoot, 'content/private/playtest/json/communities.json'),
+      output: path.join(projectRoot, 'content/private/playtest/json/communities_enhanced.json'),
     },
 
     // Classes
     {
       type: 'classes',
-      input: path.join(projectRoot, 'content/srd/json/classes.json'),
-      output: path.join(projectRoot, 'content/srd/json/classes_enhanced.json'),
+      input: path.join(projectRoot, 'content/public/srd/json/classes.json'),
+      output: path.join(projectRoot, 'content/public/srd/json/classes_enhanced.json'),
     },
     {
       type: 'classes',
-      input: path.join(projectRoot, 'content/playtest/json/classes.json'),
-      output: path.join(projectRoot, 'content/playtest/json/classes_enhanced.json'),
+      input: path.join(projectRoot, 'content/private/playtest/json/classes.json'),
+      output: path.join(projectRoot, 'content/private/playtest/json/classes_enhanced.json'),
     },
 
     // Subclasses
     {
       type: 'subclasses',
-      input: path.join(projectRoot, 'content/srd/json/subclasses.json'),
-      output: path.join(projectRoot, 'content/srd/json/subclasses_enhanced.json'),
+      input: path.join(projectRoot, 'content/public/srd/json/subclasses.json'),
+      output: path.join(projectRoot, 'content/public/srd/json/subclasses_enhanced.json'),
     },
     {
       type: 'subclasses',
-      input: path.join(projectRoot, 'content/playtest/json/subclasses.json'),
-      output: path.join(projectRoot, 'content/playtest/json/subclasses_enhanced.json'),
+      input: path.join(projectRoot, 'content/private/playtest/json/subclasses.json'),
+      output: path.join(projectRoot, 'content/private/playtest/json/subclasses_enhanced.json'),
     },
   ];
 

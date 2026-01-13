@@ -52,6 +52,9 @@ export interface LibraryItem {
 export interface ContentAccess {
   srd: boolean;
   playtest: boolean;
+  playtest_packs?: {
+    [packId: string]: boolean;
+  };
   homebrew?: {
     [campaignName: string]: boolean;
   };

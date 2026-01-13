@@ -16,7 +16,7 @@ export const dataService: DataClient = {
           .eq('id', characterId)
           .eq('user_id', userId)
           .maybeSingle();
-        
+
         if (error) throw error;
         charData = data;
       } else {
@@ -26,7 +26,7 @@ export const dataService: DataClient = {
           .eq('user_id', userId)
           .limit(1)
           .maybeSingle();
-        
+
         if (error) throw error;
         charData = data;
       }
@@ -124,7 +124,7 @@ export const dataService: DataClient = {
           : rawExperiences;
       }
 
-       let damage_thresholds;
+      let damage_thresholds;
       if (charData.damage_thresholds) {
         damage_thresholds = typeof charData.damage_thresholds === 'string'
           ? JSON.parse(charData.damage_thresholds)
@@ -256,39 +256,39 @@ export const dataService: DataClient = {
 
   inventory: {
     add: async (characterId, item) => {
-        const supabase = createClient();
-        const { data, error } = await supabase
-            .from('character_inventory')
-            .insert({ ...item, character_id: characterId })
-            .select()
-            .single();
-        if (error) throw error;
-        return data;
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('character_inventory')
+        .insert({ ...item, character_id: characterId })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
     },
     remove: async (itemId) => {
-        const supabase = createClient();
-        const { error } = await supabase.from('character_inventory').delete().eq('id', itemId);
-        if (error) throw error;
+      const supabase = createClient();
+      const { error } = await supabase.from('character_inventory').delete().eq('id', itemId);
+      if (error) throw error;
     },
     update: async (itemId, updates) => {
-        const supabase = createClient();
-        const { error } = await supabase.from('character_inventory').update(updates).eq('id', itemId);
-        if (error) throw error;
+      const supabase = createClient();
+      const { error } = await supabase.from('character_inventory').update(updates).eq('id', itemId);
+      if (error) throw error;
     },
     batchUpdate: async (updates) => {
-        const supabase = createClient();
-        // Supabase doesn't have a great batch update for different rows with different values in one query
-        // typically. We'll parallelize promises.
-        await Promise.all(updates.map(u => 
-            supabase.from('character_inventory').update(u.updates).eq('id', u.id)
-        ));
+      const supabase = createClient();
+      // Supabase doesn't have a great batch update for different rows with different values in one query
+      // typically. We'll parallelize promises.
+      await Promise.all(updates.map(u =>
+        supabase.from('character_inventory').update(u.updates).eq('id', u.id)
+      ));
     },
     equip: async (updates) => {
-        const supabase = createClient();
-        const { error } = await supabase.rpc('swap_equipment_items', {
-            updates_json: updates
-        });
-        if (error) throw error;
+      const supabase = createClient();
+      const { error } = await supabase.rpc('swap_equipment_items', {
+        updates_json: updates
+      });
+      if (error) throw error;
     }
   },
 
@@ -317,102 +317,111 @@ export const dataService: DataClient = {
 
   library: {
     get: async (id) => {
-       const supabase = createClient();
-       const { data, error } = await supabase.from('library').select('*').eq('id', id).single();
-       if (error) throw error;
-       return data;
+      const supabase = createClient();
+      const { data, error } = await supabase.from('library').select('*').eq('id', id).single();
+      if (error) throw error;
+      return data;
     },
-    search: async (query, type, options?: { includePlaytest?: boolean }) => {
-        const supabase = createClient();
-        let q = supabase.from('library').select('*').ilike('name', `%${query}%`);
-        if (type) q = q.eq('type', type);
-        // Filter by source if playtest content should be excluded
-        if (!options?.includePlaytest) {
-          q = q.eq('source', 'srd');
-        }
-        const { data, error } = await q;
-        if (error) throw error;
-        return data || [];
+    search: async (query, type, options?: { includePlaytest?: boolean; enabledSources?: string[] }) => {
+      const supabase = createClient();
+      let q = supabase.from('library').select('*').ilike('name', `%${query}%`);
+      if (type) q = q.eq('type', type);
+
+      // Filter by source
+      if (options?.enabledSources) {
+        q = q.in('source', options.enabledSources);
+      } else if (!options?.includePlaytest) {
+        q = q.eq('source', 'srd');
+      }
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
     },
-    getByType: async (type, options?: { includePlaytest?: boolean }) => {
-        const supabase = createClient();
-        let q = supabase
-          .from('library')
-          .select('*')
-          .eq('type', type);
-        // Filter by source if playtest content should be excluded
-        if (!options?.includePlaytest) {
-          q = q.eq('source', 'srd');
-        }
-        const { data, error } = await q;
-        if (error) throw error;
-        return data || [];
+    getByType: async (type, options?: { includePlaytest?: boolean; enabledSources?: string[] }) => {
+      const supabase = createClient();
+      let q = supabase
+        .from('library')
+        .select('*')
+        .eq('type', type);
+
+      // Filter by source
+      if (options?.enabledSources) {
+        q = q.in('source', options.enabledSources);
+      } else if (!options?.includePlaytest) {
+        q = q.eq('source', 'srd');
+      }
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
     },
-    getAll: async (options?: { includePlaytest?: boolean }) => {
-        const supabase = createClient();
-        let q = supabase
-          .from('library')
-          .select('*');
-        // Filter by source if playtest content should be excluded
-        if (!options?.includePlaytest) {
-          q = q.eq('source', 'srd');
-        }
-        const { data, error } = await q;
-        if (error) throw error;
-        return data || [];
+    getAll: async (options?: { includePlaytest?: boolean; enabledSources?: string[] }) => {
+      const supabase = createClient();
+      let q = supabase
+        .from('library')
+        .select('*');
+
+      // Filter by source
+      if (options?.enabledSources) {
+        q = q.in('source', options.enabledSources);
+      } else if (!options?.includePlaytest) {
+        q = q.eq('source', 'srd');
+      }
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
     },
     // Get content filtered by user's content access settings
     getByTypeForUser: async (type: string, userId: string) => {
-        const supabase = createClient();
+      const supabase = createClient();
 
-        // Get user's content access settings
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('content_access')
-          .eq('id', userId)
-          .single();
+      // Get user's content access settings
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('content_access')
+        .eq('id', userId)
+        .single();
 
-        const hasPlaytestAccess = profile?.content_access?.playtest ?? false;
+      const hasPlaytestAccess = profile?.content_access?.playtest ?? false;
 
-        let q = supabase.from('library').select('*').eq('type', type);
+      let q = supabase.from('library').select('*').eq('type', type);
 
-        if (!hasPlaytestAccess) {
-          q = q.eq('source', 'srd');
-        }
+      if (!hasPlaytestAccess) {
+        q = q.eq('source', 'srd');
+      }
 
-        const { data, error } = await q;
-        if (error) throw error;
-        return data || [];
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
     }
   },
 
   homebrew: {
-      list: async (userId) => {
-          const supabase = createClient();
-          const { data, error } = await supabase
-            .from('homebrew_items')
-            .select('*')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false });
-          if (error) throw error;
-          return data || [];
-      },
-      create: async (item) => {
-          const supabase = createClient();
-          const { data, error } = await supabase.from('homebrew_items').insert(item).select().single();
-          if (error) throw error;
-          return data;
-      },
-      update: async (id, item) => {
-          const supabase = createClient();
-          const { error } = await supabase.from('homebrew_items').update(item).eq('id', id);
-          if (error) throw error;
-      },
-      delete: async (id) => {
-          const supabase = createClient();
-          const { error } = await supabase.from('homebrew_items').delete().eq('id', id);
-          if (error) throw error;
-      }
+    list: async (userId) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('homebrew_items')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    create: async (item) => {
+      const supabase = createClient();
+      const { data, error } = await supabase.from('homebrew_items').insert(item).select().single();
+      if (error) throw error;
+      return data;
+    },
+    update: async (id, item) => {
+      const supabase = createClient();
+      const { error } = await supabase.from('homebrew_items').update(item).eq('id', id);
+      if (error) throw error;
+    },
+    delete: async (id) => {
+      const supabase = createClient();
+      const { error } = await supabase.from('homebrew_items').delete().eq('id', id);
+      if (error) throw error;
+    }
   },
 
   profile: {
@@ -444,7 +453,7 @@ export const dataService: DataClient = {
         .eq('id', userId);
       if (error) throw error;
     },
-    updateContentAccess: async (userId: string, contentAccess: { srd?: boolean; playtest?: boolean }) => {
+    updateContentAccess: async (userId: string, contentAccess: { srd?: boolean; playtest?: boolean; playtest_packs?: Record<string, boolean>; homebrew?: Record<string, boolean> }) => {
       const supabase = createClient();
       const { error } = await supabase
         .from('profiles')
