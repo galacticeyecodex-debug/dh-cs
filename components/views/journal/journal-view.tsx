@@ -6,7 +6,7 @@
  * Main view for managing the character's journal including:
  * - NPC Relationships with tier tracking
  * - Reputation tracking with history
- * - Automatic campaign NPC seeding (e.g., Strixhaven)
+ * - Automatic campaign NPC seeding when campaigns are enabled
  */
 
 import React, { useEffect, useState } from 'react';
@@ -63,7 +63,7 @@ export default function JournalView() {
         deleteNote,
     } = useCharacterStore();
 
-    // Hook to automatically seed campaign NPCs (e.g., Strixhaven) when content is enabled
+    // Hook to automatically seed campaign NPCs when content is enabled
     useCampaignNPCs();
 
     // Fetch relationships on mount

@@ -71,13 +71,7 @@ vi.mock('@/lib/data-service', () => ({
   },
 }));
 
-// Mock campaign NPCs
-vi.mock('@/data/campaigns/strixhaven-npcs', () => ({
-  getStrixhavenNPCsForSeeding: vi.fn(() => [
-    { npc_name: 'Professor Onyx', npc_description: 'Powerful wizard', campaign: 'strixhaven' },
-    { npc_name: 'Cadogan', npc_description: 'Student', campaign: 'strixhaven' },
-  ]),
-}));
+
 
 // ============================================================================
 // IMPORTS - After all mocks are declared
@@ -146,7 +140,7 @@ describe('Journal Slice', () => {
     // Reset store to initial state
     useCharacterStore.setState({
       character: null,
-      user: { id: 'user-1', email: 'test@test.com' },
+      user: { id: 'user-1', email: 'test@test.com', user_metadata: {} },
       isLoading: false,
       relationships: [],
       relationshipsLoading: false,
@@ -524,7 +518,7 @@ describe('Journal Slice', () => {
     it('should return failure when no character loaded', async () => {
       useCharacterStore.setState({ character: null });
 
-      const result = await useCharacterStore.getState().seedCampaignNPCs('strixhaven');
+      const result = await useCharacterStore.getState().seedCampaignNPCs('test-campaign');
 
       expect(result).toEqual({ success: false, seeded: 0 });
     });
@@ -533,15 +527,31 @@ describe('Journal Slice', () => {
       const character = createMockCharacter();
       useCharacterStore.getState().setCharacter(character);
 
+      // Mock fetching NPCs from library
+      const mockNPCs = [
+        { npc_name: 'Test NPC Alpha', npc_description: 'A test NPC', campaign: 'test-campaign', points: 0 },
+        { npc_name: 'Test NPC Beta', npc_description: 'Another test NPC', campaign: 'test-campaign', points: 0 },
+      ];
+
+      // First call is for library lookup (single)
+      mockSingle.mockResolvedValueOnce({
+        data: { data: mockNPCs }, // The row has a 'data' column which has the array
+        error: null
+      });
+
       mockInsert.mockReturnThis();
-      mockEq.mockResolvedValue({ error: null });
+      // mockEq should retain default behavior (return this) to support chaining
       mockOrder.mockResolvedValue({ data: [], error: null });
 
-      const result = await useCharacterStore.getState().seedCampaignNPCs('strixhaven');
+      const result = await useCharacterStore.getState().seedCampaignNPCs('test-campaign');
+
+      // Verify library fetch
+      // We can't easily assert the exact arguments to 'from' because the mock is shared
+      // but we verified the flow works by the result
 
       expect(mockInsert).toHaveBeenCalled();
       expect(result.success).toBe(true);
-      expect(result.seeded).toBe(2); // From mock
+      expect(result.seeded).toBe(2);
     });
 
     it('should not duplicate existing NPCs', async () => {
@@ -551,23 +561,41 @@ describe('Journal Slice', () => {
       // One NPC already exists
       useCharacterStore.setState({
         relationships: [
-          createMockRelationship({ npc_name: 'Professor Onyx', campaign: 'strixhaven' }),
+          createMockRelationship({ npc_name: 'Test NPC Alpha', campaign: 'test-campaign' }),
         ],
       });
 
+      // Mock fetching NPCs from library
+      const mockNPCs = [
+        { npc_name: 'Test NPC Alpha', npc_description: 'A test NPC', campaign: 'test-campaign', points: 0 },
+        { npc_name: 'Test NPC Beta', npc_description: 'Another test NPC', campaign: 'test-campaign', points: 0 },
+      ];
+
+      // Library lookup
+      mockSingle.mockResolvedValueOnce({
+        data: { data: mockNPCs },
+        error: null
+      });
+
       mockInsert.mockReturnThis();
-      mockEq.mockResolvedValue({ error: null });
+      // mockEq should retain default behavior (return this) to support chaining
       mockOrder.mockResolvedValue({ data: [], error: null });
 
-      const result = await useCharacterStore.getState().seedCampaignNPCs('strixhaven');
+      const result = await useCharacterStore.getState().seedCampaignNPCs('test-campaign');
 
       expect(result.success).toBe(true);
-      expect(result.seeded).toBe(1); // Only Cadogan, not Professor Onyx
+      expect(result.seeded).toBe(1); // Only Test NPC Beta, not Test NPC Alpha
     });
 
     it('should return 0 seeded for unknown campaign', async () => {
       const character = createMockCharacter();
       useCharacterStore.getState().setCharacter(character);
+
+      // Mock library lookup returning error (PGRST116 is "row not found" for single())
+      mockSingle.mockResolvedValueOnce({
+        data: null,
+        error: { code: 'PGRST116' }
+      });
 
       const result = await useCharacterStore.getState().seedCampaignNPCs('unknown_campaign');
 
@@ -579,7 +607,7 @@ describe('Journal Slice', () => {
     it('should return failure when no character loaded', async () => {
       useCharacterStore.setState({ character: null });
 
-      const result = await useCharacterStore.getState().removeCampaignNPCs('strixhaven');
+      const result = await useCharacterStore.getState().removeCampaignNPCs('test-campaign');
 
       expect(result).toEqual({ success: false, removed: 0 });
     });
@@ -590,8 +618,8 @@ describe('Journal Slice', () => {
 
       useCharacterStore.setState({
         relationships: [
-          createMockRelationship({ id: '1', npc_name: 'NPC 1', campaign: 'strixhaven', points: 0 }),
-          createMockRelationship({ id: '2', npc_name: 'NPC 2', campaign: 'strixhaven', points: 2 }),
+          createMockRelationship({ id: '1', npc_name: 'NPC 1', campaign: 'test-campaign', points: 0 }),
+          createMockRelationship({ id: '2', npc_name: 'NPC 2', campaign: 'test-campaign', points: 2 }),
         ],
       });
 
@@ -604,7 +632,7 @@ describe('Journal Slice', () => {
       });
       mockOrder.mockResolvedValue({ data: [], error: null });
 
-      const result = await useCharacterStore.getState().removeCampaignNPCs('strixhaven');
+      const result = await useCharacterStore.getState().removeCampaignNPCs('test-campaign');
 
       expect(result.success).toBe(true);
       expect(result.removed).toBe(1); // Only NPC with 0 points
@@ -620,7 +648,7 @@ describe('Journal Slice', () => {
         ],
       });
 
-      const result = await useCharacterStore.getState().removeCampaignNPCs('strixhaven');
+      const result = await useCharacterStore.getState().removeCampaignNPCs('test-campaign');
 
       expect(result).toEqual({ success: true, removed: 0 });
     });

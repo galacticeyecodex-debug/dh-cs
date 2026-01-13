@@ -1,6 +1,6 @@
 import { CharacterFormData, LibraryData, LibraryLookupItem } from '@/components/character-creation/types';
 import { RangerCompanion } from '@/types/character';
-import classesData from '@/content/srd/json/classes.json';
+import classesData from '@/content/public/srd/json/classes.json';
 
 interface TemplateDefinition {
   subclassKeyword: string;

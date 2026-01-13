@@ -5,7 +5,7 @@
  * - Rest type selection (short/long)
  * - Downtime move execution and tracking
  * - Project management (CRUD operations)
- * - Study token tracking (Strixhaven campaign)
+ * - Study token tracking (campaign-specific feature)
  */
 
 import { StateCreator } from 'zustand';

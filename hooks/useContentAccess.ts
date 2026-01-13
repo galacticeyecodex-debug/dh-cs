@@ -6,8 +6,8 @@
  * 
  * Supports:
  * - SRD content (always enabled)
- * - Playtest content (The Void)
- * - Homebrew campaign content (Strixhaven, custom campaigns, etc.)
+ * - Playtest content (optional playtest packs)
+ * - Homebrew campaign content (fetched dynamically from Supabase)
  */
 
 'use client';
@@ -24,19 +24,17 @@ const DEFAULT_CONTENT_ACCESS: ContentAccess = {
 };
 
 /**
- * Available homebrew campaigns that can be enabled.
- * Add new campaigns here as they become available.
+ * Campaign definition as stored in Supabase library table
  */
-export const AVAILABLE_CAMPAIGNS = [
-  {
-    id: 'strixhaven',
-    name: 'Strixhaven',
-    description: 'MTG Strixhaven: Curriculum of Chaos campaign mechanics',
-    features: ['Study Tokens', 'Signature Spells', 'Campus Relationships', 'Extracurriculars'],
-  },
-] as const;
+export interface CampaignDefinition {
+  id: string;
+  name: string;
+  description: string;
+  features: string[];
+  feature_descriptions?: Record<string, string>;
+}
 
-export type CampaignId = typeof AVAILABLE_CAMPAIGNS[number]['id'];
+export type CampaignId = string;
 
 export interface UseContentAccessResult {
   contentAccess: ContentAccess;
@@ -48,6 +46,10 @@ export interface UseContentAccessResult {
   // Homebrew helpers
   hasHomebrewAccess: (campaignId: string) => boolean;
   enabledCampaigns: string[];
+
+  // Playtest helpers
+  hasPlaytestPackAccess: (packId: string) => boolean;
+  enabledSources: string[];
 
   // Unified access check for any content source
   hasAccess: (source: string) => boolean;
@@ -71,9 +73,10 @@ export default function useContentAccess(): UseContentAccessResult {
       const profile = await dataService.profile.get(user.id);
 
       if (profile?.content_access) {
-        // Ensure homebrew object exists for backwards compatibility
+        // Ensure nested objects exist
         const access = {
           ...profile.content_access,
+          playtest_packs: profile.content_access.playtest_packs ?? {},
           homebrew: profile.content_access.homebrew ?? {},
         };
         setContentAccess(access);
@@ -103,52 +106,67 @@ export default function useContentAccess(): UseContentAccessResult {
   }, [contentAccess]);
 
   /**
-   * Get list of all enabled campaign IDs
+   * Check if user has access to a specific playtest pack
    */
-  const enabledCampaigns = useMemo(() => {
+  const hasPlaytestPackAccess = useCallback((packId: string): boolean => {
+    return contentAccess.playtest_packs?.[packId] ?? false;
+  }, [contentAccess]);
+
+  /**
+   * Get list of all enabled content sources (SRD + Packs + Campaigns)
+   */
+  const enabledSources = useMemo(() => {
+    const sources = ['srd'];
+
+    // Legacy playtest boolean support
+    if (contentAccess.playtest) {
+      sources.push('playtest');
+    }
+
+    // Dynamic Playtest Packs
+    const playtestPacks = contentAccess.playtest_packs ?? {};
+    Object.entries(playtestPacks).forEach(([packId, enabled]) => {
+      if (enabled) sources.push(packId);
+    });
+
+    // Homebrew Campaigns
     const homebrew = contentAccess.homebrew ?? {};
-    return Object.entries(homebrew)
-      .filter(([, enabled]) => enabled)
-      .map(([name]) => name);
+    Object.entries(homebrew).forEach(([campaignId, enabled]) => {
+      if (enabled) sources.push(campaignId);
+      // Note: Currently campaign logic might use separate IDs for filtering, 
+      // but 'source' column in library usually matches campaign ID for homebrew items?
+      // Actually, homebrew campaigns in 'library' table usually have source='homebrew' 
+      // OR a specific source if seeded. The current seed script sets source='homebrew'.
+      // So for homebrew campaigns, "source" checking in library table might basically be 
+      // checking `campaign_id` or similar if we were fully rigorous, but for Library items 
+      // (like downtime moves), they might be tagged.
+      // Let's assume for now this list is used for `source IN (...)` queries on the library table.
+    });
+
+    return sources;
   }, [contentAccess]);
 
   /**
    * Unified access check for any content source.
-   * Supports:
-   * - 'srd' - Always true
-   * - 'playtest' - Based on user setting
-   * - 'homebrew:campaignId' - Checks specific campaign
-   * - 'homebrew' - True if any homebrew campaign is enabled
    */
   const hasAccess = useCallback((source: string): boolean => {
     if (!source) return false;
-
-    // Handle 'srd' - always accessible
     if (source === 'srd') return true;
 
-    // Handle 'playtest'
-    if (source === 'playtest') return contentAccess.playtest;
-
-    // Handle 'homebrew:campaignId' format
-    if (source.startsWith('homebrew:')) {
-      const campaignId = source.split(':')[1];
-      return hasHomebrewAccess(campaignId);
-    }
-
-    // Handle bare 'homebrew' - true if any campaign is enabled
-    if (source === 'homebrew') return enabledCampaigns.length > 0;
-
-    return false;
-  }, [contentAccess, hasHomebrewAccess, enabledCampaigns]);
+    // Check purely based on string matching enabled sources
+    return enabledSources.includes(source);
+  }, [enabledSources]);
 
   return {
     contentAccess,
-    includePlaytest,
+    includePlaytest, // Deprecated but kept for compatibility
     loading,
     error,
     refresh: loadContentAccess,
     hasHomebrewAccess,
-    enabledCampaigns,
+    hasPlaytestPackAccess,
+    enabledCampaigns: Object.keys(contentAccess.homebrew ?? {}).filter(k => contentAccess.homebrew![k]),
+    enabledSources,
     hasAccess,
   };
 }

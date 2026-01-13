@@ -20,7 +20,9 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import useContentAccess from '@/hooks/useContentAccess';
 import { Moon, Clock, Plus, Check, Trash2, ChevronRight, Settings, Pencil, Dices, Users, User, Heart, Zap, Shield, Minus } from 'lucide-react';
-import { getAvailableMoves, getMovesForRestType } from '@/types/downtime';
+
+import { getMovesForRestType } from '@/types/downtime';
+import useCampaignDowntimeMoves from '@/hooks/useCampaignDowntimeMoves';
 import type { RestType, DowntimeMove, Project, CreateProjectInput } from '@/types/downtime';
 import { clsx } from 'clsx';
 import { ProjectFormModal, WorkOnProjectModal } from './project-modals';
@@ -47,6 +49,7 @@ export default function DowntimeView() {
     } = useCharacterStore();
 
     const { enabledCampaigns } = useContentAccess();
+    const { getAvailableMoves } = useCampaignDowntimeMoves(enabledCampaigns);
 
     // Modal States
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -98,7 +101,7 @@ export default function DowntimeView() {
                     restType={currentRest.type}
                     movesRemaining={currentRest.movesRemaining}
                     movesTotal={currentRest.movesTotal}
-                    enabledCampaigns={enabledCampaigns}
+                    getAvailableMoves={getAvailableMoves}
                     onEndRest={endRest}
                     onUseMove={executeMove}
                     onWorkOnProject={handleWorkOnProjectMove}
@@ -183,7 +186,7 @@ interface ActiveRestPanelProps {
     restType: RestType;
     movesRemaining: number;
     movesTotal: number;
-    enabledCampaigns: string[];
+    getAvailableMoves: (restType: RestType) => DowntimeMove[];
     onEndRest: () => void;
     onUseMove: () => void;
     onWorkOnProject: () => void;
@@ -193,12 +196,12 @@ function ActiveRestPanel({
     restType,
     movesRemaining,
     movesTotal,
-    enabledCampaigns,
+    getAvailableMoves,
     onEndRest,
     onUseMove,
     onWorkOnProject,
 }: ActiveRestPanelProps) {
-    const availableMoves = getAvailableMoves(restType, enabledCampaigns);
+    const availableMoves = getAvailableMoves(restType);
     const isComplete = movesRemaining <= 0;
 
     const { character, updateVitals, updateHope, prepareRoll, lastRollResult, setLastRollResult, isDiceOverlayOpen } = useCharacterStore();

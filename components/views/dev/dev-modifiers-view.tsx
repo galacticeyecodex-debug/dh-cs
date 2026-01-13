@@ -28,8 +28,7 @@ import { parseCardPassiveModifiers, calculateDynamicValue, type PassiveModifier,
 import clsx from 'clsx';
 import useContentAccess from '@/hooks/useContentAccess';
 
-import srdAbilities from '@/content/srd/json/abilities_enhanced.json';
-import playtestAbilities from '@/content/playtest/json/abilities_enhanced.json';
+import { getAllAbilities } from '@/lib/content-loaders';
 
 import type { EnhancedAbilityCard } from '@/types/cards';
 
@@ -55,9 +54,7 @@ export default function DevModifiersView() {
 
     // Memoize enhanced abilities
     const enhancedAbilities = useMemo(() => {
-        const srdData = (srdAbilities || []) as EnhancedAbilityCard[];
-        const playtestData = includePlaytest ? ((playtestAbilities || []) as EnhancedAbilityCard[]) : [];
-        return [...srdData, ...playtestData];
+        return getAllAbilities(includePlaytest);
     }, [includePlaytest]);
 
     // DYNAMIC MODIFIER DISCOVERY

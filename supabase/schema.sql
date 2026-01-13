@@ -218,13 +218,13 @@ CREATE TABLE IF NOT EXISTS public.character_relationships (
   -- Computed tier based on points:
   -- <= -4: enemy, -3 to -2: rival, -1 to +1: acquaintance, +2 to +3: friend, >= +4: beloved
   
-  -- Bond effects (from Strixhaven or custom)
+  -- Bond effects (from campaign content or custom)
   bond_boon TEXT,
   bond_bane TEXT,
   
   -- Notes and context
   notes TEXT,
-  campaign TEXT, -- e.g., 'strixhaven', 'core', null for generic
+  campaign TEXT, -- e.g., 'my-campaign', 'core', null for generic
   
   -- Metadata
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

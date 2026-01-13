@@ -31,10 +31,7 @@ import { hasCombatRelevance, enhanceFeature } from '@/lib/card-parser';
 import { getEnhancement } from '@/lib/enhancement-utils';
 import type { EnhancedAbilityCard, EnhancedAncestry, EnhancedCommunity, EnhancedFeature, Frequency } from '@/types/cards';
 
-import srdAncestries from '@/content/srd/json/ancestries_enhanced.json';
-import srdCommunities from '@/content/srd/json/communities_enhanced.json';
-import srdAbilities from '@/content/srd/json/abilities_enhanced.json';
-import playtestAbilities from '@/content/playtest/json/abilities_enhanced.json';
+import { srdAncestries, srdCommunities, getAllAbilities } from '@/lib/content-loaders';
 
 export default function CombatView() {
   const { character, prepareRoll, updateModifiers, cardStates, updateHope, updateVitals } = useCharacterStore();
@@ -52,9 +49,7 @@ export default function CombatView() {
 
   // Memoize enhanced abilities based on playtest setting
   const enhancedAbilities = useMemo(() => {
-    const srdData = (srdAbilities || []) as EnhancedAbilityCard[];
-    const playtestData = includePlaytest ? ((playtestAbilities || []) as EnhancedAbilityCard[]) : [];
-    return [...srdData, ...playtestData];
+    return getAllAbilities(includePlaytest);
   }, [includePlaytest]);
 
   // Fetch transformation data from library

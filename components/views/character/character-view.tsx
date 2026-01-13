@@ -741,7 +741,7 @@ export default function CharacterView() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                      <Info size={14} /> Class Features
+                      Class Features
                     </h3>
                     <button
                       onClick={() => setShowClassFeatures(!showClassFeatures)}
@@ -898,7 +898,7 @@ export default function CharacterView() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                      <Sparkles size={14} /> Subclass Features
+                      Subclass Features
                     </h3>
                     <button
                       onClick={() => setShowSubclassFeatures(!showSubclassFeatures)}
