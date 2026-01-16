@@ -592,7 +592,7 @@ describe('Campaign Slice', () => {
 
             const state = useCharacterStore.getState();
             const char = state.partyCharacters.find((c) => c.id === 'char-1');
-            expect(char?.hit_points_current).toBe(8);
+            expect(char?.vitals?.hit_points_current).toBe(8);
         });
 
         it('should handle errors and show toast', async () => {
