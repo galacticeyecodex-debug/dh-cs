@@ -1,6 +1,7 @@
 import createClient from '@/lib/supabase/client';
 import { DataClient } from '@/types/data-client';
 import { Character, LibraryItem, HomebrewItem, CharacterInventoryItem, Experience } from '@/types/character';
+import type { CampaignWithMembers } from '@/types/campaign';
 
 // Helper to construct the service
 export const dataService: DataClient = {
@@ -461,5 +462,296 @@ export const dataService: DataClient = {
         .eq('id', userId);
       if (error) throw error;
     }
+  },
+
+  campaign: {
+    create: async (data) => {
+      const supabase = createClient();
+      const { data: campaign, error } = await supabase
+        .from('campaigns')
+        .insert(data)
+        .select()
+        .single();
+
+      if (error) throw new Error(`Failed to create campaign: ${error.message}`);
+
+      // Also create a campaign_member entry for the GM
+      const { error: memberError } = await supabase
+        .from('campaign_members')
+        .insert({
+          campaign_id: campaign.id,
+          user_id: data.gm_user_id,
+          role: 'gm',
+        });
+
+      if (memberError) {
+        // Rollback campaign creation
+        await supabase.from('campaigns').delete().eq('id', campaign.id);
+        throw new Error(`Failed to add GM as member: ${memberError.message}`);
+      }
+
+      return campaign;
+    },
+
+    get: async (id) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') return null; // Not found
+        throw new Error(`Failed to fetch campaign: ${error.message}`);
+      }
+
+      return data;
+    },
+
+    getWithMembers: async (id) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select(`
+          *,
+          members:campaign_members(
+            *,
+            profile:profiles!campaign_members_user_id_fkey(username, avatar_url),
+            character:characters(name, level, class_id, ancestry)
+          )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') return null;
+        throw new Error(`Failed to fetch campaign with members: ${error.message}`);
+      }
+
+      if (!data) return null;
+
+      const campaign: any = data;
+      return {
+        ...campaign,
+        member_count: campaign.members?.length || 0,
+      } as CampaignWithMembers;
+    },
+
+    list: async (userId) => {
+      const supabase = createClient();
+
+      // Get campaigns where user is GM or a member
+      const { data: memberData, error: memberError } = await supabase
+        .from('campaign_members')
+        .select('campaign_id')
+        .eq('user_id', userId);
+
+      if (memberError) throw new Error(`Failed to fetch user campaigns: ${memberError.message}`);
+
+      const campaignIds = memberData?.map(m => m.campaign_id) || [];
+
+      if (campaignIds.length === 0) {
+        // Check if user is GM of any campaigns
+        const { data: gmData, error: gmError } = await supabase
+          .from('campaigns')
+          .select('*')
+          .eq('gm_user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (gmError) throw new Error(`Failed to list campaigns: ${gmError.message}`);
+        return gmData || [];
+      }
+
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .in('id', campaignIds)
+        .order('created_at', { ascending: false });
+
+      if (error) throw new Error(`Failed to list campaigns: ${error.message}`);
+      return data || [];
+    },
+
+    update: async (id, updates) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('campaigns')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw new Error(`Failed to update campaign: ${error.message}`);
+      return data;
+    },
+
+    delete: async (id) => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('campaigns')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw new Error(`Failed to delete campaign: ${error.message}`);
+    },
+
+    getMembers: async (campaignId) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('campaign_members')
+        .select(`
+          *,
+          profile:profiles!campaign_members_user_id_fkey(username, avatar_url),
+          character:characters(name, level, class_id, ancestry)
+        `)
+        .eq('campaign_id', campaignId)
+        .order('joined_at', { ascending: true });
+
+      if (error) throw new Error(`Failed to fetch campaign members: ${error.message}`);
+      return data || [];
+    },
+
+    addMember: async (data) => {
+      const supabase = createClient();
+      const { data: member, error } = await supabase
+        .from('campaign_members')
+        .insert(data)
+        .select()
+        .single();
+
+      if (error) {
+        if (error.code === '23505') {
+          throw new Error('User is already a member of this campaign');
+        }
+        throw new Error(`Failed to add campaign member: ${error.message}`);
+      }
+
+      return member;
+    },
+
+    updateMember: async (id, updates) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('campaign_members')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw new Error(`Failed to update campaign member: ${error.message}`);
+      return data;
+    },
+
+    removeMember: async (id) => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('campaign_members')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw new Error(`Failed to remove campaign member: ${error.message}`);
+    },
+
+    findByInviteCode: async (inviteCode) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('invite_code', inviteCode.toUpperCase())
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') return null;
+        throw new Error(`Failed to find campaign by invite code: ${error.message}`);
+      }
+
+      return data;
+    },
+
+    joinByInviteCode: async (inviteCode, userId, characterId) => {
+      const supabase = createClient();
+
+      // First, find the campaign
+      const campaign = await dataService.campaign.findByInviteCode(inviteCode);
+      if (!campaign) {
+        throw new Error('Invalid invite code');
+      }
+
+      // Check if user is already a member
+      const { data: existing } = await supabase
+        .from('campaign_members')
+        .select('id')
+        .eq('campaign_id', campaign.id)
+        .eq('user_id', userId)
+        .single();
+
+      if (existing) {
+        throw new Error('You are already a member of this campaign');
+      }
+
+      // Add member
+      return dataService.campaign.addMember({
+        campaign_id: campaign.id,
+        user_id: userId,
+        character_id: characterId,
+        role: 'player',
+      });
+    },
+
+    transferGM: async (campaignId, newGmUserId) => {
+      const supabase = createClient();
+
+      // 1. Get current GM
+      const { data: campaign } = await supabase
+        .from('campaigns')
+        .select('gm_user_id')
+        .eq('id', campaignId)
+        .single();
+
+      if (!campaign) throw new Error('Campaign not found');
+
+      const oldGmUserId = campaign.gm_user_id;
+
+      // 2. Update campaign GM
+      const { error: campaignError } = await supabase
+        .from('campaigns')
+        .update({ gm_user_id: newGmUserId })
+        .eq('id', campaignId);
+
+      if (campaignError) throw new Error(`Failed to transfer GM: ${campaignError.message}`);
+
+      // 3. Update old GM's role to player
+      const { error: oldGmError } = await supabase
+        .from('campaign_members')
+        .update({ role: 'player' })
+        .eq('campaign_id', campaignId)
+        .eq('user_id', oldGmUserId);
+
+      if (oldGmError) console.error('Failed to update old GM role:', oldGmError);
+
+      // 4. Update new GM's role (or create entry if they're not a member yet)
+      const { data: newGmMember } = await supabase
+        .from('campaign_members')
+        .select('id')
+        .eq('campaign_id', campaignId)
+        .eq('user_id', newGmUserId)
+        .single();
+
+      if (newGmMember) {
+        await supabase
+          .from('campaign_members')
+          .update({ role: 'gm' })
+          .eq('id', newGmMember.id);
+      } else {
+        await supabase
+          .from('campaign_members')
+          .insert({
+            campaign_id: campaignId,
+            user_id: newGmUserId,
+            role: 'gm',
+          });
+      }
+    },
   }
 };
