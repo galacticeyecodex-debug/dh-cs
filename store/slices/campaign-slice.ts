@@ -14,6 +14,7 @@
 import { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
 import { CharacterStore } from '@/types/store';
+import { Character } from '@/types/character';
 import type {
     Campaign,
     CampaignInsert,
@@ -32,6 +33,10 @@ export interface CampaignSlice {
     isLoadingCampaigns: boolean;
     campaignError: string | null;
 
+    // Phase 2: GM Screen state
+    partyCharacters: Character[];
+    unlockedVitalsCards: Set<string>; // Character IDs with unlocked vitals
+
     // Campaign CRUD
     fetchUserCampaigns: () => Promise<void>;
     createCampaign: (name: string, description?: string) => Promise<Campaign>;
@@ -49,6 +54,12 @@ export interface CampaignSlice {
     kickMember: (memberId: string) => Promise<void>;
     transferGM: (campaignId: string, newGmUserId: string) => Promise<void>;
 
+    // Phase 2: GM Screen actions
+    fetchPartyCharacters: (campaignId: string) => Promise<void>;
+    gmAdjustVital: (characterId: string, vital: 'hp' | 'stress' | 'armor' | 'hope', newValue: number) => Promise<void>;
+    updateFear: (campaignId: string, change: number) => Promise<void>;
+    toggleVitalsLock: (characterId: string) => void;
+
     // Error handling
     setCampaignError: (error: string | null) => void;
 }
@@ -60,6 +71,10 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     campaignMembers: [],
     isLoadingCampaigns: false,
     campaignError: null,
+
+    // Phase 2: GM Screen state
+    partyCharacters: [],
+    unlockedVitalsCards: new Set(),
 
     fetchUserCampaigns: async () => {
         set({ isLoadingCampaigns: true, campaignError: null });
@@ -282,6 +297,84 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             toast.error(message);
             throw error;
         }
+    },
+
+    // =========================================================================
+    // PHASE 2: GM SCREEN METHODS
+    // =========================================================================
+
+    fetchPartyCharacters: async (campaignId: string) => {
+        try {
+            const characters = await dataService.campaign.getPartyCharacters(campaignId);
+            set({ partyCharacters: characters });
+        } catch (error) {
+            console.error('Failed to fetch party characters:', error);
+            throw error;
+        }
+    },
+
+    gmAdjustVital: async (
+        characterId: string,
+        vital: 'hp' | 'stress' | 'armor' | 'hope',
+        newValue: number
+    ) => {
+        try {
+            // Optimistically update local state
+            set((state) => ({
+                partyCharacters: state.partyCharacters.map((char) =>
+                    char.id === characterId
+                        ? {
+                            ...char,
+                            ...(vital === 'hp' && { vitals: { ...char.vitals, hit_points_current: newValue } }),
+                            ...(vital === 'stress' && { vitals: { ...char.vitals, stress_current: newValue } }),
+                            ...(vital === 'armor' && { vitals: { ...char.vitals, armor_remaining: newValue } }),
+                            ...(vital === 'hope' && { hope: newValue }),
+                        }
+                        : char
+                ),
+            }));
+
+            // Update database
+            await dataService.campaign.gmAdjustVital(characterId, vital, newValue);
+
+            // Success - optimistic update is already applied
+        } catch (error) {
+            // Rollback on error - refetch party characters
+            const state = get() as any;
+            if (state.activeCampaign) {
+                await state.fetchPartyCharacters(state.activeCampaign.id);
+            }
+            toast.error('Failed to adjust vital');
+            throw error;
+        }
+    },
+
+    updateFear: async (campaignId: string, change: number) => {
+        try {
+            const updated = await dataService.campaign.updateFear(campaignId, change);
+
+            // Update active campaign
+            set((state) => ({
+                activeCampaign: state.activeCampaign
+                    ? { ...state.activeCampaign, ...updated }
+                    : null,
+            }));
+        } catch (error) {
+            toast.error('Failed to update Fear');
+            throw error;
+        }
+    },
+
+    toggleVitalsLock: (characterId: string) => {
+        set((state) => {
+            const newUnlocked = new Set(state.unlockedVitalsCards);
+            if (newUnlocked.has(characterId)) {
+                newUnlocked.delete(characterId);
+            } else {
+                newUnlocked.add(characterId);
+            }
+            return { unlockedVitalsCards: newUnlocked };
+        });
     },
 
     setCampaignError: (error: string | null) => {
