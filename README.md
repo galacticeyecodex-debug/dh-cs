@@ -265,6 +265,35 @@ dh-cs/
 └── types/                # TypeScript type definitions
 ```
 
+## Development
+
+**This project follows Test-Driven Development (TDD) for all feature development.**
+
+### Required Reading
+📖 **[Development Workflow Guide](docs/development-workflow.md)** - MUST READ before contributing
+
+### TDD Cycle
+1. 🔴 **RED** - Write failing tests first
+2. 🟢 **GREEN** - Implement minimal code to pass tests
+3. 🔵 **REFACTOR** - Improve code while keeping tests green
+
+### Quick Start
+```bash
+# Start by writing tests
+touch __tests__/store/my-feature.test.ts
+
+# Write failing tests
+npm test -- __tests__/store/my-feature.test.ts
+
+# Implement feature
+# ... code ...
+
+# Tests should now pass
+npm test
+```
+
+**Pull requests without tests WILL be rejected.** See [Development Workflow](docs/development-workflow.md) for detailed guidelines.
+
 ## Testing
 
 This project uses [Vitest](https://vitest.dev/) for testing with comprehensive coverage of game logic and UI components.

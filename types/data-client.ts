@@ -77,5 +77,10 @@ export interface DataClient {
 
     // Transfer GM
     transferGM: (campaignId: string, newGmUserId: string) => Promise<void>;
+
+    // Phase 2: GM Screen methods
+    getPartyCharacters: (campaignId: string) => Promise<Character[]>;
+    gmAdjustVital: (characterId: string, vital: 'hp' | 'stress' | 'armor' | 'hope', newValue: number) => Promise<void>;
+    updateFear: (campaignId: string, change: number) => Promise<Campaign>;
   };
 }
