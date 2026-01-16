@@ -764,3 +764,63 @@ BEGIN
   END IF;
 END;
 $$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- 10. GM SCREEN (Phase 2: GM Screen MVP - GH#67)
+-- =============================================================================
+
+-- GM can view characters of their campaign members
+CREATE POLICY "GM can view member characters"
+  ON characters FOR SELECT
+  USING (
+    user_id = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM campaign_members cm
+      JOIN campaigns c ON c.id = cm.campaign_id
+      WHERE cm.character_id = characters.id
+      AND c.gm_user_id = auth.uid()
+    )
+  );
+
+-- GM can update member characters (for vitals adjustments)
+CREATE POLICY "GM can update member characters"
+  ON characters FOR UPDATE
+  USING (
+    user_id = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM campaign_members cm
+      JOIN campaigns c ON c.id = cm.campaign_id
+      WHERE cm.character_id = characters.id
+      AND c.gm_user_id = auth.uid()
+    )
+  );
+
+-- Fear management function (atomic updates with GM verification)
+CREATE OR REPLACE FUNCTION update_campaign_fear(
+  campaign_id_param UUID,
+  change_amount INTEGER,
+  gm_user_id_param UUID
+)
+RETURNS campaigns AS $$
+DECLARE
+  updated_campaign campaigns;
+BEGIN
+  -- Verify GM permission
+  IF NOT EXISTS (
+    SELECT 1 FROM campaigns
+    WHERE id = campaign_id_param
+    AND gm_user_id = gm_user_id_param
+  ) THEN
+    RAISE EXCEPTION 'Only the GM can modify Fear';
+  END IF;
+
+  -- Update Fear value (clamped between 0 and fear_max)
+  UPDATE campaigns
+  SET fear_current = GREATEST(0, LEAST(fear_max, fear_current + change_amount)),
+      updated_at = NOW()
+  WHERE id = campaign_id_param
+  RETURNING * INTO updated_campaign;
+
+  RETURN updated_campaign;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
