@@ -532,4 +532,148 @@ describe('Campaign Slice', () => {
             expect(useCharacterStore.getState().campaignError).toBeNull();
         });
     });
+
+    // ==========================================================================
+    // PHASE 2: GM SCREEN TESTS
+    // ==========================================================================
+
+    describe('Phase 2: GM Screen - fetchPartyCharacters', () => {
+        beforeEach(() => {
+            // Add mock for Phase 2 method
+            mockDataService.campaign.getPartyCharacters = vi.fn();
+        });
+
+        it('should fetch party characters for campaign', async () => {
+            const mockCharacters = [
+                { id: 'char-1', name: 'Fighter', level: 1 },
+                { id: 'char-2', name: 'Wizard', level: 1 },
+            ];
+            mockDataService.campaign.getPartyCharacters.mockResolvedValue(mockCharacters as any);
+
+            await useCharacterStore.getState().fetchPartyCharacters('campaign-1');
+
+            expect(mockDataService.campaign.getPartyCharacters).toHaveBeenCalledWith('campaign-1');
+            expect(useCharacterStore.getState().partyCharacters).toEqual(mockCharacters);
+        });
+
+        it('should handle errors when fetching party characters', async () => {
+            mockDataService.campaign.getPartyCharacters.mockRejectedValue(new Error('Fetch failed'));
+
+            try {
+                await useCharacterStore.getState().fetchPartyCharacters('campaign-1');
+            } catch (error) {
+                expect(error).toBeDefined();
+            }
+        });
+    });
+
+    describe('Phase 2: GM Screen - gmAdjustVital', () => {
+        beforeEach(() => {
+            mockDataService.campaign.gmAdjustVital = vi.fn().mockResolvedValue(undefined);
+            useCharacterStore.setState({
+                partyCharacters: [
+                    {
+                        id: 'char-1',
+                        name: 'Test Char',
+                        vitals: { hit_points_current: 5, hit_points_max: 10 },
+                    } as any,
+                ],
+            });
+        });
+
+        it('should adjust HP for a character', async () => {
+            await useCharacterStore.getState().gmAdjustVital('char-1', 'hp', 8);
+
+            expect(mockDataService.campaign.gmAdjustVital).toHaveBeenCalledWith('char-1', 'hp', 8);
+        });
+
+        it('should optimistically update local state', async () => {
+            await useCharacterStore.getState().gmAdjustVital('char-1', 'hp', 8);
+
+            const state = useCharacterStore.getState();
+            const char = state.partyCharacters.find((c) => c.id === 'char-1');
+            expect(char?.hit_points_current).toBe(8);
+        });
+
+        it('should handle errors and show toast', async () => {
+            mockDataService.campaign.gmAdjustVital.mockRejectedValue(new Error('Update failed'));
+
+            try {
+                await useCharacterStore.getState().gmAdjustVital('char-1', 'hp', 8);
+            } catch (error) {
+                // Expected
+            }
+
+            expect(mockToast.error).toHaveBeenCalledWith('Failed to adjust vital');
+        });
+    });
+
+    describe('Phase 2: GM Screen - updateFear', () => {
+        beforeEach(() => {
+            mockDataService.campaign.updateFear = vi.fn();
+            useCharacterStore.setState({
+                activeCampaign: createMockCampaignWithMembers({ fear_current: 5 }),
+            });
+        });
+
+        it('should update Fear value', async () => {
+            const updated = createMockCampaign({ fear_current: 6 });
+            mockDataService.campaign.updateFear.mockResolvedValue(updated);
+
+            await useCharacterStore.getState().updateFear('campaign-1', 1);
+
+            expect(mockDataService.campaign.updateFear).toHaveBeenCalledWith('campaign-1', 1);
+        });
+
+        it('should update activeCampaign with new Fear value', async () => {
+            const updated = createMockCampaign({ fear_current: 6 });
+            mockDataService.campaign.updateFear.mockResolvedValue(updated);
+
+            await useCharacterStore.getState().updateFear('campaign-1', 1);
+
+            const state = useCharacterStore.getState();
+            expect(state.activeCampaign?.fear_current).toBe(6);
+        });
+
+        it('should handle errors', async () => {
+            mockDataService.campaign.updateFear.mockRejectedValue(new Error('Fear update failed'));
+
+            try {
+                await useCharacterStore.getState().updateFear('campaign-1', 1);
+            } catch (error) {
+                // Expected
+            }
+
+            expect(mockToast.error).toHaveBeenCalledWith('Failed to update Fear');
+        });
+    });
+
+    describe('Phase 2: GM Screen - toggleVitalsLock', () => {
+        it('should unlock a locked card', () => {
+            useCharacterStore.setState({ unlockedVitalsCards: new Set() });
+
+            useCharacterStore.getState().toggleVitalsLock('char-1');
+
+            expect(useCharacterStore.getState().unlockedVitalsCards.has('char-1')).toBe(true);
+        });
+
+        it('should lock an unlocked card', () => {
+            useCharacterStore.setState({ unlockedVitalsCards: new Set(['char-1']) });
+
+            useCharacterStore.getState().toggleVitalsLock('char-1');
+
+            expect(useCharacterStore.getState().unlockedVitalsCards.has('char-1')).toBe(false);
+        });
+
+        it('should handle multiple cards independently', () => {
+            useCharacterStore.setState({ unlockedVitalsCards: new Set(['char-1']) });
+
+            useCharacterStore.getState().toggleVitalsLock('char-2');
+
+            const unlocked = useCharacterStore.getState().unlockedVitalsCards;
+            expect(unlocked.has('char-1')).toBe(true);
+            expect(unlocked.has('char-2')).toBe(true);
+        });
+    });
 });
+
