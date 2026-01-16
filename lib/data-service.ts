@@ -1,7 +1,7 @@
 import createClient from '@/lib/supabase/client';
 import { DataClient } from '@/types/data-client';
 import { Character, LibraryItem, HomebrewItem, CharacterInventoryItem, Experience } from '@/types/character';
-import type { CampaignWithMembers } from '@/types/campaign';
+import type { Campaign, CampaignWithMembers } from '@/types/campaign';
 
 // Helper to construct the service
 export const dataService: DataClient = {
@@ -752,6 +752,98 @@ export const dataService: DataClient = {
             role: 'gm',
           });
       }
+    },
+
+    // =========================================================================
+    // PHASE 2: GM SCREEN METHODS
+    // =========================================================================
+
+    getPartyCharacters: async (campaignId: string): Promise<Character[]> => {
+      const supabase = createClient();
+
+      const { data, error } = await supabase
+        .from('campaign_members')
+        .select(`
+          character_id,
+          characters!campaign_members_character_id_fkey(*)
+        `)
+        .eq('campaign_id', campaignId)
+        .not('character_id', 'is', null);
+
+      if (error) {
+        throw new Error(`Failed to fetch party characters: ${error.message}`);
+      }
+
+      // Extract and filter out null characters
+      return (data?.map((m: any) => m.characters).filter(Boolean) || []) as Character[];
+    },
+
+    gmAdjustVital: async (
+      characterId: string,
+      vital: 'hp' | 'stress' | 'armor' | 'hope',
+      newValue: number
+    ): Promise<void> => {
+      const supabase = createClient();
+
+      // Map vital names to database columns
+      const vitalMap = {
+        hp: 'vitals.hit_points_current',
+        stress: 'vitals.stress_current',
+        armor: 'vitals.armor_remaining',
+        hope: 'hope',
+      };
+
+      // For nested vitals, we need to update the entire vitals object
+      if (vital === 'hp' || vital === 'stress' || vital === 'armor') {
+        // First get current vitals
+        const { data: char, error: fetchError } = await supabase
+          .from('characters')
+          .select('vitals')
+          .eq('id', characterId)
+          .single();
+
+        if (fetchError) throw new Error(`Failed to fetch character: ${fetchError.message}`);
+
+        // Update the specific vital
+        const updatedVitals = { ...char.vitals };
+        if (vital === 'hp') updatedVitals.hit_points_current = newValue;
+        if (vital === 'stress') updatedVitals.stress_current = newValue;
+        if (vital === 'armor') updatedVitals.armor_remaining = newValue;
+
+        const { error } = await supabase
+          .from('characters')
+          .update({ vitals: updatedVitals })
+          .eq('id', characterId);
+
+        if (error) throw new Error(`Failed to adjust ${vital}: ${error.message}`);
+      } else {
+        // Hope is a direct column
+        const { error } = await supabase
+          .from('characters')
+          .update({ hope: newValue })
+          .eq('id', characterId);
+
+        if (error) throw new Error(`Failed to adjust ${vital}: ${error.message}`);
+      }
+    },
+
+    updateFear: async (campaignId: string, change: number): Promise<Campaign> => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase.rpc('update_campaign_fear', {
+        campaign_id_param: campaignId,
+        change_amount: change,
+        gm_user_id_param: user.id,
+      });
+
+      if (error) {
+        throw new Error(`Failed to update Fear: ${error.message}`);
+      }
+
+      return data as Campaign;
     },
   }
 };
