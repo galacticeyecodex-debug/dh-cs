@@ -17,6 +17,7 @@ import { createLevelingSlice, LevelingSlice } from './slices/leveling-slice';
 import { createCardStateSlice, CardStateSlice } from './slices/card-state-slice';
 import { createDowntimeSlice, DowntimeSlice } from './slices/downtime-slice';
 import { createJournalSlice, JournalSlice } from './slices/journal-slice';
+import { createCampaignSlice, CampaignSlice } from './slices/campaign-slice';
 import { CharacterStore } from '@/types/store';
 
 // Re-export types for backward compatibility
@@ -33,6 +34,7 @@ export const useCharacterStore = create<CharacterStore>()((...a) => ({
   ...createCardStateSlice(...a),
   ...createDowntimeSlice(...a),
   ...createJournalSlice(...a),
+  ...createCampaignSlice(...a),
 }));
 
 
