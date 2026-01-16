@@ -1,5 +1,15 @@
 import { Character, CharacterInventoryItem, Experience, LibraryItem, Profile, ContentAccess } from './character';
 import { Modifier } from './modifiers';
+import type {
+  Campaign,
+  CampaignInsert,
+  CampaignUpdate,
+  CampaignMember,
+  CampaignMemberInsert,
+  CampaignMemberUpdate,
+  EnrichedCampaignMember,
+  CampaignWithMembers,
+} from './campaign';
 
 export interface LibraryFilterOptions {
   includePlaytest?: boolean;
@@ -45,5 +55,27 @@ export interface DataClient {
     create: (userId: string, profile: any) => Promise<void>;
     update: (userId: string, updates: Partial<Profile>) => Promise<void>;
     updateContentAccess: (userId: string, contentAccess: ContentAccess) => Promise<void>;
+  };
+  campaign: {
+    // Campaign CRUD
+    create: (data: CampaignInsert) => Promise<Campaign>;
+    get: (id: string) => Promise<Campaign | null>;
+    getWithMembers: (id: string) => Promise<CampaignWithMembers | null>;
+    list: (userId: string) => Promise<Campaign[]>;
+    update: (id: string, data: CampaignUpdate) => Promise<Campaign>;
+    delete: (id: string) => Promise<void>;
+
+    // Member management
+    getMembers: (campaignId: string) => Promise<EnrichedCampaignMember[]>;
+    addMember: (data: CampaignMemberInsert) => Promise<CampaignMember>;
+    updateMember: (id: string, data: CampaignMemberUpdate) => Promise<CampaignMember>;
+    removeMember: (id: string) => Promise<void>;
+
+    // Invite code operations
+    findByInviteCode: (inviteCode: string) => Promise<Campaign | null>;
+    joinByInviteCode: (inviteCode: string, userId: string, characterId?: string) => Promise<CampaignMember>;
+
+    // Transfer GM
+    transferGM: (campaignId: string, newGmUserId: string) => Promise<void>;
   };
 }
