@@ -8,6 +8,7 @@ import InviteCodeDisplay from '@/components/campaign/invite-code-display';
 import MemberList from '@/components/campaign/member-list';
 import CampaignSettingsModal from '@/components/campaign/campaign-settings-modal';
 import AssignCharacterModal from '@/components/campaign/assign-character-modal';
+import { ActivityFeed } from '@/components/activity';
 
 export default function CampaignDetailPage() {
     const params = useParams();
@@ -163,17 +164,31 @@ export default function CampaignDetailPage() {
                     </div>
                 </div>
 
-                {/* Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Members */}
-                    <MemberList
-                        members={activeCampaign.members || []}
-                        campaignId={activeCampaign.id}
-                        gmUserId={activeCampaign.gm_user_id}
-                    />
+                {/* Content Grid - 3 columns */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Members - takes 1 column */}
+                    <div className="lg:col-span-1">
+                        <MemberList
+                            members={activeCampaign.members || []}
+                            campaignId={activeCampaign.id}
+                            gmUserId={activeCampaign.gm_user_id}
+                        />
+                    </div>
 
-                    {/* Invite Code (GM only) */}
-                    {isGM && <InviteCodeDisplay campaign={activeCampaign} />}
+                    {/* Activity Feed - takes 1 column */}
+                    <div className="lg:col-span-1">
+                        <ActivityFeed
+                            campaignId={activeCampaign.id}
+                            maxHeight="500px"
+                        />
+                    </div>
+
+                    {/* Invite Code (GM only) - takes 1 column */}
+                    {isGM && (
+                        <div className="lg:col-span-1">
+                            <InviteCodeDisplay campaign={activeCampaign} />
+                        </div>
+                    )}
                 </div>
             </div>
 
