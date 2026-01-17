@@ -13,11 +13,30 @@ interface FearTrackerProps {
 }
 
 export function FearTracker({ campaignId, currentFear, maxFear }: FearTrackerProps) {
-    const { updateFear } = useCharacterStore();
+    const { updateFear, logActivity, user } = useCharacterStore();
 
     const handleFearChange = async (change: number) => {
         try {
             await updateFear(campaignId, change);
+
+            // Log to activity feed
+            if (user) {
+                const newValue = Math.max(0, Math.min(maxFear, currentFear + change));
+                await logActivity({
+                    campaign_id: campaignId,
+                    user_id: user.id,
+                    activity_type: 'fear_change',
+                    data: {
+                        change,
+                        previous_value: currentFear,
+                        new_value: newValue,
+                        max_value: maxFear,
+                        trigger: 'manual',
+                    },
+                    is_private: false,
+                });
+            }
+
             const action = change > 0 ? 'gained' : 'spent';
             toast.success(`Fear ${action}: ${Math.abs(change)}`);
         } catch (error) {
