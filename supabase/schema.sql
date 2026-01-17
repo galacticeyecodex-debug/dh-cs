@@ -942,3 +942,99 @@ BEGIN
   RETURN deleted_count;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =============================================================================
+-- 12. USER PRESENCE (Phase 5: Presence System - GH#67)
+-- =============================================================================
+-- Tracks who's online in each campaign using Supabase Presence
+
+CREATE TABLE IF NOT EXISTS public.user_presence (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  campaign_id UUID REFERENCES public.campaigns(id) ON DELETE SET NULL,
+  character_id UUID REFERENCES public.characters(id) ON DELETE SET NULL,
+  status TEXT DEFAULT 'offline' CHECK (status IN ('online', 'away', 'offline')),
+  last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_presence_campaign 
+  ON public.user_presence(campaign_id) WHERE campaign_id IS NOT NULL;
+
+-- =============================================================================
+-- USER PRESENCE RLS POLICIES
+-- =============================================================================
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = 'user_presence' AND n.nspname = 'public') THEN
+
+    ALTER TABLE public.user_presence ENABLE ROW LEVEL SECURITY;
+
+    -- Members can view presence of users in their campaigns
+    EXECUTE 'DROP POLICY IF EXISTS "Members can view presence" ON public.user_presence';
+    CREATE POLICY "Members can view presence"
+      ON public.user_presence FOR SELECT
+      USING (
+        campaign_id IS NULL
+        OR EXISTS (
+          SELECT 1 FROM public.campaign_members cm
+          WHERE cm.campaign_id = user_presence.campaign_id
+          AND cm.user_id = auth.uid()
+        )
+      );
+
+    -- Users can insert their own presence
+    EXECUTE 'DROP POLICY IF EXISTS "Users can insert own presence" ON public.user_presence';
+    CREATE POLICY "Users can insert own presence"
+      ON public.user_presence FOR INSERT
+      WITH CHECK (user_id = auth.uid());
+
+    -- Users can update their own presence
+    EXECUTE 'DROP POLICY IF EXISTS "Users can update own presence" ON public.user_presence';
+    CREATE POLICY "Users can update own presence"
+      ON public.user_presence FOR UPDATE
+      USING (user_id = auth.uid());
+
+    -- Users can delete their own presence
+    EXECUTE 'DROP POLICY IF EXISTS "Users can delete own presence" ON public.user_presence';
+    CREATE POLICY "Users can delete own presence"
+      ON public.user_presence FOR DELETE
+      USING (user_id = auth.uid());
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to update or insert user presence
+CREATE OR REPLACE FUNCTION upsert_user_presence(
+  p_user_id UUID,
+  p_campaign_id UUID,
+  p_character_id UUID,
+  p_status TEXT DEFAULT 'online'
+)
+RETURNS void AS $$
+BEGIN
+  INSERT INTO public.user_presence (user_id, campaign_id, character_id, status, last_seen)
+  VALUES (p_user_id, p_campaign_id, p_character_id, p_status, NOW())
+  ON CONFLICT (user_id) DO UPDATE SET
+    campaign_id = EXCLUDED.campaign_id,
+    character_id = EXCLUDED.character_id,
+    status = EXCLUDED.status,
+    last_seen = NOW();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to clean up stale presence entries (more than 5 minutes without heartbeat)
+CREATE OR REPLACE FUNCTION cleanup_stale_presence()
+RETURNS INTEGER AS $$
+DECLARE
+  updated_count INTEGER;
+BEGIN
+  UPDATE public.user_presence
+  SET status = 'offline'
+  WHERE status != 'offline'
+  AND last_seen < NOW() - INTERVAL '5 minutes';
+  
+  GET DIAGNOSTICS updated_count = ROW_COUNT;
+  RETURN updated_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

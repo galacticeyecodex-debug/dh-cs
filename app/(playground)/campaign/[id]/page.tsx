@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
-import { ArrowLeft, Settings, LogOut, UserPlus, Crown, Monitor } from 'lucide-react';
+import { ArrowLeft, Settings, LogOut, UserPlus, Crown } from 'lucide-react';
 import InviteCodeDisplay from '@/components/campaign/invite-code-display';
 import MemberList from '@/components/campaign/member-list';
 import CampaignSettingsModal from '@/components/campaign/campaign-settings-modal';
 import AssignCharacterModal from '@/components/campaign/assign-character-modal';
 import { ActivityFeed } from '@/components/activity';
+import { OnlineMembersList } from '@/components/presence';
+import { presenceManager } from '@/lib/presence';
 
 export default function CampaignDetailPage() {
     const params = useParams();
@@ -25,6 +27,9 @@ export default function CampaignDetailPage() {
         subscribeToCampaignRealtime,
         unsubscribeFromCampaignRealtime,
         realtimeSubscribed,
+        startPresenceTracking,
+        stopPresenceTracking,
+        presenceTracking,
     } = useCharacterStore();
 
     const [showSettings, setShowSettings] = useState(false);
@@ -52,6 +57,34 @@ export default function CampaignDetailPage() {
             unsubscribeFromCampaignRealtime();
         };
     }, [activeCampaign, campaignId, subscribeToCampaignRealtime, unsubscribeFromCampaignRealtime, realtimeSubscribed]);
+
+    // Start presence tracking when campaign is loaded
+    useEffect(() => {
+        if (activeCampaign && activeCampaign.id === campaignId && !presenceTracking) {
+            startPresenceTracking(campaignId);
+        }
+
+        // Cleanup on unmount
+        return () => {
+            stopPresenceTracking();
+        };
+    }, [activeCampaign, campaignId, startPresenceTracking, stopPresenceTracking, presenceTracking]);
+
+    // Handle visibility changes (away/online status)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                presenceManager.setAway();
+            } else {
+                presenceManager.setOnline();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
 
     const handleLeave = async () => {
         if (!activeCampaign) return;
@@ -182,8 +215,14 @@ export default function CampaignDetailPage() {
 
                 {/* Content Grid - 3 columns */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Members - takes 1 column */}
-                    <div className="lg:col-span-1">
+                    {/* Members & Online - takes 1 column */}
+                    <div className="lg:col-span-1 space-y-4">
+                        {/* Online Members */}
+                        <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                            <OnlineMembersList />
+                        </div>
+
+                        {/* All Members */}
                         <MemberList
                             members={activeCampaign.members || []}
                             campaignId={activeCampaign.id}

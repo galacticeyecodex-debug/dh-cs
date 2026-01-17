@@ -3,17 +3,19 @@
  * ----------------------------------------------------------------------------
  * This slice manages campaign state for multiplayer/social features.
  * It handles campaign CRUD operations, member management, invite codes,
- * and provides the foundation for real-time collaboration (Phase 4).
- * 
+ * and provides the foundation for real-time collaboration.
+ *
  * Phase 1: Campaign Foundation - Basic CRUD and membership
  * Phase 2: GM Screen integration
  * Phase 3: Activity feed integration
  * Phase 4: Real-time subscriptions
+ * Phase 5: Presence system (who's online)
  */
 
 import { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
 import { realtimeManager } from '@/lib/realtime';
+import { presenceManager, PresenceState } from '@/lib/presence';
 import { CharacterStore } from '@/types/store';
 import { Character } from '@/types/character';
 import type {
@@ -80,6 +82,13 @@ export interface CampaignSlice {
     updateActiveCampaignFromRealtime: (updates: Partial<Campaign>) => void;
     updatePartyCharacterFromRealtime: (characterId: string, updates: Partial<Character>) => void;
 
+    // Phase 5: Presence system state and actions
+    onlineMembers: PresenceState[];
+    presenceTracking: boolean;
+    setOnlineMembers: (members: PresenceState[]) => void;
+    startPresenceTracking: (campaignId: string) => Promise<void>;
+    stopPresenceTracking: () => Promise<void>;
+
     // Error handling
     setCampaignError: (error: string | null) => void;
 }
@@ -103,6 +112,10 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
 
     // Phase 4: Real-time subscription state
     realtimeSubscribed: false,
+
+    // Phase 5: Presence system state
+    onlineMembers: [],
+    presenceTracking: false,
 
     fetchUserCampaigns: async () => {
         set({ isLoadingCampaigns: true, campaignError: null });
@@ -535,6 +548,44 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                 char.id === characterId ? { ...char, ...updates } : char
             ),
         }));
+    },
+
+    // Phase 5: Presence system actions
+    setOnlineMembers: (members: PresenceState[]) => {
+        set({ onlineMembers: members });
+    },
+
+    startPresenceTracking: async (campaignId: string) => {
+        const state = get() as CharacterStore;
+        const user = state.user;
+        const character = state.character;
+
+        if (!user) {
+            console.warn('[Presence] Cannot track presence: no user');
+            return;
+        }
+
+        // Set up the store getter for the presence manager
+        presenceManager.setStoreGetter(() => ({
+            user: (get() as CharacterStore).user,
+            setOnlineMembers: get().setOnlineMembers,
+        }));
+
+        // Start tracking with user info and optionally character info
+        await presenceManager.track(
+            campaignId,
+            user.id,
+            user.email || 'Unknown',
+            character?.id,
+            character?.name
+        );
+
+        set({ presenceTracking: true });
+    },
+
+    stopPresenceTracking: async () => {
+        await presenceManager.untrack();
+        set({ presenceTracking: false, onlineMembers: [] });
     },
 
     setCampaignError: (error: string | null) => {

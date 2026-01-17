@@ -6,6 +6,8 @@ import { FearTracker } from './fear-tracker';
 import { PartyOverview } from './party-overview';
 import { QuickActionsBar } from './quick-actions-bar';
 import { ActivityFeed } from '@/components/activity';
+import { OnlineMembersList } from '@/components/presence';
+import { presenceManager } from '@/lib/presence';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Settings, Loader2, Crown, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -27,6 +29,9 @@ export function GmScreen({ campaignId }: GmScreenProps) {
         subscribeToCampaignRealtime,
         unsubscribeFromCampaignRealtime,
         realtimeSubscribed,
+        startPresenceTracking,
+        stopPresenceTracking,
+        presenceTracking,
     } = useCharacterStore();
     const [showSettings, setShowSettings] = useState(false);
 
@@ -52,6 +57,34 @@ export function GmScreen({ campaignId }: GmScreenProps) {
             unsubscribeFromCampaignRealtime();
         };
     }, [activeCampaign, campaignId, subscribeToCampaignRealtime, unsubscribeFromCampaignRealtime, realtimeSubscribed]);
+
+    // Start presence tracking when campaign is loaded
+    useEffect(() => {
+        if (activeCampaign && activeCampaign.id === campaignId && !presenceTracking) {
+            startPresenceTracking(campaignId);
+        }
+
+        // Cleanup on unmount
+        return () => {
+            stopPresenceTracking();
+        };
+    }, [activeCampaign, campaignId, startPresenceTracking, stopPresenceTracking, presenceTracking]);
+
+    // Handle visibility changes (away/online status)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                presenceManager.setAway();
+            } else {
+                presenceManager.setOnline();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
 
     // Loading state
     if (isLoadingCampaigns || !activeCampaign) {
@@ -110,7 +143,9 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                                 GM Screen
                             </span>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-4">
+                            {/* Online indicator (compact) */}
+                            <OnlineMembersList compact />
                             <Button
                                 variant="outline"
                                 size="sm"
