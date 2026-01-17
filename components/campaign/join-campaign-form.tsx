@@ -120,7 +120,7 @@ export default function JoinCampaignForm({ isOpen, onClose }: JoinCampaignFormPr
                             {character && (
                                 <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                                     <p className="text-blue-400 text-sm">
-                                        You'll join as <span className="font-bold">{character.name}</span>
+                                        You&apos;ll join as <span className="font-bold">{character.name}</span>
                                     </p>
                                 </div>
                             )}
