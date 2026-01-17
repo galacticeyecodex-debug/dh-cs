@@ -6,7 +6,7 @@
 
 ---
 
-## Phase 4: Real-Time Subscriptions (1-2 weeks)
+## Phase 4: Real-Time Subscriptions ✅ COMPLETE (2026-01-17)
 
 ### Overview
 Transform the activity feed from manual-refresh to live updates using Supabase Realtime. Players see party actions instantly.

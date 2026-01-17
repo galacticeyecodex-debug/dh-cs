@@ -22,11 +22,15 @@ export default function CampaignDetailPage() {
         leaveCampaign,
         user,
         isLoadingCampaigns,
+        subscribeToCampaignRealtime,
+        unsubscribeFromCampaignRealtime,
+        realtimeSubscribed,
     } = useCharacterStore();
 
     const [showSettings, setShowSettings] = useState(false);
     const [showAssignCharacter, setShowAssignCharacter] = useState(false);
 
+    // Load campaign data
     useEffect(() => {
         if (campaignId) {
             selectCampaign(campaignId);
@@ -36,6 +40,18 @@ export default function CampaignDetailPage() {
             clearActiveCampaign();
         };
     }, [campaignId]);
+
+    // Subscribe to realtime updates when campaign is loaded
+    useEffect(() => {
+        if (activeCampaign && activeCampaign.id === campaignId && !realtimeSubscribed) {
+            subscribeToCampaignRealtime(campaignId);
+        }
+
+        // Cleanup on unmount
+        return () => {
+            unsubscribeFromCampaignRealtime();
+        };
+    }, [activeCampaign, campaignId, subscribeToCampaignRealtime, unsubscribeFromCampaignRealtime, realtimeSubscribed]);
 
     const handleLeave = async () => {
         if (!activeCampaign) return;
