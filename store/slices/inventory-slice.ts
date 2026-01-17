@@ -491,6 +491,24 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
     toast.success(`Used ${itemName}`, {
       description: effectDescription,
     });
+
+    // Log to activity feed if in a campaign
+    if (state.activeCampaign && state.user && state.logActivity) {
+      state.logActivity({
+        campaign_id: state.activeCampaign.id,
+        user_id: state.user.id,
+        character_id: state.character.id,
+        character_name: state.character.name,
+        activity_type: 'item_used',
+        data: {
+          item_id: item.library_item?.id || item.homebrew_item?.id || inventoryItemId,
+          item_name: itemName,
+          item_type: itemType || 'consumable',
+          effect: effectDescription,
+        },
+        is_private: false,
+      });
+    }
   },
 
   updateInventoryItemImage: async (itemId, imageUrl, position) => {
