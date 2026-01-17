@@ -899,5 +899,266 @@ export const dataService: DataClient = {
 
       return count || 0;
     },
-  }
+  },
+
+  // =========================================================================
+  // PHASE 7: FRIENDSHIPS
+  // =========================================================================
+
+  friendship: {
+    findByCode: async (friendCode: string) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .rpc('find_user_by_friend_code', { friend_code_param: friendCode.toUpperCase() });
+
+      if (error) {
+        throw new Error(`Failed to find user by friend code: ${error.message}`);
+      }
+
+      if (!data || data.length === 0) return null;
+      return data[0];
+    },
+
+    sendRequest: async (recipientId: string) => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) throw new Error('Not authenticated');
+
+      // Check if friendship already exists
+      const { data: existing } = await supabase
+        .from('friendships')
+        .select('id, status')
+        .or(`and(requester_id.eq.${user.id},recipient_id.eq.${recipientId}),and(requester_id.eq.${recipientId},recipient_id.eq.${user.id})`)
+        .single();
+
+      if (existing) {
+        if (existing.status === 'accepted') {
+          throw new Error('You are already friends with this user');
+        } else if (existing.status === 'pending') {
+          throw new Error('A friend request already exists');
+        } else if (existing.status === 'blocked') {
+          throw new Error('Cannot send friend request');
+        }
+      }
+
+      const { data, error } = await supabase
+        .from('friendships')
+        .insert({
+          requester_id: user.id,
+          recipient_id: recipientId,
+          status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (error) {
+        if (error.message.includes('allow_friend_requests')) {
+          throw new Error('This user is not accepting friend requests');
+        }
+        throw new Error(`Failed to send friend request: ${error.message}`);
+      }
+
+      return data;
+    },
+
+    cancelRequest: async (friendshipId: string) => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('friendships')
+        .delete()
+        .eq('id', friendshipId)
+        .eq('status', 'pending');
+
+      if (error) {
+        throw new Error(`Failed to cancel friend request: ${error.message}`);
+      }
+    },
+
+    acceptRequest: async (friendshipId: string) => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('friendships')
+        .update({ status: 'accepted' })
+        .eq('id', friendshipId)
+        .eq('recipient_id', user.id) // Only recipient can accept
+        .eq('status', 'pending')
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to accept friend request: ${error.message}`);
+      }
+
+      return data;
+    },
+
+    declineRequest: async (friendshipId: string) => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('friendships')
+        .update({ status: 'declined' })
+        .eq('id', friendshipId)
+        .eq('recipient_id', user.id)
+        .eq('status', 'pending');
+
+      if (error) {
+        throw new Error(`Failed to decline friend request: ${error.message}`);
+      }
+    },
+
+    getFriends: async (userId: string) => {
+      const supabase = createClient();
+
+      // Get accepted friendships where user is either requester or recipient
+      const { data, error } = await supabase
+        .from('friendships')
+        .select(`
+          id,
+          requester_id,
+          recipient_id,
+          created_at,
+          requester:profiles!friendships_requester_id_fkey(id, username, avatar_url, friend_code),
+          recipient:profiles!friendships_recipient_id_fkey(id, username, avatar_url, friend_code)
+        `)
+        .eq('status', 'accepted')
+        .or(`requester_id.eq.${userId},recipient_id.eq.${userId}`);
+
+      if (error) {
+        throw new Error(`Failed to get friends: ${error.message}`);
+      }
+
+      // Transform to Friend[] format
+      return (data || []).map((f: any) => {
+        const isRequester = f.requester_id === userId;
+        const friendProfile = isRequester ? f.recipient : f.requester;
+
+        return {
+          user_id: isRequester ? f.recipient_id : f.requester_id,
+          username: friendProfile?.username || null,
+          avatar_url: friendProfile?.avatar_url || null,
+          friend_code: friendProfile?.friend_code || null,
+          friendship_id: f.id,
+          is_requester: isRequester,
+          since: f.created_at,
+        };
+      });
+    },
+
+    getPendingRequests: async (userId: string) => {
+      const supabase = createClient();
+
+      const { data, error } = await supabase
+        .from('friendships')
+        .select(`
+          id,
+          requester_id,
+          created_at,
+          requester:profiles!friendships_requester_id_fkey(id, username, avatar_url)
+        `)
+        .eq('recipient_id', userId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(`Failed to get pending requests: ${error.message}`);
+      }
+
+      return (data || []).map((f: any) => ({
+        id: f.id,
+        from: {
+          user_id: f.requester_id,
+          username: f.requester?.username || null,
+          avatar_url: f.requester?.avatar_url || null,
+        },
+        created_at: f.created_at,
+      }));
+    },
+
+    getOutgoingRequests: async (userId: string) => {
+      const supabase = createClient();
+
+      const { data, error } = await supabase
+        .from('friendships')
+        .select(`
+          id,
+          recipient_id,
+          created_at,
+          recipient:profiles!friendships_recipient_id_fkey(id, username, avatar_url)
+        `)
+        .eq('requester_id', userId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(`Failed to get outgoing requests: ${error.message}`);
+      }
+
+      return (data || []).map((f: any) => ({
+        id: f.id,
+        to: {
+          user_id: f.recipient_id,
+          username: f.recipient?.username || null,
+          avatar_url: f.recipient?.avatar_url || null,
+        },
+        created_at: f.created_at,
+      }));
+    },
+
+    unfriend: async (friendshipId: string) => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('friendships')
+        .delete()
+        .eq('id', friendshipId);
+
+      if (error) {
+        throw new Error(`Failed to unfriend: ${error.message}`);
+      }
+    },
+
+    block: async (friendshipId: string) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('friendships')
+        .update({ status: 'blocked' })
+        .eq('id', friendshipId)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to block user: ${error.message}`);
+      }
+
+      return data;
+    },
+
+    checkFriendship: async (userId: string, otherUserId: string) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .rpc('check_friendship_exists', { user_a: userId, user_b: otherUserId });
+
+      if (error) {
+        throw new Error(`Failed to check friendship: ${error.message}`);
+      }
+
+      if (!data || data.length === 0 || !data[0].exists_val) {
+        return { exists: false };
+      }
+
+      return {
+        exists: true,
+        friendshipId: data[0].friendship_id,
+        status: data[0].status,
+      };
+    },
+  },
 };
