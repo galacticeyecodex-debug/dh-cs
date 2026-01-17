@@ -11,14 +11,43 @@
 
 'use client';
 
+import { useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import AuthButton from "@/components/auth/auth-buttons";
 import ContentAccessSettings from "@/components/modals/content-access-settings";
+import { FriendsPanel } from "@/components/friends";
+import { useCharacterStore } from "@/store/character-store";
 import useUser from "@/hooks/useUser";
+import { Users } from "lucide-react";
 
 export default function ProfilePage() {
   const { user } = useUser();
+  const {
+    pendingRequests,
+    myFriendCode,
+    setMyFriendCode,
+    fetchAllFriendshipData
+  } = useCharacterStore();
+
+  // Fetch friend code from profile on mount
+  useEffect(() => {
+    const fetchFriendCode = async () => {
+      if (!user) return;
+      try {
+        const { dataService } = await import('@/lib/data-service');
+        const profile = await dataService.profile.get(user.id);
+        if (profile?.friend_code) {
+          setMyFriendCode(profile.friend_code);
+        }
+      } catch (err) {
+        console.error('Failed to fetch friend code:', err);
+      }
+    };
+    fetchFriendCode();
+    fetchAllFriendshipData();
+  }, [user, setMyFriendCode, fetchAllFriendshipData]);
 
   if (!user) return null;
 
@@ -55,6 +84,24 @@ export default function ProfilePage() {
           <div className="pt-4 border-t">
             <AuthButton />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Friends Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Friends
+            {pendingRequests.length > 0 && (
+              <Badge variant="default" className="ml-2">
+                {pendingRequests.length} new
+              </Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FriendsPanel />
         </CardContent>
       </Card>
 

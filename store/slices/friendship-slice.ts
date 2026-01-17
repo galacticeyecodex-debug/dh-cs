@@ -9,11 +9,13 @@
  * - Accept/decline incoming requests
  * - View and manage friend list
  * - Block/unblock users
+ * - Real-time notifications for new friend requests
  * - Share homebrew with friends (integrates with sharing-slice)
  */
 
 import type { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
+import { friendRealtimeManager } from '@/lib/friend-realtime';
 import type { Friendship, Friend, FriendRequest, OutgoingRequest } from '@/types/friendship';
 import { toast } from 'sonner';
 
@@ -25,6 +27,7 @@ export interface FriendshipSlice {
     isLoadingFriends: boolean;
     friendshipError: string | null;
     myFriendCode: string | null;
+    friendRealtimeSubscribed: boolean;
 
     // Actions
     fetchFriends: () => Promise<void>;
@@ -42,6 +45,13 @@ export interface FriendshipSlice {
 
     setMyFriendCode: (code: string) => void;
     clearFriendshipError: () => void;
+
+    // Real-time
+    subscribeToFriendshipRealtime: () => void;
+    unsubscribeFromFriendshipRealtime: () => void;
+    addPendingRequestFromRealtime: (request: FriendRequest) => void;
+    removePendingRequestFromRealtime: (requestId: string) => void;
+    updateFriendshipFromRealtime: (friendship: Friendship) => void;
 }
 
 export const createFriendshipSlice: StateCreator<
@@ -57,6 +67,7 @@ export const createFriendshipSlice: StateCreator<
     isLoadingFriends: false,
     friendshipError: null,
     myFriendCode: null,
+    friendRealtimeSubscribed: false,
 
     // Fetch friends list
     fetchFriends: async () => {
@@ -297,4 +308,119 @@ export const createFriendshipSlice: StateCreator<
     clearFriendshipError: () => {
         set({ friendshipError: null });
     },
+
+    // =========================================================================
+    // REAL-TIME SUBSCRIPTIONS
+    // =========================================================================
+
+    subscribeToFriendshipRealtime: () => {
+        const state = get() as any;
+        const userId = state.user?.id;
+        if (!userId || get().friendRealtimeSubscribed) return;
+
+        friendRealtimeManager.subscribe(
+            userId,
+            // onInsert - New friend request received
+            (payload) => {
+                if (payload.new && payload.eventType === 'INSERT') {
+                    const friendship = payload.new as Friendship;
+                    // Only show notification if we're the recipient
+                    if (friendship.recipient_id === userId && friendship.status === 'pending') {
+                        // Fetch complete request data
+                        get().fetchPendingRequests();
+                        toast.info('New friend request received!', {
+                            action: {
+                                label: 'View',
+                                onClick: () => {
+                                    // Could navigate to friends tab
+                                },
+                            },
+                        });
+                    }
+                }
+            },
+            // onUpdate - Friend request accepted/declined
+            (payload) => {
+                if (payload.new && payload.eventType === 'UPDATE') {
+                    const friendship = payload.new as Friendship;
+                    get().updateFriendshipFromRealtime(friendship);
+                }
+            },
+            // onDelete - Unfriended
+            (payload) => {
+                if (payload.old && payload.eventType === 'DELETE') {
+                    const oldFriendship = payload.old as Friendship;
+                    set((state) => ({
+                        friends: state.friends.filter((f) => f.friendship_id !== oldFriendship.id),
+                        outgoingRequests: state.outgoingRequests.filter((r) => r.id !== oldFriendship.id),
+                        pendingRequests: state.pendingRequests.filter((r) => r.id !== oldFriendship.id),
+                    }));
+                }
+            }
+        );
+
+        set({ friendRealtimeSubscribed: true });
+    },
+
+    unsubscribeFromFriendshipRealtime: () => {
+        friendRealtimeManager.unsubscribe();
+        set({ friendRealtimeSubscribed: false });
+    },
+
+    addPendingRequestFromRealtime: (request: FriendRequest) => {
+        set((state) => ({
+            pendingRequests: [request, ...state.pendingRequests.filter((r) => r.id !== request.id)],
+        }));
+    },
+
+    removePendingRequestFromRealtime: (requestId: string) => {
+        set((state) => ({
+            pendingRequests: state.pendingRequests.filter((r) => r.id !== requestId),
+        }));
+    },
+
+    updateFriendshipFromRealtime: (friendship: Friendship) => {
+        const state = get() as any;
+        const userId = state.user?.id;
+        if (!userId) return;
+
+        if (friendship.status === 'accepted') {
+            // Someone accepted our request or we accepted theirs
+            const isMyOutgoing = friendship.requester_id === userId;
+
+            if (isMyOutgoing) {
+                // Our request was accepted - remove from outgoing, add to friends
+                set((s) => ({
+                    outgoingRequests: s.outgoingRequests.filter((r) => r.id !== friendship.id),
+                    friends: [
+                        {
+                            user_id: friendship.recipient_id,
+                            username: null, // Will be fetched on next load
+                            avatar_url: null,
+                            friend_code: null,
+                            friendship_id: friendship.id,
+                            is_requester: true,
+                            since: friendship.updated_at,
+                        },
+                        ...s.friends.filter((f) => f.friendship_id !== friendship.id),
+                    ],
+                }));
+                toast.success('Your friend request was accepted!');
+            }
+            // Else: We accepted their request - already handled by acceptFriendRequest
+        } else if (friendship.status === 'declined') {
+            // Remove from outgoing
+            set((s) => ({
+                outgoingRequests: s.outgoingRequests.filter((r) => r.id !== friendship.id),
+            }));
+        } else if (friendship.status === 'blocked') {
+            // Remove from all lists
+            set((s) => ({
+                friends: s.friends.filter((f) => f.friendship_id !== friendship.id),
+                outgoingRequests: s.outgoingRequests.filter((r) => r.id !== friendship.id),
+                pendingRequests: s.pendingRequests.filter((r) => r.id !== friendship.id),
+            }));
+        }
+    },
 });
+
