@@ -1076,20 +1076,20 @@ SELECT cron.schedule(
 
 ## Testing Checklist
 
-- [ ] Dice rolls are logged to activity
-- [ ] Vital changes are logged to activity
-- [ ] Fear changes are logged to activity
-- [ ] GM vital adjustments are logged
-- [ ] GM announcements are logged
+- [x] Dice rolls are logged to activity
+- [x] Vital changes are logged to activity
+- [x] Fear changes are logged to activity
+- [x] GM vital adjustments are logged
+- [x] GM announcements are logged
 - [ ] Activity feed displays all activity types correctly
-- [ ] Activity feed is paginated
-- [ ] "Load More" works
-- [ ] Refresh button works
+- [x] Activity feed is paginated
+- [x] "Load More" works
+- [x] Refresh button works
 - [ ] Activity is visible to all campaign members
 - [ ] Private GM rolls are not visible to players
 - [ ] Players cannot see other players' private activity
 - [ ] Activity older than 7 days is cleaned up
-- [ ] Activity feed is responsive
+- [x] Activity feed is responsive
 
 ---
 
