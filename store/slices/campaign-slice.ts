@@ -334,6 +334,23 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
         vital: 'hp' | 'stress' | 'armor' | 'hope',
         newValue: number
     ) => {
+        // Capture character info and previous value before the optimistic update
+        const character = get().partyCharacters.find((c) => c.id === characterId);
+        if (!character) {
+            toast.error('Character not found');
+            return;
+        }
+
+        // Map vital to the correct property path
+        const previousValueMap: Record<string, number> = {
+            hp: character.vitals?.hit_points_current ?? 0,
+            stress: character.vitals?.stress_current ?? 0,
+            armor: character.vitals?.armor_slots ?? 0,
+            hope: character.hope ?? 0,
+        };
+        const previousValue = previousValueMap[vital];
+        const change = newValue - previousValue;
+
         try {
             // Optimistically update local state
             set((state) => ({
@@ -343,7 +360,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                             ...char,
                             ...(vital === 'hp' && { vitals: { ...char.vitals, hit_points_current: newValue } }),
                             ...(vital === 'stress' && { vitals: { ...char.vitals, stress_current: newValue } }),
-                            ...(vital === 'armor' && { vitals: { ...char.vitals, armor_remaining: newValue } }),
+                            ...(vital === 'armor' && { vitals: { ...char.vitals, armor_slots: newValue } }),
                             ...(vital === 'hope' && { hope: newValue }),
                         }
                         : char
@@ -352,6 +369,30 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
 
             // Update database
             await dataService.campaign.gmAdjustVital(characterId, vital, newValue);
+
+            // Log activity if we're in a campaign
+            const state = get() as any;
+            const activeCampaign = state.activeCampaign;
+            const user = state.user;
+
+            if (activeCampaign && user) {
+                await state.logActivity({
+                    campaign_id: activeCampaign.id,
+                    user_id: user.id,
+                    character_id: characterId,
+                    character_name: character.name,
+                    activity_type: 'gm_vital_adjust',
+                    data: {
+                        target_character_id: characterId,
+                        target_character_name: character.name,
+                        vital,
+                        change,
+                        previous_value: previousValue,
+                        new_value: newValue,
+                    },
+                    is_private: false,
+                });
+            }
 
             // Success - optimistic update is already applied
         } catch (error) {

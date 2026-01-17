@@ -39,6 +39,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
     if (!state.character) return;
 
     const newVitals = { ...state.character.vitals };
+    const previousValue = newVitals[type]; // Capture previous value before change
     let actualValue = value;
 
     if (type === 'hit_points_current') actualValue = Math.min(newVitals.hit_points_max, Math.max(0, value));
@@ -47,22 +48,59 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
 
     const updatedVitals = { ...newVitals, [type]: actualValue };
     const characterId = state.character.id;
+    const characterName = state.character.name;
 
-    await withOptimisticUpdate(
+    // Map vitals type to activity vital type
+    const vitalTypeMap: Record<string, 'hp' | 'stress' | 'armor'> = {
+      hit_points_current: 'hp',
+      stress_current: 'stress',
+      armor_slots: 'armor',
+    };
+    const vitalType = vitalTypeMap[type];
+    const maxValueMap: Record<string, number> = {
+      hit_points_current: newVitals.hit_points_max,
+      stress_current: newVitals.stress_max,
+      armor_slots: newVitals.armor_score,
+    };
+
+    const { success } = await withOptimisticUpdate(
       () => {
-        const previousVitals = (get() as any).character!.vitals;
+        const prevVitals = (get() as any).character!.vitals;
         set((s: any) => ({
           character: s.character ? { ...s.character, vitals: updatedVitals } : null,
         }));
         return () => {
           set((s: any) => ({
-            character: s.character ? { ...s.character, vitals: previousVitals } : null,
+            character: s.character ? { ...s.character, vitals: prevVitals } : null,
           }));
         };
       },
       async () => dataService.character.update(characterId, { vitals: updatedVitals }),
       `Failed to update ${type.replace('_', ' ')}`
     );
+
+    // Log to activity feed if in a campaign and update was successful
+    if (success && state.activeCampaign && state.user && state.logActivity) {
+      const change = actualValue - previousValue;
+      // Only log if there was an actual change
+      if (change !== 0) {
+        state.logActivity({
+          campaign_id: state.activeCampaign.id,
+          user_id: state.user.id,
+          character_id: characterId,
+          character_name: characterName,
+          activity_type: 'vital_change',
+          data: {
+            vital: vitalType,
+            change,
+            previous_value: previousValue,
+            new_value: actualValue,
+            max_value: maxValueMap[type],
+          },
+          is_private: false,
+        });
+      }
+    }
   },
 
   updateGold: async (denomination, value) => {

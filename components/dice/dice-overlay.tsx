@@ -34,7 +34,7 @@ interface DieConfig {
 }
 
 export default function DiceOverlay() {
-  const { isDiceOverlayOpen, closeDiceOverlay, setLastRollResult, lastRollResult, activeRoll, character, updateHope } = useCharacterStore();
+  const { isDiceOverlayOpen, closeDiceOverlay, setLastRollResult, lastRollResult, activeRoll, character, updateHope, activeCampaign, user, logActivity } = useCharacterStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const boxInstanceRef = useRef<any>(null);
   const [isReady, setIsReady] = useState(false);
@@ -235,14 +235,34 @@ export default function DiceOverlay() {
         }
 
         const finalTotalModifier = totalModifier + stringModifier;
-        setLastRollResult({
+        const damageRollResult = {
           hope: 0,
           fear: 0,
           total: diceTotal + finalTotalModifier,
           modifier: finalTotalModifier,
-          type: 'Damage',
+          type: 'Damage' as const,
           dice: individualDieResults
-        });
+        };
+        setLastRollResult(damageRollResult);
+
+        // Log to activity feed if in a campaign
+        if (activeCampaign && user && character) {
+          logActivity({
+            campaign_id: activeCampaign.id,
+            user_id: user.id,
+            character_id: character.id,
+            character_name: character.name,
+            activity_type: 'dice_roll',
+            data: {
+              roll_type: 'damage',
+              dice: individualDieResults.map(d => d.value),
+              modifier: finalTotalModifier,
+              total: damageRollResult.total,
+              description: activeRoll.label || 'Damage Roll',
+            },
+            is_private: false,
+          });
+        }
       } catch (e) { console.error("Custom roll failed", e); }
       return;
     }
@@ -287,7 +307,7 @@ export default function DiceOverlay() {
         else if (hopeRoll > fearRoll) type = 'Hope';
         else type = 'Fear';
 
-        setLastRollResult({
+        const dualityRollResult = {
           hope: hopeRoll,
           fear: fearRoll,
           total,
@@ -296,7 +316,31 @@ export default function DiceOverlay() {
           modifier: totalModifier,
           type,
           dice: individualDieResults
-        });
+        };
+        setLastRollResult(dualityRollResult);
+
+        // Log to activity feed if in a campaign
+        if (activeCampaign && user && character) {
+          // Determine roll type based on activeRoll label or default to 'trait'
+          const rollType = activeRoll?.dice ? 'custom' : (activeRoll?.label?.toLowerCase().includes('attack') ? 'attack' : 'trait');
+
+          logActivity({
+            campaign_id: activeCampaign.id,
+            user_id: user.id,
+            character_id: character.id,
+            character_name: character.name,
+            activity_type: 'dice_roll',
+            data: {
+              roll_type: rollType as 'attack' | 'damage' | 'trait' | 'spellcast' | 'custom',
+              dice: individualDieResults.map(d => d.value),
+              modifier: totalModifier,
+              total: dualityRollResult.total,
+              description: activeRoll?.label || 'Action Roll',
+              hope_fear: type === 'Critical' ? 'hope' : type.toLowerCase() as 'hope' | 'fear',
+            },
+            is_private: false,
+          });
+        }
       }
     } catch (e) {
       console.error("Roll failed", e);
