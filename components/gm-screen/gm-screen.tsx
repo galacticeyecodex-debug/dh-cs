@@ -24,9 +24,13 @@ export function GmScreen({ campaignId }: GmScreenProps) {
         partyCharacters,
         isLoadingCampaigns,
         user,
+        subscribeToCampaignRealtime,
+        unsubscribeFromCampaignRealtime,
+        realtimeSubscribed,
     } = useCharacterStore();
     const [showSettings, setShowSettings] = useState(false);
 
+    // Load campaign data
     useEffect(() => {
         const loadData = async () => {
             if (!activeCampaign || activeCampaign.id !== campaignId) {
@@ -36,6 +40,18 @@ export function GmScreen({ campaignId }: GmScreenProps) {
         };
         loadData();
     }, [campaignId, selectCampaign, fetchPartyCharacters, activeCampaign]);
+
+    // Subscribe to realtime updates when campaign is loaded
+    useEffect(() => {
+        if (activeCampaign && activeCampaign.id === campaignId && !realtimeSubscribed) {
+            subscribeToCampaignRealtime(campaignId);
+        }
+
+        // Cleanup on unmount
+        return () => {
+            unsubscribeFromCampaignRealtime();
+        };
+    }, [activeCampaign, campaignId, subscribeToCampaignRealtime, unsubscribeFromCampaignRealtime, realtimeSubscribed]);
 
     // Loading state
     if (isLoadingCampaigns || !activeCampaign) {
