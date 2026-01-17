@@ -1,11 +1,11 @@
 # Phase 3: Activity Feed & Broadcasting - Implementation Plan
 
-> **Status**: ✅ COMPLETE (Core Implementation)  
+> **Status**: ✅ COMPLETE (Core Implementation - 6/9 Activity Types)  
 > **GitHub Issue**: #67  
 > **Phase**: 3 of 7  
-> **Estimated Effort**: 2-3 weeks  
+> **Completed**: 2026-01-17  
 > **Dependencies**: Phase 1 (Campaign Foundation), Phase 2 (GM Screen MVP)  
-> **Deliverable**: All game actions logged to campaign feed, visible to all members (not real-time yet)
+> **Deliverable**: Core game actions logged to campaign feed, visible to all members (not real-time yet)
 
 ---
 
