@@ -5,6 +5,7 @@ import { useCharacterStore } from '@/store/character-store';
 import { FearTracker } from './fear-tracker';
 import { PartyOverview } from './party-overview';
 import { QuickActionsBar } from './quick-actions-bar';
+import { ActivityFeed } from '@/components/activity';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Settings, Loader2, Crown, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -108,20 +109,34 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                 </div>
             </div>
 
-            {/* Main Content */}
-            <div className="container py-6 space-y-6">
-                {/* Fear Tracker */}
-                <FearTracker
-                    campaignId={campaignId}
-                    currentFear={activeCampaign.fear_current}
-                    maxFear={activeCampaign.fear_max}
-                />
+            {/* Main Content - 2 Column Layout */}
+            <div className="container py-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left Column - Controls & Party */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Fear Tracker */}
+                        <FearTracker
+                            campaignId={campaignId}
+                            currentFear={activeCampaign.fear_current}
+                            maxFear={activeCampaign.fear_max}
+                        />
 
-                {/* Quick Actions */}
-                <QuickActionsBar campaignId={campaignId} />
+                        {/* Quick Actions */}
+                        <QuickActionsBar campaignId={campaignId} />
 
-                {/* Party Overview */}
-                <PartyOverview campaignId={campaignId} characters={partyCharacters} />
+                        {/* Party Overview */}
+                        <PartyOverview campaignId={campaignId} characters={partyCharacters} />
+                    </div>
+
+                    {/* Right Column - Activity Feed */}
+                    <div className="lg:col-span-1">
+                        <ActivityFeed
+                            campaignId={campaignId}
+                            maxHeight="calc(100vh - 140px)"
+                            compact={true}
+                        />
+                    </div>
+                </div>
             </div>
 
             {/* Settings Modal */}
@@ -133,3 +148,4 @@ export function GmScreen({ campaignId }: GmScreenProps) {
         </div>
     );
 }
+
