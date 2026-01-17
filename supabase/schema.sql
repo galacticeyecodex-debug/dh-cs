@@ -1033,8 +1033,95 @@ BEGIN
   SET status = 'offline'
   WHERE status != 'offline'
   AND last_seen < NOW() - INTERVAL '5 minutes';
-  
+
   GET DIAGNOSTICS updated_count = ROW_COUNT;
   RETURN updated_count;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================================================
+-- PHASE 6: HOMEBREW SHARING
+-- ============================================================================
+
+-- 18. SHARED HOMEBREW (Share custom items with campaigns or users)
+-- Uses fork/snapshot model - shared items are copies at time of share
+CREATE TABLE IF NOT EXISTS public.shared_homebrew (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  homebrew_item_id UUID NOT NULL REFERENCES public.homebrew_items(id) ON DELETE CASCADE,
+  shared_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  shared_with_user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  shared_with_campaign_id UUID REFERENCES public.campaigns(id) ON DELETE CASCADE,
+  item_snapshot JSONB NOT NULL, -- Complete copy of item at share time
+  message TEXT, -- Optional message from sharer
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+  -- Ensure exactly one target (user XOR campaign)
+  CONSTRAINT shared_homebrew_target_check CHECK (
+    (shared_with_user_id IS NOT NULL AND shared_with_campaign_id IS NULL) OR
+    (shared_with_user_id IS NULL AND shared_with_campaign_id IS NOT NULL)
+  )
+);
+
+-- Indexes for efficient lookups
+CREATE INDEX IF NOT EXISTS idx_shared_homebrew_recipient
+  ON public.shared_homebrew(shared_with_user_id) WHERE shared_with_user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_shared_homebrew_campaign
+  ON public.shared_homebrew(shared_with_campaign_id) WHERE shared_with_campaign_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_shared_homebrew_sharer
+  ON public.shared_homebrew(shared_by);
+
+-- RLS Policies for shared_homebrew
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_catalog.pg_class c
+             JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = 'shared_homebrew' AND n.nspname = 'public') THEN
+
+    ALTER TABLE public.shared_homebrew ENABLE ROW LEVEL SECURITY;
+
+    -- Policy: View items shared directly with me
+    EXECUTE 'DROP POLICY IF EXISTS "View items shared with me" ON public.shared_homebrew';
+    CREATE POLICY "View items shared with me"
+      ON public.shared_homebrew FOR SELECT
+      USING (shared_with_user_id = auth.uid());
+
+    -- Policy: View items shared with campaigns I'm a member of
+    EXECUTE 'DROP POLICY IF EXISTS "View items shared with my campaigns" ON public.shared_homebrew';
+    CREATE POLICY "View items shared with my campaigns"
+      ON public.shared_homebrew FOR SELECT
+      USING (
+        EXISTS (
+          SELECT 1 FROM public.campaign_members cm
+          WHERE cm.campaign_id = shared_homebrew.shared_with_campaign_id
+          AND cm.user_id = auth.uid()
+        )
+      );
+
+    -- Policy: View items I shared (to manage my own shares)
+    EXECUTE 'DROP POLICY IF EXISTS "View items I shared" ON public.shared_homebrew';
+    CREATE POLICY "View items I shared"
+      ON public.shared_homebrew FOR SELECT
+      USING (shared_by = auth.uid());
+
+    -- Policy: Share own homebrew items
+    EXECUTE 'DROP POLICY IF EXISTS "Share own homebrew" ON public.shared_homebrew';
+    CREATE POLICY "Share own homebrew"
+      ON public.shared_homebrew FOR INSERT
+      WITH CHECK (
+        shared_by = auth.uid()
+        AND EXISTS (
+          SELECT 1 FROM public.homebrew_items hi
+          WHERE hi.id = shared_homebrew.homebrew_item_id
+          AND hi.user_id = auth.uid()
+        )
+      );
+
+    -- Policy: Delete own shares
+    EXECUTE 'DROP POLICY IF EXISTS "Delete own shares" ON public.shared_homebrew';
+    CREATE POLICY "Delete own shares"
+      ON public.shared_homebrew FOR DELETE
+      USING (shared_by = auth.uid());
+
+  END IF;
+END;
+$$ LANGUAGE plpgsql;

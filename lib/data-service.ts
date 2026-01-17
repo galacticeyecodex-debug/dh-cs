@@ -3,6 +3,7 @@ import { DataClient } from '@/types/data-client';
 import { Character, LibraryItem, HomebrewItem, CharacterInventoryItem, Experience } from '@/types/character';
 import type { Campaign, CampaignWithMembers } from '@/types/campaign';
 import type { CampaignActivity, CampaignActivityInsert } from '@/types/activity';
+import type { SharedHomebrew, EnrichedSharedHomebrew, ShareTarget } from '@/types/sharing';
 
 // Helper to construct the service
 export const dataService: DataClient = {
@@ -899,5 +900,145 @@ export const dataService: DataClient = {
 
       return count || 0;
     },
-  }
+  },
+
+  // =========================================================================
+  // PHASE 6: HOMEBREW SHARING METHODS
+  // =========================================================================
+  sharing: {
+    share: async (
+      homebrewItemId: string,
+      target: ShareTarget,
+      message?: string
+    ): Promise<SharedHomebrew> => {
+      const supabase = createClient();
+
+      // First, get the homebrew item to create a snapshot
+      const { data: homebrewItem, error: fetchError } = await supabase
+        .from('homebrew_items')
+        .select('*')
+        .eq('id', homebrewItemId)
+        .single();
+
+      if (fetchError || !homebrewItem) {
+        throw new Error('Failed to fetch homebrew item for sharing');
+      }
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Create the snapshot
+      const itemSnapshot = {
+        type: homebrewItem.type,
+        name: homebrewItem.name,
+        description: homebrewItem.description,
+        data: homebrewItem.data,
+      };
+
+      // Create the shared record
+      const { data, error } = await supabase
+        .from('shared_homebrew')
+        .insert({
+          homebrew_item_id: homebrewItemId,
+          shared_by: user.id,
+          shared_with_user_id: target.userId || null,
+          shared_with_campaign_id: target.campaignId || null,
+          item_snapshot: itemSnapshot,
+          message: message || null,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to share homebrew item: ${error.message}`);
+      }
+
+      return data as SharedHomebrew;
+    },
+
+    unshare: async (sharedId: string): Promise<void> => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('shared_homebrew')
+        .delete()
+        .eq('id', sharedId);
+
+      if (error) {
+        throw new Error(`Failed to unshare item: ${error.message}`);
+      }
+    },
+
+    listSharedWithMe: async (): Promise<EnrichedSharedHomebrew[]> => {
+      const supabase = createClient();
+
+      // Get items shared directly with the user
+      const { data, error } = await supabase
+        .from('shared_homebrew')
+        .select(`
+          *,
+          sharer:profiles!shared_homebrew_shared_by_fkey(username, avatar_url)
+        `)
+        .not('shared_with_user_id', 'is', null)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(`Failed to fetch shared items: ${error.message}`);
+      }
+
+      return (data || []).map((item: any) => ({
+        ...item,
+        sharer_username: item.sharer?.username,
+        sharer_avatar_url: item.sharer?.avatar_url,
+      })) as EnrichedSharedHomebrew[];
+    },
+
+    listSharedWithCampaign: async (campaignId: string): Promise<EnrichedSharedHomebrew[]> => {
+      const supabase = createClient();
+
+      const { data, error } = await supabase
+        .from('shared_homebrew')
+        .select(`
+          *,
+          sharer:profiles!shared_homebrew_shared_by_fkey(username, avatar_url),
+          campaign:campaigns!shared_homebrew_shared_with_campaign_id_fkey(name)
+        `)
+        .eq('shared_with_campaign_id', campaignId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(`Failed to fetch campaign shared items: ${error.message}`);
+      }
+
+      return (data || []).map((item: any) => ({
+        ...item,
+        sharer_username: item.sharer?.username,
+        sharer_avatar_url: item.sharer?.avatar_url,
+        campaign_name: item.campaign?.name,
+      })) as EnrichedSharedHomebrew[];
+    },
+
+    listSharedByMe: async (): Promise<SharedHomebrew[]> => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data, error } = await supabase
+        .from('shared_homebrew')
+        .select('*')
+        .eq('shared_by', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(`Failed to fetch items shared by me: ${error.message}`);
+      }
+
+      return (data || []) as SharedHomebrew[];
+    },
+  },
 };

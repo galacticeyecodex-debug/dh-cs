@@ -10,7 +10,9 @@ import CampaignSettingsModal from '@/components/campaign/campaign-settings-modal
 import AssignCharacterModal from '@/components/campaign/assign-character-modal';
 import { ActivityFeed } from '@/components/activity';
 import { OnlineMembersList } from '@/components/presence';
+import { SharedItemsList } from '@/components/sharing';
 import { presenceManager } from '@/lib/presence';
+import { Package } from 'lucide-react';
 
 export default function CampaignDetailPage() {
     const params = useParams();
@@ -238,12 +240,22 @@ export default function CampaignDetailPage() {
                         />
                     </div>
 
-                    {/* Invite Code (GM only) - takes 1 column */}
-                    {isGM && (
-                        <div className="lg:col-span-1">
+                    {/* Right Column - Invite Code (GM) or Shared Items */}
+                    <div className="lg:col-span-1 space-y-4">
+                        {/* Invite Code (GM only) */}
+                        {isGM && (
                             <InviteCodeDisplay campaign={activeCampaign} />
+                        )}
+
+                        {/* Shared Homebrew Items */}
+                        <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                            <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                                <Package size={16} className="text-dagger-gold" />
+                                Shared Items
+                            </h3>
+                            <SharedItemsList campaignId={activeCampaign.id} compact />
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 

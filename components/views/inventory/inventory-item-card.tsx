@@ -18,7 +18,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Sword, Shield, ArrowRightLeft, ImageIcon, Settings, Info, FlaskConical } from 'lucide-react';
+import { Sword, Shield, ArrowRightLeft, ImageIcon, Settings, Info, FlaskConical, Share2 } from 'lucide-react';
 import clsx from 'clsx';
 import { CharacterInventoryItem } from '@/store/character-store';
 import { MarkdownText } from '@/components/shared/markdown-text';
@@ -34,6 +34,8 @@ export interface InventoryItemCardProps {
     onEditArt: (item: CharacterInventoryItem) => void;
     /** Optional callback when using a consumable item */
     onUse?: (item: CharacterInventoryItem) => void;
+    /** Optional callback when sharing a homebrew item */
+    onShare?: (item: CharacterInventoryItem) => void;
 }
 
 const InventoryItemCard = React.memo(function InventoryItemCard({
@@ -42,6 +44,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
     onManage,
     onEditArt,
     onUse,
+    onShare,
 }: InventoryItemCardProps) {
     const type = item.library_item?.type;
     const isEquipped = item.location.startsWith('equipped');
@@ -93,6 +96,20 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                 >
                     <ImageIcon size={12} />
                 </button>
+                {isHomebrew && onShare && (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onShare(item);
+                        }}
+                        className="text-gray-500 hover:text-dagger-gold transition-colors p-0.5 rounded hover:bg-white/10"
+                        aria-label={`Share ${item.name}`}
+                        title="Share with campaign"
+                    >
+                        <Share2 size={12} />
+                    </button>
+                )}
                 <button
                     type="button"
                     onClick={(e) => {

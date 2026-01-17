@@ -11,6 +11,7 @@ import type {
   CampaignWithMembers,
 } from './campaign';
 import type { CampaignActivity, CampaignActivityInsert } from './activity';
+import type { SharedHomebrew, EnrichedSharedHomebrew, ShareTarget } from './sharing';
 
 export interface LibraryFilterOptions {
   includePlaytest?: boolean;
@@ -88,6 +89,14 @@ export interface DataClient {
     logActivity: (activity: CampaignActivityInsert) => Promise<CampaignActivity>;
     getActivity: (campaignId: string, limit?: number, offset?: number) => Promise<CampaignActivity[]>;
     getActivityCount: (campaignId: string) => Promise<number>;
+  };
+  sharing: {
+    // Phase 6: Homebrew Sharing methods
+    share: (homebrewItemId: string, target: ShareTarget, message?: string) => Promise<SharedHomebrew>;
+    unshare: (sharedId: string) => Promise<void>;
+    listSharedWithMe: () => Promise<EnrichedSharedHomebrew[]>;
+    listSharedWithCampaign: (campaignId: string) => Promise<EnrichedSharedHomebrew[]>;
+    listSharedByMe: () => Promise<SharedHomebrew[]>;
   };
 }
 

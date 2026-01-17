@@ -27,6 +27,7 @@ import type {
     CampaignWithMembers,
 } from '@/types/campaign';
 import type { CampaignActivity, CampaignActivityInsert } from '@/types/activity';
+import type { SharedHomebrew, EnrichedSharedHomebrew, ShareTarget } from '@/types/sharing';
 import { toast } from 'sonner';
 
 export interface CampaignSlice {
@@ -89,6 +90,18 @@ export interface CampaignSlice {
     startPresenceTracking: (campaignId: string) => Promise<void>;
     stopPresenceTracking: () => Promise<void>;
 
+    // Phase 6: Homebrew Sharing state and actions
+    sharedWithMe: EnrichedSharedHomebrew[];
+    sharedByMe: SharedHomebrew[];
+    isLoadingSharing: boolean;
+    shareHomebrewItem: (homebrewItemId: string, target: ShareTarget, message?: string) => Promise<void>;
+    unshareHomebrewItem: (sharedId: string) => Promise<void>;
+    fetchSharedWithMe: () => Promise<void>;
+    fetchSharedByMe: () => Promise<void>;
+    fetchSharedWithCampaign: (campaignId: string) => Promise<void>;
+    addSharedToInventory: (sharedId: string) => Promise<void>;
+    clearSharingState: () => void;
+
     // Error handling
     setCampaignError: (error: string | null) => void;
 }
@@ -116,6 +129,11 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     // Phase 5: Presence system state
     onlineMembers: [],
     presenceTracking: false,
+
+    // Phase 6: Homebrew Sharing state
+    sharedWithMe: [],
+    sharedByMe: [],
+    isLoadingSharing: false,
 
     fetchUserCampaigns: async () => {
         set({ isLoadingCampaigns: true, campaignError: null });
@@ -586,6 +604,134 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     stopPresenceTracking: async () => {
         await presenceManager.untrack();
         set({ presenceTracking: false, onlineMembers: [] });
+    },
+
+    // =========================================================================
+    // Phase 6: Homebrew Sharing Actions
+    // =========================================================================
+
+    shareHomebrewItem: async (homebrewItemId: string, target: ShareTarget, message?: string) => {
+        const state = get() as CharacterStore;
+        const user = state.user;
+
+        if (!user) {
+            return;
+        }
+
+        // Check if item exists in user's homebrew items
+        const homebrewItem = state.homebrewItems.find(item => item.id === homebrewItemId);
+        if (!homebrewItem) {
+            toast.error('Item not found');
+            return;
+        }
+
+        try {
+            const sharedItem = await dataService.sharing.share(homebrewItemId, target, message);
+            set((s) => ({
+                sharedByMe: [sharedItem, ...s.sharedByMe],
+            }));
+            toast.success('Item shared successfully!');
+        } catch (error) {
+            toast.error('Failed to share item');
+        }
+    },
+
+    unshareHomebrewItem: async (sharedId: string) => {
+        const state = get() as CharacterStore;
+        const previousSharedByMe = [...state.sharedByMe];
+
+        // Optimistic update
+        set((s) => ({
+            sharedByMe: s.sharedByMe.filter(item => item.id !== sharedId),
+        }));
+
+        try {
+            await dataService.sharing.unshare(sharedId);
+            toast.success('Item unshared');
+        } catch (error) {
+            // Rollback on error
+            set({ sharedByMe: previousSharedByMe });
+            toast.error('Failed to unshare item');
+        }
+    },
+
+    fetchSharedWithMe: async () => {
+        set({ isLoadingSharing: true });
+
+        try {
+            const items = await dataService.sharing.listSharedWithMe();
+            set({ sharedWithMe: items, isLoadingSharing: false });
+        } catch (error) {
+            set({ isLoadingSharing: false, sharedWithMe: [] });
+        }
+    },
+
+    fetchSharedByMe: async () => {
+        try {
+            const items = await dataService.sharing.listSharedByMe();
+            set({ sharedByMe: items });
+        } catch (error) {
+            set({ sharedByMe: [] });
+        }
+    },
+
+    fetchSharedWithCampaign: async (campaignId: string) => {
+        set({ isLoadingSharing: true });
+
+        try {
+            const items = await dataService.sharing.listSharedWithCampaign(campaignId);
+            set({ sharedWithMe: items, isLoadingSharing: false });
+        } catch (error) {
+            set({ isLoadingSharing: false, sharedWithMe: [] });
+        }
+    },
+
+    addSharedToInventory: async (sharedId: string) => {
+        const state = get() as CharacterStore;
+        const character = state.character;
+
+        if (!character) {
+            toast.error('No character loaded');
+            return;
+        }
+
+        // Find the shared item
+        const sharedItem = state.sharedWithMe.find(item => item.id === sharedId);
+        if (!sharedItem) {
+            toast.error('Shared item not found');
+            return;
+        }
+
+        try {
+            // Create inventory item from the snapshot
+            const snapshot = sharedItem.item_snapshot;
+            await dataService.inventory.add(character.id, {
+                name: snapshot.name,
+                description: snapshot.description || undefined,
+                location: 'backpack',
+                quantity: 1,
+                // The library_item data for UI rendering
+                library_item: {
+                    id: `shared-${sharedId}`,
+                    type: snapshot.type,
+                    name: snapshot.name,
+                    data: snapshot.data,
+                    _isHomebrew: true,
+                },
+            });
+
+            toast.success('Item added to inventory!');
+        } catch (error) {
+            toast.error('Failed to add item to inventory');
+        }
+    },
+
+    clearSharingState: () => {
+        set({
+            sharedWithMe: [],
+            sharedByMe: [],
+            isLoadingSharing: false,
+        });
     },
 
     setCampaignError: (error: string | null) => {

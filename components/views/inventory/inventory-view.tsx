@@ -21,7 +21,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useCharacterStore, CharacterInventoryItem, LibraryItem } from '@/store/character-store';
+import { useCharacterStore, CharacterInventoryItem, LibraryItem, HomebrewItem } from '@/store/character-store';
 import { Coins, Package, Plus, Gem, Eye, EyeOff, Sword, Shield, Backpack, FlaskConical } from 'lucide-react';
 import clsx from 'clsx';
 import AddItemModal from './add-item-modal';
@@ -31,6 +31,7 @@ import InventoryItemCard from './inventory-item-card';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import ViewHeader from '@/components/shared/view-header';
 import { useLibraryItems, LibraryPresets } from '@/hooks/useLibraryItems';
+import { ShareHomebrewModal } from '@/components/sharing';
 
 export default function InventoryView() {
   const {
@@ -42,12 +43,14 @@ export default function InventoryView() {
     deleteHomebrewItem,
     convertItemToHomebrew,
     deleteItemFromInventory,
-    useConsumable: consumeItem
+    useConsumable: consumeItem,
+    homebrewItems,
   } = useCharacterStore();
 
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CharacterInventoryItem | null>(null);
   const [artEditingItem, setArtEditingItem] = useState<CharacterInventoryItem | null>(null);
+  const [sharingItem, setSharingItem] = useState<HomebrewItem | null>(null);
   const [showWealth, setShowWealth] = useState(true);
   const [showFilter, setShowFilter] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -82,6 +85,16 @@ export default function InventoryView() {
   const handleEditArt = useCallback((item: CharacterInventoryItem) => {
     setArtEditingItem(item);
   }, []);
+
+  // Handle sharing a homebrew item with a campaign
+  const handleShare = useCallback((item: CharacterInventoryItem) => {
+    if (!item.homebrew_item_id) return;
+    // Find the homebrew item definition
+    const homebrewItem = homebrewItems.find(h => h.id === item.homebrew_item_id);
+    if (homebrewItem) {
+      setSharingItem(homebrewItem);
+    }
+  }, [homebrewItems]);
 
   const handleSaveEditedItem = async (data: HomebrewItemData) => {
     if (!editingItem) return;
@@ -320,6 +333,7 @@ export default function InventoryView() {
                 onManage={handleEditClick}
                 onEditArt={handleEditArt}
                 onUse={handleUseConsumable}
+                onShare={handleShare}
               />
             ))
           ) : (
@@ -358,6 +372,14 @@ export default function InventoryView() {
           <ItemArtModal
             item={artEditingItem}
             onClose={() => setArtEditingItem(null)}
+          />
+        )}
+
+        {sharingItem && (
+          <ShareHomebrewModal
+            item={sharingItem}
+            isOpen={!!sharingItem}
+            onClose={() => setSharingItem(null)}
           />
         )}
       </div>
