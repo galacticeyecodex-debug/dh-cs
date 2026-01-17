@@ -23,6 +23,7 @@ import type {
     EnrichedCampaignMember,
     CampaignWithMembers,
 } from '@/types/campaign';
+import type { CampaignActivity, CampaignActivityInsert } from '@/types/activity';
 import { toast } from 'sonner';
 
 export interface CampaignSlice {
@@ -36,6 +37,11 @@ export interface CampaignSlice {
     // Phase 2: GM Screen state
     partyCharacters: Character[];
     unlockedVitalsCards: Set<string>; // Character IDs with unlocked vitals
+
+    // Phase 3: Activity Feed state
+    activityFeed: CampaignActivity[];
+    isLoadingActivity: boolean;
+    activityTotalCount: number;
 
     // Campaign CRUD
     fetchUserCampaigns: () => Promise<void>;
@@ -60,6 +66,11 @@ export interface CampaignSlice {
     updateFear: (campaignId: string, change: number) => Promise<void>;
     toggleVitalsLock: (characterId: string) => void;
 
+    // Phase 3: Activity Feed actions
+    fetchActivityFeed: (campaignId: string, offset?: number) => Promise<void>;
+    logActivity: (activity: CampaignActivityInsert) => Promise<void>;
+    clearActivityFeed: () => void;
+
     // Error handling
     setCampaignError: (error: string | null) => void;
 }
@@ -75,6 +86,11 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     // Phase 2: GM Screen state
     partyCharacters: [],
     unlockedVitalsCards: new Set(),
+
+    // Phase 3: Activity Feed state
+    activityFeed: [],
+    isLoadingActivity: false,
+    activityTotalCount: 0,
 
     fetchUserCampaigns: async () => {
         set({ isLoadingCampaigns: true, campaignError: null });
@@ -375,6 +391,49 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             }
             return { unlockedVitalsCards: newUnlocked };
         });
+    },
+
+    // =========================================================================
+    // PHASE 3: ACTIVITY FEED ACTIONS
+    // =========================================================================
+
+    fetchActivityFeed: async (campaignId: string, offset: number = 0) => {
+        set({ isLoadingActivity: true });
+        try {
+            const [activity, count] = await Promise.all([
+                dataService.campaign.getActivity(campaignId, 50, offset),
+                offset === 0
+                    ? dataService.campaign.getActivityCount(campaignId)
+                    : Promise.resolve(get().activityTotalCount),
+            ]);
+
+            set((state) => ({
+                activityFeed: offset === 0 ? activity : [...state.activityFeed, ...activity],
+                activityTotalCount: count,
+                isLoadingActivity: false,
+            }));
+        } catch (error) {
+            console.error('Failed to fetch activity:', error);
+            set({ isLoadingActivity: false });
+        }
+    },
+
+    logActivity: async (activity: CampaignActivityInsert) => {
+        try {
+            const logged = await dataService.campaign.logActivity(activity);
+
+            // Add to local feed (optimistic update)
+            set((state) => ({
+                activityFeed: [logged, ...state.activityFeed],
+                activityTotalCount: state.activityTotalCount + 1,
+            }));
+        } catch (error) {
+            console.error('Failed to log activity:', error);
+        }
+    },
+
+    clearActivityFeed: () => {
+        set({ activityFeed: [], activityTotalCount: 0 });
     },
 
     setCampaignError: (error: string | null) => {
