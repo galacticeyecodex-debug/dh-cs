@@ -19,7 +19,8 @@ import { LevelingSlice } from '@/store/slices/leveling-slice';
 import { CardStateSlice } from '@/store/slices/card-state-slice';
 import { DowntimeSlice } from '@/store/slices/downtime-slice';
 import { JournalSlice } from '@/store/slices/journal-slice';
+import { CampaignSlice } from '@/store/slices/campaign-slice';
 
-export type CharacterStore = AuthSlice & CharacterSlice & VitalsSlice & InventorySlice & UiSlice & HomebrewSlice & LevelingSlice & CardStateSlice & DowntimeSlice & JournalSlice;
+export type CharacterStore = AuthSlice & CharacterSlice & VitalsSlice & InventorySlice & UiSlice & HomebrewSlice & LevelingSlice & CardStateSlice & DowntimeSlice & JournalSlice & CampaignSlice;
 
 
