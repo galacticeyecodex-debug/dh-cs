@@ -824,3 +824,121 @@ BEGIN
   RETURN updated_campaign;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =============================================================================
+-- 11. CAMPAIGN ACTIVITY (Phase 3: Activity Feed - GH#67)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS public.campaign_activity (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  campaign_id UUID NOT NULL REFERENCES public.campaigns(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  character_id UUID REFERENCES public.characters(id) ON DELETE SET NULL,
+  character_name TEXT, -- Denormalized for display after character deletion
+
+  -- Activity classification
+  activity_type TEXT NOT NULL CHECK (activity_type IN (
+    'dice_roll',      -- Attack, damage, trait check, spell roll
+    'vital_change',   -- HP marked/cleared, stress gained/cleared, armor used
+    'card_used',      -- Spell/ability activated
+    'item_used',      -- Consumable used
+    'fear_change',    -- GM gained or spent Fear
+    'gm_vital_adjust',-- GM adjusted a player's vitals
+    'gm_announcement',-- GM broadcast message
+    'gm_roll',        -- GM dice roll (can be private)
+    'player_joined',  -- Player joined campaign
+    'player_left',    -- Player left campaign
+    'character_switched' -- Player switched characters
+  )),
+
+  -- Flexible payload (structure depends on activity_type)
+  data JSONB NOT NULL,
+
+  -- Visibility control
+  is_private BOOLEAN DEFAULT false, -- If true, only visible to the user who created it
+
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Indexes for efficient feed queries
+CREATE INDEX IF NOT EXISTS idx_campaign_activity_feed
+  ON public.campaign_activity(campaign_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_campaign_activity_user
+  ON public.campaign_activity(user_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_campaign_activity_type
+  ON public.campaign_activity(campaign_id, activity_type);
+
+-- =============================================================================
+-- CAMPAIGN ACTIVITY RLS POLICIES
+-- =============================================================================
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = 'campaign_activity' AND n.nspname = 'public') THEN
+
+    ALTER TABLE public.campaign_activity ENABLE ROW LEVEL SECURITY;
+
+    -- Members can view activity (except others' private activities)
+    EXECUTE 'DROP POLICY IF EXISTS "Members can view campaign activity" ON public.campaign_activity';
+    CREATE POLICY "Members can view campaign activity"
+      ON public.campaign_activity FOR SELECT
+      USING (
+        EXISTS (
+          SELECT 1 FROM public.campaign_members cm
+          WHERE cm.campaign_id = campaign_activity.campaign_id
+          AND cm.user_id = auth.uid()
+        )
+        AND (
+          is_private = false
+          OR user_id = auth.uid()
+        )
+      );
+
+    -- Members can insert their own activity
+    EXECUTE 'DROP POLICY IF EXISTS "Members can insert own activity" ON public.campaign_activity';
+    CREATE POLICY "Members can insert own activity"
+      ON public.campaign_activity FOR INSERT
+      WITH CHECK (
+        user_id = auth.uid()
+        AND EXISTS (
+          SELECT 1 FROM public.campaign_members cm
+          WHERE cm.campaign_id = campaign_activity.campaign_id
+          AND cm.user_id = auth.uid()
+        )
+      );
+
+    -- GM can insert activity for anyone (for damage/heal actions)
+    EXECUTE 'DROP POLICY IF EXISTS "GM can insert activity" ON public.campaign_activity';
+    CREATE POLICY "GM can insert activity"
+      ON public.campaign_activity FOR INSERT
+      WITH CHECK (
+        EXISTS (
+          SELECT 1 FROM public.campaigns c
+          WHERE c.id = campaign_activity.campaign_id
+          AND c.gm_user_id = auth.uid()
+        )
+      );
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- ACTIVITY CLEANUP FUNCTION
+-- Delete activity older than 7 days to prevent unbounded growth
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION cleanup_old_activity()
+RETURNS INTEGER AS $$
+DECLARE
+  deleted_count INTEGER;
+BEGIN
+  DELETE FROM public.campaign_activity
+  WHERE created_at < NOW() - INTERVAL '7 days';
+  
+  GET DIAGNOSTICS deleted_count = ROW_COUNT;
+  RETURN deleted_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
