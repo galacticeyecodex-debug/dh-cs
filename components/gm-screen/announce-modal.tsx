@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Megaphone, Send } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCharacterStore } from '@/store/character-store';
 
 interface AnnounceModalProps {
     isOpen: boolean;
@@ -22,13 +23,25 @@ const TEMPLATES = [
 export function AnnounceModal({ isOpen, onClose, campaignId }: AnnounceModalProps) {
     const [message, setMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
+    const { user, logActivity } = useCharacterStore();
 
     const handleAnnounce = async () => {
-        if (!message.trim()) return;
+        if (!message.trim() || !user) return;
 
         setIsSending(true);
         try {
-            // TODO Phase 3: Log as activity with dataService.activity.create()
+            // Log the announcement as an activity
+            await logActivity({
+                campaign_id: campaignId,
+                user_id: user.id,
+                activity_type: 'gm_announcement',
+                data: {
+                    message: message.trim(),
+                    importance: 'normal',
+                },
+                is_private: false,
+            });
+
             toast.success('📢 Announcement sent to party!', {
                 description: message.substring(0, 50) + (message.length > 50 ? '...' : ''),
             });
