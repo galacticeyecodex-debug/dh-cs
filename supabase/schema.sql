@@ -573,3 +573,372 @@ CREATE TRIGGER homebrew_items_updated_at
   BEFORE UPDATE ON public.homebrew_items
   FOR EACH ROW
   EXECUTE FUNCTION update_homebrew_items_updated_at();
+
+-- =============================================================================
+-- 9. CAMPAIGNS (Phase 1: Social Features - GH#67)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS public.campaigns (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  description TEXT,
+  gm_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  invite_code TEXT UNIQUE NOT NULL,
+  fear_current INTEGER NOT NULL DEFAULT 0,
+  fear_max INTEGER NOT NULL DEFAULT 10,
+  settings JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Generate unique 8-character invite codes (avoiding ambiguous characters)
+CREATE OR REPLACE FUNCTION generate_invite_code()
+RETURNS TEXT AS $$
+DECLARE
+  chars TEXT := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; -- No I, O, 0, 1 for clarity
+  result TEXT := '';
+  i INTEGER;
+BEGIN
+  FOR i IN 1..8 LOOP
+    result := result || substr(chars, floor(random() * length(chars) + 1)::int, 1);
+  END LOOP;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Auto-generate invite code on insert with uniqueness check
+CREATE OR REPLACE FUNCTION set_campaign_invite_code()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.invite_code IS NULL OR NEW.invite_code = '' THEN
+    LOOP
+      NEW.invite_code := generate_invite_code();
+      -- Check if code is unique
+      IF NOT EXISTS (SELECT 1 FROM public.campaigns WHERE invite_code = NEW.invite_code) THEN
+        EXIT; -- Code is unique, use it
+      END IF;
+    END LOOP;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS campaign_invite_code_trigger ON public.campaigns;
+CREATE TRIGGER campaign_invite_code_trigger
+  BEFORE INSERT ON public.campaigns
+  FOR EACH ROW
+  EXECUTE FUNCTION set_campaign_invite_code();
+
+-- Indexes for efficient campaign queries
+CREATE UNIQUE INDEX IF NOT EXISTS idx_campaigns_invite_code ON public.campaigns(invite_code);
+CREATE INDEX IF NOT EXISTS idx_campaigns_gm ON public.campaigns(gm_user_id);
+
+-- =============================================================================
+-- 10. CAMPAIGN MEMBERS
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS public.campaign_members (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  campaign_id UUID NOT NULL REFERENCES public.campaigns(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  character_id UUID REFERENCES public.characters(id) ON DELETE SET NULL,
+  role TEXT NOT NULL DEFAULT 'player' CHECK (role IN ('player', 'gm')),
+  nickname TEXT, -- Optional display name override for this campaign
+  joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(campaign_id, user_id)
+);
+
+-- Indexes for efficient member queries
+CREATE INDEX IF NOT EXISTS idx_campaign_members_user ON public.campaign_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_members_campaign ON public.campaign_members(campaign_id);
+
+-- =============================================================================
+-- CAMPAIGNS RLS POLICIES
+-- =============================================================================
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = 'campaigns' AND n.nspname = 'public') THEN
+
+    ALTER TABLE public.campaigns ENABLE ROW LEVEL SECURITY;
+
+    -- Members can view campaigns they're in (as GM or player)
+    EXECUTE 'DROP POLICY IF EXISTS "Members can view their campaigns" ON public.campaigns';
+    CREATE POLICY "Members can view their campaigns"
+      ON public.campaigns FOR SELECT
+      USING (
+        gm_user_id = auth.uid() OR
+        EXISTS (
+          SELECT 1 FROM public.campaign_members
+          WHERE campaign_id = campaigns.id
+          AND user_id = auth.uid()
+        )
+      );
+
+    -- Only authenticated users can create campaigns
+    EXECUTE 'DROP POLICY IF EXISTS "Authenticated users can create campaigns" ON public.campaigns';
+    CREATE POLICY "Authenticated users can create campaigns"
+      ON public.campaigns FOR INSERT
+      WITH CHECK (auth.uid() IS NOT NULL AND gm_user_id = auth.uid());
+
+    -- Only GM can update campaign
+    EXECUTE 'DROP POLICY IF EXISTS "GM can update campaign" ON public.campaigns';
+    CREATE POLICY "GM can update campaign"
+      ON public.campaigns FOR UPDATE
+      USING (gm_user_id = auth.uid());
+
+    -- Only GM can delete campaign
+    EXECUTE 'DROP POLICY IF EXISTS "GM can delete campaign" ON public.campaigns';
+    CREATE POLICY "GM can delete campaign"
+      ON public.campaigns FOR DELETE
+      USING (gm_user_id = auth.uid());
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- CAMPAIGN MEMBERS RLS POLICIES
+-- =============================================================================
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = 'campaign_members' AND n.nspname = 'public') THEN
+
+    ALTER TABLE public.campaign_members ENABLE ROW LEVEL SECURITY;
+
+    -- Members can view other members in their campaigns
+    EXECUTE 'DROP POLICY IF EXISTS "Members can view campaign members" ON public.campaign_members';
+    CREATE POLICY "Members can view campaign members"
+      ON public.campaign_members FOR SELECT
+      USING (
+        EXISTS (
+          SELECT 1 FROM public.campaign_members cm
+          WHERE cm.campaign_id = campaign_members.campaign_id
+          AND cm.user_id = auth.uid()
+        )
+      );
+
+    -- Users can join campaigns (insert themselves)
+    EXECUTE 'DROP POLICY IF EXISTS "Users can join campaigns" ON public.campaign_members';
+    CREATE POLICY "Users can join campaigns"
+      ON public.campaign_members FOR INSERT
+      WITH CHECK (user_id = auth.uid());
+
+    -- Users can update their own membership (e.g., change character)
+    EXECUTE 'DROP POLICY IF EXISTS "Users can update own membership" ON public.campaign_members';
+    CREATE POLICY "Users can update own membership"
+      ON public.campaign_members FOR UPDATE
+      USING (user_id = auth.uid());
+
+    -- GM can update any membership (e.g., kick, change roles)
+    EXECUTE 'DROP POLICY IF EXISTS "GM can update any membership" ON public.campaign_members';
+    CREATE POLICY "GM can update any membership"
+      ON public.campaign_members FOR UPDATE
+      USING (
+        EXISTS (
+          SELECT 1 FROM public.campaigns c
+          WHERE c.id = campaign_members.campaign_id
+          AND c.gm_user_id = auth.uid()
+        )
+      );
+
+    -- Users can leave campaigns (delete themselves)
+    EXECUTE 'DROP POLICY IF EXISTS "Users can leave campaigns" ON public.campaign_members';
+    CREATE POLICY "Users can leave campaigns"
+      ON public.campaign_members FOR DELETE
+      USING (user_id = auth.uid());
+
+    -- GM can remove members
+    EXECUTE 'DROP POLICY IF EXISTS "GM can remove members" ON public.campaign_members';
+    CREATE POLICY "GM can remove members"
+      ON public.campaign_members FOR DELETE
+      USING (
+        EXISTS (
+          SELECT 1 FROM public.campaigns c
+          WHERE c.id = campaign_members.campaign_id
+          AND c.gm_user_id = auth.uid()
+        )
+      );
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- 10. GM SCREEN (Phase 2: GM Screen MVP - GH#67)
+-- =============================================================================
+
+-- GM can view characters of their campaign members
+CREATE POLICY "GM can view member characters"
+  ON characters FOR SELECT
+  USING (
+    user_id = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM campaign_members cm
+      JOIN campaigns c ON c.id = cm.campaign_id
+      WHERE cm.character_id = characters.id
+      AND c.gm_user_id = auth.uid()
+    )
+  );
+
+-- GM can update member characters (for vitals adjustments)
+CREATE POLICY "GM can update member characters"
+  ON characters FOR UPDATE
+  USING (
+    user_id = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM campaign_members cm
+      JOIN campaigns c ON c.id = cm.campaign_id
+      WHERE cm.character_id = characters.id
+      AND c.gm_user_id = auth.uid()
+    )
+  );
+
+-- Fear management function (atomic updates with GM verification)
+CREATE OR REPLACE FUNCTION update_campaign_fear(
+  campaign_id_param UUID,
+  change_amount INTEGER,
+  gm_user_id_param UUID
+)
+RETURNS campaigns AS $$
+DECLARE
+  updated_campaign campaigns;
+BEGIN
+  -- Verify GM permission
+  IF NOT EXISTS (
+    SELECT 1 FROM campaigns
+    WHERE id = campaign_id_param
+    AND gm_user_id = gm_user_id_param
+  ) THEN
+    RAISE EXCEPTION 'Only the GM can modify Fear';
+  END IF;
+
+  -- Update Fear value (clamped between 0 and fear_max)
+  UPDATE campaigns
+  SET fear_current = GREATEST(0, LEAST(fear_max, fear_current + change_amount)),
+      updated_at = NOW()
+  WHERE id = campaign_id_param
+  RETURNING * INTO updated_campaign;
+
+  RETURN updated_campaign;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =============================================================================
+-- 11. CAMPAIGN ACTIVITY (Phase 3: Activity Feed - GH#67)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS public.campaign_activity (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  campaign_id UUID NOT NULL REFERENCES public.campaigns(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  character_id UUID REFERENCES public.characters(id) ON DELETE SET NULL,
+  character_name TEXT, -- Denormalized for display after character deletion
+
+  -- Activity classification
+  activity_type TEXT NOT NULL CHECK (activity_type IN (
+    'dice_roll',      -- Attack, damage, trait check, spell roll
+    'vital_change',   -- HP marked/cleared, stress gained/cleared, armor used
+    'card_used',      -- Spell/ability activated
+    'item_used',      -- Consumable used
+    'fear_change',    -- GM gained or spent Fear
+    'gm_vital_adjust',-- GM adjusted a player's vitals
+    'gm_announcement',-- GM broadcast message
+    'gm_roll',        -- GM dice roll (can be private)
+    'player_joined',  -- Player joined campaign
+    'player_left',    -- Player left campaign
+    'character_switched' -- Player switched characters
+  )),
+
+  -- Flexible payload (structure depends on activity_type)
+  data JSONB NOT NULL,
+
+  -- Visibility control
+  is_private BOOLEAN DEFAULT false, -- If true, only visible to the user who created it
+
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Indexes for efficient feed queries
+CREATE INDEX IF NOT EXISTS idx_campaign_activity_feed
+  ON public.campaign_activity(campaign_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_campaign_activity_user
+  ON public.campaign_activity(user_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_campaign_activity_type
+  ON public.campaign_activity(campaign_id, activity_type);
+
+-- =============================================================================
+-- CAMPAIGN ACTIVITY RLS POLICIES
+-- =============================================================================
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = 'campaign_activity' AND n.nspname = 'public') THEN
+
+    ALTER TABLE public.campaign_activity ENABLE ROW LEVEL SECURITY;
+
+    -- Members can view activity (except others' private activities)
+    EXECUTE 'DROP POLICY IF EXISTS "Members can view campaign activity" ON public.campaign_activity';
+    CREATE POLICY "Members can view campaign activity"
+      ON public.campaign_activity FOR SELECT
+      USING (
+        EXISTS (
+          SELECT 1 FROM public.campaign_members cm
+          WHERE cm.campaign_id = campaign_activity.campaign_id
+          AND cm.user_id = auth.uid()
+        )
+        AND (
+          is_private = false
+          OR user_id = auth.uid()
+        )
+      );
+
+    -- Members can insert their own activity
+    EXECUTE 'DROP POLICY IF EXISTS "Members can insert own activity" ON public.campaign_activity';
+    CREATE POLICY "Members can insert own activity"
+      ON public.campaign_activity FOR INSERT
+      WITH CHECK (
+        user_id = auth.uid()
+        AND EXISTS (
+          SELECT 1 FROM public.campaign_members cm
+          WHERE cm.campaign_id = campaign_activity.campaign_id
+          AND cm.user_id = auth.uid()
+        )
+      );
+
+    -- GM can insert activity for anyone (for damage/heal actions)
+    EXECUTE 'DROP POLICY IF EXISTS "GM can insert activity" ON public.campaign_activity';
+    CREATE POLICY "GM can insert activity"
+      ON public.campaign_activity FOR INSERT
+      WITH CHECK (
+        EXISTS (
+          SELECT 1 FROM public.campaigns c
+          WHERE c.id = campaign_activity.campaign_id
+          AND c.gm_user_id = auth.uid()
+        )
+      );
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- ACTIVITY CLEANUP FUNCTION
+-- Delete activity older than 7 days to prevent unbounded growth
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION cleanup_old_activity()
+RETURNS INTEGER AS $$
+DECLARE
+  deleted_count INTEGER;
+BEGIN
+  DELETE FROM public.campaign_activity
+  WHERE created_at < NOW() - INTERVAL '7 days';
+  
+  GET DIAGNOSTICS deleted_count = ROW_COUNT;
+  RETURN deleted_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
