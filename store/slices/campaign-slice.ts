@@ -13,6 +13,7 @@
 
 import { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
+import { realtimeManager } from '@/lib/realtime';
 import { CharacterStore } from '@/types/store';
 import { Character } from '@/types/character';
 import type {
@@ -71,6 +72,14 @@ export interface CampaignSlice {
     logActivity: (activity: CampaignActivityInsert) => Promise<void>;
     clearActivityFeed: () => void;
 
+    // Phase 4: Real-time subscription actions
+    realtimeSubscribed: boolean;
+    subscribeToCampaignRealtime: (campaignId: string) => Promise<void>;
+    unsubscribeFromCampaignRealtime: () => void;
+    addActivityToFeed: (activity: CampaignActivity) => void;
+    updateActiveCampaignFromRealtime: (updates: Partial<Campaign>) => void;
+    updatePartyCharacterFromRealtime: (characterId: string, updates: Partial<Character>) => void;
+
     // Error handling
     setCampaignError: (error: string | null) => void;
 }
@@ -91,6 +100,9 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     activityFeed: [],
     isLoadingActivity: false,
     activityTotalCount: 0,
+
+    // Phase 4: Real-time subscription state
+    realtimeSubscribed: false,
 
     fetchUserCampaigns: async () => {
         set({ isLoadingCampaigns: true, campaignError: null });
@@ -475,6 +487,54 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
 
     clearActivityFeed: () => {
         set({ activityFeed: [], activityTotalCount: 0 });
+    },
+
+    // Phase 4: Real-time subscription methods
+    subscribeToCampaignRealtime: async (campaignId: string) => {
+        const state = get();
+
+        // Set up the store getter for the realtime manager
+        realtimeManager.setStoreGetter(() => ({
+            user: (state as any).user,
+            addActivityToFeed: state.addActivityToFeed,
+            updateActiveCampaign: state.updateActiveCampaignFromRealtime,
+            updatePartyCharacterFromRealtime: state.updatePartyCharacterFromRealtime,
+        }));
+
+        // Get party character IDs for vital subscriptions
+        const partyCharacterIds = state.partyCharacters.map(c => c.id);
+
+        // Subscribe to realtime updates
+        await realtimeManager.subscribeToCampaign(campaignId, partyCharacterIds);
+        set({ realtimeSubscribed: true });
+    },
+
+    unsubscribeFromCampaignRealtime: () => {
+        realtimeManager.unsubscribe();
+        set({ realtimeSubscribed: false });
+    },
+
+    addActivityToFeed: (activity: CampaignActivity) => {
+        set((state) => ({
+            activityFeed: [activity, ...state.activityFeed],
+            activityTotalCount: state.activityTotalCount + 1,
+        }));
+    },
+
+    updateActiveCampaignFromRealtime: (updates: Partial<Campaign>) => {
+        set((state) => ({
+            activeCampaign: state.activeCampaign
+                ? { ...state.activeCampaign, ...updates }
+                : null,
+        }));
+    },
+
+    updatePartyCharacterFromRealtime: (characterId: string, updates: Partial<Character>) => {
+        set((state) => ({
+            partyCharacters: state.partyCharacters.map((char) =>
+                char.id === characterId ? { ...char, ...updates } : char
+            ),
+        }));
     },
 
     setCampaignError: (error: string | null) => {
