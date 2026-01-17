@@ -2,6 +2,7 @@
 
 > **GitHub Issue**: #67  
 > **Phase**: 2 of 7  
+> **Status**: ✅ COMPLETE (2026-01-16)  
 > **Estimated Effort**: 1-2 weeks  
 > **Dependencies**: Phase 1 (Campaign Foundation)  
 > **Deliverable**: GMs can view party status, adjust vitals (with lock/unlock), manage Fear, make announcements, and roll dice
