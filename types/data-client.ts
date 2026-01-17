@@ -10,6 +10,7 @@ import type {
   EnrichedCampaignMember,
   CampaignWithMembers,
 } from './campaign';
+import type { CampaignActivity, CampaignActivityInsert } from './activity';
 
 export interface LibraryFilterOptions {
   includePlaytest?: boolean;
@@ -82,5 +83,11 @@ export interface DataClient {
     getPartyCharacters: (campaignId: string) => Promise<Character[]>;
     gmAdjustVital: (characterId: string, vital: 'hp' | 'stress' | 'armor' | 'hope', newValue: number) => Promise<void>;
     updateFear: (campaignId: string, change: number) => Promise<Campaign>;
+
+    // Phase 3: Activity Feed methods
+    logActivity: (activity: CampaignActivityInsert) => Promise<CampaignActivity>;
+    getActivity: (campaignId: string, limit?: number, offset?: number) => Promise<CampaignActivity[]>;
+    getActivityCount: (campaignId: string) => Promise<number>;
   };
 }
+

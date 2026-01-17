@@ -2,6 +2,7 @@ import createClient from '@/lib/supabase/client';
 import { DataClient } from '@/types/data-client';
 import { Character, LibraryItem, HomebrewItem, CharacterInventoryItem, Experience } from '@/types/character';
 import type { Campaign, CampaignWithMembers } from '@/types/campaign';
+import type { CampaignActivity, CampaignActivityInsert } from '@/types/activity';
 
 // Helper to construct the service
 export const dataService: DataClient = {
@@ -844,6 +845,59 @@ export const dataService: DataClient = {
       }
 
       return data as Campaign;
+    },
+
+    // =========================================================================
+    // PHASE 3: ACTIVITY FEED METHODS
+    // =========================================================================
+
+    logActivity: async (activity: CampaignActivityInsert): Promise<CampaignActivity> => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('campaign_activity')
+        .insert(activity)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to log activity: ${error.message}`);
+      }
+
+      return data as CampaignActivity;
+    },
+
+    getActivity: async (
+      campaignId: string,
+      limit: number = 50,
+      offset: number = 0
+    ): Promise<CampaignActivity[]> => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('campaign_activity')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (error) {
+        throw new Error(`Failed to fetch activity: ${error.message}`);
+      }
+
+      return (data || []) as CampaignActivity[];
+    },
+
+    getActivityCount: async (campaignId: string): Promise<number> => {
+      const supabase = createClient();
+      const { count, error } = await supabase
+        .from('campaign_activity')
+        .select('*', { count: 'exact', head: true })
+        .eq('campaign_id', campaignId);
+
+      if (error) {
+        throw new Error(`Failed to count activity: ${error.message}`);
+      }
+
+      return count || 0;
     },
   }
 };
