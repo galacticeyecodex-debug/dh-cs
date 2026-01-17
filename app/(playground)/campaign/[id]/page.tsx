@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
-import { ArrowLeft, Settings, LogOut, UserPlus } from 'lucide-react';
+import { ArrowLeft, Settings, LogOut, UserPlus, Crown, Monitor } from 'lucide-react';
 import InviteCodeDisplay from '@/components/campaign/invite-code-display';
 import MemberList from '@/components/campaign/member-list';
 import CampaignSettingsModal from '@/components/campaign/campaign-settings-modal';
@@ -104,14 +104,24 @@ export default function CampaignDetailPage() {
 
                         <div className="flex gap-2">
                             {isGM && (
-                                <button
-                                    onClick={() => setShowSettings(true)}
-                                    className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
-                                    title="Campaign settings"
-                                    aria-label="Open campaign settings"
-                                >
-                                    <Settings size={20} className="text-gray-400" />
-                                </button>
+                                <>
+                                    <button
+                                        onClick={() => router.push(`/campaign/${activeCampaign.id}/gm`)}
+                                        className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-lg transition-colors flex items-center gap-2"
+                                        aria-label="Open GM Screen"
+                                    >
+                                        <Crown size={18} />
+                                        <span className="hidden sm:inline">GM Screen</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setShowSettings(true)}
+                                        className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                                        title="Campaign settings"
+                                        aria-label="Open campaign settings"
+                                    >
+                                        <Settings size={20} className="text-gray-400" />
+                                    </button>
+                                </>
                             )}
                             <button
                                 onClick={() => setShowAssignCharacter(true)}
