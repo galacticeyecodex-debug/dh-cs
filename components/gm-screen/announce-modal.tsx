@@ -1,5 +1,17 @@
 'use client';
 
+/**
+ * ANNOUNCE MODAL
+ * ----------------------------------------------------------------------------
+ * Allows the GM to send announcements to all players in a campaign.
+ * 
+ * FUNCTIONALITY:
+ * - Text input for custom announcement messages
+ * - Quick templates for common announcements (Combat Start, Rest, Level Up)
+ * - Logs announcement to activity feed for all players to see
+ * - Animated modal with Daggerheart styling
+ */
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Megaphone, Send } from 'lucide-react';

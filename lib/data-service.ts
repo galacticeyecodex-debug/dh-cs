@@ -512,30 +512,58 @@ export const dataService: DataClient = {
 
     getWithMembers: async (id) => {
       const supabase = createClient();
-      const { data, error } = await supabase
+
+      // Step 1: Get campaign
+      const { data: campaign, error: campaignError } = await supabase
         .from('campaigns')
-        .select(`
-          *,
-          members:campaign_members(
-            *,
-            profile:profiles!campaign_members_user_id_fkey(username, avatar_url),
-            character:characters(name, level, class_id, ancestry)
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
 
-      if (error) {
-        if (error.code === 'PGRST116') return null;
-        throw new Error(`Failed to fetch campaign with members: ${error.message}`);
+      if (campaignError) {
+        if (campaignError.code === 'PGRST116') return null;
+        throw new Error(`Failed to fetch campaign with members: ${campaignError.message}`);
       }
 
-      if (!data) return null;
+      if (!campaign) return null;
 
-      const campaign: any = data;
+      // Step 2: Get members with characters
+      const { data: members, error: membersError } = await supabase
+        .from('campaign_members')
+        .select(`
+          *,
+          character:characters(name, level, class_id, ancestry)
+        `)
+        .eq('campaign_id', id)
+        .order('joined_at', { ascending: true });
+
+      if (membersError) {
+        throw new Error(`Failed to fetch campaign members: ${membersError.message}`);
+      }
+
+      // Step 3: Get profiles for members
+      const userIds = (members || []).map((m: any) => m.user_id);
+      let profileMap = new Map();
+
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url')
+          .in('id', userIds);
+
+        profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+      }
+
+      // Step 4: Combine members with profiles
+      const enrichedMembers = (members || []).map((m: any) => ({
+        ...m,
+        profile: profileMap.get(m.user_id) || null,
+      }));
+
       return {
         ...campaign,
-        member_count: campaign.members?.length || 0,
+        members: enrichedMembers,
+        member_count: enrichedMembers.length,
       } as CampaignWithMembers;
     },
 
@@ -599,18 +627,35 @@ export const dataService: DataClient = {
 
     getMembers: async (campaignId) => {
       const supabase = createClient();
-      const { data, error } = await supabase
+
+      // Step 1: Get members with characters
+      const { data: members, error } = await supabase
         .from('campaign_members')
         .select(`
           *,
-          profile:profiles!campaign_members_user_id_fkey(username, avatar_url),
           character:characters(name, level, class_id, ancestry)
         `)
         .eq('campaign_id', campaignId)
         .order('joined_at', { ascending: true });
 
       if (error) throw new Error(`Failed to fetch campaign members: ${error.message}`);
-      return data || [];
+
+      if (!members || members.length === 0) return [];
+
+      // Step 2: Get profiles for members
+      const userIds = members.map((m: any) => m.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .in('id', userIds);
+
+      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+
+      // Step 3: Combine members with profiles
+      return members.map((m: any) => ({
+        ...m,
+        profile: profileMap.get(m.user_id) || null,
+      }));
     },
 
     addMember: async (data) => {
@@ -1018,17 +1063,10 @@ export const dataService: DataClient = {
     getFriends: async (userId: string) => {
       const supabase = createClient();
 
-      // Get accepted friendships where user is either requester or recipient
-      const { data, error } = await supabase
+      // Step 1: Get accepted friendships where user is either requester or recipient
+      const { data: friendships, error } = await supabase
         .from('friendships')
-        .select(`
-          id,
-          requester_id,
-          recipient_id,
-          created_at,
-          requester:profiles!friendships_requester_id_fkey(id, username, avatar_url, friend_code),
-          recipient:profiles!friendships_recipient_id_fkey(id, username, avatar_url, friend_code)
-        `)
+        .select('id, requester_id, recipient_id, created_at')
         .eq('status', 'accepted')
         .or(`requester_id.eq.${userId},recipient_id.eq.${userId}`);
 
@@ -1036,13 +1074,33 @@ export const dataService: DataClient = {
         throw new Error(`Failed to get friends: ${error.message}`);
       }
 
-      // Transform to Friend[] format
-      return (data || []).map((f: any) => {
+      if (!friendships || friendships.length === 0) {
+        return [];
+      }
+
+      // Step 2: Get all unique user IDs (friends)
+      const friendUserIds = new Set<string>();
+      for (const f of friendships) {
+        if (f.requester_id !== userId) friendUserIds.add(f.requester_id);
+        if (f.recipient_id !== userId) friendUserIds.add(f.recipient_id);
+      }
+
+      // Step 3: Get profile data for all friends
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url, friend_code')
+        .in('id', Array.from(friendUserIds));
+
+      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+
+      // Step 4: Transform to Friend[] format
+      return friendships.map((f) => {
         const isRequester = f.requester_id === userId;
-        const friendProfile = isRequester ? f.recipient : f.requester;
+        const friendUserId = isRequester ? f.recipient_id : f.requester_id;
+        const friendProfile = profileMap.get(friendUserId);
 
         return {
-          user_id: isRequester ? f.recipient_id : f.requester_id,
+          user_id: friendUserId,
           username: friendProfile?.username || null,
           avatar_url: friendProfile?.avatar_url || null,
           friend_code: friendProfile?.friend_code || null,
@@ -1056,14 +1114,10 @@ export const dataService: DataClient = {
     getPendingRequests: async (userId: string) => {
       const supabase = createClient();
 
-      const { data, error } = await supabase
+      // Step 1: Get pending friendships
+      const { data: friendships, error } = await supabase
         .from('friendships')
-        .select(`
-          id,
-          requester_id,
-          created_at,
-          requester:profiles!friendships_requester_id_fkey(id, username, avatar_url)
-        `)
+        .select('id, requester_id, created_at')
         .eq('recipient_id', userId)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
@@ -1072,28 +1126,41 @@ export const dataService: DataClient = {
         throw new Error(`Failed to get pending requests: ${error.message}`);
       }
 
-      return (data || []).map((f: any) => ({
-        id: f.id,
-        from: {
-          user_id: f.requester_id,
-          username: f.requester?.username || null,
-          avatar_url: f.requester?.avatar_url || null,
-        },
-        created_at: f.created_at,
-      }));
+      if (!friendships || friendships.length === 0) {
+        return [];
+      }
+
+      // Step 2: Get profile data for requesters
+      const requesterIds = friendships.map((f) => f.requester_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .in('id', requesterIds);
+
+      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+
+      // Step 3: Combine data
+      return friendships.map((f) => {
+        const profile = profileMap.get(f.requester_id);
+        return {
+          id: f.id,
+          from: {
+            user_id: f.requester_id,
+            username: profile?.username || null,
+            avatar_url: profile?.avatar_url || null,
+          },
+          created_at: f.created_at,
+        };
+      });
     },
 
     getOutgoingRequests: async (userId: string) => {
       const supabase = createClient();
 
-      const { data, error } = await supabase
+      // Step 1: Get outgoing friendships
+      const { data: friendships, error } = await supabase
         .from('friendships')
-        .select(`
-          id,
-          recipient_id,
-          created_at,
-          recipient:profiles!friendships_recipient_id_fkey(id, username, avatar_url)
-        `)
+        .select('id, recipient_id, created_at')
         .eq('requester_id', userId)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
@@ -1102,15 +1169,32 @@ export const dataService: DataClient = {
         throw new Error(`Failed to get outgoing requests: ${error.message}`);
       }
 
-      return (data || []).map((f: any) => ({
-        id: f.id,
-        to: {
-          user_id: f.recipient_id,
-          username: f.recipient?.username || null,
-          avatar_url: f.recipient?.avatar_url || null,
-        },
-        created_at: f.created_at,
-      }));
+      if (!friendships || friendships.length === 0) {
+        return [];
+      }
+
+      // Step 2: Get profile data for recipients
+      const recipientIds = friendships.map((f) => f.recipient_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .in('id', recipientIds);
+
+      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+
+      // Step 3: Combine data
+      return friendships.map((f) => {
+        const profile = profileMap.get(f.recipient_id);
+        return {
+          id: f.id,
+          to: {
+            user_id: f.recipient_id,
+            username: profile?.username || null,
+            avatar_url: profile?.avatar_url || null,
+          },
+          created_at: f.created_at,
+        };
+      });
     },
 
     unfriend: async (friendshipId: string) => {

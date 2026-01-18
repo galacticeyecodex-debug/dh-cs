@@ -31,7 +31,7 @@ export default function AssignCharacterModal({ isOpen, onClose, campaignId }: As
                 .catch((error) => console.error('Failed to fetch characters:', error))
                 .finally(() => setIsLoading(false));
         }
-    }, [isOpen, user?.id, character?.id]);
+    }, [isOpen, user, character?.id]);
 
     if (!isOpen) return null;
 

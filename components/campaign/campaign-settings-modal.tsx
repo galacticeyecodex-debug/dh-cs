@@ -63,7 +63,7 @@ export default function CampaignSettingsModal({ isOpen, onClose, campaign }: Cam
         setIsSubmitting(true);
         try {
             await deleteCampaign(campaign.id);
-            router.push('/app/campaigns');
+            router.push('/campaigns');
             onClose();
         } catch (error) {
             console.error('Failed to delete campaign:', error);
@@ -181,8 +181,8 @@ export default function CampaignSettingsModal({ isOpen, onClose, campaign }: Cam
                         <button
                             onClick={handleDelete}
                             className={`w-full px-4 py-2 text-sm font-bold rounded-lg transition-colors flex items-center justify-center gap-2 ${showDeleteConfirm
-                                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                                    : 'bg-red-500/20 hover:bg-red-500/30 text-red-400'
+                                ? 'bg-red-500 hover:bg-red-600 text-white'
+                                : 'bg-red-500/20 hover:bg-red-500/30 text-red-400'
                                 }`}
                             disabled={isSubmitting}
                         >

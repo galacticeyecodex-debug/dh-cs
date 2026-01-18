@@ -5,3 +5,5 @@ export { PlayerVitalsCard } from './player-vitals-card';
 export { QuickActionsBar } from './quick-actions-bar';
 export { GmDiceRollerModal } from './gm-dice-roller-modal';
 export { AnnounceModal } from './announce-modal';
+export { AdversaryBrowser } from './adversary-browser';
+export { EnvironmentBrowser } from './environment-browser';

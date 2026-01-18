@@ -12,7 +12,7 @@ export default function InviteCodeDisplay({ campaign }: InviteCodeDisplayProps) 
     const [copied, setCopied] = useState(false);
 
     const inviteLink = typeof window !== 'undefined'
-        ? `${window.location.origin}/app/campaigns?invite=${campaign.invite_code}`
+        ? `${window.location.origin}/campaigns?invite=${campaign.invite_code}`
         : '';
 
     const copyToClipboard = async () => {

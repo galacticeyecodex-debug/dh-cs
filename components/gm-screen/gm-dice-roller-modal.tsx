@@ -1,5 +1,18 @@
 'use client';
 
+/**
+ * GM DICE ROLLER MODAL
+ * ----------------------------------------------------------------------------
+ * Provides a dice rolling interface for the Game Master.
+ * 
+ * FUNCTIONALITY:
+ * - Supports standard dice notation (1d6, 2d12+3, etc.)
+ * - Quick presets for common dice (d4, d6, d8, d10, d12, d20)
+ * - Toggle between public rolls (visible to players) and hidden rolls (GM only)
+ * - Displays last roll result with large, readable display
+ * - Animated modal with Daggerheart styling
+ */
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Dices, EyeOff, Eye } from 'lucide-react';
@@ -150,8 +163,8 @@ export function GmDiceRollerModal({
                             <button
                                 onClick={() => setIsPrivate(true)}
                                 className={`flex-1 px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${isPrivate
-                                        ? 'bg-purple-500/30 border border-purple-500/50 text-purple-300'
-                                        : 'bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10'
+                                    ? 'bg-purple-500/30 border border-purple-500/50 text-purple-300'
+                                    : 'bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10'
                                     }`}
                             >
                                 <EyeOff size={16} />
@@ -160,8 +173,8 @@ export function GmDiceRollerModal({
                             <button
                                 onClick={() => setIsPrivate(false)}
                                 className={`flex-1 px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${!isPrivate
-                                        ? 'bg-blue-500/30 border border-blue-500/50 text-blue-300'
-                                        : 'bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10'
+                                    ? 'bg-blue-500/30 border border-blue-500/50 text-blue-300'
+                                    : 'bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10'
                                     }`}
                             >
                                 <Eye size={16} />

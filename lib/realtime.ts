@@ -162,6 +162,8 @@ export class CampaignRealtimeManager {
      * Unsubscribe from all channels
      */
     unsubscribe() {
+        const hadChannels = this.activityChannel || this.campaignChannel || this.characterChannels.size > 0;
+
         if (this.activityChannel) {
             this.activityChannel.unsubscribe();
             this.activityChannel = null;
@@ -173,7 +175,11 @@ export class CampaignRealtimeManager {
         this.characterChannels.forEach((channel) => channel.unsubscribe());
         this.characterChannels.clear();
         this.currentCampaignId = null;
-        console.log('[Realtime] Unsubscribed from all channels');
+
+        // Only log if we actually had channels to unsubscribe from
+        if (hadChannels) {
+            console.log('[Realtime] Unsubscribed from all channels');
+        }
     }
 
     /**

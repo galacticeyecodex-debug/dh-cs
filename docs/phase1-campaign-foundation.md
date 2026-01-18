@@ -1300,7 +1300,7 @@ export function InviteCodeDisplay({ inviteCode, campaignName }: InviteCodeDispla
 
 ### 6.1 Campaign List Page
 
-**File**: `app/app/campaigns/page.tsx` (new file)
+**File**: `app/campaigns/page.tsx` (new file)
 
 ```typescript
 'use client';

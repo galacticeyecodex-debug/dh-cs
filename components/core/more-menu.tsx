@@ -18,7 +18,7 @@
 
 import React, { useMemo } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Backpack, Moon, BookOpen, Settings, X, Sliders } from 'lucide-react';
+import { Backpack, Moon, BookOpen, X, Sliders } from 'lucide-react';
 import clsx from 'clsx';
 import type { TabId } from '@/store/slices/ui-slice';
 import { useDevMode } from '@/components/views/settings/settings-view';
@@ -48,12 +48,6 @@ const baseMenuItems: MoreMenuItem[] = [
         label: 'Journal',
         icon: BookOpen,
         description: 'Relationships & Reputation',
-    },
-    {
-        id: 'settings',
-        label: 'Settings',
-        icon: Settings,
-        description: 'Preferences & Content Access',
     },
 ];
 
