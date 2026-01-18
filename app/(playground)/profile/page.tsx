@@ -13,14 +13,12 @@
 
 import { useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import AuthButton from "@/components/auth/auth-buttons";
 import ContentAccessSettings from "@/components/modals/content-access-settings";
 import { FriendsPanel } from "@/components/friends";
 import { useCharacterStore } from "@/store/character-store";
 import useUser from "@/hooks/useUser";
-import { Users } from "lucide-react";
+import { Users, User } from "lucide-react";
 
 export default function ProfilePage() {
   const { user } = useUser();
@@ -59,51 +57,60 @@ export default function ProfilePage() {
   return (
     <section className="max-w-4xl mx-auto space-y-4 p-4">
       {/* Profile Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Avatar>
+      <div className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden">
+        <div className="p-6 border-b border-white/10">
+          <div className="flex items-center gap-2 mb-2">
+            <User className="h-5 w-5 text-dagger-gold" />
+            <h2 className="text-lg font-semibold text-white">Profile</h2>
+          </div>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16 border-2 border-white/10">
               <AvatarImage
                 src={avatarUrl}
                 alt={fullName}
               />
-              <AvatarFallback>{userInitial}</AvatarFallback>
+              <AvatarFallback className="bg-dagger-gold/20 text-dagger-gold text-xl">
+                {userInitial}
+              </AvatarFallback>
             </Avatar>
-
-            <p className="text-foreground truncate text-sm font-medium">
-              {fullName}
-            </p>
-            <p className="text-muted-foreground truncate text-xs font-normal">
-              {displayEmail}
-            </p>
+            <div>
+              <p className="text-white font-medium">
+                {fullName}
+              </p>
+              <p className="text-gray-400 text-sm">
+                {displayEmail}
+              </p>
+            </div>
           </div>
 
-          <div className="pt-4 border-t">
+          <div className="pt-4 border-t border-white/10">
             <AuthButton />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Friends Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Friends
+      <div className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden">
+        <div className="p-6 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-dagger-gold" />
+            <h2 className="text-lg font-semibold text-white">Friends</h2>
             {pendingRequests.length > 0 && (
-              <Badge variant="default" className="ml-2">
+              <span className="ml-2 px-2 py-0.5 rounded-full bg-dagger-gold/20 text-dagger-gold text-xs font-medium">
                 {pendingRequests.length} new
-              </Badge>
+              </span>
             )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+          </div>
+          <p className="text-gray-400 text-sm mt-1">
+            Connect with other players and share homebrew content.
+          </p>
+        </div>
+        <div className="p-6">
           <FriendsPanel />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Content Access Settings */}
       <ContentAccessSettings />

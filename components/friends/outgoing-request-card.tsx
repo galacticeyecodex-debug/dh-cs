@@ -6,7 +6,6 @@
  */
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { X, Clock } from 'lucide-react';
 import type { OutgoingRequest } from '@/types/friendship';
 
@@ -36,33 +35,31 @@ export function OutgoingRequestCard({ request, onCancel, isLoading }: OutgoingRe
     };
 
     return (
-        <div className="flex items-center justify-between p-3 rounded-lg bg-card border border-border">
+        <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
             <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
+                <Avatar className="h-10 w-10 border border-white/10">
                     <AvatarImage src={request.to.avatar_url || undefined} alt={request.to.username || 'User'} />
-                    <AvatarFallback className="bg-muted text-muted-foreground">
+                    <AvatarFallback className="bg-white/10 text-gray-400">
                         {getInitials(request.to.username)}
                     </AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="font-medium text-foreground">{request.to.username || 'Unknown User'}</p>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <p className="font-medium text-white">{request.to.username || 'Unknown User'}</p>
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
                         <Clock className="h-3 w-3" />
                         Pending • Sent {formatDate(request.created_at)}
                     </div>
                 </div>
             </div>
 
-            <Button
-                variant="ghost"
-                size="sm"
+            <button
                 onClick={() => onCancel(request.id)}
                 disabled={isLoading}
-                className="h-8 px-3 text-muted-foreground hover:text-destructive"
+                className="h-8 px-3 text-gray-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-sm"
             >
-                <X className="h-4 w-4 mr-1" />
+                <X className="h-4 w-4" />
                 Cancel
-            </Button>
+            </button>
         </div>
     );
 }

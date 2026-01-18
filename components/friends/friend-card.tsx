@@ -5,14 +5,8 @@
  * Displays a friend's basic information with actions
  */
 
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { MoreVertical, UserMinus, Ban, Share2 } from 'lucide-react';
 import type { Friend } from '@/types/friendship';
 
@@ -24,6 +18,8 @@ interface FriendCardProps {
 }
 
 export function FriendCard({ friend, onUnfriend, onBlock, onShareHomebrew }: FriendCardProps) {
+    const [showMenu, setShowMenu] = useState(false);
+
     const getInitials = (name: string | null) => {
         if (!name) return '?';
         return name.slice(0, 2).toUpperCase();
@@ -35,51 +31,73 @@ export function FriendCard({ friend, onUnfriend, onBlock, onShareHomebrew }: Fri
     };
 
     return (
-        <div className="flex items-center justify-between p-3 rounded-lg bg-card border border-border hover:bg-accent/50 transition-colors">
+        <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
             <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
+                <Avatar className="h-10 w-10 border border-white/10">
                     <AvatarImage src={friend.avatar_url || undefined} alt={friend.username || 'Friend'} />
-                    <AvatarFallback className="bg-primary/10 text-primary">
+                    <AvatarFallback className="bg-dagger-gold/20 text-dagger-gold">
                         {getInitials(friend.username)}
                     </AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="font-medium text-foreground">{friend.username || 'Unknown User'}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="font-medium text-white">{friend.username || 'Unknown User'}</p>
+                    <p className="text-xs text-gray-500">
                         Friends since {formatDate(friend.since)}
                     </p>
                 </div>
             </div>
 
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    {onShareHomebrew && (
-                        <DropdownMenuItem onClick={() => onShareHomebrew(friend.user_id)}>
-                            <Share2 className="h-4 w-4 mr-2" />
-                            Share Homebrew
-                        </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem
-                        onClick={() => onUnfriend(friend.friendship_id)}
-                        className="text-orange-500 focus:text-orange-500"
-                    >
-                        <UserMinus className="h-4 w-4 mr-2" />
-                        Remove Friend
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => onBlock(friend.friendship_id)}
-                        className="text-destructive focus:text-destructive"
-                    >
-                        <Ban className="h-4 w-4 mr-2" />
-                        Block User
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="relative">
+                <button
+                    onClick={() => setShowMenu(!showMenu)}
+                    className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
+                >
+                    <MoreVertical className="h-4 w-4 text-gray-400" />
+                </button>
+
+                {showMenu && (
+                    <>
+                        <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setShowMenu(false)}
+                        />
+                        <div className="absolute right-0 top-full mt-1 z-20 bg-dagger-panel border border-white/10 rounded-lg shadow-xl overflow-hidden min-w-[160px]">
+                            {onShareHomebrew && (
+                                <button
+                                    onClick={() => {
+                                        onShareHomebrew(friend.user_id);
+                                        setShowMenu(false);
+                                    }}
+                                    className="w-full px-3 py-2 text-left text-sm text-white hover:bg-white/10 flex items-center gap-2"
+                                >
+                                    <Share2 className="h-4 w-4" />
+                                    Share Homebrew
+                                </button>
+                            )}
+                            <button
+                                onClick={() => {
+                                    onUnfriend(friend.friendship_id);
+                                    setShowMenu(false);
+                                }}
+                                className="w-full px-3 py-2 text-left text-sm text-orange-400 hover:bg-white/10 flex items-center gap-2"
+                            >
+                                <UserMinus className="h-4 w-4" />
+                                Remove Friend
+                            </button>
+                            <button
+                                onClick={() => {
+                                    onBlock(friend.friendship_id);
+                                    setShowMenu(false);
+                                }}
+                                className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-white/10 flex items-center gap-2"
+                            >
+                                <Ban className="h-4 w-4" />
+                                Block User
+                            </button>
+                        </div>
+                    </>
+                )}
+            </div>
         </div>
     );
 }

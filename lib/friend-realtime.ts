@@ -83,9 +83,7 @@ export class FriendRealtimeManager {
         // Subscribe to the channel
         if (this.channel) {
             this.channel.subscribe((status) => {
-                if (status === 'SUBSCRIBED') {
-                    console.log('[FriendRealtime] Subscribed to friendship changes');
-                } else if (status === 'CHANNEL_ERROR') {
+                if (status === 'CHANNEL_ERROR') {
                     console.error('[FriendRealtime] Error subscribing to friendship changes');
                 }
             });
@@ -101,7 +99,6 @@ export class FriendRealtimeManager {
             supabase.removeChannel(this.channel);
             this.channel = null;
             this.userId = null;
-            console.log('[FriendRealtime] Unsubscribed from friendship changes');
         }
     }
 

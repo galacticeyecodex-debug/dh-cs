@@ -6,7 +6,6 @@
  */
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Copy, Check, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -33,8 +32,8 @@ export function MyFriendCode({ code, onRefresh }: MyFriendCodeProps) {
 
     if (!code) {
         return (
-            <div className="p-4 rounded-lg bg-muted/50 border border-dashed border-border text-center">
-                <p className="text-sm text-muted-foreground">Loading your friend code...</p>
+            <div className="p-4 rounded-lg bg-white/5 border border-dashed border-white/10 text-center">
+                <p className="text-sm text-gray-400">Loading your friend code...</p>
             </div>
         );
     }
@@ -45,43 +44,40 @@ export function MyFriendCode({ code, onRefresh }: MyFriendCodeProps) {
         : code;
 
     return (
-        <div className="p-4 rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+        <div className="p-4 rounded-lg bg-dagger-gold/10 border border-dagger-gold/30">
             <div className="flex items-center justify-between">
                 <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">
                         Your Friend Code
                     </p>
-                    <p className="text-2xl font-mono font-bold tracking-widest text-primary">
+                    <p className="text-2xl font-mono font-bold tracking-widest text-dagger-gold">
                         {formattedCode}
                     </p>
                 </div>
                 <div className="flex gap-1">
-                    <Button
-                        variant="ghost"
-                        size="icon"
+                    <button
                         onClick={handleCopy}
-                        className="h-9 w-9"
+                        className="h-9 w-9 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                        title="Copy code"
                     >
                         {copied ? (
-                            <Check className="h-4 w-4 text-green-500" />
+                            <Check className="h-4 w-4 text-green-400" />
                         ) : (
-                            <Copy className="h-4 w-4" />
+                            <Copy className="h-4 w-4 text-gray-400" />
                         )}
-                    </Button>
+                    </button>
                     {onRefresh && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
+                        <button
                             onClick={onRefresh}
-                            className="h-9 w-9"
+                            className="h-9 w-9 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
                             title="Generate new code"
                         >
-                            <RefreshCw className="h-4 w-4" />
-                        </Button>
+                            <RefreshCw className="h-4 w-4 text-gray-400" />
+                        </button>
                     )}
                 </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-gray-400 mt-2">
                 Share this code with friends so they can add you.
             </p>
         </div>

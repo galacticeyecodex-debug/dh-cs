@@ -5,23 +5,24 @@
  * Main view for managing friends, requests, and friend codes
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 import { Loader2, Users, UserPlus, Send } from 'lucide-react';
 import { FriendCard } from './friend-card';
 import { FriendRequestCard } from './friend-request-card';
 import { OutgoingRequestCard } from './outgoing-request-card';
 import { AddFriendForm } from './add-friend-form';
 import { MyFriendCode } from './my-friend-code';
+import clsx from 'clsx';
 
 interface FriendsPanelProps {
     onShareHomebrew?: (userId: string) => void;
 }
 
+type TabType = 'friends' | 'requests' | 'sent';
+
 export function FriendsPanel({ onShareHomebrew }: FriendsPanelProps) {
+    const [activeTab, setActiveTab] = useState<TabType>('friends');
     const {
         friends,
         pendingRequests,
@@ -45,10 +46,17 @@ export function FriendsPanel({ onShareHomebrew }: FriendsPanelProps) {
     if (isLoadingFriends && friends.length === 0) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
             </div>
         );
     }
+
+    const tabButtonClass = (tab: TabType) => clsx(
+        'flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+        activeTab === tab
+            ? 'bg-dagger-gold/20 text-dagger-gold'
+            : 'text-gray-400 hover:text-white hover:bg-white/5'
+    );
 
     return (
         <div className="space-y-6">
@@ -56,53 +64,64 @@ export function FriendsPanel({ onShareHomebrew }: FriendsPanelProps) {
             <MyFriendCode code={myFriendCode} />
 
             {/* Add Friend Form */}
-            <div className="p-4 rounded-lg bg-card border border-border">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <UserPlus className="h-4 w-4" />
+            <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-white">
+                    <UserPlus className="h-4 w-4 text-dagger-gold" />
                     Add Friend
                 </h3>
                 <AddFriendForm onSubmit={sendFriendRequest} />
             </div>
 
-            {/* Tabs for Friends / Requests */}
-            <Tabs defaultValue="friends" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="friends" className="flex items-center gap-2">
+            {/* Custom Tabs */}
+            <div className="space-y-4">
+                {/* Tab Buttons */}
+                <div className="flex gap-1 p-1 bg-white/5 rounded-lg">
+                    <button
+                        onClick={() => setActiveTab('friends')}
+                        className={tabButtonClass('friends')}
+                    >
                         <Users className="h-4 w-4" />
                         Friends
                         {friends.length > 0 && (
-                            <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                            <span className="px-1.5 py-0.5 text-xs rounded bg-white/10">
                                 {friends.length}
-                            </Badge>
+                            </span>
                         )}
-                    </TabsTrigger>
-                    <TabsTrigger value="requests" className="flex items-center gap-2">
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('requests')}
+                        className={tabButtonClass('requests')}
+                    >
                         Requests
                         {pendingRequests.length > 0 && (
-                            <Badge variant="default" className="ml-1 h-5 px-1.5 bg-primary">
+                            <span className="px-1.5 py-0.5 text-xs rounded bg-dagger-gold/30 text-dagger-gold">
                                 {pendingRequests.length}
-                            </Badge>
+                            </span>
                         )}
-                    </TabsTrigger>
-                    <TabsTrigger value="sent" className="flex items-center gap-2">
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('sent')}
+                        className={tabButtonClass('sent')}
+                    >
                         <Send className="h-4 w-4" />
                         Sent
                         {outgoingRequests.length > 0 && (
-                            <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                            <span className="px-1.5 py-0.5 text-xs rounded bg-white/10">
                                 {outgoingRequests.length}
-                            </Badge>
+                            </span>
                         )}
-                    </TabsTrigger>
-                </TabsList>
+                    </button>
+                </div>
 
-                {/* Friends List */}
-                <TabsContent value="friends" className="mt-4">
-                    <ScrollArea className="h-[400px] pr-4">
-                        {friends.length === 0 ? (
+                {/* Tab Content */}
+                <div className="max-h-[400px] overflow-y-auto">
+                    {/* Friends List */}
+                    {activeTab === 'friends' && (
+                        friends.length === 0 ? (
                             <div className="text-center py-12">
-                                <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                                <p className="text-muted-foreground">No friends yet</p>
-                                <p className="text-sm text-muted-foreground mt-1">
+                                <Users className="h-12 w-12 mx-auto text-gray-600 mb-3" />
+                                <p className="text-gray-400">No friends yet</p>
+                                <p className="text-sm text-gray-500 mt-1">
                                     Share your friend code or add someone using theirs!
                                 </p>
                             </div>
@@ -118,18 +137,16 @@ export function FriendsPanel({ onShareHomebrew }: FriendsPanelProps) {
                                     />
                                 ))}
                             </div>
-                        )}
-                    </ScrollArea>
-                </TabsContent>
+                        )
+                    )}
 
-                {/* Incoming Requests */}
-                <TabsContent value="requests" className="mt-4">
-                    <ScrollArea className="h-[400px] pr-4">
-                        {pendingRequests.length === 0 ? (
+                    {/* Incoming Requests */}
+                    {activeTab === 'requests' && (
+                        pendingRequests.length === 0 ? (
                             <div className="text-center py-12">
-                                <UserPlus className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                                <p className="text-muted-foreground">No pending requests</p>
-                                <p className="text-sm text-muted-foreground mt-1">
+                                <UserPlus className="h-12 w-12 mx-auto text-gray-600 mb-3" />
+                                <p className="text-gray-400">No pending requests</p>
+                                <p className="text-sm text-gray-500 mt-1">
                                     When someone sends you a friend request, it will appear here.
                                 </p>
                             </div>
@@ -144,18 +161,16 @@ export function FriendsPanel({ onShareHomebrew }: FriendsPanelProps) {
                                     />
                                 ))}
                             </div>
-                        )}
-                    </ScrollArea>
-                </TabsContent>
+                        )
+                    )}
 
-                {/* Outgoing Requests (Sent) */}
-                <TabsContent value="sent" className="mt-4">
-                    <ScrollArea className="h-[400px] pr-4">
-                        {outgoingRequests.length === 0 ? (
+                    {/* Outgoing Requests (Sent) */}
+                    {activeTab === 'sent' && (
+                        outgoingRequests.length === 0 ? (
                             <div className="text-center py-12">
-                                <Send className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                                <p className="text-muted-foreground">No pending requests</p>
-                                <p className="text-sm text-muted-foreground mt-1">
+                                <Send className="h-12 w-12 mx-auto text-gray-600 mb-3" />
+                                <p className="text-gray-400">No pending requests</p>
+                                <p className="text-sm text-gray-500 mt-1">
                                     Friend requests you&apos;ve sent will appear here.
                                 </p>
                             </div>
@@ -169,10 +184,10 @@ export function FriendsPanel({ onShareHomebrew }: FriendsPanelProps) {
                                     />
                                 ))}
                             </div>
-                        )}
-                    </ScrollArea>
-                </TabsContent>
-            </Tabs>
+                        )
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
