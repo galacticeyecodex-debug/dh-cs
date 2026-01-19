@@ -17,7 +17,17 @@ export type ActivityType =
     | 'gm_roll'
     | 'player_joined'
     | 'player_left'
-    | 'character_switched';
+    | 'character_switched'
+    // Phase 9: Countdown & Project activity types
+    | 'countdown_created'
+    | 'countdown_advanced'
+    | 'countdown_triggered'
+    | 'countdown_deleted'
+    | 'countdown_reset'
+    | 'project_created'
+    | 'project_advanced'
+    | 'project_completed'
+    | 'project_abandoned';
 
 // Base activity interface
 export interface CampaignActivity {
@@ -44,11 +54,13 @@ export type ActivityData =
     | GmRollActivityData
     | PlayerJoinedActivityData
     | PlayerLeftActivityData
-    | CharacterSwitchedActivityData;
+    | CharacterSwitchedActivityData
+    | CountdownActivityData
+    | ProjectActivityData;
 
 // Specific activity payloads
 export interface DiceRollActivityData {
-    roll_type: 'attack' | 'damage' | 'trait' | 'spellcast' | 'custom';
+    roll_type: 'attack' | 'damage' | 'trait' | 'spellcast' | 'custom' | 'gm_roll';
     trait?: string;
     dice: number[]; // Individual die results
     modifier: number;
@@ -58,6 +70,7 @@ export interface DiceRollActivityData {
     success?: boolean;
     description?: string;
     hope_fear?: 'hope' | 'fear';
+    is_gm_roll?: boolean;
 }
 
 export interface VitalChangeActivityData {
@@ -124,6 +137,25 @@ export interface PlayerLeftActivityData {
 export interface CharacterSwitchedActivityData {
     previous_character_name?: string;
     new_character_name: string;
+}
+
+// Phase 9: Countdown activity data
+export interface CountdownActivityData {
+    countdown_name: string;
+    countdown_type?: string;
+    previous_value?: number;
+    new_value?: number;
+    starting_value?: number;
+    amount_advanced?: number;
+}
+
+// Phase 9: Project activity data
+export interface ProjectActivityData {
+    project_name: string;
+    character_name?: string;
+    previous_value?: number;
+    new_value?: number;
+    starting_value?: number;
 }
 
 // Insert type (without id and created_at)

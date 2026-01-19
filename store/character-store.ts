@@ -18,6 +18,7 @@ import { createCardStateSlice, CardStateSlice } from './slices/card-state-slice'
 import { createDowntimeSlice, DowntimeSlice } from './slices/downtime-slice';
 import { createJournalSlice, JournalSlice } from './slices/journal-slice';
 import { createCampaignSlice, CampaignSlice } from './slices/campaign-slice';
+import { createFriendshipSlice, FriendshipSlice } from './slices/friendship-slice';
 import { CharacterStore } from '@/types/store';
 
 // Re-export types for backward compatibility
@@ -35,6 +36,8 @@ export const useCharacterStore = create<CharacterStore>()((...a) => ({
   ...createDowntimeSlice(...a),
   ...createJournalSlice(...a),
   ...createCampaignSlice(...a),
+  ...createFriendshipSlice(...a),
 }));
+
 
 

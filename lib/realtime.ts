@@ -22,18 +22,45 @@ type StoreGetter = () => {
     updatePartyCharacterFromRealtime?: (characterId: string, updates: Record<string, unknown>) => void;
 };
 
+// Callback type for roll notifications
+type RollNotificationCallback = (activity: CampaignActivity) => void;
+
 export class CampaignRealtimeManager {
     private activityChannel: RealtimeChannel | null = null;
     private campaignChannel: RealtimeChannel | null = null;
     private characterChannels: Map<string, RealtimeChannel> = new Map();
     private getStore: StoreGetter | null = null;
     private currentCampaignId: string | null = null;
+    private rollNotificationCallbacks: Set<RollNotificationCallback> = new Set();
 
     /**
      * Set the store getter function to access state without circular imports
      */
     setStoreGetter(getter: StoreGetter) {
         this.getStore = getter;
+    }
+
+    /**
+     * Register a callback to be notified when roll activities arrive
+     */
+    onRollNotification(callback: RollNotificationCallback) {
+        this.rollNotificationCallbacks.add(callback);
+        return () => {
+            this.rollNotificationCallbacks.delete(callback);
+        };
+    }
+
+    /**
+     * Emit a roll notification to all registered callbacks
+     */
+    private emitRollNotification(activity: CampaignActivity) {
+        this.rollNotificationCallbacks.forEach(callback => {
+            try {
+                callback(activity);
+            } catch (error) {
+                // Callback error is non-critical, continue with other callbacks
+            }
+        });
     }
 
     /**
@@ -75,27 +102,33 @@ export class CampaignRealtimeManager {
                     const activity = payload.new as CampaignActivity;
                     const state = this.getStore?.();
                     const currentUserId = state?.user?.id;
-
-                    // Don't show own activity (already optimistically added)
-                    if (activity.user_id === currentUserId) return;
+                    const isOwnActivity = activity.user_id === currentUserId;
 
                     // Don't show private activity from others
-                    if (activity.is_private && activity.user_id !== currentUserId) return;
+                    if (activity.is_private && !isOwnActivity) return;
 
-                    // Add to feed
+                    // For dice rolls, always emit the notification (including own rolls for confirmation)
+                    // But only add to feed if it's not our own (own is optimistically added)
+                    if (activity.activity_type === 'dice_roll') {
+                        // Emit roll notification for all dice rolls (own roll = "sent" confirmation)
+                        this.emitRollNotification(activity);
+
+                        // Only add others' rolls to feed (own is already there via optimistic update)
+                        if (!isOwnActivity) {
+                            state?.addActivityToFeed?.(activity);
+                        }
+                        return;
+                    }
+
+                    // For non-dice activities, skip own (already optimistically added)
+                    if (isOwnActivity) return;
+
+                    // Add to feed and show toast for other activity types
                     state?.addActivityToFeed?.(activity);
-
-                    // Show toast notification for the activity
                     this.showActivityNotification(activity);
                 }
             )
-            .subscribe((status: string) => {
-                if (status === 'SUBSCRIBED') {
-                    console.log('[Realtime] Subscribed to campaign activity:', campaignId);
-                } else if (status === 'CHANNEL_ERROR') {
-                    console.error('[Realtime] Error subscribing to activity channel');
-                }
-            });
+            .subscribe();
     }
 
     /**
@@ -119,11 +152,7 @@ export class CampaignRealtimeManager {
                     state?.updateActiveCampaign?.(updates);
                 }
             )
-            .subscribe((status: string) => {
-                if (status === 'SUBSCRIBED') {
-                    console.log('[Realtime] Subscribed to campaign updates:', campaignId);
-                }
-            });
+            .subscribe();
     }
 
     /**
@@ -148,11 +177,7 @@ export class CampaignRealtimeManager {
                         state?.updatePartyCharacterFromRealtime?.(characterId, updates);
                     }
                 )
-                .subscribe((status: string) => {
-                    if (status === 'SUBSCRIBED') {
-                        console.log('[Realtime] Subscribed to character vitals:', characterId);
-                    }
-                });
+                .subscribe();
 
             this.characterChannels.set(characterId, channel);
         });
@@ -173,7 +198,6 @@ export class CampaignRealtimeManager {
         this.characterChannels.forEach((channel) => channel.unsubscribe());
         this.characterChannels.clear();
         this.currentCampaignId = null;
-        console.log('[Realtime] Unsubscribed from all channels');
     }
 
     /**

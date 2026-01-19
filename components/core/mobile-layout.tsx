@@ -5,26 +5,27 @@
  * ----------------------------------------------------------------------------
  * This component serves as the primary layout wrapper for the mobile-first
  * character sheet interface. It structures the application into three key zones:
- * 1. A top header displaying the character's name and providing authentication controls (Sign Out).
+ * 1. A top header displaying the character's name and providing context switching.
  * 2. A central scrollable content area where specific views are rendered.
  * 3. A persistent bottom navigation bar with primary views + "More" menu access.
  * 
- * The "More" menu provides access to secondary views (Inventory, Downtime, Journal)
- * without overcrowding the bottom navigation.
+ * The header now includes a context menu that allows switching between:
+ * - Characters: Shows character name, click to switch characters
+ * - Campaigns: Shows campaign list access
  * 
  * Additionally, it integrates a Floating Action Button (FAB) for quick access to 
  * the Dice Roller overlay, ensuring dice mechanics are always accessible regardless of the current view.
  */
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { User, Layers, Dices, Swords, LogOut, ChevronDown, MoreHorizontal } from 'lucide-react';
+import { User, Layers, Dices, Swords, ChevronDown, MoreHorizontal, Sword, Users } from 'lucide-react';
 import DiceOverlay from '../dice/dice-overlay';
 import MoreMenu from './more-menu';
+import UserMenu from './user-menu';
 import MiniVitalsBanner from '../vitals/mini-vitals-banner';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
-import useUser from '@/hooks/useUser';
 import { useTabPersistence } from '@/hooks/useTabPersistence';
 
 // Fix for no-explicit-any on NavButton props
@@ -36,41 +37,169 @@ interface NavButtonProps {
 }
 
 export default function MobileLayout({ children }: { children: React.ReactNode }) {
-  const { activeTab, setActiveTab, openDiceOverlay, openMoreMenu, isMoreMenuOpen, character } = useCharacterStore();
+  const { activeTab, setActiveTab, openDiceOverlay, openMoreMenu, isMoreMenuOpen, character, campaigns, activeCampaign } = useCharacterStore();
   const router = useRouter();
-  const { signOut } = useUser();
+  const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   // Restore user's last tab from localStorage after hydration (prevents hydration mismatch)
   useTabPersistence();
 
-  const handleSignOut = async () => {
-    await signOut();
-    router.push('/auth/login');
-    router.refresh();
+  // Handle navigation from UserMenu dropdown
+  const handleUserMenuNavigate = (tab: 'profile' | 'settings') => {
+    setActiveTab(tab);
+  };
+
+  // Close context menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
+        setIsContextMenuOpen(false);
+      }
+    };
+
+    if (isContextMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isContextMenuOpen]);
+
+  // Close menu on escape key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsContextMenuOpen(false);
+      }
+    };
+
+    if (isContextMenuOpen) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [isContextMenuOpen]);
+
+  const handleNavigateTo = (path: string) => {
+    setIsContextMenuOpen(false);
+    router.push(path);
   };
 
   // Check if current tab is in the "More" menu (for highlighting More button)
-  const isMoreTabActive = ['inventory', 'downtime', 'journal', 'settings', 'dev'].includes(activeTab);
+  const isMoreTabActive = ['inventory', 'downtime', 'journal', 'dev'].includes(activeTab);
+
+  // Determine header display based on context
+  const headerTitle = character?.name || 'Daggerheart';
+  const headerIcon = character ? Sword : Sword;
 
   return (
     <div className="flex flex-col h-[100dvh] bg-dagger-dark text-white overflow-hidden">
-      {/* Header with character name and sign out */}
+      {/* Header with context switcher */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-dagger-panel">
-        <button
-          onClick={() => router.push('/client/characters')}
-          className="flex items-center gap-2 text-lg font-serif font-bold text-dagger-gold hover:text-white transition-colors"
-        >
-          <h1>{character?.name || 'Daggerheart'}</h1>
-          <ChevronDown size={20} />
-        </button>
-        <button
-          onClick={handleSignOut}
-          className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white transition-colors"
-          title="Sign Out"
-        >
-          <LogOut size={18} />
-          <span className="hidden sm:inline">Sign Out</span>
-        </button>
+        <div className="relative" ref={contextMenuRef}>
+          <button
+            onClick={() => setIsContextMenuOpen(!isContextMenuOpen)}
+            className={clsx(
+              'flex items-center gap-2 text-lg font-serif font-bold transition-colors',
+              isContextMenuOpen ? 'text-white' : 'text-dagger-gold hover:text-white'
+            )}
+            aria-label="Context menu"
+            aria-expanded={isContextMenuOpen}
+            aria-haspopup="true"
+          >
+            <Sword size={20} aria-hidden="true" />
+            <span>{headerTitle}</span>
+            <ChevronDown
+              size={18}
+              className={clsx(
+                'text-gray-400 transition-transform duration-200',
+                isContextMenuOpen && 'rotate-180'
+              )}
+            />
+          </button>
+
+          {/* Context Dropdown Menu */}
+          {isContextMenuOpen && (
+            <div
+              className="absolute left-0 top-full mt-2 w-64 bg-dagger-panel border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50"
+              role="menu"
+              aria-orientation="vertical"
+            >
+              {/* Characters Section */}
+              <div className="py-1">
+                <button
+                  onClick={() => handleNavigateTo('/client/characters')}
+                  className="w-full px-4 py-3 text-left hover:bg-white/10 flex items-center gap-3 transition-colors"
+                  role="menuitem"
+                >
+                  <div className="p-1.5 rounded-lg bg-dagger-gold/20">
+                    <Sword size={16} className="text-dagger-gold" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white">Characters</p>
+                    {character ? (
+                      <p className="text-xs text-gray-400 truncate">Currently: {character.name}</p>
+                    ) : (
+                      <p className="text-xs text-gray-500">Select a character</p>
+                    )}
+                  </div>
+                </button>
+              </div>
+
+              <div className="border-t border-white/10" />
+
+              {/* Campaigns Section */}
+              <div className="py-1">
+                <button
+                  onClick={() => handleNavigateTo('/campaigns')}
+                  className="w-full px-4 py-3 text-left hover:bg-white/10 flex items-center gap-3 transition-colors"
+                  role="menuitem"
+                >
+                  <div className="p-1.5 rounded-lg bg-blue-500/20">
+                    <Users size={16} className="text-blue-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white">Campaigns</p>
+                    {activeCampaign ? (
+                      <p className="text-xs text-gray-400 truncate">Currently: {activeCampaign.name}</p>
+                    ) : campaigns && campaigns.length > 0 ? (
+                      <p className="text-xs text-gray-500">{campaigns.length} campaign{campaigns.length !== 1 ? 's' : ''}</p>
+                    ) : (<p className="text-xs text-gray-500">No campaigns yet</p>
+                    )}
+                  </div>
+                </button>
+
+                {/* Quick campaign list (if campaigns exist) */}
+                {campaigns && campaigns.length > 0 && (
+                  <div className="px-2 pb-2">
+                    <div className="border-t border-white/5 pt-2 mt-1">
+                      {campaigns.slice(0, 3).map((campaign: { id: string; name: string }) => (
+                        <button
+                          key={campaign.id}
+                          onClick={() => handleNavigateTo(`/campaign/${campaign.id}`)}
+                          className={clsx(
+                            'w-full px-3 py-2 text-left text-xs rounded-lg flex items-center gap-2 transition-colors',
+                            activeCampaign?.id === campaign.id
+                              ? 'bg-blue-500/20 text-blue-300'
+                              : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                          )}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
+                          <span className="truncate">{campaign.name}</span>
+                        </button>
+                      ))}
+                      {campaigns.length > 3 && (
+                        <p className="text-[10px] text-gray-600 text-center mt-1">
+                          +{campaigns.length - 3} more
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <UserMenu onNavigateToTab={handleUserMenuNavigate} />
       </header>
 
       {/* Main Content Area */}

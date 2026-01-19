@@ -14,10 +14,10 @@ import { RollResult } from '@/types/character';
 import { CharacterStore } from '@/types/store';
 
 // Tab type definition - extended with new views
-export type TabId = 'character' | 'combat' | 'playmat' | 'inventory' | 'downtime' | 'journal' | 'settings' | 'dev';
+export type TabId = 'character' | 'combat' | 'playmat' | 'inventory' | 'downtime' | 'journal' | 'settings' | 'profile' | 'dev';
 
 // Valid tab values for validation
-const VALID_TABS: TabId[] = ['character', 'combat', 'playmat', 'inventory', 'downtime', 'journal', 'settings', 'dev'];
+const VALID_TABS: TabId[] = ['character', 'combat', 'playmat', 'inventory', 'downtime', 'journal', 'settings', 'profile', 'dev'];
 
 // localStorage key for persisting active tab
 const ACTIVE_TAB_STORAGE_KEY = 'dh:activeTab';
@@ -35,7 +35,7 @@ export interface UiSlice {
   activeTab: TabId;
   isDiceOverlayOpen: boolean;
   isMoreMenuOpen: boolean;
-  activeRoll: { label: string; modifier: number; dice?: string; diceColor?: string } | null;
+  activeRoll: { label: string; modifier: number; dice?: string; diceColor?: string; isGmRoll?: boolean; isPrivate?: boolean } | null;
   lastRollResult: RollResult | null;
 
   setActiveTab: (tab: TabId) => void;
@@ -44,6 +44,7 @@ export interface UiSlice {
   openMoreMenu: () => void;
   closeMoreMenu: () => void;
   prepareRoll: (label: string, modifier: number, dice?: string, diceColor?: string) => void;
+  prepareGmRoll: (label: string, dice: string, isPrivate: boolean) => void;
   setLastRollResult: (result: RollResult | null) => void;
 }
 
@@ -68,5 +69,9 @@ export const createUiSlice: StateCreator<CharacterStore, [], [], UiSlice> = (set
   openMoreMenu: () => set({ isMoreMenuOpen: true }),
   closeMoreMenu: () => set({ isMoreMenuOpen: false }),
   prepareRoll: (label, modifier, dice, diceColor) => set({ isDiceOverlayOpen: true, activeRoll: { label, modifier, dice, diceColor } }),
+  prepareGmRoll: (label, dice, isPrivate) => set({
+    isDiceOverlayOpen: true,
+    activeRoll: { label, modifier: 0, dice, diceColor: '#8b5cf6', isGmRoll: true, isPrivate }
+  }),
   setLastRollResult: (result) => set({ lastRollResult: result }),
 });

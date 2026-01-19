@@ -23,9 +23,14 @@ import type {
     CampaignMember,
     EnrichedCampaignMember,
     CampaignWithMembers,
+    Countdown,
+    CountdownInsert,
+    Project,
+    ProjectInsert,
 } from '@/types/campaign';
 import type { CampaignActivity, CampaignActivityInsert } from '@/types/activity';
 import { toast } from 'sonner';
+import { withOptimisticUpdate } from '@/lib/state-helpers';
 
 export interface CampaignSlice {
     // State
@@ -82,6 +87,17 @@ export interface CampaignSlice {
 
     // Error handling
     setCampaignError: (error: string | null) => void;
+
+    // Phase 9: Countdowns and Projects
+    createCountdown: (campaignId: string, countdown: CountdownInsert) => Promise<void>;
+    advanceCountdown: (campaignId: string, countdownId: string, amount: number) => Promise<void>;
+    resetCountdown: (campaignId: string, countdownId: string) => Promise<void>;
+    deleteCountdown: (campaignId: string, countdownId: string) => Promise<void>;
+
+    createCampaignProject: (campaignId: string, project: ProjectInsert) => Promise<void>;
+    advanceCampaignProject: (campaignId: string, projectId: string) => Promise<void>;
+    completeCampaignProject: (campaignId: string, projectId: string) => Promise<void>;
+    abandonCampaignProject: (campaignId: string, projectId: string) => Promise<void>;
 }
 
 export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignSlice> = (set, get) => ({
@@ -107,7 +123,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     fetchUserCampaigns: async () => {
         set({ isLoadingCampaigns: true, campaignError: null });
         try {
-            const state = get() as any;
+            const state = get() as CharacterStore;
             const userId = state.user?.id;
             if (!userId) throw new Error('Not authenticated');
 
@@ -124,7 +140,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     createCampaign: async (name: string, description?: string) => {
         set({ campaignError: null });
         try {
-            const state = get() as any;
+            const state = get() as CharacterStore;
             const userId = state.user?.id;
             if (!userId) throw new Error('Not authenticated');
 
@@ -213,14 +229,14 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     joinCampaignByCode: async (inviteCode: string, characterId?: string) => {
         set({ campaignError: null });
         try {
-            const state = get() as any;
+            const state = get() as CharacterStore;
             const userId = state.user?.id;
             if (!userId) throw new Error('Not authenticated');
 
             await dataService.campaign.joinByInviteCode(inviteCode, userId, characterId);
 
             // Refresh campaigns list
-            await (get() as any).fetchUserCampaigns();
+            await (get() as CharacterStore).fetchUserCampaigns();
 
             toast.success('Joined campaign successfully!');
         } catch (error) {
@@ -234,7 +250,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     leaveCampaign: async (campaignId: string) => {
         set({ campaignError: null });
         try {
-            const state = get() as any;
+            const state = get() as CharacterStore;
             const userId = state.user?.id;
             if (!userId) throw new Error('Not authenticated');
 
@@ -263,7 +279,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     assignCharacterToCampaign: async (campaignId: string, characterId: string) => {
         set({ campaignError: null });
         try {
-            const state = get() as any;
+            const state = get() as CharacterStore;
             const userId = state.user?.id;
             if (!userId) throw new Error('Not authenticated');
 
@@ -275,7 +291,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             await dataService.campaign.updateMember(member.id, { character_id: characterId });
 
             // Refresh active campaign if needed
-            const currentState = get() as any;
+            const currentState = get() as CharacterStore;
             if (currentState.activeCampaign?.id === campaignId) {
                 await currentState.selectCampaign(campaignId);
             }
@@ -295,7 +311,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             await dataService.campaign.removeMember(memberId);
 
             // Refresh active campaign
-            const state = get() as any;
+            const state = get() as CharacterStore;
             if (state.activeCampaign) {
                 await state.selectCampaign(state.activeCampaign.id);
             }
@@ -315,7 +331,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             await dataService.campaign.transferGM(campaignId, newGmUserId);
 
             // Refresh campaign data
-            const state = get() as any;
+            const state = get() as CharacterStore;
             await state.selectCampaign(campaignId);
 
             toast.success('GM transferred successfully!');
@@ -336,7 +352,6 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             const characters = await dataService.campaign.getPartyCharacters(campaignId);
             set({ partyCharacters: characters });
         } catch (error) {
-            console.error('Failed to fetch party characters:', error);
             throw error;
         }
     },
@@ -383,7 +398,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             await dataService.campaign.gmAdjustVital(characterId, vital, newValue);
 
             // Log activity if we're in a campaign
-            const state = get() as any;
+            const state = get() as CharacterStore;
             const activeCampaign = state.activeCampaign;
             const user = state.user;
 
@@ -409,7 +424,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             // Success - optimistic update is already applied
         } catch (error) {
             // Rollback on error - refetch party characters
-            const state = get() as any;
+            const state = get() as CharacterStore;
             if (state.activeCampaign) {
                 await state.fetchPartyCharacters(state.activeCampaign.id);
             }
@@ -453,12 +468,19 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     fetchActivityFeed: async (campaignId: string, offset: number = 0) => {
         set({ isLoadingActivity: true });
         try {
-            const [activity, count] = await Promise.all([
-                dataService.campaign.getActivity(campaignId, 50, offset),
-                offset === 0
-                    ? dataService.campaign.getActivityCount(campaignId)
-                    : Promise.resolve(get().activityTotalCount),
-            ]);
+            // Fetch activity and count separately to handle partial failures
+            const activity = await dataService.campaign.getActivity(campaignId, 50, offset);
+
+            // Count is optional - if it fails, use current count or activity length
+            let count = get().activityTotalCount;
+            if (offset === 0) {
+                try {
+                    count = await dataService.campaign.getActivityCount(campaignId);
+                } catch (countError) {
+                    // If count fails, estimate from activity length
+                    count = activity.length;
+                }
+            }
 
             set((state) => ({
                 activityFeed: offset === 0 ? activity : [...state.activityFeed, ...activity],
@@ -466,7 +488,6 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                 isLoadingActivity: false,
             }));
         } catch (error) {
-            console.error('Failed to fetch activity:', error);
             set({ isLoadingActivity: false });
         }
     },
@@ -481,7 +502,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                 activityTotalCount: state.activityTotalCount + 1,
             }));
         } catch (error) {
-            console.error('Failed to log activity:', error);
+            // Activity logging failure is non-critical, silently ignored
         }
     },
 
@@ -495,7 +516,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
 
         // Set up the store getter for the realtime manager
         realtimeManager.setStoreGetter(() => ({
-            user: (state as any).user,
+            user: (state as CharacterStore).user,
             addActivityToFeed: state.addActivityToFeed,
             updateActiveCampaign: state.updateActiveCampaignFromRealtime,
             updatePartyCharacterFromRealtime: state.updatePartyCharacterFromRealtime,
@@ -539,5 +560,440 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
 
     setCampaignError: (error: string | null) => {
         set({ campaignError: error });
+    },
+
+    // =========================================================================
+    // Phase 9: Countdowns
+    // =========================================================================
+
+    createCountdown: async (campaignId: string, countdownData: CountdownInsert) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
+
+        const newCountdown: Countdown = {
+            id: crypto.randomUUID(),
+            name: countdownData.name,
+            description: countdownData.description,
+            type: countdownData.type,
+            starting_value: countdownData.starting_value,
+            current_value: countdownData.current_value ?? countdownData.starting_value,
+            is_public: countdownData.is_public ?? true,
+            is_looping: countdownData.is_looping ?? false,
+            created_at: new Date().toISOString(),
+        };
+
+        const previousCountdowns = campaign.countdowns || [];
+        const updatedCountdowns = [...previousCountdowns, newCountdown];
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: updatedCountdowns }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: previousCountdowns }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateCountdowns(campaignId, updatedCountdowns),
+            'Failed to create countdown'
+        );
+
+        if (success) {
+            // Log activity
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'countdown_created',
+                    data: {
+                        countdown_name: newCountdown.name,
+                        countdown_type: newCountdown.type,
+                        starting_value: newCountdown.starting_value,
+                    },
+                    is_private: !newCountdown.is_public,
+                });
+            }
+            toast.success(`Countdown "${newCountdown.name}" created`);
+        }
+    },
+
+    advanceCountdown: async (campaignId: string, countdownId: string, amount: number) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
+
+        const previousCountdowns = campaign.countdowns || [];
+        const countdown = previousCountdowns.find(c => c.id === countdownId);
+        if (!countdown) {
+            toast.error('Countdown not found');
+            return;
+        }
+
+        const previousValue = countdown.current_value;
+        const newValue = Math.max(0, countdown.current_value - amount);
+
+        const updatedCountdowns = previousCountdowns.map(c =>
+            c.id === countdownId ? { ...c, current_value: newValue } : c
+        );
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: updatedCountdowns }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: previousCountdowns }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateCountdowns(campaignId, updatedCountdowns),
+            'Failed to advance countdown'
+        );
+
+        if (success) {
+            // Log activity
+            const state = get() as CharacterStore;
+            if (state.user) {
+                const wasTriggered = newValue === 0 && previousValue > 0;
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: wasTriggered ? 'countdown_triggered' : 'countdown_advanced',
+                    data: {
+                        countdown_name: countdown.name,
+                        countdown_type: countdown.type,
+                        previous_value: previousValue,
+                        new_value: newValue,
+                        amount_advanced: amount,
+                    },
+                    is_private: !countdown.is_public,
+                });
+            }
+
+            if (newValue === 0) {
+                toast.success(`Countdown "${countdown.name}" triggered!`);
+            }
+        }
+    },
+
+    resetCountdown: async (campaignId: string, countdownId: string) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
+
+        const previousCountdowns = campaign.countdowns || [];
+        const countdown = previousCountdowns.find(c => c.id === countdownId);
+        if (!countdown) {
+            toast.error('Countdown not found');
+            return;
+        }
+
+        const updatedCountdowns = previousCountdowns.map(c =>
+            c.id === countdownId ? { ...c, current_value: c.starting_value } : c
+        );
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: updatedCountdowns }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: previousCountdowns }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateCountdowns(campaignId, updatedCountdowns),
+            'Failed to reset countdown'
+        );
+
+        if (success) {
+            toast.success(`Countdown "${countdown.name}" reset`);
+        }
+    },
+
+    deleteCountdown: async (campaignId: string, countdownId: string) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
+
+        const previousCountdowns = campaign.countdowns || [];
+        const countdown = previousCountdowns.find(c => c.id === countdownId);
+        if (!countdown) {
+            toast.error('Countdown not found');
+            return;
+        }
+
+        const updatedCountdowns = previousCountdowns.filter(c => c.id !== countdownId);
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: updatedCountdowns }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: previousCountdowns }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateCountdowns(campaignId, updatedCountdowns),
+            'Failed to delete countdown'
+        );
+
+        if (success) {
+            // Log activity
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'countdown_deleted',
+                    data: { countdown_name: countdown.name },
+                    is_private: !countdown.is_public,
+                });
+            }
+            toast.success(`Countdown "${countdown.name}" removed`);
+        }
+    },
+
+    // =========================================================================
+    // Phase 9: Projects
+    // =========================================================================
+
+    createCampaignProject: async (campaignId: string, projectData: ProjectInsert) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
+
+        const newProject: Project = {
+            id: crypto.randomUUID(),
+            character_id: projectData.character_id,
+            character_name: projectData.character_name,
+            name: projectData.name,
+            description: projectData.description,
+            starting_value: projectData.starting_value,
+            current_value: projectData.current_value ?? projectData.starting_value,
+            advancement_type: projectData.advancement_type ?? 'auto',
+            status: projectData.status ?? 'active',
+            created_at: new Date().toISOString(),
+        };
+
+        const previousProjects = campaign.projects || [];
+        const updatedProjects = [...previousProjects, newProject];
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: updatedProjects }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: previousProjects }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateProjects(campaignId, updatedProjects),
+            'Failed to create project'
+        );
+
+        if (success) {
+            // Log activity
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'project_created',
+                    data: {
+                        project_name: newProject.name,
+                        character_name: newProject.character_name,
+                        starting_value: newProject.starting_value,
+                    },
+                    is_private: false,
+                });
+            }
+            toast.success(`Project "${newProject.name}" created for ${newProject.character_name}`);
+        }
+    },
+
+    advanceCampaignProject: async (campaignId: string, projectId: string) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
+
+        const previousProjects = campaign.projects || [];
+        const project = previousProjects.find(p => p.id === projectId);
+        if (!project) {
+            toast.error('Project not found');
+            return;
+        }
+
+        const previousValue = project.current_value;
+        const newValue = Math.max(0, project.current_value - 1);
+
+        const updatedProjects = previousProjects.map(p =>
+            p.id === projectId ? { ...p, current_value: newValue } : p
+        );
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: updatedProjects }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: previousProjects }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateProjects(campaignId, updatedProjects),
+            'Failed to advance project'
+        );
+
+        if (success) {
+            // Log activity
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'project_advanced',
+                    data: {
+                        project_name: project.name,
+                        character_name: project.character_name,
+                        previous_value: previousValue,
+                        new_value: newValue,
+                    },
+                    is_private: false,
+                });
+            }
+            toast.success(`${project.character_name}'s project "${project.name}" advanced`);
+        }
+    },
+
+    completeCampaignProject: async (campaignId: string, projectId: string) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
+
+        const previousProjects = campaign.projects || [];
+        const project = previousProjects.find(p => p.id === projectId);
+        if (!project) {
+            toast.error('Project not found');
+            return;
+        }
+
+        const updatedProjects = previousProjects.map(p =>
+            p.id === projectId
+                ? { ...p, status: 'completed' as const, completed_at: new Date().toISOString() }
+                : p
+        );
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: updatedProjects }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: previousProjects }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateProjects(campaignId, updatedProjects),
+            'Failed to complete project'
+        );
+
+        if (success) {
+            // Log activity
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'project_completed',
+                    data: {
+                        project_name: project.name,
+                        character_name: project.character_name,
+                    },
+                    is_private: false,
+                });
+            }
+            toast.success(`🎉 ${project.character_name} completed "${project.name}"!`);
+        }
+    },
+
+    abandonCampaignProject: async (campaignId: string, projectId: string) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
+
+        const previousProjects = campaign.projects || [];
+        const project = previousProjects.find(p => p.id === projectId);
+        if (!project) {
+            toast.error('Project not found');
+            return;
+        }
+
+        const updatedProjects = previousProjects.map(p =>
+            p.id === projectId ? { ...p, status: 'abandoned' as const } : p
+        );
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: updatedProjects }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: previousProjects }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateProjects(campaignId, updatedProjects),
+            'Failed to abandon project'
+        );
+
+        if (success) {
+            toast.success(`Project "${project.name}" abandoned`);
+        }
     },
 });

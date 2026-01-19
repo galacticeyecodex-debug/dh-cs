@@ -1,0 +1,187 @@
+'use client';
+
+/**
+ * USER MENU COMPONENT
+ * ----------------------------------------------------------------------------
+ * A dropdown menu component that provides access to user-level actions:
+ * - Profile (account info, friends)
+ * - Settings (content access, dev mode)
+ * - Sign Out
+ * 
+ * This component is designed to be used in the header across all pages,
+ * ensuring user-level actions are always accessible regardless of whether
+ * a character is selected.
+ */
+
+import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { User, Settings, LogOut, ChevronDown, Users, Sword } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import useUser from '@/hooks/useUser';
+import clsx from 'clsx';
+
+interface UserMenuProps {
+    /** Optional: Navigate to a tab within the app (for use in MobileLayout) */
+    onNavigateToTab?: (tab: 'profile' | 'settings') => void;
+}
+
+export default function UserMenu({ onNavigateToTab }: UserMenuProps) {
+    const [isOpen, setIsOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
+    const { user, signOut } = useUser();
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [isOpen]);
+
+    // Close menu on escape key
+    useEffect(() => {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsOpen(false);
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('keydown', handleEscape);
+            return () => document.removeEventListener('keydown', handleEscape);
+        }
+    }, [isOpen]);
+
+    const handleSignOut = async () => {
+        setIsOpen(false);
+        await signOut();
+        router.push('/auth/login');
+        router.refresh();
+    };
+
+    const handleNavigate = (tab: 'profile' | 'settings') => {
+        setIsOpen(false);
+        if (onNavigateToTab) {
+            // In-app navigation (within MobileLayout)
+            onNavigateToTab(tab);
+        } else {
+            // Page navigation (from character selection or other pages)
+            router.push(`/${tab}`);
+        }
+    };
+
+    const handleNavigateTo = (path: string) => {
+        setIsOpen(false);
+        router.push(path);
+    };
+
+    if (!user) return null;
+
+    const userInitial = user.email ? user.email[0].toUpperCase() : 'U';
+    const fullName = user.user_metadata?.full_name || 'User';
+    const avatarUrl = user.user_metadata?.avatar_url;
+
+    return (
+        <div className="relative" ref={menuRef}>
+            {/* Trigger Button */}
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={clsx(
+                    'flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors',
+                    isOpen ? 'bg-white/10' : 'hover:bg-white/5'
+                )}
+                aria-label="User menu"
+                aria-expanded={isOpen}
+                aria-haspopup="true"
+            >
+                <Avatar className="h-8 w-8 border border-white/20">
+                    <AvatarImage src={avatarUrl} alt={fullName} />
+                    <AvatarFallback className="bg-dagger-gold/20 text-dagger-gold text-sm">
+                        {userInitial}
+                    </AvatarFallback>
+                </Avatar>
+                <ChevronDown
+                    size={16}
+                    className={clsx(
+                        'text-gray-400 transition-transform duration-200',
+                        isOpen && 'rotate-180'
+                    )}
+                />
+            </button>
+
+            {/* Dropdown Menu */}
+            {isOpen && (
+                <div
+                    className="absolute right-0 top-full mt-2 w-56 bg-dagger-panel border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50"
+                    role="menu"
+                    aria-orientation="vertical"
+                >
+                    {/* User Info Header */}
+                    <div className="px-4 py-3 border-b border-white/10">
+                        <p className="text-sm font-medium text-white truncate">{fullName}</p>
+                        <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                    </div>
+
+                    {/* Content Navigation */}
+                    <div className="py-1">
+                        <button
+                            onClick={() => handleNavigateTo('/client/characters')}
+                            className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-colors"
+                            role="menuitem"
+                        >
+                            <Sword size={16} className="text-dagger-gold" />
+                            Characters
+                        </button>
+                        <button
+                            onClick={() => handleNavigateTo('/campaigns')}
+                            className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-colors"
+                            role="menuitem"
+                        >
+                            <Users size={16} className="text-dagger-gold" />
+                            Campaigns
+                        </button>
+                    </div>
+
+                    {/* Account */}
+                    <div className="border-t border-white/10 py-1">
+                        <button
+                            onClick={() => handleNavigate('profile')}
+                            className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-colors"
+                            role="menuitem"
+                        >
+                            <User size={16} className="text-dagger-gold" />
+                            Profile
+                        </button>
+                        <button
+                            onClick={() => handleNavigate('settings')}
+                            className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-colors"
+                            role="menuitem"
+                        >
+                            <Settings size={16} className="text-dagger-gold" />
+                            Settings
+                        </button>
+                    </div>
+
+                    {/* Sign Out */}
+                    <div className="border-t border-white/10 py-1">
+                        <button
+                            onClick={handleSignOut}
+                            className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/20 hover:text-red-300 flex items-center gap-3 transition-colors"
+                            role="menuitem"
+                        >
+                            <LogOut size={16} />
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

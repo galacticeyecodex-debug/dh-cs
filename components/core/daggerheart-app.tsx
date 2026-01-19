@@ -32,6 +32,7 @@ import CombatView from '@/components/views/combat/combat-view';
 import DowntimeView from '@/components/views/downtime/downtime-view';
 import JournalView from '@/components/views/journal/journal-view';
 import SettingsView from '@/components/views/settings/settings-view';
+import ProfileView from '@/components/views/profile/profile-view';
 import DevModifiersView from '@/components/views/dev/dev-modifiers-view';
 import { useCharacterStore } from '@/store/character-store';
 import AuthButton from '@/components/auth/auth-buttons';
@@ -40,11 +41,16 @@ import { useRouter } from 'next/navigation';
 import { AppUser } from '@/types/auth';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import DevErrorTriggers from '@/components/core/dev-error-triggers';
+import { useCampaignRealtime } from '@/hooks/use-campaign-realtime';
+import { RollNotification } from '@/components/activity/roll-notification';
 
 export default function DaggerheartApp({ clientUser }: { clientUser: AppUser | null }) {
   const router = useRouter();
   const { activeTab, setCharacter, setUser, fetchUser, isLoading, character, user, selectedCharacterId } = useCharacterStore();
   const [initialLoad, setInitialLoad] = useState(true);
+
+  // Campaign realtime subscription and roll notifications
+  const { currentRollNotification, dismissRollNotification, activeCampaign } = useCampaignRealtime();
 
   useEffect(() => {
     // Only run this effect once on mount
@@ -128,8 +134,16 @@ export default function DaggerheartApp({ clientUser }: { clientUser: AppUser | n
         {activeTab === 'downtime' && <DowntimeView />}
         {activeTab === 'journal' && <JournalView />}
         {activeTab === 'settings' && <SettingsView />}
+        {activeTab === 'profile' && <ProfileView />}
         {activeTab === 'dev' && <DevModifiersView />}
       </MobileLayout>
+
+      {/* Roll notification pop-ups for campaign members */}
+      <RollNotification
+        activity={currentRollNotification}
+        onDismiss={dismissRollNotification}
+      />
+
       <DevErrorTriggers />
     </ErrorBoundary>
   );

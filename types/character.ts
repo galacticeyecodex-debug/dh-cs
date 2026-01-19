@@ -65,6 +65,9 @@ export interface Profile {
   username?: string;
   avatar_url?: string;
   content_access: ContentAccess;
+  friend_code?: string; // 8-character unique code for friend requests
+  allow_friend_requests?: boolean; // Whether user accepts friend requests (default: true)
+  show_online_status?: boolean; // Whether user shows online status to friends (default: true)
   updated_at?: string;
   created_at?: string;
 }
