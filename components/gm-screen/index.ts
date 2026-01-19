@@ -7,3 +7,8 @@ export { GmDiceRollerModal } from './gm-dice-roller-modal';
 export { AnnounceModal } from './announce-modal';
 export { AdversaryBrowser } from './adversary-browser';
 export { EnvironmentBrowser } from './environment-browser';
+// Phase 9: Countdowns and Projects
+export { CountdownCreatorModal } from './countdown-creator-modal';
+export { CountdownTracker } from './countdown-tracker';
+export { ProjectCreatorModal } from './project-creator-modal';
+export { ProjectTracker } from './project-tracker';

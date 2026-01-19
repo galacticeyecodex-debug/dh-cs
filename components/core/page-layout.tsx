@@ -21,6 +21,7 @@ import { ArrowLeft, ChevronRight, ChevronDown, Sword, Users } from 'lucide-react
 import { useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
 import UserMenu from './user-menu';
+import DiceOverlay from '../dice/dice-overlay';
 import clsx from 'clsx';
 
 interface Breadcrumb {
@@ -257,6 +258,9 @@ export default function PageLayout({
             <main className={`flex-1 overflow-y-auto ${className}`}>
                 {children}
             </main>
+
+            {/* Dice Overlay - for pages that need 3D dice rolling (GM Screen, etc.) */}
+            <DiceOverlay />
         </div>
     );
 }

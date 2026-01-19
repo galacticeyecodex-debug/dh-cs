@@ -48,7 +48,7 @@ export type ActivityData =
 
 // Specific activity payloads
 export interface DiceRollActivityData {
-    roll_type: 'attack' | 'damage' | 'trait' | 'spellcast' | 'custom';
+    roll_type: 'attack' | 'damage' | 'trait' | 'spellcast' | 'custom' | 'gm_roll';
     trait?: string;
     dice: number[]; // Individual die results
     modifier: number;
@@ -58,6 +58,7 @@ export interface DiceRollActivityData {
     success?: boolean;
     description?: string;
     hope_fear?: 'hope' | 'fear';
+    is_gm_roll?: boolean;
 }
 
 export interface VitalChangeActivityData {

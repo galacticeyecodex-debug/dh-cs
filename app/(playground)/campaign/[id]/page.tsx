@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
 import useUser from '@/hooks/useUser';
@@ -10,7 +10,9 @@ import InviteCodeDisplay from '@/components/campaign/invite-code-display';
 import MemberList from '@/components/campaign/member-list';
 import CampaignSettingsModal from '@/components/campaign/campaign-settings-modal';
 import AssignCharacterModal from '@/components/campaign/assign-character-modal';
-import { ActivityFeed } from '@/components/activity';
+import { ActivityFeed, RollNotification } from '@/components/activity';
+import { realtimeManager } from '@/lib/realtime';
+import { CampaignActivity } from '@/types/activity';
 
 export default function CampaignDetailPage() {
     const params = useParams();
@@ -33,6 +35,21 @@ export default function CampaignDetailPage() {
 
     const [showSettings, setShowSettings] = useState(false);
     const [showAssignCharacter, setShowAssignCharacter] = useState(false);
+
+    // Roll notification state for Campaign Page
+    const [currentRollNotification, setCurrentRollNotification] = useState<CampaignActivity | null>(null);
+    const dismissRollNotification = useCallback(() => {
+        setCurrentRollNotification(null);
+    }, []);
+
+    // Listen for roll notifications from the realtime manager
+    useEffect(() => {
+        const unsubscribe = realtimeManager.onRollNotification((activity) => {
+            setCurrentRollNotification(activity);
+        });
+
+        return unsubscribe;
+    }, []);
 
     // Sync auth user to store when loaded
     useEffect(() => {
@@ -257,6 +274,12 @@ export default function CampaignDetailPage() {
                 isOpen={showAssignCharacter}
                 onClose={() => setShowAssignCharacter(false)}
                 campaignId={activeCampaign.id}
+            />
+
+            {/* Roll notification pop-ups for campaign members */}
+            <RollNotification
+                activity={currentRollNotification}
+                onDismiss={dismissRollNotification}
             />
         </PageLayout>
     );

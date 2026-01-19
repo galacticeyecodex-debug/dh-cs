@@ -3,20 +3,20 @@
 /**
  * GM DICE ROLLER MODAL
  * ----------------------------------------------------------------------------
- * Provides a dice rolling interface for the Game Master.
- * 
+ * Provides a dice rolling interface for the Game Master using the 3D dice overlay.
+ *
  * FUNCTIONALITY:
  * - Supports standard dice notation (1d6, 2d12+3, etc.)
  * - Quick presets for common dice (d4, d6, d8, d10, d12, d20)
  * - Toggle between public rolls (visible to players) and hidden rolls (GM only)
- * - Displays last roll result with large, readable display
- * - Animated modal with Daggerheart styling
+ * - Triggers the 3D dice overlay for visually appealing rolls
+ * - Hidden rolls only show to the GM via toast notification
  */
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Dices, EyeOff, Eye } from 'lucide-react';
-import { toast } from 'sonner';
+import { useCharacterStore } from '@/store/character-store';
 
 interface GmDiceRollerModalProps {
     isOpen: boolean;
@@ -41,48 +41,20 @@ export function GmDiceRollerModal({
     isOpen,
     onClose,
     isPrivate: initialPrivate,
-    campaignId,
 }: GmDiceRollerModalProps) {
-    const [formula, setFormula] = useState('2d6');
+    const { prepareGmRoll } = useCharacterStore();
+    const [formula, setFormula] = useState('1d20');
     const [isPrivate, setIsPrivate] = useState(initialPrivate);
-    const [lastResult, setLastResult] = useState<number | null>(null);
 
-    // Simple dice roller (can be enhanced later)
-    const rollDice = (diceFormula: string): number => {
-        const match = diceFormula.match(/^(\d+)?d(\d+)([+-]\d+)?$/i);
-        if (!match) return 0;
-
-        const count = parseInt(match[1] || '1', 10);
-        const sides = parseInt(match[2], 10);
-        const modifier = parseInt(match[3] || '0', 10);
-
-        let total = 0;
-        for (let i = 0; i < count; i++) {
-            total += Math.floor(Math.random() * sides) + 1;
-        }
-        return total + modifier;
-    };
-
-    const handleRoll = async () => {
-        const result = rollDice(formula);
-        setLastResult(result);
-
-        if (isPrivate) {
-            toast.info(`🎲 Hidden Roll: ${formula} = ${result}`, {
-                description: 'Only you can see this result',
-            });
-        } else {
-            toast.success(`🎲 Rolled: ${formula} = ${result}`, {
-                description: 'This roll will be visible in the activity feed',
-            });
-        }
-
-        // TODO Phase 3: Actually log to activity feed
+    const handleRoll = () => {
+        // Use the 3D dice overlay for the roll
+        const rollLabel = isPrivate ? 'GM Hidden Roll' : 'GM Roll';
+        prepareGmRoll(rollLabel, formula, isPrivate);
+        onClose();
     };
 
     const handleClose = () => {
         onClose();
-        setLastResult(null);
     };
 
     if (!isOpen) return null;
@@ -187,14 +159,6 @@ export function GmDiceRollerModal({
                                 ? 'Only you will see the result'
                                 : 'All players will see this roll in the activity feed'}
                         </p>
-
-                        {/* Last result display */}
-                        {lastResult !== null && (
-                            <div className="text-center py-6 bg-black/30 rounded-lg border border-white/10">
-                                <p className="text-sm text-gray-500 mb-1">Result</p>
-                                <p className="text-5xl font-bold text-white tabular-nums">{lastResult}</p>
-                            </div>
-                        )}
                     </div>
 
                     {/* Footer */}
@@ -203,13 +167,13 @@ export function GmDiceRollerModal({
                             onClick={handleClose}
                             className="flex-1 px-4 py-2 text-sm font-medium bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors"
                         >
-                            Close
+                            Cancel
                         </button>
                         <button
                             onClick={handleRoll}
                             className="flex-1 px-4 py-2 text-sm font-bold bg-dagger-gold hover:bg-dagger-gold-light text-black rounded-lg transition-colors"
                         >
-                            🎲 Roll
+                            Roll 3D Dice
                         </button>
                     </div>
                 </motion.div>

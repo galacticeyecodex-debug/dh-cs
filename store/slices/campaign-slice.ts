@@ -23,6 +23,10 @@ import type {
     CampaignMember,
     EnrichedCampaignMember,
     CampaignWithMembers,
+    Countdown,
+    CountdownInsert,
+    Project,
+    ProjectInsert,
 } from '@/types/campaign';
 import type { CampaignActivity, CampaignActivityInsert } from '@/types/activity';
 import { toast } from 'sonner';
@@ -82,6 +86,17 @@ export interface CampaignSlice {
 
     // Error handling
     setCampaignError: (error: string | null) => void;
+
+    // Phase 9: Countdowns and Projects
+    createCountdown: (campaignId: string, countdown: CountdownInsert) => Promise<void>;
+    advanceCountdown: (campaignId: string, countdownId: string, amount: number) => Promise<void>;
+    resetCountdown: (campaignId: string, countdownId: string) => Promise<void>;
+    deleteCountdown: (campaignId: string, countdownId: string) => Promise<void>;
+
+    createCampaignProject: (campaignId: string, project: ProjectInsert) => Promise<void>;
+    advanceCampaignProject: (campaignId: string, projectId: string) => Promise<void>;
+    completeCampaignProject: (campaignId: string, projectId: string) => Promise<void>;
+    abandonCampaignProject: (campaignId: string, projectId: string) => Promise<void>;
 }
 
 export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignSlice> = (set, get) => ({
@@ -453,12 +468,20 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     fetchActivityFeed: async (campaignId: string, offset: number = 0) => {
         set({ isLoadingActivity: true });
         try {
-            const [activity, count] = await Promise.all([
-                dataService.campaign.getActivity(campaignId, 50, offset),
-                offset === 0
-                    ? dataService.campaign.getActivityCount(campaignId)
-                    : Promise.resolve(get().activityTotalCount),
-            ]);
+            // Fetch activity and count separately to handle partial failures
+            const activity = await dataService.campaign.getActivity(campaignId, 50, offset);
+
+            // Count is optional - if it fails, use current count or activity length
+            let count = get().activityTotalCount;
+            if (offset === 0) {
+                try {
+                    count = await dataService.campaign.getActivityCount(campaignId);
+                } catch (countError) {
+                    // If count fails, estimate from activity length
+                    console.warn('Failed to fetch activity count, using estimate:', countError);
+                    count = activity.length;
+                }
+            }
 
             set((state) => ({
                 activityFeed: offset === 0 ? activity : [...state.activityFeed, ...activity],
@@ -539,5 +562,434 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
 
     setCampaignError: (error: string | null) => {
         set({ campaignError: error });
+    },
+
+    // =========================================================================
+    // Phase 9: Countdowns
+    // =========================================================================
+
+    createCountdown: async (campaignId: string, countdownData: CountdownInsert) => {
+        try {
+            const state = get();
+            const campaign = state.activeCampaign;
+            if (!campaign) throw new Error('No active campaign');
+
+            const newCountdown: Countdown = {
+                id: crypto.randomUUID(),
+                name: countdownData.name,
+                description: countdownData.description,
+                type: countdownData.type,
+                starting_value: countdownData.starting_value,
+                current_value: countdownData.current_value ?? countdownData.starting_value,
+                is_public: countdownData.is_public ?? true,
+                is_looping: countdownData.is_looping ?? false,
+                created_at: new Date().toISOString(),
+            };
+
+            const updatedCountdowns = [...(campaign.countdowns || []), newCountdown];
+
+            await dataService.campaign.update(campaignId, {
+                settings: {
+                    ...campaign.settings,
+                },
+            });
+
+            // Update via raw query since countdowns is a new JSONB column
+            const { default: createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('campaigns')
+                .update({ countdowns: updatedCountdowns })
+                .eq('id', campaignId);
+
+            if (error) throw error;
+
+            // Update local state
+            set((state) => ({
+                activeCampaign: state.activeCampaign
+                    ? { ...state.activeCampaign, countdowns: updatedCountdowns }
+                    : null,
+            }));
+
+            // Log activity
+            const user = (get() as any).user;
+            if (user) {
+                await (get() as any).logActivity({
+                    campaign_id: campaignId,
+                    user_id: user.id,
+                    activity_type: 'countdown_created',
+                    data: {
+                        countdown_name: newCountdown.name,
+                        countdown_type: newCountdown.type,
+                        starting_value: newCountdown.starting_value,
+                    },
+                    is_private: !newCountdown.is_public,
+                });
+            }
+
+            toast.success(`Countdown "${newCountdown.name}" created`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to create countdown';
+            toast.error(message);
+            throw error;
+        }
+    },
+
+    advanceCountdown: async (campaignId: string, countdownId: string, amount: number) => {
+        try {
+            const state = get();
+            const campaign = state.activeCampaign;
+            if (!campaign) throw new Error('No active campaign');
+
+            const countdowns = campaign.countdowns || [];
+            const countdown = countdowns.find(c => c.id === countdownId);
+            if (!countdown) throw new Error('Countdown not found');
+
+            const previousValue = countdown.current_value;
+            const newValue = Math.max(0, countdown.current_value - amount);
+
+            const updatedCountdowns = countdowns.map(c =>
+                c.id === countdownId ? { ...c, current_value: newValue } : c
+            );
+
+            const { default: createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('campaigns')
+                .update({ countdowns: updatedCountdowns })
+                .eq('id', campaignId);
+
+            if (error) throw error;
+
+            // Update local state
+            set((state) => ({
+                activeCampaign: state.activeCampaign
+                    ? { ...state.activeCampaign, countdowns: updatedCountdowns }
+                    : null,
+            }));
+
+            // Log activity
+            const user = (get() as any).user;
+            if (user) {
+                const wasTriggered = newValue === 0 && previousValue > 0;
+                await (get() as any).logActivity({
+                    campaign_id: campaignId,
+                    user_id: user.id,
+                    activity_type: wasTriggered ? 'countdown_triggered' : 'countdown_advanced',
+                    data: {
+                        countdown_name: countdown.name,
+                        countdown_type: countdown.type,
+                        previous_value: previousValue,
+                        new_value: newValue,
+                        amount_advanced: amount,
+                    },
+                    is_private: !countdown.is_public,
+                });
+            }
+
+            if (newValue === 0) {
+                toast.success(`Countdown "${countdown.name}" triggered!`);
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to advance countdown';
+            toast.error(message);
+            throw error;
+        }
+    },
+
+    resetCountdown: async (campaignId: string, countdownId: string) => {
+        try {
+            const state = get();
+            const campaign = state.activeCampaign;
+            if (!campaign) throw new Error('No active campaign');
+
+            const countdowns = campaign.countdowns || [];
+            const countdown = countdowns.find(c => c.id === countdownId);
+            if (!countdown) throw new Error('Countdown not found');
+
+            const updatedCountdowns = countdowns.map(c =>
+                c.id === countdownId ? { ...c, current_value: c.starting_value } : c
+            );
+
+            const { default: createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('campaigns')
+                .update({ countdowns: updatedCountdowns })
+                .eq('id', campaignId);
+
+            if (error) throw error;
+
+            set((state) => ({
+                activeCampaign: state.activeCampaign
+                    ? { ...state.activeCampaign, countdowns: updatedCountdowns }
+                    : null,
+            }));
+
+            toast.success(`Countdown "${countdown.name}" reset`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to reset countdown';
+            toast.error(message);
+            throw error;
+        }
+    },
+
+    deleteCountdown: async (campaignId: string, countdownId: string) => {
+        try {
+            const state = get();
+            const campaign = state.activeCampaign;
+            if (!campaign) throw new Error('No active campaign');
+
+            const countdowns = campaign.countdowns || [];
+            const countdown = countdowns.find(c => c.id === countdownId);
+            if (!countdown) throw new Error('Countdown not found');
+
+            const updatedCountdowns = countdowns.filter(c => c.id !== countdownId);
+
+            const { default: createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('campaigns')
+                .update({ countdowns: updatedCountdowns })
+                .eq('id', campaignId);
+
+            if (error) throw error;
+
+            set((state) => ({
+                activeCampaign: state.activeCampaign
+                    ? { ...state.activeCampaign, countdowns: updatedCountdowns }
+                    : null,
+            }));
+
+            // Log activity
+            const user = (get() as any).user;
+            if (user) {
+                await (get() as any).logActivity({
+                    campaign_id: campaignId,
+                    user_id: user.id,
+                    activity_type: 'countdown_deleted',
+                    data: { countdown_name: countdown.name },
+                    is_private: !countdown.is_public,
+                });
+            }
+
+            toast.success(`Countdown "${countdown.name}" removed`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to delete countdown';
+            toast.error(message);
+            throw error;
+        }
+    },
+
+    // =========================================================================
+    // Phase 9: Projects
+    // =========================================================================
+
+    createCampaignProject: async (campaignId: string, projectData: ProjectInsert) => {
+        try {
+            const state = get();
+            const campaign = state.activeCampaign;
+            if (!campaign) throw new Error('No active campaign');
+
+            const newProject: Project = {
+                id: crypto.randomUUID(),
+                character_id: projectData.character_id,
+                character_name: projectData.character_name,
+                name: projectData.name,
+                description: projectData.description,
+                starting_value: projectData.starting_value,
+                current_value: projectData.current_value ?? projectData.starting_value,
+                advancement_type: projectData.advancement_type ?? 'auto',
+                status: projectData.status ?? 'active',
+                created_at: new Date().toISOString(),
+            };
+
+            const updatedProjects = [...(campaign.projects || []), newProject];
+
+            const { default: createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('campaigns')
+                .update({ projects: updatedProjects })
+                .eq('id', campaignId);
+
+            if (error) throw error;
+
+            set((state) => ({
+                activeCampaign: state.activeCampaign
+                    ? { ...state.activeCampaign, projects: updatedProjects }
+                    : null,
+            }));
+
+            // Log activity
+            const user = (get() as any).user;
+            if (user) {
+                await (get() as any).logActivity({
+                    campaign_id: campaignId,
+                    user_id: user.id,
+                    activity_type: 'project_created',
+                    data: {
+                        project_name: newProject.name,
+                        character_name: newProject.character_name,
+                        starting_value: newProject.starting_value,
+                    },
+                    is_private: false,
+                });
+            }
+
+            toast.success(`Project "${newProject.name}" created for ${newProject.character_name}`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to create project';
+            toast.error(message);
+            throw error;
+        }
+    },
+
+    advanceCampaignProject: async (campaignId: string, projectId: string) => {
+        try {
+            const state = get();
+            const campaign = state.activeCampaign;
+            if (!campaign) throw new Error('No active campaign');
+
+            const projects = campaign.projects || [];
+            const project = projects.find(p => p.id === projectId);
+            if (!project) throw new Error('Project not found');
+
+            const previousValue = project.current_value;
+            const newValue = Math.max(0, project.current_value - 1);
+
+            const updatedProjects = projects.map(p =>
+                p.id === projectId ? { ...p, current_value: newValue } : p
+            );
+
+            const { default: createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('campaigns')
+                .update({ projects: updatedProjects })
+                .eq('id', campaignId);
+
+            if (error) throw error;
+
+            set((state) => ({
+                activeCampaign: state.activeCampaign
+                    ? { ...state.activeCampaign, projects: updatedProjects }
+                    : null,
+            }));
+
+            // Log activity
+            const user = (get() as any).user;
+            if (user) {
+                await (get() as any).logActivity({
+                    campaign_id: campaignId,
+                    user_id: user.id,
+                    activity_type: 'project_advanced',
+                    data: {
+                        project_name: project.name,
+                        character_name: project.character_name,
+                        previous_value: previousValue,
+                        new_value: newValue,
+                    },
+                    is_private: false,
+                });
+            }
+
+            toast.success(`${project.character_name}'s project "${project.name}" advanced`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to advance project';
+            toast.error(message);
+            throw error;
+        }
+    },
+
+    completeCampaignProject: async (campaignId: string, projectId: string) => {
+        try {
+            const state = get();
+            const campaign = state.activeCampaign;
+            if (!campaign) throw new Error('No active campaign');
+
+            const projects = campaign.projects || [];
+            const project = projects.find(p => p.id === projectId);
+            if (!project) throw new Error('Project not found');
+
+            const updatedProjects = projects.map(p =>
+                p.id === projectId
+                    ? { ...p, status: 'completed' as const, completed_at: new Date().toISOString() }
+                    : p
+            );
+
+            const { default: createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('campaigns')
+                .update({ projects: updatedProjects })
+                .eq('id', campaignId);
+
+            if (error) throw error;
+
+            set((state) => ({
+                activeCampaign: state.activeCampaign
+                    ? { ...state.activeCampaign, projects: updatedProjects }
+                    : null,
+            }));
+
+            // Log activity
+            const user = (get() as any).user;
+            if (user) {
+                await (get() as any).logActivity({
+                    campaign_id: campaignId,
+                    user_id: user.id,
+                    activity_type: 'project_completed',
+                    data: {
+                        project_name: project.name,
+                        character_name: project.character_name,
+                    },
+                    is_private: false,
+                });
+            }
+
+            toast.success(`🎉 ${project.character_name} completed "${project.name}"!`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to complete project';
+            toast.error(message);
+            throw error;
+        }
+    },
+
+    abandonCampaignProject: async (campaignId: string, projectId: string) => {
+        try {
+            const state = get();
+            const campaign = state.activeCampaign;
+            if (!campaign) throw new Error('No active campaign');
+
+            const projects = campaign.projects || [];
+            const project = projects.find(p => p.id === projectId);
+            if (!project) throw new Error('Project not found');
+
+            const updatedProjects = projects.map(p =>
+                p.id === projectId ? { ...p, status: 'abandoned' as const } : p
+            );
+
+            const { default: createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('campaigns')
+                .update({ projects: updatedProjects })
+                .eq('id', campaignId);
+
+            if (error) throw error;
+
+            set((state) => ({
+                activeCampaign: state.activeCampaign
+                    ? { ...state.activeCampaign, projects: updatedProjects }
+                    : null,
+            }));
+
+            toast.success(`Project "${project.name}" abandoned`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to abandon project';
+            toast.error(message);
+            throw error;
+        }
     },
 });

@@ -89,9 +89,9 @@ describe('PlayerVitalsCard', () => {
             const character = createMockCharacter();
             render(<PlayerVitalsCard character={character} />);
 
-            expect(screen.getByText('Hit Points')).toBeInTheDocument();
+            expect(screen.getByText('HP')).toBeInTheDocument();
             expect(screen.getByText('Stress')).toBeInTheDocument();
-            expect(screen.getByText('Armor Slots')).toBeInTheDocument();
+            expect(screen.getByText('Armor')).toBeInTheDocument();
             expect(screen.getByText('Hope')).toBeInTheDocument();
         });
 
@@ -151,9 +151,8 @@ describe('PlayerVitalsCard', () => {
             });
             render(<PlayerVitalsCard character={character} />);
 
-            // Check for warning indicator (⚠️ is used for low HP)
-            const warningElements = screen.getAllByText('⚠️');
-            expect(warningElements.length).toBeGreaterThan(0);
+            // Check for warning indicator (AlertTriangle icon with aria-label)
+            expect(screen.getByLabelText('Character needs attention')).toBeInTheDocument();
         });
 
         it('should show warning when Stress is at max - 1 or higher', () => {
@@ -169,8 +168,7 @@ describe('PlayerVitalsCard', () => {
             });
             render(<PlayerVitalsCard character={character} />);
 
-            const warningElements = screen.getAllByText('⚠️');
-            expect(warningElements.length).toBeGreaterThan(0);
+            expect(screen.getByLabelText('Character needs attention')).toBeInTheDocument();
         });
 
         it('should show warning when Hope is 1 or less', () => {
@@ -179,8 +177,7 @@ describe('PlayerVitalsCard', () => {
             });
             render(<PlayerVitalsCard character={character} />);
 
-            const warningElements = screen.getAllByText('⚠️');
-            expect(warningElements.length).toBeGreaterThan(0);
+            expect(screen.getByLabelText('Character needs attention')).toBeInTheDocument();
         });
 
         it('should not show warnings when all vitals are healthy', () => {
@@ -197,7 +194,7 @@ describe('PlayerVitalsCard', () => {
             });
             render(<PlayerVitalsCard character={character} />);
 
-            expect(screen.queryByText('⚠️')).not.toBeInTheDocument();
+            expect(screen.queryByLabelText('Character needs attention')).not.toBeInTheDocument();
         });
     });
 
@@ -246,29 +243,34 @@ describe('PlayerVitalsCard (Unlocked)', () => {
         const character = createMockCharacter();
         render(<PlayerVitalsCard character={character} />);
 
-        // When unlocked, should have decrease and increase buttons for each vital
-        const decreaseButtons = screen.getAllByRole('button', { name: /decrease/i });
-        const increaseButtons = screen.getAllByRole('button', { name: /increase/i });
+        // When unlocked, should have Mark/Clear buttons for HP/Armor/Stress and Spend/Gain for Hope
+        const markButtons = screen.getAllByRole('button', { name: /mark/i });
+        const clearButtons = screen.getAllByRole('button', { name: /clear/i });
+        const spendButtons = screen.getAllByRole('button', { name: /spend/i });
+        const gainButtons = screen.getAllByRole('button', { name: /gain/i });
 
-        // Each vital has 2 decrease buttons (-5, -1) and 2 increase buttons (+1, +5)
-        expect(decreaseButtons.length).toBeGreaterThan(0);
-        expect(increaseButtons.length).toBeGreaterThan(0);
+        // HP, Stress, Armor have Mark/Clear buttons (3 each)
+        // Hope has Spend/Gain buttons (1 each)
+        expect(markButtons.length).toBe(3); // HP, Stress, Armor
+        expect(clearButtons.length).toBe(3); // HP, Stress, Armor
+        expect(spendButtons.length).toBe(1); // Hope
+        expect(gainButtons.length).toBe(1); // Hope
     });
 
-    it('should call gmAdjustVital when adjustment button is clicked', async () => {
+    it('should call gmAdjustVital when Clear HP button is clicked', async () => {
         const character = createMockCharacter();
         render(<PlayerVitalsCard character={character} />);
 
-        // Find and click the "Increase Hit Points by 1" button
-        const increaseHpButton = screen.getByRole('button', { name: /increase hit points by 1/i });
-        fireEvent.click(increaseHpButton);
+        // Find and click the "Clear HP" button (restores 1 HP)
+        const clearHpButton = screen.getByRole('button', { name: /clear hp/i });
+        fireEvent.click(clearHpButton);
 
         await waitFor(() => {
             expect(mockGmAdjustVital).toHaveBeenCalledWith('char-1', 'hp', 9); // Current 8 + 1 = 9
         });
     });
 
-    it('should disable decrease button when vital is at 0', () => {
+    it('should disable Mark HP button when HP is at 0', () => {
         const character = createMockCharacter({
             vitals: {
                 hit_points_current: 0,
@@ -281,12 +283,12 @@ describe('PlayerVitalsCard (Unlocked)', () => {
         });
         render(<PlayerVitalsCard character={character} />);
 
-        // The decrease by 1 button for HP should be disabled
-        const decreaseHpButton = screen.getByRole('button', { name: /decrease hit points by 1/i });
-        expect(decreaseHpButton).toBeDisabled();
+        // The Mark HP button should be disabled when HP is 0
+        const markHpButton = screen.getByRole('button', { name: /mark hp/i });
+        expect(markHpButton).toBeDisabled();
     });
 
-    it('should disable increase button when vital is at max', () => {
+    it('should disable Clear HP button when HP is at max', () => {
         const character = createMockCharacter({
             vitals: {
                 hit_points_current: 12, // At max
@@ -299,8 +301,8 @@ describe('PlayerVitalsCard (Unlocked)', () => {
         });
         render(<PlayerVitalsCard character={character} />);
 
-        // The increase by 1 button for HP should be disabled
-        const increaseHpButton = screen.getByRole('button', { name: /increase hit points by 1/i });
-        expect(increaseHpButton).toBeDisabled();
+        // The Clear HP button should be disabled when HP is at max
+        const clearHpButton = screen.getByRole('button', { name: /clear hp/i });
+        expect(clearHpButton).toBeDisabled();
     });
 });

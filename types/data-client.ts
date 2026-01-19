@@ -97,6 +97,9 @@ export interface DataClient {
     logActivity: (activity: CampaignActivityInsert) => Promise<CampaignActivity>;
     getActivity: (campaignId: string, limit?: number, offset?: number) => Promise<CampaignActivity[]>;
     getActivityCount: (campaignId: string) => Promise<number>;
+
+    // Character campaign lookup
+    getCampaignForCharacter: (characterId: string) => Promise<Campaign | null>;
   };
 
   // Phase 7: Friendships

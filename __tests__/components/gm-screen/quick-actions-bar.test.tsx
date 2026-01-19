@@ -77,17 +77,17 @@ describe('QuickActionsBar', () => {
             expect(screen.getByText('Hidden Roll')).toBeInTheDocument();
         });
 
-        it('should render Refresh Party button', () => {
+        it('should render Refresh button', () => {
             render(<QuickActionsBar campaignId="campaign-1" />);
 
-            expect(screen.getByText('Refresh Party')).toBeInTheDocument();
+            expect(screen.getByText('Refresh')).toBeInTheDocument();
         });
 
-        it('should render Session Notes button (disabled)', () => {
+        it('should render Notes button (disabled)', () => {
             render(<QuickActionsBar campaignId="campaign-1" />);
 
-            expect(screen.getByText('Session Notes')).toBeInTheDocument();
-            expect(screen.getByText('(Coming Soon)')).toBeInTheDocument();
+            expect(screen.getByText('Notes')).toBeInTheDocument();
+            expect(screen.getByText('Coming Soon')).toBeInTheDocument();
         });
     });
 
@@ -172,11 +172,11 @@ describe('QuickActionsBar', () => {
         });
     });
 
-    describe('Refresh Party', () => {
-        it('should call fetchPartyCharacters when Refresh Party is clicked', async () => {
+    describe('Refresh', () => {
+        it('should call fetchPartyCharacters when Refresh is clicked', async () => {
             render(<QuickActionsBar campaignId="campaign-1" />);
 
-            const refreshButton = screen.getByText('Refresh Party');
+            const refreshButton = screen.getByText('Refresh');
             fireEvent.click(refreshButton);
 
             await waitFor(() => {
@@ -185,12 +185,12 @@ describe('QuickActionsBar', () => {
         });
     });
 
-    describe('Session Notes (Disabled)', () => {
-        it('should have Session Notes button disabled', () => {
+    describe('Notes (Disabled)', () => {
+        it('should have Notes button disabled', () => {
             render(<QuickActionsBar campaignId="campaign-1" />);
 
-            const sessionNotesButton = screen.getByText('Session Notes').closest('button');
-            expect(sessionNotesButton).toBeDisabled();
+            const notesButton = screen.getByText('Notes').closest('button');
+            expect(notesButton).toBeDisabled();
         });
     });
 });

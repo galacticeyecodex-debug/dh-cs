@@ -84,7 +84,8 @@ describe('PartyOverview', () => {
                 <PartyOverview campaignId="campaign-1" characters={characters} />
             );
 
-            expect(screen.getByText(/Party \(2\)/)).toBeInTheDocument();
+            expect(screen.getByText('Party Overview')).toBeInTheDocument();
+            expect(screen.getByText('2 characters')).toBeInTheDocument();
         });
 
         it('should render PlayerVitalsCard for each character', () => {
@@ -115,7 +116,7 @@ describe('PartyOverview', () => {
             expect(screen.getByText('Thorn the Bold - Vitals Card')).toBeInTheDocument();
         });
 
-        it('should display Party (1) for single character', () => {
+        it('should display singular character count for single character', () => {
             const characters = [
                 createMockCharacter('char-1', 'Solo'),
             ];
@@ -124,7 +125,8 @@ describe('PartyOverview', () => {
                 <PartyOverview campaignId="campaign-1" characters={characters} />
             );
 
-            expect(screen.getByText(/Party \(1\)/)).toBeInTheDocument();
+            expect(screen.getByText('Party Overview')).toBeInTheDocument();
+            expect(screen.getByText('1 character')).toBeInTheDocument();
         });
     });
 });

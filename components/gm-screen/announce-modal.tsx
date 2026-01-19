@@ -26,7 +26,7 @@ interface AnnounceModalProps {
 
 // Common announcement templates
 const TEMPLATES = [
-    { label: 'Combat Start', message: '⚔️ Roll for initiative!' },
+    { label: 'Combat Start', message: '⚔️ Combat begins! The spotlight is yours.' },
     { label: 'Short Rest', message: '☕ Take a short rest. You may spend Hope to heal.' },
     { label: 'Long Rest', message: '🌙 Long rest. Restore all HP, clear Stress, and repair Armor.' },
     { label: 'Level Up', message: '🎉 Level up! Check your character sheets for new abilities.' },

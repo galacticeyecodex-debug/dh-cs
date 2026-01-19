@@ -588,8 +588,11 @@ CREATE TABLE IF NOT EXISTS public.campaigns (
   gm_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   invite_code TEXT UNIQUE NOT NULL,
   fear_current INTEGER NOT NULL DEFAULT 0,
-  fear_max INTEGER NOT NULL DEFAULT 12,
+  fear_max INTEGER NOT NULL DEFAULT 12, -- SRD: Max Fear is always 12
   settings JSONB DEFAULT '{}'::jsonb,
+  -- Phase 9: Countdowns and Projects (GH#67)
+  countdowns JSONB DEFAULT '[]'::jsonb, -- GM countdown trackers
+  projects JSONB DEFAULT '[]'::jsonb, -- Player projects from Downtime
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

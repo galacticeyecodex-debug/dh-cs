@@ -944,6 +944,37 @@ export const dataService: DataClient = {
 
       return count || 0;
     },
+
+    getCampaignForCharacter: async (characterId: string): Promise<Campaign | null> => {
+      const supabase = createClient();
+
+      // Find the campaign_members entry where this character is assigned
+      const { data: membership, error: memberError } = await supabase
+        .from('campaign_members')
+        .select('campaign_id')
+        .eq('character_id', characterId)
+        .maybeSingle();
+
+      if (memberError) {
+        throw new Error(`Failed to find campaign for character: ${memberError.message}`);
+      }
+
+      if (!membership) return null;
+
+      // Fetch the campaign
+      const { data: campaign, error: campaignError } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('id', membership.campaign_id)
+        .single();
+
+      if (campaignError) {
+        if (campaignError.code === 'PGRST116') return null;
+        throw new Error(`Failed to fetch campaign: ${campaignError.message}`);
+      }
+
+      return campaign;
+    },
   },
 
   // =========================================================================

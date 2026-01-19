@@ -13,7 +13,7 @@
  * - Integrates real-time subscriptions for live data updates
  */
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import useUser from '@/hooks/useUser';
 import { FearTracker } from './fear-tracker';
@@ -21,8 +21,15 @@ import { PartyOverview } from './party-overview';
 import { QuickActionsBar } from './quick-actions-bar';
 import { AdversaryBrowser } from './adversary-browser';
 import { EnvironmentBrowser } from './environment-browser';
-import { ActivityFeed } from '@/components/activity';
-import { Settings, Crown, Shield, ArrowLeft, Activity, Skull, Map } from 'lucide-react';
+import { CountdownTracker } from './countdown-tracker';
+import { CountdownCreatorModal } from './countdown-creator-modal';
+import { ProjectTracker } from './project-tracker';
+import { ProjectCreatorModal } from './project-creator-modal';
+import { ActivityFeed, RollNotification } from '@/components/activity';
+import { realtimeManager } from '@/lib/realtime';
+import { CampaignActivity } from '@/types/activity';
+import { Settings, Crown, Shield, ArrowLeft, Activity, Skull, Map, Timer, Hammer } from 'lucide-react';
+import type { CountdownInsert, ProjectInsert } from '@/types/campaign';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import CampaignSettingsModal from '@/components/campaign/campaign-settings-modal';
@@ -46,9 +53,26 @@ export function GmScreen({ campaignId }: GmScreenProps) {
         subscribeToCampaignRealtime,
         unsubscribeFromCampaignRealtime,
         setUser,
+        // Phase 9: Countdowns and Projects
+        createCountdown,
+        advanceCountdown,
+        resetCountdown,
+        deleteCountdown,
+        createCampaignProject,
+        advanceCampaignProject,
+        completeCampaignProject,
+        abandonCampaignProject,
     } = useCharacterStore();
     const [showSettings, setShowSettings] = useState(false);
-    const [sidebarTab, setSidebarTab] = useState<'activity' | 'adversaries' | 'environments'>('activity');
+    const [showCountdownCreator, setShowCountdownCreator] = useState(false);
+    const [showProjectCreator, setShowProjectCreator] = useState(false);
+    const [sidebarTab, setSidebarTab] = useState<'activity' | 'adversaries' | 'environments' | 'countdowns' | 'projects'>('activity');
+
+    // Roll notification state for GM Screen
+    const [currentRollNotification, setCurrentRollNotification] = useState<CampaignActivity | null>(null);
+    const dismissRollNotification = useCallback(() => {
+        setCurrentRollNotification(null);
+    }, []);
 
     // Sync auth user to store when loaded
     useEffect(() => {
@@ -56,6 +80,15 @@ export function GmScreen({ campaignId }: GmScreenProps) {
             setUser(authUser as any);
         }
     }, [authLoading, authUser, setUser]);
+
+    // Listen for roll notifications from the realtime manager
+    useEffect(() => {
+        const unsubscribe = realtimeManager.onRollNotification((activity) => {
+            setCurrentRollNotification(activity);
+        });
+
+        return unsubscribe;
+    }, []);
 
     // Load campaign data - always select campaign to ensure it's in the store
     // The selectCampaign function handles loading state properly
@@ -178,52 +211,98 @@ export function GmScreen({ campaignId }: GmScreenProps) {
 
                     {/* Right Column - Tabbed Sidebar */}
                     <div className="lg:col-span-1 space-y-4">
-                        {/* Sidebar Tab Bar */}
-                        <div className="flex gap-1 p-1 bg-dagger-panel border border-white/10 rounded-xl">
-                            <button
-                                onClick={() => setSidebarTab('activity')}
-                                className={clsx(
-                                    'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                                    sidebarTab === 'activity'
-                                        ? 'bg-blue-500/20 text-blue-300'
-                                        : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                )}
-                            >
-                                <Activity size={16} />
-                                <span className="hidden sm:inline">Activity</span>
-                            </button>
-                            <button
-                                onClick={() => setSidebarTab('adversaries')}
-                                className={clsx(
-                                    'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                                    sidebarTab === 'adversaries'
-                                        ? 'bg-red-500/20 text-red-300'
-                                        : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                )}
-                            >
-                                <Skull size={16} />
-                                <span className="hidden sm:inline">Adversaries</span>
-                            </button>
-                            <button
-                                onClick={() => setSidebarTab('environments')}
-                                className={clsx(
-                                    'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                                    sidebarTab === 'environments'
-                                        ? 'bg-green-500/20 text-green-300'
-                                        : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                )}
-                            >
-                                <Map size={16} />
-                                <span className="hidden sm:inline">Environments</span>
-                            </button>
+                        {/* Sidebar Tab Bar - Two rows on mobile */}
+                        <div className="bg-dagger-panel border border-white/10 rounded-xl p-1">
+                            <div className="flex gap-1 mb-1">
+                                <button
+                                    onClick={() => setSidebarTab('activity')}
+                                    className={clsx(
+                                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                                        sidebarTab === 'activity'
+                                            ? 'bg-blue-500/20 text-blue-300'
+                                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                    )}
+                                >
+                                    <Activity size={16} />
+                                    <span className="hidden sm:inline">Activity</span>
+                                </button>
+                                <button
+                                    onClick={() => setSidebarTab('countdowns')}
+                                    className={clsx(
+                                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                                        sidebarTab === 'countdowns'
+                                            ? 'bg-amber-500/20 text-amber-300'
+                                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                    )}
+                                >
+                                    <Timer size={16} />
+                                    <span className="hidden sm:inline">Countdowns</span>
+                                </button>
+                                <button
+                                    onClick={() => setSidebarTab('projects')}
+                                    className={clsx(
+                                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                                        sidebarTab === 'projects'
+                                            ? 'bg-orange-500/20 text-orange-300'
+                                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                    )}
+                                >
+                                    <Hammer size={16} />
+                                    <span className="hidden sm:inline">Projects</span>
+                                </button>
+                            </div>
+                            <div className="flex gap-1">
+                                <button
+                                    onClick={() => setSidebarTab('adversaries')}
+                                    className={clsx(
+                                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                                        sidebarTab === 'adversaries'
+                                            ? 'bg-red-500/20 text-red-300'
+                                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                    )}
+                                >
+                                    <Skull size={16} />
+                                    <span className="hidden sm:inline">Adversaries</span>
+                                </button>
+                                <button
+                                    onClick={() => setSidebarTab('environments')}
+                                    className={clsx(
+                                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                                        sidebarTab === 'environments'
+                                            ? 'bg-green-500/20 text-green-300'
+                                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                    )}
+                                >
+                                    <Map size={16} />
+                                    <span className="hidden sm:inline">Environments</span>
+                                </button>
+                            </div>
                         </div>
 
                         {/* Sidebar Content */}
                         {sidebarTab === 'activity' && (
                             <ActivityFeed
                                 campaignId={campaignId}
-                                maxHeight="calc(100vh - 220px)"
+                                maxHeight="calc(100vh - 280px)"
                                 compact={true}
+                            />
+                        )}
+                        {sidebarTab === 'countdowns' && (
+                            <CountdownTracker
+                                countdowns={activeCampaign.countdowns || []}
+                                onAdvance={(countdownId, amount) => advanceCountdown(campaignId, countdownId, amount)}
+                                onDelete={(countdownId) => deleteCountdown(campaignId, countdownId)}
+                                onReset={(countdownId) => resetCountdown(campaignId, countdownId)}
+                                onCreateNew={() => setShowCountdownCreator(true)}
+                            />
+                        )}
+                        {sidebarTab === 'projects' && (
+                            <ProjectTracker
+                                projects={activeCampaign.projects || []}
+                                onAdvance={(projectId) => advanceCampaignProject(campaignId, projectId)}
+                                onComplete={(projectId) => completeCampaignProject(campaignId, projectId)}
+                                onAbandon={(projectId) => abandonCampaignProject(campaignId, projectId)}
+                                onCreateNew={() => setShowProjectCreator(true)}
                             />
                         )}
                         {sidebarTab === 'adversaries' && (
@@ -241,6 +320,31 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                 isOpen={showSettings}
                 onClose={() => setShowSettings(false)}
                 campaign={activeCampaign}
+            />
+
+            {/* Countdown Creator Modal */}
+            <CountdownCreatorModal
+                isOpen={showCountdownCreator}
+                onClose={() => setShowCountdownCreator(false)}
+                onSubmit={async (countdown: CountdownInsert) => {
+                    await createCountdown(campaignId, countdown);
+                }}
+            />
+
+            {/* Project Creator Modal */}
+            <ProjectCreatorModal
+                isOpen={showProjectCreator}
+                onClose={() => setShowProjectCreator(false)}
+                onSubmit={async (project: ProjectInsert) => {
+                    await createCampaignProject(campaignId, project);
+                }}
+                partyCharacters={partyCharacters}
+            />
+
+            {/* Roll notification pop-ups for campaign members */}
+            <RollNotification
+                activity={currentRollNotification}
+                onDismiss={dismissRollNotification}
             />
         </PageLayout>
     );

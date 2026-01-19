@@ -124,7 +124,8 @@ describe('AnnounceModal', () => {
             fireEvent.click(combatStartButton);
 
             const textarea = screen.getByPlaceholderText(/enter your message/i);
-            expect(textarea).toHaveValue('⚔️ Roll for initiative!');
+            // Updated per SRD: Daggerheart doesn't use initiative
+            expect(textarea).toHaveValue('⚔️ Combat begins! The spotlight is yours.');
         });
 
         it('should allow switching between templates', () => {
@@ -138,7 +139,8 @@ describe('AnnounceModal', () => {
 
             fireEvent.click(screen.getByText('Combat Start'));
             let textarea = screen.getByPlaceholderText(/enter your message/i);
-            expect(textarea).toHaveValue('⚔️ Roll for initiative!');
+            // Updated per SRD: Daggerheart doesn't use initiative
+            expect(textarea).toHaveValue('⚔️ Combat begins! The spotlight is yours.');
 
             fireEvent.click(screen.getByText('Long Rest'));
             textarea = screen.getByPlaceholderText(/enter your message/i);
