@@ -46,6 +46,15 @@ You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](ht
 - [x] **Downtime View** - Rest type selection, downtime moves with dice rolling, project tracking
 - [x] **Journal View** - NPC relationships with tier tracking, reputation system, text notes
 
+### Social & Multiplayer Features (✅ Complete - Issue #67)
+- [x] **Campaign Management** - Create/join campaigns and assign characters to campaigns
+- [x] **GM Screen** - Real-time party monitoring with vitals, Fear tracker, announcements, and dice rolling
+- [x] **Activity Feed** - Persistent log of dice rolls, vital changes, GM announcements (7-day retention)
+- [x] **Roll Notifications** - Pop-up notifications when party members of GM roll dice (with Hope/Fear/Critical styling)
+- [x] **GM Tools** - Adjust player vitals, manage Fear, send announcements, hidden GM rolls, view Adversary and Environment stat blocks
+- [x] **Countdowns & Projects** - GM countdown trackers and player project management
+- [x] **Friendships** - Friend codes, friend requests, and friend list management
+
 ### Level-Up System (✅ Complete)
 - [x] **All Advancement Types** - Traits, HP, Stress, Experience, Domain Cards, Evasion, Subclass, Proficiency, Multiclass
 - [x] **Tier System** - Proper Tier 1-4 progression with level mapping
@@ -57,7 +66,7 @@ You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](ht
 
 | Feature | Status | Description |
 |---------|--------|-------------|
-| Social Features | 📋 Planned | Campaigns, real-time play, GM screen, homebrew sharing (Issue #67) |
+| Homebrew Sharing | 📋 Planned | Share custom items with campaign members (Phase 6) |
 
 ### Class & Subclass Interactive Features
 

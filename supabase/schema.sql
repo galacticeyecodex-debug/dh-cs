@@ -1147,3 +1147,23 @@ BEGIN
   END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =============================================================================
+-- REALTIME CONFIGURATION
+-- =============================================================================
+-- Enable Supabase Realtime for tables that need live updates.
+-- This is REQUIRED for the WebSocket subscription to receive INSERT/UPDATE events.
+-- Without this, Realtime won't broadcast changes from these tables.
+-- =============================================================================
+
+-- First, ensure the supabase_realtime publication exists (it should by default)
+-- Then add our tables to it
+
+-- Add campaign_activity to realtime (for live roll notifications and activity feed)
+ALTER PUBLICATION supabase_realtime ADD TABLE campaign_activity;
+
+-- Add campaigns to realtime (for Fear updates and other campaign changes)
+ALTER PUBLICATION supabase_realtime ADD TABLE campaigns;
+
+-- Add characters to realtime (for vital updates on GM screen)
+ALTER PUBLICATION supabase_realtime ADD TABLE characters;

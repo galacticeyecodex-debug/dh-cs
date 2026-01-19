@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
 import useUser from '@/hooks/useUser';
-import { Settings, LogOut, UserPlus, Crown } from 'lucide-react';
+import { Settings, LogOut, UserPlus, Crown, Skull } from 'lucide-react';
 import PageLayout from '@/components/core/page-layout';
 import InviteCodeDisplay from '@/components/campaign/invite-code-display';
 import MemberList from '@/components/campaign/member-list';
@@ -217,19 +217,31 @@ export default function CampaignDetailPage() {
 
                 {/* Fear Tracker - SRD: Max Fear is always 12 */}
                 <div className="bg-dagger-panel border border-white/10 rounded-xl p-6 mb-6">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-bold text-white">Fear</h2>
-                        <div className="text-2xl font-bold text-white">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 rounded-lg bg-red-500/20">
+                                <Skull className="w-5 h-5 text-red-500" aria-hidden="true" />
+                            </div>
+                            <h2 className="text-lg font-bold text-white">Fear</h2>
+                        </div>
+                        <div className="text-xl font-bold tabular-nums text-white">
                             {activeCampaign.fear_current} / 12
                         </div>
                     </div>
-                    <div className="mt-4 h-3 bg-black/30 rounded-full overflow-hidden">
-                        <div
-                            className="h-full bg-gradient-to-r from-red-500 to-red-700 transition-all duration-500"
-                            style={{
-                                width: `${(activeCampaign.fear_current / 12) * 100}%`,
-                            }}
-                        />
+                    <div className="flex flex-wrap justify-center gap-1.5 px-2">
+                        {Array.from({ length: 12 }, (_, i) => {
+                            const isFilled = i < activeCampaign.fear_current;
+                            const isHighFear = activeCampaign.fear_current >= 10;
+                            return (
+                                <Skull
+                                    key={i}
+                                    size={20}
+                                    className={`transition-all duration-300 ${isFilled ? 'scale-100' : 'text-white/10 scale-90'}`}
+                                    fill={isFilled ? (isHighFear ? "#ef4444" : "#a855f7") : "none"}
+                                    stroke={isFilled ? (isHighFear ? "#7f1d1d" : "#581c87") : "currentColor"}
+                                />
+                            );
+                        })}
                     </div>
                 </div>
 

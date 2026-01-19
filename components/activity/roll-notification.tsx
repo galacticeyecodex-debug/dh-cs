@@ -41,6 +41,12 @@ export function RollNotification({
 
     if (!activity || activity.activity_type !== 'dice_roll') return null;
 
+    console.log('[RollNotification] Component rendering notification:', {
+        characterName: activity.character_name,
+        activityType: activity.activity_type,
+        data: activity.data,
+    });
+
     const data = activity.data as DiceRollActivityData | GmRollActivityData;
     const isGmRoll = 'is_gm_roll' in data && data.is_gm_roll;
     const characterName = activity.character_name || (isGmRoll ? 'GM' : 'Unknown');

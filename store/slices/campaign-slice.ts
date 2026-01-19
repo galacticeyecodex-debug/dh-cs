@@ -493,8 +493,17 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     },
 
     logActivity: async (activity: CampaignActivityInsert) => {
+        console.log('[logActivity] Called with:', {
+            campaignId: activity.campaign_id,
+            activityType: activity.activity_type,
+            characterName: activity.character_name,
+        });
         try {
             const logged = await dataService.campaign.logActivity(activity);
+            console.log('[logActivity] Successfully logged to database:', {
+                activityId: logged.id,
+                activityType: logged.activity_type,
+            });
 
             // Add to local feed (optimistic update)
             set((state) => ({
@@ -502,6 +511,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                 activityTotalCount: state.activityTotalCount + 1,
             }));
         } catch (error) {
+            console.error('[logActivity] Failed to log activity:', error);
             // Activity logging failure is non-critical, silently ignored
         }
     },
