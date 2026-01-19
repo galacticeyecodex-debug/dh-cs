@@ -100,6 +100,10 @@ export interface DataClient {
 
     // Character campaign lookup
     getCampaignForCharacter: (characterId: string) => Promise<Campaign | null>;
+
+    // Phase 9: Countdowns & Projects
+    updateCountdowns: (campaignId: string, countdowns: any[]) => Promise<void>;
+    updateProjects: (campaignId: string, projects: any[]) => Promise<void>;
   };
 
   // Phase 7: Friendships

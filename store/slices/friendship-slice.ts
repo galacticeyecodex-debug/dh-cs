@@ -18,6 +18,7 @@ import { dataService } from '@/lib/data-service';
 import { friendRealtimeManager } from '@/lib/friend-realtime';
 import type { Friendship, Friend, FriendRequest, OutgoingRequest } from '@/types/friendship';
 import { toast } from 'sonner';
+import { withOptimisticUpdate } from '@/lib/state-helpers';
 
 export interface FriendshipSlice {
     // State
@@ -192,110 +193,122 @@ export const createFriendshipSlice: StateCreator<
 
     // Cancel an outgoing friend request
     cancelFriendRequest: async (requestId: string) => {
-        try {
-            // Optimistically remove from outgoing
-            set((state) => ({
-                outgoingRequests: state.outgoingRequests.filter((r) => r.id !== requestId),
-            }));
+        const previousRequests = get().outgoingRequests;
 
-            await dataService.friendship.cancelRequest(requestId);
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    outgoingRequests: state.outgoingRequests.filter((r) => r.id !== requestId),
+                }));
+                return () => set({ outgoingRequests: previousRequests });
+            },
+            () => dataService.friendship.cancelRequest(requestId),
+            'Failed to cancel friend request'
+        );
+
+        if (success) {
             toast.success('Friend request cancelled');
-        } catch (error: any) {
-            console.error('Failed to cancel friend request:', error);
-            toast.error('Failed to cancel friend request');
-            // Refetch to restore state
-            get().fetchOutgoingRequests();
         }
     },
 
     // Accept an incoming friend request
     acceptFriendRequest: async (requestId: string) => {
         const request = get().pendingRequests.find((r) => r.id === requestId);
+        const previousRequests = get().pendingRequests;
+        const previousFriends = get().friends;
 
-        try {
-            // Optimistically update
-            set((state) => ({
-                pendingRequests: state.pendingRequests.filter((r) => r.id !== requestId),
-            }));
-
-            await dataService.friendship.acceptRequest(requestId);
-
-            // Add to friends list
-            if (request) {
-                const newFriend: Friend = {
-                    user_id: request.from.user_id,
-                    username: request.from.username,
-                    avatar_url: request.from.avatar_url,
-                    friend_code: null,
-                    friendship_id: requestId,
-                    is_requester: false,
-                    since: new Date().toISOString(),
-                };
-
+        const { success } = await withOptimisticUpdate(
+            () => {
+                // Remove from pending requests
                 set((state) => ({
-                    friends: [newFriend, ...state.friends],
+                    pendingRequests: state.pendingRequests.filter((r) => r.id !== requestId),
                 }));
-            }
 
+                // Add to friends list
+                if (request) {
+                    const newFriend: Friend = {
+                        user_id: request.from.user_id,
+                        username: request.from.username,
+                        avatar_url: request.from.avatar_url,
+                        friend_code: null,
+                        friendship_id: requestId,
+                        is_requester: false,
+                        since: new Date().toISOString(),
+                    };
+                    set((state) => ({
+                        friends: [newFriend, ...state.friends],
+                    }));
+                }
+
+                return () => set({ pendingRequests: previousRequests, friends: previousFriends });
+            },
+            () => dataService.friendship.acceptRequest(requestId),
+            'Failed to accept friend request'
+        );
+
+        if (success) {
             toast.success(`You are now friends with ${request?.from.username || 'user'}!`);
-        } catch (error: any) {
-            console.error('Failed to accept friend request:', error);
-            toast.error('Failed to accept friend request');
-            // Refetch to restore state
-            get().fetchAllFriendshipData();
         }
     },
 
     // Decline an incoming friend request
     declineFriendRequest: async (requestId: string) => {
-        try {
-            // Optimistically remove
-            set((state) => ({
-                pendingRequests: state.pendingRequests.filter((r) => r.id !== requestId),
-            }));
+        const previousRequests = get().pendingRequests;
 
-            await dataService.friendship.declineRequest(requestId);
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    pendingRequests: state.pendingRequests.filter((r) => r.id !== requestId),
+                }));
+                return () => set({ pendingRequests: previousRequests });
+            },
+            () => dataService.friendship.declineRequest(requestId),
+            'Failed to decline friend request'
+        );
+
+        if (success) {
             toast.success('Friend request declined');
-        } catch (error: any) {
-            console.error('Failed to decline friend request:', error);
-            toast.error('Failed to decline friend request');
-            get().fetchPendingRequests();
         }
     },
 
     // Remove a friend
     unfriend: async (friendshipId: string) => {
         const friend = get().friends.find((f) => f.friendship_id === friendshipId);
+        const previousFriends = get().friends;
 
-        try {
-            // Optimistically remove
-            set((state) => ({
-                friends: state.friends.filter((f) => f.friendship_id !== friendshipId),
-            }));
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    friends: state.friends.filter((f) => f.friendship_id !== friendshipId),
+                }));
+                return () => set({ friends: previousFriends });
+            },
+            () => dataService.friendship.unfriend(friendshipId),
+            'Failed to remove friend'
+        );
 
-            await dataService.friendship.unfriend(friendshipId);
+        if (success) {
             toast.success(`Removed ${friend?.username || 'user'} from friends`);
-        } catch (error: any) {
-            console.error('Failed to unfriend:', error);
-            toast.error('Failed to remove friend');
-            get().fetchFriends();
         }
     },
 
     // Block a user
     blockUser: async (friendshipId: string) => {
-        try {
-            // Remove from friends list
-            set((state) => ({
-                friends: state.friends.filter((f) => f.friendship_id !== friendshipId),
-            }));
+        const previousFriends = get().friends;
 
-            await dataService.friendship.block(friendshipId);
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    friends: state.friends.filter((f) => f.friendship_id !== friendshipId),
+                }));
+                return () => set({ friends: previousFriends });
+            },
+            () => dataService.friendship.block(friendshipId),
+            'Failed to block user'
+        );
+
+        if (success) {
             toast.success('User blocked');
-        } catch (error: any) {
-            console.error('Failed to block user:', error);
-            toast.error('Failed to block user');
-            get().fetchFriends();
         }
     },
 

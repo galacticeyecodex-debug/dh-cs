@@ -30,6 +30,7 @@ import type {
 } from '@/types/campaign';
 import type { CampaignActivity, CampaignActivityInsert } from '@/types/activity';
 import { toast } from 'sonner';
+import { withOptimisticUpdate } from '@/lib/state-helpers';
 
 export interface CampaignSlice {
     // State
@@ -569,54 +570,51 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     // =========================================================================
 
     createCountdown: async (campaignId: string, countdownData: CountdownInsert) => {
-        try {
-            const state = get();
-            const campaign = state.activeCampaign;
-            if (!campaign) throw new Error('No active campaign');
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
 
-            const newCountdown: Countdown = {
-                id: crypto.randomUUID(),
-                name: countdownData.name,
-                description: countdownData.description,
-                type: countdownData.type,
-                starting_value: countdownData.starting_value,
-                current_value: countdownData.current_value ?? countdownData.starting_value,
-                is_public: countdownData.is_public ?? true,
-                is_looping: countdownData.is_looping ?? false,
-                created_at: new Date().toISOString(),
-            };
+        const newCountdown: Countdown = {
+            id: crypto.randomUUID(),
+            name: countdownData.name,
+            description: countdownData.description,
+            type: countdownData.type,
+            starting_value: countdownData.starting_value,
+            current_value: countdownData.current_value ?? countdownData.starting_value,
+            is_public: countdownData.is_public ?? true,
+            is_looping: countdownData.is_looping ?? false,
+            created_at: new Date().toISOString(),
+        };
 
-            const updatedCountdowns = [...(campaign.countdowns || []), newCountdown];
+        const previousCountdowns = campaign.countdowns || [];
+        const updatedCountdowns = [...previousCountdowns, newCountdown];
 
-            await dataService.campaign.update(campaignId, {
-                settings: {
-                    ...campaign.settings,
-                },
-            });
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: updatedCountdowns }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: previousCountdowns }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateCountdowns(campaignId, updatedCountdowns),
+            'Failed to create countdown'
+        );
 
-            // Update via raw query since countdowns is a new JSONB column
-            const { default: createClient } = await import('@/lib/supabase/client');
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('campaigns')
-                .update({ countdowns: updatedCountdowns })
-                .eq('id', campaignId);
-
-            if (error) throw error;
-
-            // Update local state
-            set((state) => ({
-                activeCampaign: state.activeCampaign
-                    ? { ...state.activeCampaign, countdowns: updatedCountdowns }
-                    : null,
-            }));
-
+        if (success) {
             // Log activity
-            const user = (get() as any).user;
-            if (user) {
-                await (get() as any).logActivity({
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
                     campaign_id: campaignId,
-                    user_id: user.id,
+                    user_id: state.user.id,
                     activity_type: 'countdown_created',
                     data: {
                         countdown_name: newCountdown.name,
@@ -626,55 +624,56 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                     is_private: !newCountdown.is_public,
                 });
             }
-
             toast.success(`Countdown "${newCountdown.name}" created`);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to create countdown';
-            toast.error(message);
-            throw error;
         }
     },
 
     advanceCountdown: async (campaignId: string, countdownId: string, amount: number) => {
-        try {
-            const state = get();
-            const campaign = state.activeCampaign;
-            if (!campaign) throw new Error('No active campaign');
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
 
-            const countdowns = campaign.countdowns || [];
-            const countdown = countdowns.find(c => c.id === countdownId);
-            if (!countdown) throw new Error('Countdown not found');
+        const previousCountdowns = campaign.countdowns || [];
+        const countdown = previousCountdowns.find(c => c.id === countdownId);
+        if (!countdown) {
+            toast.error('Countdown not found');
+            return;
+        }
 
-            const previousValue = countdown.current_value;
-            const newValue = Math.max(0, countdown.current_value - amount);
+        const previousValue = countdown.current_value;
+        const newValue = Math.max(0, countdown.current_value - amount);
 
-            const updatedCountdowns = countdowns.map(c =>
-                c.id === countdownId ? { ...c, current_value: newValue } : c
-            );
+        const updatedCountdowns = previousCountdowns.map(c =>
+            c.id === countdownId ? { ...c, current_value: newValue } : c
+        );
 
-            const { default: createClient } = await import('@/lib/supabase/client');
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('campaigns')
-                .update({ countdowns: updatedCountdowns })
-                .eq('id', campaignId);
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: updatedCountdowns }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: previousCountdowns }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateCountdowns(campaignId, updatedCountdowns),
+            'Failed to advance countdown'
+        );
 
-            if (error) throw error;
-
-            // Update local state
-            set((state) => ({
-                activeCampaign: state.activeCampaign
-                    ? { ...state.activeCampaign, countdowns: updatedCountdowns }
-                    : null,
-            }));
-
+        if (success) {
             // Log activity
-            const user = (get() as any).user;
-            if (user) {
+            const state = get() as CharacterStore;
+            if (state.user) {
                 const wasTriggered = newValue === 0 && previousValue > 0;
-                await (get() as any).logActivity({
+                state.logActivity({
                     campaign_id: campaignId,
-                    user_id: user.id,
+                    user_id: state.user.id,
                     activity_type: wasTriggered ? 'countdown_triggered' : 'countdown_advanced',
                     data: {
                         countdown_name: countdown.name,
@@ -690,94 +689,95 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             if (newValue === 0) {
                 toast.success(`Countdown "${countdown.name}" triggered!`);
             }
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to advance countdown';
-            toast.error(message);
-            throw error;
         }
     },
 
     resetCountdown: async (campaignId: string, countdownId: string) => {
-        try {
-            const state = get();
-            const campaign = state.activeCampaign;
-            if (!campaign) throw new Error('No active campaign');
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
 
-            const countdowns = campaign.countdowns || [];
-            const countdown = countdowns.find(c => c.id === countdownId);
-            if (!countdown) throw new Error('Countdown not found');
+        const previousCountdowns = campaign.countdowns || [];
+        const countdown = previousCountdowns.find(c => c.id === countdownId);
+        if (!countdown) {
+            toast.error('Countdown not found');
+            return;
+        }
 
-            const updatedCountdowns = countdowns.map(c =>
-                c.id === countdownId ? { ...c, current_value: c.starting_value } : c
-            );
+        const updatedCountdowns = previousCountdowns.map(c =>
+            c.id === countdownId ? { ...c, current_value: c.starting_value } : c
+        );
 
-            const { default: createClient } = await import('@/lib/supabase/client');
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('campaigns')
-                .update({ countdowns: updatedCountdowns })
-                .eq('id', campaignId);
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: updatedCountdowns }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: previousCountdowns }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateCountdowns(campaignId, updatedCountdowns),
+            'Failed to reset countdown'
+        );
 
-            if (error) throw error;
-
-            set((state) => ({
-                activeCampaign: state.activeCampaign
-                    ? { ...state.activeCampaign, countdowns: updatedCountdowns }
-                    : null,
-            }));
-
+        if (success) {
             toast.success(`Countdown "${countdown.name}" reset`);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to reset countdown';
-            toast.error(message);
-            throw error;
         }
     },
 
     deleteCountdown: async (campaignId: string, countdownId: string) => {
-        try {
-            const state = get();
-            const campaign = state.activeCampaign;
-            if (!campaign) throw new Error('No active campaign');
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
 
-            const countdowns = campaign.countdowns || [];
-            const countdown = countdowns.find(c => c.id === countdownId);
-            if (!countdown) throw new Error('Countdown not found');
+        const previousCountdowns = campaign.countdowns || [];
+        const countdown = previousCountdowns.find(c => c.id === countdownId);
+        if (!countdown) {
+            toast.error('Countdown not found');
+            return;
+        }
 
-            const updatedCountdowns = countdowns.filter(c => c.id !== countdownId);
+        const updatedCountdowns = previousCountdowns.filter(c => c.id !== countdownId);
 
-            const { default: createClient } = await import('@/lib/supabase/client');
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('campaigns')
-                .update({ countdowns: updatedCountdowns })
-                .eq('id', campaignId);
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: updatedCountdowns }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, countdowns: previousCountdowns }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateCountdowns(campaignId, updatedCountdowns),
+            'Failed to delete countdown'
+        );
 
-            if (error) throw error;
-
-            set((state) => ({
-                activeCampaign: state.activeCampaign
-                    ? { ...state.activeCampaign, countdowns: updatedCountdowns }
-                    : null,
-            }));
-
+        if (success) {
             // Log activity
-            const user = (get() as any).user;
-            if (user) {
-                await (get() as any).logActivity({
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
                     campaign_id: campaignId,
-                    user_id: user.id,
+                    user_id: state.user.id,
                     activity_type: 'countdown_deleted',
                     data: { countdown_name: countdown.name },
                     is_private: !countdown.is_public,
                 });
             }
-
             toast.success(`Countdown "${countdown.name}" removed`);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to delete countdown';
-            toast.error(message);
-            throw error;
         }
     },
 
@@ -786,47 +786,52 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     // =========================================================================
 
     createCampaignProject: async (campaignId: string, projectData: ProjectInsert) => {
-        try {
-            const state = get();
-            const campaign = state.activeCampaign;
-            if (!campaign) throw new Error('No active campaign');
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
 
-            const newProject: Project = {
-                id: crypto.randomUUID(),
-                character_id: projectData.character_id,
-                character_name: projectData.character_name,
-                name: projectData.name,
-                description: projectData.description,
-                starting_value: projectData.starting_value,
-                current_value: projectData.current_value ?? projectData.starting_value,
-                advancement_type: projectData.advancement_type ?? 'auto',
-                status: projectData.status ?? 'active',
-                created_at: new Date().toISOString(),
-            };
+        const newProject: Project = {
+            id: crypto.randomUUID(),
+            character_id: projectData.character_id,
+            character_name: projectData.character_name,
+            name: projectData.name,
+            description: projectData.description,
+            starting_value: projectData.starting_value,
+            current_value: projectData.current_value ?? projectData.starting_value,
+            advancement_type: projectData.advancement_type ?? 'auto',
+            status: projectData.status ?? 'active',
+            created_at: new Date().toISOString(),
+        };
 
-            const updatedProjects = [...(campaign.projects || []), newProject];
+        const previousProjects = campaign.projects || [];
+        const updatedProjects = [...previousProjects, newProject];
 
-            const { default: createClient } = await import('@/lib/supabase/client');
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('campaigns')
-                .update({ projects: updatedProjects })
-                .eq('id', campaignId);
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: updatedProjects }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: previousProjects }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateProjects(campaignId, updatedProjects),
+            'Failed to create project'
+        );
 
-            if (error) throw error;
-
-            set((state) => ({
-                activeCampaign: state.activeCampaign
-                    ? { ...state.activeCampaign, projects: updatedProjects }
-                    : null,
-            }));
-
+        if (success) {
             // Log activity
-            const user = (get() as any).user;
-            if (user) {
-                await (get() as any).logActivity({
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
                     campaign_id: campaignId,
-                    user_id: user.id,
+                    user_id: state.user.id,
                     activity_type: 'project_created',
                     data: {
                         project_name: newProject.name,
@@ -836,53 +841,55 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                     is_private: false,
                 });
             }
-
             toast.success(`Project "${newProject.name}" created for ${newProject.character_name}`);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to create project';
-            toast.error(message);
-            throw error;
         }
     },
 
     advanceCampaignProject: async (campaignId: string, projectId: string) => {
-        try {
-            const state = get();
-            const campaign = state.activeCampaign;
-            if (!campaign) throw new Error('No active campaign');
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
 
-            const projects = campaign.projects || [];
-            const project = projects.find(p => p.id === projectId);
-            if (!project) throw new Error('Project not found');
+        const previousProjects = campaign.projects || [];
+        const project = previousProjects.find(p => p.id === projectId);
+        if (!project) {
+            toast.error('Project not found');
+            return;
+        }
 
-            const previousValue = project.current_value;
-            const newValue = Math.max(0, project.current_value - 1);
+        const previousValue = project.current_value;
+        const newValue = Math.max(0, project.current_value - 1);
 
-            const updatedProjects = projects.map(p =>
-                p.id === projectId ? { ...p, current_value: newValue } : p
-            );
+        const updatedProjects = previousProjects.map(p =>
+            p.id === projectId ? { ...p, current_value: newValue } : p
+        );
 
-            const { default: createClient } = await import('@/lib/supabase/client');
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('campaigns')
-                .update({ projects: updatedProjects })
-                .eq('id', campaignId);
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: updatedProjects }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: previousProjects }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateProjects(campaignId, updatedProjects),
+            'Failed to advance project'
+        );
 
-            if (error) throw error;
-
-            set((state) => ({
-                activeCampaign: state.activeCampaign
-                    ? { ...state.activeCampaign, projects: updatedProjects }
-                    : null,
-            }));
-
+        if (success) {
             // Log activity
-            const user = (get() as any).user;
-            if (user) {
-                await (get() as any).logActivity({
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
                     campaign_id: campaignId,
-                    user_id: user.id,
+                    user_id: state.user.id,
                     activity_type: 'project_advanced',
                     data: {
                         project_name: project.name,
@@ -893,52 +900,54 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                     is_private: false,
                 });
             }
-
             toast.success(`${project.character_name}'s project "${project.name}" advanced`);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to advance project';
-            toast.error(message);
-            throw error;
         }
     },
 
     completeCampaignProject: async (campaignId: string, projectId: string) => {
-        try {
-            const state = get();
-            const campaign = state.activeCampaign;
-            if (!campaign) throw new Error('No active campaign');
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
 
-            const projects = campaign.projects || [];
-            const project = projects.find(p => p.id === projectId);
-            if (!project) throw new Error('Project not found');
+        const previousProjects = campaign.projects || [];
+        const project = previousProjects.find(p => p.id === projectId);
+        if (!project) {
+            toast.error('Project not found');
+            return;
+        }
 
-            const updatedProjects = projects.map(p =>
-                p.id === projectId
-                    ? { ...p, status: 'completed' as const, completed_at: new Date().toISOString() }
-                    : p
-            );
+        const updatedProjects = previousProjects.map(p =>
+            p.id === projectId
+                ? { ...p, status: 'completed' as const, completed_at: new Date().toISOString() }
+                : p
+        );
 
-            const { default: createClient } = await import('@/lib/supabase/client');
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('campaigns')
-                .update({ projects: updatedProjects })
-                .eq('id', campaignId);
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: updatedProjects }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: previousProjects }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateProjects(campaignId, updatedProjects),
+            'Failed to complete project'
+        );
 
-            if (error) throw error;
-
-            set((state) => ({
-                activeCampaign: state.activeCampaign
-                    ? { ...state.activeCampaign, projects: updatedProjects }
-                    : null,
-            }));
-
+        if (success) {
             // Log activity
-            const user = (get() as any).user;
-            if (user) {
-                await (get() as any).logActivity({
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
                     campaign_id: campaignId,
-                    user_id: user.id,
+                    user_id: state.user.id,
                     activity_type: 'project_completed',
                     data: {
                         project_name: project.name,
@@ -947,49 +956,47 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                     is_private: false,
                 });
             }
-
             toast.success(`🎉 ${project.character_name} completed "${project.name}"!`);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to complete project';
-            toast.error(message);
-            throw error;
         }
     },
 
     abandonCampaignProject: async (campaignId: string, projectId: string) => {
-        try {
-            const state = get();
-            const campaign = state.activeCampaign;
-            if (!campaign) throw new Error('No active campaign');
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
 
-            const projects = campaign.projects || [];
-            const project = projects.find(p => p.id === projectId);
-            if (!project) throw new Error('Project not found');
+        const previousProjects = campaign.projects || [];
+        const project = previousProjects.find(p => p.id === projectId);
+        if (!project) {
+            toast.error('Project not found');
+            return;
+        }
 
-            const updatedProjects = projects.map(p =>
-                p.id === projectId ? { ...p, status: 'abandoned' as const } : p
-            );
+        const updatedProjects = previousProjects.map(p =>
+            p.id === projectId ? { ...p, status: 'abandoned' as const } : p
+        );
 
-            const { default: createClient } = await import('@/lib/supabase/client');
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('campaigns')
-                .update({ projects: updatedProjects })
-                .eq('id', campaignId);
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: updatedProjects }
+                        : null,
+                }));
+                return () => set((state) => ({
+                    activeCampaign: state.activeCampaign
+                        ? { ...state.activeCampaign, projects: previousProjects }
+                        : null,
+                }));
+            },
+            () => dataService.campaign.updateProjects(campaignId, updatedProjects),
+            'Failed to abandon project'
+        );
 
-            if (error) throw error;
-
-            set((state) => ({
-                activeCampaign: state.activeCampaign
-                    ? { ...state.activeCampaign, projects: updatedProjects }
-                    : null,
-            }));
-
+        if (success) {
             toast.success(`Project "${project.name}" abandoned`);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to abandon project';
-            toast.error(message);
-            throw error;
         }
     },
 });

@@ -215,19 +215,19 @@ export default function CampaignDetailPage() {
                     <p className="text-gray-400 mb-6">{activeCampaign.description}</p>
                 )}
 
-                {/* Fear Tracker */}
+                {/* Fear Tracker - SRD: Max Fear is always 12 */}
                 <div className="bg-dagger-panel border border-white/10 rounded-xl p-6 mb-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-bold text-white">Fear</h2>
                         <div className="text-2xl font-bold text-white">
-                            {activeCampaign.fear_current} / {activeCampaign.fear_max}
+                            {activeCampaign.fear_current} / 12
                         </div>
                     </div>
                     <div className="mt-4 h-3 bg-black/30 rounded-full overflow-hidden">
                         <div
                             className="h-full bg-gradient-to-r from-red-500 to-red-700 transition-all duration-500"
                             style={{
-                                width: `${(activeCampaign.fear_current / activeCampaign.fear_max) * 100}%`,
+                                width: `${(activeCampaign.fear_current / 12) * 100}%`,
                             }}
                         />
                     </div>

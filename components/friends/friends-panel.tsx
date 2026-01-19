@@ -36,12 +36,18 @@ export function FriendsPanel({ onShareHomebrew }: FriendsPanelProps) {
         cancelFriendRequest,
         unfriend,
         blockUser,
+        subscribeToFriendshipRealtime,
+        unsubscribeFromFriendshipRealtime,
     } = useCharacterStore();
 
-    // Fetch friendship data on mount
+    // Fetch friendship data and subscribe to real-time updates on mount
     useEffect(() => {
         fetchAllFriendshipData();
-    }, [fetchAllFriendshipData]);
+        subscribeToFriendshipRealtime();
+        return () => {
+            unsubscribeFromFriendshipRealtime();
+        };
+    }, [fetchAllFriendshipData, subscribeToFriendshipRealtime, unsubscribeFromFriendshipRealtime]);
 
     if (isLoadingFriends && friends.length === 0) {
         return (

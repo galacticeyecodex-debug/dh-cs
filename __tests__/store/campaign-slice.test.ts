@@ -95,7 +95,7 @@ const createMockCampaign = (overrides?: Partial<Campaign>): Campaign => ({
     gm_user_id: 'user-1',
     invite_code: 'ABC12345',
     fear_current: 0,
-    fear_max: 10,
+    fear_max: 12, // SRD: Max Fear is always 12
     settings: {},
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),

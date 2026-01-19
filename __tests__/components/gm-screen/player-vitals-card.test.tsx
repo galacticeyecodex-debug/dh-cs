@@ -49,7 +49,7 @@ const createMockCharacter = (overrides?: Partial<Character>): Character =>
         stress_current: 2,
         stress_max: 6,
         armor_slots: 3,
-        armor_max: 5,
+        armor_score: 5,
     },
     hope: 4,
     evasion: 10,
@@ -101,7 +101,7 @@ describe('PlayerVitalsCard', () => {
 
             expect(screen.getByText('8/12')).toBeInTheDocument(); // HP
             expect(screen.getByText('2/6')).toBeInTheDocument(); // Stress
-            expect(screen.getByText('3/3')).toBeInTheDocument(); // Armor slots (shows same value for both)
+            expect(screen.getByText('3/5')).toBeInTheDocument(); // Armor (3 slots out of 5 armor_score)
             expect(screen.getByText('4/5')).toBeInTheDocument(); // Hope (max is 5 by default)
         });
 
@@ -146,7 +146,7 @@ describe('PlayerVitalsCard', () => {
                     stress_current: 2,
                     stress_max: 6,
                     armor_slots: 3,
-                    armor_max: 5,
+                    armor_score: 5,
                 },
             });
             render(<PlayerVitalsCard character={character} />);
@@ -163,7 +163,7 @@ describe('PlayerVitalsCard', () => {
                     stress_current: 5, // max is 6, so 5 triggers warning
                     stress_max: 6,
                     armor_slots: 3,
-                    armor_max: 5,
+                    armor_score: 5,
                 },
             });
             render(<PlayerVitalsCard character={character} />);
@@ -188,7 +188,7 @@ describe('PlayerVitalsCard', () => {
                     stress_current: 2, // Below max - 1
                     stress_max: 6,
                     armor_slots: 3,
-                    armor_max: 5,
+                    armor_score: 5,
                 },
                 hope: 4, // Above 1
             });
@@ -217,7 +217,7 @@ describe('PlayerVitalsCard', () => {
                     stress_current: 0,
                     stress_max: 6,
                     armor_slots: 0,
-                    armor_max: 5,
+                    armor_score: 4, // Different from hope to distinguish in test
                 },
                 hope: 0,
             });
@@ -225,8 +225,8 @@ describe('PlayerVitalsCard', () => {
 
             expect(screen.getByText('0/12')).toBeInTheDocument(); // HP
             expect(screen.getByText('0/6')).toBeInTheDocument(); // Stress
-            expect(screen.getByText('0/0')).toBeInTheDocument(); // Armor
-            expect(screen.getByText('0/5')).toBeInTheDocument(); // Hope
+            expect(screen.getByText('0/4')).toBeInTheDocument(); // Armor (0 slots out of 4 armor_score)
+            expect(screen.getByText('0/5')).toBeInTheDocument(); // Hope (max is always 5)
         });
     });
 });
@@ -278,7 +278,7 @@ describe('PlayerVitalsCard (Unlocked)', () => {
                 stress_current: 2,
                 stress_max: 6,
                 armor_slots: 3,
-                armor_max: 5,
+                armor_score: 5,
             },
         });
         render(<PlayerVitalsCard character={character} />);
@@ -296,7 +296,7 @@ describe('PlayerVitalsCard (Unlocked)', () => {
                 stress_current: 2,
                 stress_max: 6,
                 armor_slots: 3,
-                armor_max: 5,
+                armor_score: 5,
             },
         });
         render(<PlayerVitalsCard character={character} />);

@@ -975,6 +975,34 @@ export const dataService: DataClient = {
 
       return campaign;
     },
+
+    // =========================================================================
+    // PHASE 9: COUNTDOWNS & PROJECTS
+    // =========================================================================
+
+    updateCountdowns: async (campaignId: string, countdowns: any[]): Promise<void> => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('campaigns')
+        .update({ countdowns })
+        .eq('id', campaignId);
+
+      if (error) {
+        throw new Error(`Failed to update countdowns: ${error.message}`);
+      }
+    },
+
+    updateProjects: async (campaignId: string, projects: any[]): Promise<void> => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('campaigns')
+        .update({ projects })
+        .eq('id', campaignId);
+
+      if (error) {
+        throw new Error(`Failed to update projects: ${error.message}`);
+      }
+    },
   },
 
   // =========================================================================

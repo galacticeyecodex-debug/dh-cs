@@ -58,7 +58,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
     const stressCurrent = character.vitals?.stress_current ?? 0;
     const stressMax = character.vitals?.stress_max ?? 6;
     const armorSlots = character.vitals?.armor_slots ?? 0;
-    const armorMax = character.vitals?.armor_slots ?? 0; // Armor max is the slots value itself
+    const armorMax = character.vitals?.armor_score ?? 0; // armor_score is the max, armor_slots is current
     const hopeCurrent = character.hope ?? 0;
     const hopeMax = 5;
 

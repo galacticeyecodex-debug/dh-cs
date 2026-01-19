@@ -125,12 +125,13 @@ export default function CharacterVitalsBanner() {
     const vitals: VitalEntry[] = [];
 
     // Add Fear if in an active campaign (read-only for players)
+    // SRD: Max Fear is always 12
     if (activeCampaign) {
-        const isHighFear = activeCampaign.fear_current >= 10;
+        const isHighFear = activeCampaign.fear_current >= 10; // ~83% of max
         vitals.push({
             label: 'Fear',
             current: activeCampaign.fear_current,
-            max: activeCampaign.fear_max || 12,
+            max: 12, // SRD: Max Fear is always 12
             icon: Skull,
             color: isHighFear ? 'text-red-400' : 'text-purple-400',
         });

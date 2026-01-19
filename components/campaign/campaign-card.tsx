@@ -55,7 +55,7 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
             <div className="flex items-center justify-between pt-4 border-t border-white/5">
                 <div className="flex items-center gap-2 text-gray-400 text-sm">
                     <Users size={16} />
-                    <span>Fear: {campaign.fear_current}/{campaign.fear_max}</span>
+                    <span>Fear: {campaign.fear_current}/12</span>
                 </div>
 
                 {isGM && (
