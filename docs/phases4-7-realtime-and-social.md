@@ -503,42 +503,71 @@ export function ShareHomebrewModal({ itemId, open, onOpenChange }: Props) {
 
 ---
 
-## Phase 7: Friendships (Future/Optional)
+## Phase 7: Friendships ✅ COMPLETE (2026-01-17)
 
 ### Overview
-1-to-1 friend connections for direct sharing outside campaigns.
+1-to-1 friend connections for direct sharing outside campaigns using unique friend codes.
 
-### Database Table
+### Database Schema
 
 **File**: `supabase/schema.sql`
 
-```sql
-CREATE TABLE IF NOT EXISTS friendships (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  requester_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  recipient_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'blocked')),
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(requester_id, recipient_id),
-  CHECK (requester_id != recipient_id)
-);
+Added columns to `profiles` table:
+- `friend_code TEXT UNIQUE` - 8-character unique code for friend requests
+- `allow_friend_requests BOOLEAN DEFAULT true` - Privacy setting
+- `show_online_status BOOLEAN DEFAULT true` - Privacy setting
 
-CREATE INDEX idx_friendships_requester ON friendships(requester_id);
-CREATE INDEX idx_friendships_recipient ON friendships(recipient_id);
-```
+Created `friendships` table with:
+- `id`, `requester_id`, `recipient_id` - Core relationship
+- `status` - 'pending', 'accepted', 'declined', 'blocked'
+- RLS policies for secure friend management
+- Trigger for auto-generating friend codes
 
-### Features
-- Send friend requests (no user search - use unique codes)
-- Accept/decline requests
-- View friend list
-- Share homebrew directly with friends
-- See friends' rolls when both online (mini-campaign)
+### Implementation
+
+**Types**: `types/friendship.ts`
+- `Friendship`, `FriendshipStatus`
+- `Friend`, `FriendRequest`, `OutgoingRequest`
+- `EnrichedFriendship`
+
+**Data Service**: `lib/data-service.ts` - `friendship` section
+- `findByCode(friendCode)` - Lookup user by friend code
+- `sendRequest(recipientId)` - Send friend request
+- `cancelRequest(friendshipId)` - Cancel outgoing request
+- `acceptRequest(friendshipId)` - Accept incoming request
+- `declineRequest(friendshipId)` - Decline incoming request
+- `getFriends(userId)` - List accepted friends
+- `getPendingRequests(userId)` - List incoming requests
+- `getOutgoingRequests(userId)` - List sent requests
+- `unfriend(friendshipId)` - Remove friendship
+- `block(friendshipId)` - Block user
+- `checkFriendship(userId, otherUserId)` - Check status
+
+**Store**: `store/slices/friendship-slice.ts`
+- State: `friends`, `pendingRequests`, `outgoingRequests`, `myFriendCode`
+- Actions for all friend management operations
+- Optimistic updates with rollback on failure
+- Toast notifications for user feedback
+
+**UI Components**: `components/friends/`
+- `FriendsPanel` - Main tabbed view
+- `FriendCard` - Display friend with actions
+- `FriendRequestCard` - Accept/decline incoming
+- `OutgoingRequestCard` - Cancel sent requests
+- `AddFriendForm` - Send request by code
+- `MyFriendCode` - Display user's code with copy
 
 ### Success Criteria
-✅ Friend request system works  
-✅ Can share with friends  
-✅ Friend activity visible
+✅ Friend code generation (8-char unique codes)
+✅ Send friend requests via friend code
+✅ Accept/decline incoming requests  
+✅ Cancel outgoing requests
+✅ View friend list with actions
+✅ Remove friends (unfriend)
+✅ Block users
+✅ Privacy controls (allow_friend_requests, show_online_status)
+✅ Optimistic updates with rollback
+✅ Unit tests (18 tests passing)
 
 ---
 
@@ -551,7 +580,7 @@ CREATE INDEX idx_friendships_recipient ON friendships(recipient_id);
 - [ ] Test presence with frequent joins/leaves
 
 ### Security Testing
-- [ ] Verify RLS on all new tables
+- [x] Verify RLS on all new tables (friendships)
 - [ ] Test GM-only actions as player
 - [ ] Test cross-campaign access
 - [ ] Test private activity visibility
@@ -561,13 +590,14 @@ CREATE INDEX idx_friendships_recipient ON friendships(recipient_id);
 - [ ] Activity feed scrolls smoothly
 - [ ] Presence updates feel instant
 - [ ] Sharing flow is intuitive
+- [x] Friends panel is intuitive
 
 ---
 
 ## Deployment Checklist
 
 ### Phase 4
-- [ ] Enable Realtime in Supabase
+- [x] Enable Realtime in Supabase
 - [ ] Test reconnection logic
 - [ ] Monitor Realtime costs
 
@@ -580,8 +610,9 @@ CREATE INDEX idx_friendships_recipient ON friendships(recipient_id);
 - [ ] Verify sharing RLS policies
 
 ### Phase 7
-- [ ] Design friend code system
-- [ ] Implement friend discovery
+- [x] Design friend code system (8-char codes like Discord)
+- [x] Implement friend discovery (via friend code)
+- [x] Add privacy controls
 
 ---
 
@@ -590,6 +621,8 @@ CREATE INDEX idx_friendships_recipient ON friendships(recipient_id);
 ✅ **Multiplayer Experience**: Campaigns feel alive with real-time activity  
 ✅ **GM Tools**: GMs have full control of Fear and party vitals  
 ✅ **Social Features**: Players can share and connect  
+✅ **Friendships**: Users can add friends and share directly
 ✅ **Performance**: System scales to 10+ concurrent users per campaign  
 ✅ **Security**: All RLS policies enforced correctly  
 ✅ **Polish**: UI is responsive and notifications are helpful
+

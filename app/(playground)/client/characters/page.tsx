@@ -1,13 +1,13 @@
 'use client';
 
-import MobileLayout from '@/components/core/mobile-layout';
+import UserMenu from '@/components/core/user-menu';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCharacterStore, Character } from '@/store/character-store';
 import { dataService } from '@/lib/data-service';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Sword } from 'lucide-react';
 
 export default function CharacterSelectPage() {
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -140,80 +140,100 @@ export default function CharacterSelectPage() {
 
   if (loading) {
     return (
-      <MobileLayout>
-        <div className="flex flex-col items-center justify-center h-full text-white">
+      <div className="flex flex-col h-[100dvh] bg-dagger-dark text-white overflow-hidden">
+        {/* Header */}
+        <header className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-dagger-panel">
+          <div className="flex items-center gap-2 text-lg font-serif font-bold text-dagger-gold">
+            <Sword size={20} />
+            <span>Daggerheart</span>
+          </div>
+          <UserMenu />
+        </header>
+        <div className="flex-1 flex flex-col items-center justify-center">
           <p>Loading characters...</p>
         </div>
-      </MobileLayout>
+      </div>
     );
   }
 
   return (
-    <MobileLayout>
-      <div className="flex flex-col items-center justify-start h-full px-4 pt-4 pb-24">
-        <h1 className="text-3xl font-serif font-bold mb-6 text-center">Select Your Character</h1>
-        <div className="mb-8 text-center">
-          <Button
-            onClick={() => router.push('/create-character')}
-            disabled={selectingId !== null}
-            className="px-6 py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Create New Character
-          </Button>
+    <div className="flex flex-col h-[100dvh] bg-dagger-dark text-white overflow-hidden">
+      {/* Header */}
+      <header className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-dagger-panel">
+        <div className="flex items-center gap-2 text-lg font-serif font-bold text-dagger-gold">
+          <Sword size={20} />
+          <span>Daggerheart</span>
         </div>
-        {characters.length === 0 ? (
-          <p className="text-center text-gray-300">No characters found. Create one to get started!</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-md">
-            {characters.map((char) => {
-              const isSelecting = selectingId === char.id;
-              const isDisabled = selectingId !== null;
+        <UserMenu />
+      </header>
 
-              return (
-                <Card
-                  key={char.id}
-                  className={`
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="flex flex-col items-center justify-start px-4 pt-8 pb-8">
+          <h1 className="text-3xl font-serif font-bold mb-6 text-center">Select Your Character</h1>
+          <div className="mb-8 text-center">
+            <Button
+              onClick={() => router.push('/create-character')}
+              disabled={selectingId !== null}
+              className="px-6 py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Create New Character
+            </Button>
+          </div>
+          {characters.length === 0 ? (
+            <p className="text-center text-gray-300">No characters found. Create one to get started!</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-md">
+              {characters.map((char) => {
+                const isSelecting = selectingId === char.id;
+                const isDisabled = selectingId !== null;
+
+                return (
+                  <Card
+                    key={char.id}
+                    className={`
                     touch-manipulation bg-dagger-panel text-white border-white/10
                     transition-all duration-200
                     ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-dagger-panel-hover active:bg-dagger-panel-hover'}
                     ${isSelecting ? 'ring-2 ring-dagger-gold scale-[0.98] opacity-80' : ''}
                     ${isDisabled && !isSelecting ? 'opacity-50' : ''}
                   `}
-                  onClick={() => !isDisabled && handleSelectCharacter(char.id)}
-                >
-                  <CardHeader>
-                    <CardTitle className="text-dagger-gold flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 truncate">
-                        {char.name}
-                        {isSelecting && (
-                          <span className="inline-block w-4 h-4 border-2 border-dagger-gold border-t-transparent rounded-full animate-spin flex-shrink-0" />
-                        )}
-                      </div>
-                      <button
-                        onClick={(e) => handleDeleteCharacter(e, char.id, char.name)}
-                        disabled={isDisabled || deletingId !== null}
-                        className="text-red-400 hover:text-red-300 transition-colors p-1 disabled:opacity-50 flex-shrink-0"
-                        title="Delete character"
-                      >
-                        {deletingId === char.id ? (
-                           <span className="inline-block w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Trash2 size={18} />
-                        )}
-                      </button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>Level {char.level}</p>
-                    <p>Class: {char.class_id || 'Unknown'}</p>
-                    <p>Ancestry: {char.ancestry || 'Unknown'}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </MobileLayout>
+                    onClick={() => !isDisabled && handleSelectCharacter(char.id)}
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-dagger-gold flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 truncate">
+                          {char.name}
+                          {isSelecting && (
+                            <span className="inline-block w-4 h-4 border-2 border-dagger-gold border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => handleDeleteCharacter(e, char.id, char.name)}
+                          disabled={isDisabled || deletingId !== null}
+                          className="text-red-400 hover:text-red-300 transition-colors p-1 disabled:opacity-50 flex-shrink-0"
+                          title="Delete character"
+                        >
+                          {deletingId === char.id ? (
+                            <span className="inline-block w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Trash2 size={18} />
+                          )}
+                        </button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p>Level {char.level}</p>
+                      <p>Class: {char.class_id || 'Unknown'}</p>
+                      <p>Ancestry: {char.ancestry || 'Unknown'}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
   );
 }

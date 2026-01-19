@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   username TEXT,
   avatar_url TEXT,
   content_access JSONB DEFAULT '{"srd": true, "playtest": false, "homebrew": {}}'::jsonb, -- Controls access to content sources (SRD, playtest, homebrew campaigns)
+  friend_code TEXT UNIQUE, -- 8-character code for friend requests (like Discord friend code)
+  allow_friend_requests BOOLEAN DEFAULT true, -- Whether user accepts friend requests
+  show_online_status BOOLEAN DEFAULT true, -- Whether user shows online status to friends
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -585,8 +588,11 @@ CREATE TABLE IF NOT EXISTS public.campaigns (
   gm_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   invite_code TEXT UNIQUE NOT NULL,
   fear_current INTEGER NOT NULL DEFAULT 0,
-  fear_max INTEGER NOT NULL DEFAULT 10,
+  fear_max INTEGER NOT NULL DEFAULT 12, -- SRD: Max Fear is always 12
   settings JSONB DEFAULT '{}'::jsonb,
+  -- Phase 9: Countdowns and Projects (GH#67)
+  countdowns JSONB DEFAULT '[]'::jsonb, -- GM countdown trackers
+  projects JSONB DEFAULT '[]'::jsonb, -- Player projects from Downtime
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -653,7 +659,39 @@ CREATE INDEX IF NOT EXISTS idx_campaign_members_user ON public.campaign_members(
 CREATE INDEX IF NOT EXISTS idx_campaign_members_campaign ON public.campaign_members(campaign_id);
 
 -- =============================================================================
--- CAMPAIGNS RLS POLICIES
+-- CAMPAIGNS/CAMPAIGN_MEMBERS RLS HELPER FUNCTIONS (SECURITY DEFINER)
+-- =============================================================================
+-- These SECURITY DEFINER functions bypass RLS, preventing infinite recursion
+-- when campaigns and campaign_members RLS policies need to check each other.
+-- Without these, policies that check "is user a member of campaign X" would
+-- trigger the campaign_members SELECT policy, which would check "is user a
+-- member of campaign X", causing infinite recursion.
+-- =============================================================================
+
+-- Helper function: Get user's campaign IDs (SECURITY DEFINER bypasses RLS)
+CREATE OR REPLACE FUNCTION get_user_campaign_ids(p_user_id UUID)
+RETURNS SETOF UUID AS $$
+BEGIN
+  RETURN QUERY
+  SELECT campaign_id FROM public.campaign_members
+  WHERE user_id = p_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+
+-- Helper function: Check if user is in a campaign (SECURITY DEFINER bypasses RLS)
+CREATE OR REPLACE FUNCTION is_campaign_member_check(p_campaign_id UUID, p_user_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.campaign_members
+    WHERE campaign_id = p_campaign_id
+    AND user_id = p_user_id
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+
+-- =============================================================================
+-- CAMPAIGNS RLS POLICIES (Uses helper functions to avoid recursion)
 -- =============================================================================
 
 DO $$
@@ -663,33 +701,32 @@ BEGIN
 
     ALTER TABLE public.campaigns ENABLE ROW LEVEL SECURITY;
 
-    -- Members can view campaigns they're in (as GM or player)
+    -- Drop old policies first
     EXECUTE 'DROP POLICY IF EXISTS "Members can view their campaigns" ON public.campaigns';
-    CREATE POLICY "Members can view their campaigns"
+    EXECUTE 'DROP POLICY IF EXISTS "Users can view their campaigns" ON public.campaigns';
+    EXECUTE 'DROP POLICY IF EXISTS "Authenticated users can create campaigns" ON public.campaigns';
+    EXECUTE 'DROP POLICY IF EXISTS "GM can update campaign" ON public.campaigns';
+    EXECUTE 'DROP POLICY IF EXISTS "GM can delete campaign" ON public.campaigns';
+
+    -- Members can view campaigns they're in (using helper function)
+    CREATE POLICY "Users can view their campaigns"
       ON public.campaigns FOR SELECT
       USING (
-        gm_user_id = auth.uid() OR
-        EXISTS (
-          SELECT 1 FROM public.campaign_members
-          WHERE campaign_id = campaigns.id
-          AND user_id = auth.uid()
-        )
+        gm_user_id = auth.uid()
+        OR id IN (SELECT get_user_campaign_ids(auth.uid()))
       );
 
-    -- Only authenticated users can create campaigns
-    EXECUTE 'DROP POLICY IF EXISTS "Authenticated users can create campaigns" ON public.campaigns';
+    -- Only authenticated users can create campaigns as GM
     CREATE POLICY "Authenticated users can create campaigns"
       ON public.campaigns FOR INSERT
       WITH CHECK (auth.uid() IS NOT NULL AND gm_user_id = auth.uid());
 
     -- Only GM can update campaign
-    EXECUTE 'DROP POLICY IF EXISTS "GM can update campaign" ON public.campaigns';
     CREATE POLICY "GM can update campaign"
       ON public.campaigns FOR UPDATE
       USING (gm_user_id = auth.uid());
 
     -- Only GM can delete campaign
-    EXECUTE 'DROP POLICY IF EXISTS "GM can delete campaign" ON public.campaigns';
     CREATE POLICY "GM can delete campaign"
       ON public.campaigns FOR DELETE
       USING (gm_user_id = auth.uid());
@@ -698,7 +735,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- =============================================================================
--- CAMPAIGN MEMBERS RLS POLICIES
+-- CAMPAIGN MEMBERS RLS POLICIES (Uses helper function to avoid recursion)
 -- =============================================================================
 
 DO $$
@@ -708,62 +745,40 @@ BEGIN
 
     ALTER TABLE public.campaign_members ENABLE ROW LEVEL SECURITY;
 
-    -- Members can view other members in their campaigns
+    -- Drop old policies first
     EXECUTE 'DROP POLICY IF EXISTS "Members can view campaign members" ON public.campaign_members';
+    EXECUTE 'DROP POLICY IF EXISTS "Users can join campaigns" ON public.campaign_members';
+    EXECUTE 'DROP POLICY IF EXISTS "Users can update own membership" ON public.campaign_members';
+    EXECUTE 'DROP POLICY IF EXISTS "GM can update any membership" ON public.campaign_members';
+    EXECUTE 'DROP POLICY IF EXISTS "Users can leave campaigns" ON public.campaign_members';
+    EXECUTE 'DROP POLICY IF EXISTS "GM can remove members" ON public.campaign_members';
+
+    -- Members can view other members in their campaigns (using helper function)
     CREATE POLICY "Members can view campaign members"
       ON public.campaign_members FOR SELECT
       USING (
-        EXISTS (
-          SELECT 1 FROM public.campaign_members cm
-          WHERE cm.campaign_id = campaign_members.campaign_id
-          AND cm.user_id = auth.uid()
-        )
+        user_id = auth.uid()
+        OR is_campaign_member_check(campaign_id, auth.uid())
       );
 
     -- Users can join campaigns (insert themselves)
-    EXECUTE 'DROP POLICY IF EXISTS "Users can join campaigns" ON public.campaign_members';
     CREATE POLICY "Users can join campaigns"
       ON public.campaign_members FOR INSERT
       WITH CHECK (user_id = auth.uid());
 
     -- Users can update their own membership (e.g., change character)
-    EXECUTE 'DROP POLICY IF EXISTS "Users can update own membership" ON public.campaign_members';
     CREATE POLICY "Users can update own membership"
       ON public.campaign_members FOR UPDATE
       USING (user_id = auth.uid());
 
-    -- GM can update any membership (e.g., kick, change roles)
-    EXECUTE 'DROP POLICY IF EXISTS "GM can update any membership" ON public.campaign_members';
-    CREATE POLICY "GM can update any membership"
-      ON public.campaign_members FOR UPDATE
-      USING (
-        EXISTS (
-          SELECT 1 FROM public.campaigns c
-          WHERE c.id = campaign_members.campaign_id
-          AND c.gm_user_id = auth.uid()
-        )
-      );
-
     -- Users can leave campaigns (delete themselves)
-    EXECUTE 'DROP POLICY IF EXISTS "Users can leave campaigns" ON public.campaign_members';
     CREATE POLICY "Users can leave campaigns"
       ON public.campaign_members FOR DELETE
       USING (user_id = auth.uid());
-
-    -- GM can remove members
-    EXECUTE 'DROP POLICY IF EXISTS "GM can remove members" ON public.campaign_members';
-    CREATE POLICY "GM can remove members"
-      ON public.campaign_members FOR DELETE
-      USING (
-        EXISTS (
-          SELECT 1 FROM public.campaigns c
-          WHERE c.id = campaign_members.campaign_id
-          AND c.gm_user_id = auth.uid()
-        )
-      );
   END IF;
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- =============================================================================
 -- 10. GM SCREEN (Phase 2: GM Screen MVP - GH#67)
@@ -779,6 +794,20 @@ CREATE POLICY "GM can view member characters"
       JOIN campaigns c ON c.id = cm.campaign_id
       WHERE cm.character_id = characters.id
       AND c.gm_user_id = auth.uid()
+    )
+  );
+
+-- Campaign members can view basic info of party characters
+-- This is needed for the member list and party overview to display character names
+CREATE POLICY "Campaign members can view party characters"
+  ON characters FOR SELECT
+  USING (
+    user_id = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM campaign_members my_membership
+      JOIN campaign_members other_membership ON my_membership.campaign_id = other_membership.campaign_id
+      WHERE my_membership.user_id = auth.uid()
+      AND other_membership.character_id = characters.id
     )
   );
 
@@ -940,5 +969,181 @@ BEGIN
   
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
   RETURN deleted_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =============================================================================
+-- 12. FRIENDSHIPS (Phase 7: Social Features - GH#67)
+-- =============================================================================
+
+-- Generate unique 8-character friend codes (avoiding ambiguous characters)
+CREATE OR REPLACE FUNCTION generate_friend_code()
+RETURNS TEXT AS $$
+DECLARE
+  chars TEXT := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; -- No I, O, 0, 1 for clarity
+  result TEXT := '';
+  i INTEGER;
+BEGIN
+  FOR i IN 1..8 LOOP
+    result := result || substr(chars, floor(random() * length(chars) + 1)::int, 1);
+  END LOOP;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Auto-generate friend code for new profiles
+CREATE OR REPLACE FUNCTION set_profile_friend_code()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.friend_code IS NULL OR NEW.friend_code = '' THEN
+    LOOP
+      NEW.friend_code := generate_friend_code();
+      -- Check if code is unique
+      IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE friend_code = NEW.friend_code AND id != NEW.id) THEN
+        EXIT; -- Code is unique, use it
+      END IF;
+    END LOOP;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS profile_friend_code_trigger ON public.profiles;
+CREATE TRIGGER profile_friend_code_trigger
+  BEFORE INSERT OR UPDATE ON public.profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION set_profile_friend_code();
+
+-- Index for friend code lookups
+CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_friend_code ON public.profiles(friend_code);
+
+-- Friendships table
+CREATE TABLE IF NOT EXISTS public.friendships (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  requester_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  recipient_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'blocked')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  
+  -- Prevent duplicate requests (either direction)
+  UNIQUE(requester_id, recipient_id),
+  -- Prevent self-friending
+  CHECK (requester_id != recipient_id)
+);
+
+-- Indexes for efficient friendship lookups
+CREATE INDEX IF NOT EXISTS idx_friendships_requester ON public.friendships(requester_id);
+CREATE INDEX IF NOT EXISTS idx_friendships_recipient ON public.friendships(recipient_id);
+CREATE INDEX IF NOT EXISTS idx_friendships_status ON public.friendships(status);
+
+-- Trigger to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_friendships_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS friendships_updated_at ON public.friendships;
+CREATE TRIGGER friendships_updated_at
+  BEFORE UPDATE ON public.friendships
+  FOR EACH ROW
+  EXECUTE FUNCTION update_friendships_updated_at();
+
+-- =============================================================================
+-- FRIENDSHIPS RLS POLICIES
+-- =============================================================================
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = 'friendships' AND n.nspname = 'public') THEN
+
+    ALTER TABLE public.friendships ENABLE ROW LEVEL SECURITY;
+
+    -- Users can view friendships they're part of
+    EXECUTE 'DROP POLICY IF EXISTS "Users can view own friendships" ON public.friendships';
+    CREATE POLICY "Users can view own friendships"
+      ON public.friendships FOR SELECT
+      USING (requester_id = auth.uid() OR recipient_id = auth.uid());
+
+    -- Users can create friend requests (as requester)
+    EXECUTE 'DROP POLICY IF EXISTS "Users can send friend requests" ON public.friendships';
+    CREATE POLICY "Users can send friend requests"
+      ON public.friendships FOR INSERT
+      WITH CHECK (
+        requester_id = auth.uid()
+        -- Verify recipient allows friend requests
+        AND EXISTS (
+          SELECT 1 FROM public.profiles p
+          WHERE p.id = recipient_id
+          AND p.allow_friend_requests = true
+        )
+      );
+
+    -- Users can update friendships they're part of (accept/decline/block)
+    -- Requester can cancel pending, Recipient can accept/decline, Either can block
+    EXECUTE 'DROP POLICY IF EXISTS "Users can update own friendships" ON public.friendships';
+    CREATE POLICY "Users can update own friendships"
+      ON public.friendships FOR UPDATE
+      USING (requester_id = auth.uid() OR recipient_id = auth.uid());
+
+    -- Users can delete friendships they're part of (unfriend)
+    EXECUTE 'DROP POLICY IF EXISTS "Users can delete own friendships" ON public.friendships';
+    CREATE POLICY "Users can delete own friendships"
+      ON public.friendships FOR DELETE
+      USING (requester_id = auth.uid() OR recipient_id = auth.uid());
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- HELPER FUNCTIONS FOR FRIENDSHIPS
+-- =============================================================================
+
+-- Function to find user by friend code
+CREATE OR REPLACE FUNCTION find_user_by_friend_code(friend_code_param TEXT)
+RETURNS TABLE (
+  user_id UUID,
+  username TEXT,
+  avatar_url TEXT,
+  allow_friend_requests BOOLEAN
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    p.id as user_id,
+    p.username,
+    p.avatar_url,
+    p.allow_friend_requests
+  FROM public.profiles p
+  WHERE UPPER(p.friend_code) = UPPER(friend_code_param);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to check if friendship exists (either direction)
+CREATE OR REPLACE FUNCTION check_friendship_exists(user_a UUID, user_b UUID)
+RETURNS TABLE (
+  exists_val BOOLEAN,
+  friendship_id UUID,
+  status TEXT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    true as exists_val,
+    f.id as friendship_id,
+    f.status
+  FROM public.friendships f
+  WHERE (f.requester_id = user_a AND f.recipient_id = user_b)
+     OR (f.requester_id = user_b AND f.recipient_id = user_a)
+  LIMIT 1;
+  
+  -- If no rows returned, return false
+  IF NOT FOUND THEN
+    RETURN QUERY SELECT false as exists_val, NULL::UUID as friendship_id, NULL::TEXT as status;
+  END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

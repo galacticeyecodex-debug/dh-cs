@@ -1,7 +1,19 @@
 'use client';
 
+/**
+ * QUICK ACTIONS BAR
+ * ----------------------------------------------------------------------------
+ * Provides quick access buttons for common GM actions on the GM Screen.
+ * 
+ * FUNCTIONALITY:
+ * - Roll Dice: Open dice roller modal for public rolls
+ * - Hidden Roll: Open dice roller for private GM-only rolls
+ * - Announce: Send announcements to all players
+ * - Refresh Party: Manually refresh party character data
+ * - Session Notes: (Coming Soon) Quick notes during sessions
+ */
+
 import { useState } from 'react';
-import { Card } from '@/components/ui/card';
 import { Dices, Megaphone, EyeOff, StickyNote, Zap, RefreshCw } from 'lucide-react';
 import { GmDiceRollerModal } from './gm-dice-roller-modal';
 import { AnnounceModal } from './announce-modal';
@@ -29,62 +41,71 @@ export function QuickActionsBar({ campaignId }: QuickActionsBarProps) {
 
     return (
         <>
-            <Card className="p-6">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-yellow-500" />
-                    Quick Actions
-                </h2>
+            <div className="bg-dagger-panel border border-white/10 rounded-xl p-6">
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 rounded-lg bg-dagger-gold/20">
+                        <Zap className="w-5 h-5 text-dagger-gold" />
+                    </div>
+                    <h2 className="text-lg font-serif font-bold text-white">Quick Actions</h2>
+                </div>
 
+                {/* Action Buttons Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {/* Roll Dice */}
                     <button
                         onClick={() => {
                             setIsPrivateRoll(false);
                             setShowDiceRoller(true);
                         }}
-                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-primary/10 border border-white/10 hover:border-primary/50 rounded-lg transition-colors"
+                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-dagger-gold/10 border border-white/10 hover:border-dagger-gold/30 rounded-xl transition-colors group"
                     >
-                        <Dices className="w-6 h-6 text-gray-300" />
-                        <span className="text-sm text-gray-300">Roll Dice</span>
+                        <Dices className="w-6 h-6 text-gray-400 group-hover:text-dagger-gold transition-colors" />
+                        <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">Roll Dice</span>
                     </button>
 
+                    {/* Hidden Roll */}
                     <button
                         onClick={() => {
                             setIsPrivateRoll(true);
                             setShowDiceRoller(true);
                         }}
-                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-purple-500/10 border border-white/10 hover:border-purple-500/50 rounded-lg transition-colors"
+                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-purple-500/10 border border-white/10 hover:border-purple-500/30 rounded-xl transition-colors group"
                     >
-                        <EyeOff className="w-6 h-6 text-gray-300" />
-                        <span className="text-sm text-gray-300">Hidden Roll</span>
+                        <EyeOff className="w-6 h-6 text-gray-400 group-hover:text-purple-400 transition-colors" />
+                        <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">Hidden Roll</span>
                     </button>
 
+                    {/* Announce */}
                     <button
                         onClick={() => setShowAnnounce(true)}
-                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-blue-500/10 border border-white/10 hover:border-blue-500/50 rounded-lg transition-colors"
+                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-blue-500/10 border border-white/10 hover:border-blue-500/30 rounded-xl transition-colors group"
                     >
-                        <Megaphone className="w-6 h-6 text-gray-300" />
-                        <span className="text-sm text-gray-300">Announce</span>
+                        <Megaphone className="w-6 h-6 text-gray-400 group-hover:text-blue-400 transition-colors" />
+                        <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">Announce</span>
                     </button>
 
+                    {/* Refresh Party */}
                     <button
                         onClick={handleRefresh}
                         disabled={isRefreshing}
-                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-green-500/10 border border-white/10 hover:border-green-500/50 rounded-lg transition-colors disabled:opacity-50"
+                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-green-500/10 border border-white/10 hover:border-green-500/30 rounded-xl transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <RefreshCw className={`w-6 h-6 text-gray-300 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        <span className="text-sm text-gray-300">Refresh Party</span>
+                        <RefreshCw className={`w-6 h-6 text-gray-400 group-hover:text-green-400 transition-colors ${isRefreshing ? 'animate-spin' : ''}`} />
+                        <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">Refresh</span>
                     </button>
 
+                    {/* Session Notes - Coming Soon */}
                     <button
                         disabled
-                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-lg opacity-50 cursor-not-allowed"
+                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-xl opacity-50 cursor-not-allowed"
                     >
-                        <StickyNote className="w-6 h-6 text-gray-500" />
-                        <span className="text-sm text-gray-500">Session Notes</span>
-                        <span className="text-xs text-gray-600">(Coming Soon)</span>
+                        <StickyNote className="w-6 h-6 text-gray-600" />
+                        <span className="text-sm font-medium text-gray-500">Notes</span>
+                        <span className="text-[10px] text-gray-600 uppercase tracking-wider">Coming Soon</span>
                     </button>
                 </div>
-            </Card>
+            </div>
 
             <GmDiceRollerModal
                 isOpen={showDiceRoller}

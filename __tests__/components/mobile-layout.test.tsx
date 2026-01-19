@@ -61,6 +61,10 @@ vi.mock('@/components/core/more-menu', () => ({
     default: () => <div data-testid="more-menu" />,
 }));
 
+vi.mock('@/components/core/user-menu', () => ({
+    default: () => <div data-testid="user-menu" />,
+}));
+
 vi.mock('@/components/vitals/mini-vitals-banner', () => ({
     default: () => <div data-testid="mini-vitals-banner" />,
 }));
@@ -85,41 +89,48 @@ describe('MobileLayout', () => {
             expect(screen.getByText('Test Hero')).toBeInTheDocument();
         });
 
-        it('should have a button to navigate to character list', () => {
+        it('should have a context menu button in the header', () => {
             render(
                 <MobileLayout>
                     <div>Test Content</div>
                 </MobileLayout>
             );
 
-            const headerButton = screen.getByRole('button', { name: /Test Hero/i });
-            fireEvent.click(headerButton);
+            const contextButton = screen.getByRole('button', { name: /context menu/i });
+            expect(contextButton).toBeInTheDocument();
+        });
+
+        it('should open context menu when header button is clicked', () => {
+            render(
+                <MobileLayout>
+                    <div>Test Content</div>
+                </MobileLayout>
+            );
+
+            const contextButton = screen.getByRole('button', { name: /context menu/i });
+            fireEvent.click(contextButton);
+
+            // The dropdown menu should now be visible with Characters option
+            expect(screen.getByRole('menu')).toBeInTheDocument();
+            expect(screen.getByText('Characters')).toBeInTheDocument();
+        });
+
+        it('should navigate to characters list when Characters menu item is clicked', async () => {
+            render(
+                <MobileLayout>
+                    <div>Test Content</div>
+                </MobileLayout>
+            );
+
+            // Open context menu
+            const contextButton = screen.getByRole('button', { name: /context menu/i });
+            fireEvent.click(contextButton);
+
+            // Click on Characters menu item
+            const charactersItem = screen.getByRole('menuitem', { name: /characters/i });
+            fireEvent.click(charactersItem);
 
             expect(mockPush).toHaveBeenCalledWith('/client/characters');
-        });
-
-        it('should have a sign out button', () => {
-            render(
-                <MobileLayout>
-                    <div>Test Content</div>
-                </MobileLayout>
-            );
-
-            const signOutButton = screen.getByTitle('Sign Out');
-            expect(signOutButton).toBeInTheDocument();
-        });
-
-        it('should call signOut when sign out button is clicked', async () => {
-            render(
-                <MobileLayout>
-                    <div>Test Content</div>
-                </MobileLayout>
-            );
-
-            const signOutButton = screen.getByTitle('Sign Out');
-            fireEvent.click(signOutButton);
-
-            expect(mockSignOut).toHaveBeenCalled();
         });
     });
 

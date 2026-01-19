@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Heart, Zap, Shield, Eye } from 'lucide-react';
+import { Heart, Zap, Shield, Eye, Skull, Sparkles } from 'lucide-react';
 import { getClassBaseStat } from '@/lib/utils';
 import { getStatModifierTotal } from '@/lib/modifier-aggregator';
 import { cn } from '@/lib/utils';
@@ -78,9 +78,10 @@ export function MiniVitalsPanel({
 /**
  * CHARACTER VITALS BANNER (Smart Component)
  * Connects to the Character Store and provides content for the MiniVitalsPanel.
+ * When a character is in an active campaign, also shows the campaign's Fear level.
  */
 export default function CharacterVitalsBanner() {
-    const { character, cardStates } = useCharacterStore();
+    const { character, cardStates, activeCampaign } = useCharacterStore();
 
     // --- VITAL CALCULATIONS (must be before any early returns) ---
     // We compute all values in a single useMemo to avoid hook ordering issues
@@ -120,7 +121,24 @@ export default function CharacterVitalsBanner() {
     // Early return after hooks
     if (!vitalData) return null;
 
-    const vitals: VitalEntry[] = [
+    // Build vitals array - Fear appears first when in a campaign
+    const vitals: VitalEntry[] = [];
+
+    // Add Fear if in an active campaign (read-only for players)
+    // SRD: Max Fear is always 12
+    if (activeCampaign) {
+        const isHighFear = activeCampaign.fear_current >= 10; // ~83% of max
+        vitals.push({
+            label: 'Fear',
+            current: activeCampaign.fear_current,
+            max: 12, // SRD: Max Fear is always 12
+            icon: Skull,
+            color: isHighFear ? 'text-red-400' : 'text-purple-400',
+        });
+    }
+
+    // Character vitals
+    vitals.push(
         {
             label: 'Evasion',
             current: vitalData.evasionTotal,
@@ -152,10 +170,10 @@ export default function CharacterVitalsBanner() {
             label: 'Hope',
             current: vitalData.hope_current,
             max: vitalData.hopeMax,
-            icon: Zap,
+            icon: Sparkles,
             color: 'text-dagger-gold',
         }
-    ];
+    );
 
     return <MiniVitalsPanel vitals={vitals} />;
 }

@@ -512,30 +512,58 @@ export const dataService: DataClient = {
 
     getWithMembers: async (id) => {
       const supabase = createClient();
-      const { data, error } = await supabase
+
+      // Step 1: Get campaign
+      const { data: campaign, error: campaignError } = await supabase
         .from('campaigns')
-        .select(`
-          *,
-          members:campaign_members(
-            *,
-            profile:profiles!campaign_members_user_id_fkey(username, avatar_url),
-            character:characters(name, level, class_id, ancestry)
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
 
-      if (error) {
-        if (error.code === 'PGRST116') return null;
-        throw new Error(`Failed to fetch campaign with members: ${error.message}`);
+      if (campaignError) {
+        if (campaignError.code === 'PGRST116') return null;
+        throw new Error(`Failed to fetch campaign with members: ${campaignError.message}`);
       }
 
-      if (!data) return null;
+      if (!campaign) return null;
 
-      const campaign: any = data;
+      // Step 2: Get members with characters
+      const { data: members, error: membersError } = await supabase
+        .from('campaign_members')
+        .select(`
+          *,
+          character:characters(name, level, class_id, ancestry)
+        `)
+        .eq('campaign_id', id)
+        .order('joined_at', { ascending: true });
+
+      if (membersError) {
+        throw new Error(`Failed to fetch campaign members: ${membersError.message}`);
+      }
+
+      // Step 3: Get profiles for members
+      const userIds = (members || []).map((m: any) => m.user_id);
+      let profileMap = new Map();
+
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url')
+          .in('id', userIds);
+
+        profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+      }
+
+      // Step 4: Combine members with profiles
+      const enrichedMembers = (members || []).map((m: any) => ({
+        ...m,
+        profile: profileMap.get(m.user_id) || null,
+      }));
+
       return {
         ...campaign,
-        member_count: campaign.members?.length || 0,
+        members: enrichedMembers,
+        member_count: enrichedMembers.length,
       } as CampaignWithMembers;
     },
 
@@ -599,18 +627,35 @@ export const dataService: DataClient = {
 
     getMembers: async (campaignId) => {
       const supabase = createClient();
-      const { data, error } = await supabase
+
+      // Step 1: Get members with characters
+      const { data: members, error } = await supabase
         .from('campaign_members')
         .select(`
           *,
-          profile:profiles!campaign_members_user_id_fkey(username, avatar_url),
           character:characters(name, level, class_id, ancestry)
         `)
         .eq('campaign_id', campaignId)
         .order('joined_at', { ascending: true });
 
       if (error) throw new Error(`Failed to fetch campaign members: ${error.message}`);
-      return data || [];
+
+      if (!members || members.length === 0) return [];
+
+      // Step 2: Get profiles for members
+      const userIds = members.map((m: any) => m.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .in('id', userIds);
+
+      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+
+      // Step 3: Combine members with profiles
+      return members.map((m: any) => ({
+        ...m,
+        profile: profileMap.get(m.user_id) || null,
+      }));
     },
 
     addMember: async (data) => {
@@ -899,5 +944,364 @@ export const dataService: DataClient = {
 
       return count || 0;
     },
-  }
+
+    getCampaignForCharacter: async (characterId: string): Promise<Campaign | null> => {
+      const supabase = createClient();
+
+      // Find the campaign_members entry where this character is assigned
+      const { data: membership, error: memberError } = await supabase
+        .from('campaign_members')
+        .select('campaign_id')
+        .eq('character_id', characterId)
+        .maybeSingle();
+
+      if (memberError) {
+        throw new Error(`Failed to find campaign for character: ${memberError.message}`);
+      }
+
+      if (!membership) return null;
+
+      // Fetch the campaign
+      const { data: campaign, error: campaignError } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('id', membership.campaign_id)
+        .single();
+
+      if (campaignError) {
+        if (campaignError.code === 'PGRST116') return null;
+        throw new Error(`Failed to fetch campaign: ${campaignError.message}`);
+      }
+
+      return campaign;
+    },
+
+    // =========================================================================
+    // PHASE 9: COUNTDOWNS & PROJECTS
+    // =========================================================================
+
+    updateCountdowns: async (campaignId: string, countdowns: any[]): Promise<void> => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('campaigns')
+        .update({ countdowns })
+        .eq('id', campaignId);
+
+      if (error) {
+        throw new Error(`Failed to update countdowns: ${error.message}`);
+      }
+    },
+
+    updateProjects: async (campaignId: string, projects: any[]): Promise<void> => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('campaigns')
+        .update({ projects })
+        .eq('id', campaignId);
+
+      if (error) {
+        throw new Error(`Failed to update projects: ${error.message}`);
+      }
+    },
+  },
+
+  // =========================================================================
+  // PHASE 7: FRIENDSHIPS
+  // =========================================================================
+
+  friendship: {
+    findByCode: async (friendCode: string) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .rpc('find_user_by_friend_code', { friend_code_param: friendCode.toUpperCase() });
+
+      if (error) {
+        throw new Error(`Failed to find user by friend code: ${error.message}`);
+      }
+
+      if (!data || data.length === 0) return null;
+      return data[0];
+    },
+
+    sendRequest: async (recipientId: string) => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) throw new Error('Not authenticated');
+
+      // Check if friendship already exists
+      const { data: existing } = await supabase
+        .from('friendships')
+        .select('id, status')
+        .or(`and(requester_id.eq.${user.id},recipient_id.eq.${recipientId}),and(requester_id.eq.${recipientId},recipient_id.eq.${user.id})`)
+        .single();
+
+      if (existing) {
+        if (existing.status === 'accepted') {
+          throw new Error('You are already friends with this user');
+        } else if (existing.status === 'pending') {
+          throw new Error('A friend request already exists');
+        } else if (existing.status === 'blocked') {
+          throw new Error('Cannot send friend request');
+        }
+      }
+
+      const { data, error } = await supabase
+        .from('friendships')
+        .insert({
+          requester_id: user.id,
+          recipient_id: recipientId,
+          status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (error) {
+        if (error.message.includes('allow_friend_requests')) {
+          throw new Error('This user is not accepting friend requests');
+        }
+        throw new Error(`Failed to send friend request: ${error.message}`);
+      }
+
+      return data;
+    },
+
+    cancelRequest: async (friendshipId: string) => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('friendships')
+        .delete()
+        .eq('id', friendshipId)
+        .eq('status', 'pending');
+
+      if (error) {
+        throw new Error(`Failed to cancel friend request: ${error.message}`);
+      }
+    },
+
+    acceptRequest: async (friendshipId: string) => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('friendships')
+        .update({ status: 'accepted' })
+        .eq('id', friendshipId)
+        .eq('recipient_id', user.id) // Only recipient can accept
+        .eq('status', 'pending')
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to accept friend request: ${error.message}`);
+      }
+
+      return data;
+    },
+
+    declineRequest: async (friendshipId: string) => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('friendships')
+        .update({ status: 'declined' })
+        .eq('id', friendshipId)
+        .eq('recipient_id', user.id)
+        .eq('status', 'pending');
+
+      if (error) {
+        throw new Error(`Failed to decline friend request: ${error.message}`);
+      }
+    },
+
+    getFriends: async (userId: string) => {
+      const supabase = createClient();
+
+      // Step 1: Get accepted friendships where user is either requester or recipient
+      const { data: friendships, error } = await supabase
+        .from('friendships')
+        .select('id, requester_id, recipient_id, created_at')
+        .eq('status', 'accepted')
+        .or(`requester_id.eq.${userId},recipient_id.eq.${userId}`);
+
+      if (error) {
+        throw new Error(`Failed to get friends: ${error.message}`);
+      }
+
+      if (!friendships || friendships.length === 0) {
+        return [];
+      }
+
+      // Step 2: Get all unique user IDs (friends)
+      const friendUserIds = new Set<string>();
+      for (const f of friendships) {
+        if (f.requester_id !== userId) friendUserIds.add(f.requester_id);
+        if (f.recipient_id !== userId) friendUserIds.add(f.recipient_id);
+      }
+
+      // Step 3: Get profile data for all friends
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url, friend_code')
+        .in('id', Array.from(friendUserIds));
+
+      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+
+      // Step 4: Transform to Friend[] format
+      return friendships.map((f) => {
+        const isRequester = f.requester_id === userId;
+        const friendUserId = isRequester ? f.recipient_id : f.requester_id;
+        const friendProfile = profileMap.get(friendUserId);
+
+        return {
+          user_id: friendUserId,
+          username: friendProfile?.username || null,
+          avatar_url: friendProfile?.avatar_url || null,
+          friend_code: friendProfile?.friend_code || null,
+          friendship_id: f.id,
+          is_requester: isRequester,
+          since: f.created_at,
+        };
+      });
+    },
+
+    getPendingRequests: async (userId: string) => {
+      const supabase = createClient();
+
+      // Step 1: Get pending friendships
+      const { data: friendships, error } = await supabase
+        .from('friendships')
+        .select('id, requester_id, created_at')
+        .eq('recipient_id', userId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(`Failed to get pending requests: ${error.message}`);
+      }
+
+      if (!friendships || friendships.length === 0) {
+        return [];
+      }
+
+      // Step 2: Get profile data for requesters
+      const requesterIds = friendships.map((f) => f.requester_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .in('id', requesterIds);
+
+      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+
+      // Step 3: Combine data
+      return friendships.map((f) => {
+        const profile = profileMap.get(f.requester_id);
+        return {
+          id: f.id,
+          from: {
+            user_id: f.requester_id,
+            username: profile?.username || null,
+            avatar_url: profile?.avatar_url || null,
+          },
+          created_at: f.created_at,
+        };
+      });
+    },
+
+    getOutgoingRequests: async (userId: string) => {
+      const supabase = createClient();
+
+      // Step 1: Get outgoing friendships
+      const { data: friendships, error } = await supabase
+        .from('friendships')
+        .select('id, recipient_id, created_at')
+        .eq('requester_id', userId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(`Failed to get outgoing requests: ${error.message}`);
+      }
+
+      if (!friendships || friendships.length === 0) {
+        return [];
+      }
+
+      // Step 2: Get profile data for recipients
+      const recipientIds = friendships.map((f) => f.recipient_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .in('id', recipientIds);
+
+      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+
+      // Step 3: Combine data
+      return friendships.map((f) => {
+        const profile = profileMap.get(f.recipient_id);
+        return {
+          id: f.id,
+          to: {
+            user_id: f.recipient_id,
+            username: profile?.username || null,
+            avatar_url: profile?.avatar_url || null,
+          },
+          created_at: f.created_at,
+        };
+      });
+    },
+
+    unfriend: async (friendshipId: string) => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('friendships')
+        .delete()
+        .eq('id', friendshipId);
+
+      if (error) {
+        throw new Error(`Failed to unfriend: ${error.message}`);
+      }
+    },
+
+    block: async (friendshipId: string) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('friendships')
+        .update({ status: 'blocked' })
+        .eq('id', friendshipId)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to block user: ${error.message}`);
+      }
+
+      return data;
+    },
+
+    checkFriendship: async (userId: string, otherUserId: string) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .rpc('check_friendship_exists', { user_a: userId, user_b: otherUserId });
+
+      if (error) {
+        throw new Error(`Failed to check friendship: ${error.message}`);
+      }
+
+      if (!data || data.length === 0 || !data[0].exists_val) {
+        return { exists: false };
+      }
+
+      return {
+        exists: true,
+        friendshipId: data[0].friendship_id,
+        status: data[0].status,
+      };
+    },
+  },
 };

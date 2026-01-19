@@ -11,6 +11,15 @@ import type {
   CampaignWithMembers,
 } from './campaign';
 import type { CampaignActivity, CampaignActivityInsert } from './activity';
+import type {
+  Friendship,
+  FriendshipInsert,
+  FriendshipUpdate,
+  EnrichedFriendship,
+  Friend,
+  FriendRequest,
+  OutgoingRequest,
+} from './friendship';
 
 export interface LibraryFilterOptions {
   includePlaytest?: boolean;
@@ -88,6 +97,36 @@ export interface DataClient {
     logActivity: (activity: CampaignActivityInsert) => Promise<CampaignActivity>;
     getActivity: (campaignId: string, limit?: number, offset?: number) => Promise<CampaignActivity[]>;
     getActivityCount: (campaignId: string) => Promise<number>;
+
+    // Character campaign lookup
+    getCampaignForCharacter: (characterId: string) => Promise<Campaign | null>;
+
+    // Phase 9: Countdowns & Projects
+    updateCountdowns: (campaignId: string, countdowns: any[]) => Promise<void>;
+    updateProjects: (campaignId: string, projects: any[]) => Promise<void>;
+  };
+
+  // Phase 7: Friendships
+  friendship: {
+    // Friend lookup
+    findByCode: (friendCode: string) => Promise<{ user_id: string; username: string | null; avatar_url: string | null; allow_friend_requests: boolean } | null>;
+
+    // Friend request management
+    sendRequest: (recipientId: string) => Promise<Friendship>;
+    cancelRequest: (friendshipId: string) => Promise<void>;
+    acceptRequest: (friendshipId: string) => Promise<Friendship>;
+    declineRequest: (friendshipId: string) => Promise<void>;
+
+    // Friend list management
+    getFriends: (userId: string) => Promise<Friend[]>;
+    getPendingRequests: (userId: string) => Promise<FriendRequest[]>;
+    getOutgoingRequests: (userId: string) => Promise<OutgoingRequest[]>;
+    unfriend: (friendshipId: string) => Promise<void>;
+    block: (friendshipId: string) => Promise<Friendship>;
+
+    // Status check
+    checkFriendship: (userId: string, otherUserId: string) => Promise<{ exists: boolean; friendshipId?: string; status?: string }>;
   };
 }
+
 

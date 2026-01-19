@@ -18,7 +18,6 @@ export default function CampaignSettingsModal({ isOpen, onClose, campaign }: Cam
     const { updateCampaign, deleteCampaign, user } = useCharacterStore();
     const [name, setName] = useState(campaign.name);
     const [description, setDescription] = useState(campaign.description || '');
-    const [fearMax, setFearMax] = useState(campaign.fear_max);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -28,7 +27,6 @@ export default function CampaignSettingsModal({ isOpen, onClose, campaign }: Cam
         if (isOpen) {
             setName(campaign.name);
             setDescription(campaign.description || '');
-            setFearMax(campaign.fear_max);
             setShowDeleteConfirm(false);
         }
     }, [isOpen, campaign]);
@@ -44,7 +42,6 @@ export default function CampaignSettingsModal({ isOpen, onClose, campaign }: Cam
             await updateCampaign(campaign.id, {
                 name: name.trim(),
                 description: description.trim() || undefined,
-                fear_max: fearMax,
             });
             onClose();
         } catch (error) {
@@ -63,7 +60,7 @@ export default function CampaignSettingsModal({ isOpen, onClose, campaign }: Cam
         setIsSubmitting(true);
         try {
             await deleteCampaign(campaign.id);
-            router.push('/app/campaigns');
+            router.push('/campaigns');
             onClose();
         } catch (error) {
             console.error('Failed to delete campaign:', error);
@@ -142,21 +139,13 @@ export default function CampaignSettingsModal({ isOpen, onClose, campaign }: Cam
                                 />
                             </div>
 
-                            <div>
-                                <label htmlFor="settings-fear-max" className="block text-sm font-medium text-gray-300 mb-2">
-                                    Fear Maximum
-                                </label>
-                                <input
-                                    id="settings-fear-max"
-                                    type="number"
-                                    value={fearMax}
-                                    onChange={(e) => setFearMax(parseInt(e.target.value) || 10)}
-                                    min={1}
-                                    max={20}
-                                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-dagger-gold/50 transition-colors"
-                                    disabled={isSubmitting}
-                                />
-                                <p className="text-gray-500 text-xs mt-1">Default: 10</p>
+                            {/* Fear Max is always 12 per SRD - not configurable */}
+                            <div className="bg-white/5 rounded-lg p-3">
+                                <p className="text-sm text-gray-400">
+                                    <span className="font-medium text-gray-300">Fear Maximum:</span>{' '}
+                                    <span className="text-dagger-gold font-bold">12</span>
+                                    <span className="text-gray-500 text-xs ml-2">(per SRD rules)</span>
+                                </p>
                             </div>
                         </div>
 
@@ -181,8 +170,8 @@ export default function CampaignSettingsModal({ isOpen, onClose, campaign }: Cam
                         <button
                             onClick={handleDelete}
                             className={`w-full px-4 py-2 text-sm font-bold rounded-lg transition-colors flex items-center justify-center gap-2 ${showDeleteConfirm
-                                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                                    : 'bg-red-500/20 hover:bg-red-500/30 text-red-400'
+                                ? 'bg-red-500 hover:bg-red-600 text-white'
+                                : 'bg-red-500/20 hover:bg-red-500/30 text-red-400'
                                 }`}
                             disabled={isSubmitting}
                         >

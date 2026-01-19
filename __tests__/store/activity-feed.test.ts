@@ -146,7 +146,7 @@ describe('Phase 3: Activity Feed', () => {
                 gm_user_id: 'user-123',
                 invite_code: 'ABC12345',
                 fear_current: 3,
-                fear_max: 10,
+                fear_max: 12, // SRD: Max Fear is always 12
                 settings: {},
                 created_at: '2026-01-01T00:00:00Z',
                 updated_at: '2026-01-01T00:00:00Z',

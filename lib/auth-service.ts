@@ -25,10 +25,10 @@ export function useAuthService(): AuthService {
   const [session, setSession] = useState<AppSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AppAuthError | null>(null);
-  
+
   // We use the store to clear data on logout
   const { setCharacter, setUser: setStoreUser } = useCharacterStore();
-  
+
   const supabase = createClient();
 
   useEffect(() => {
@@ -39,17 +39,18 @@ export function useAuthService(): AuthService {
           data: { user },
           error,
         } = await supabase.auth.getUser();
-        
+
         if (error) {
-           // It's okay if no user, but if it's a real error, set it
-           // Typically 'AuthSessionMissingError' just means not logged in
-           if (error.name !== 'AuthSessionMissingError') {
-              setError({ message: error.message, status: error.status });
-           }
+          // It's okay if no user, but if it's a real error, set it
+          // Typically 'AuthSessionMissingError' just means not logged in
+          if (error.name !== 'AuthSessionMissingError') {
+            setError({ message: error.message, status: error.status });
+          }
         }
 
         if (user) {
           setUser(user as unknown as AppUser);
+          setStoreUser(user as unknown as AppUser); // Sync to store for friendship data
           const { data: { session } } = await supabase.auth.getSession();
           setSession(session as unknown as AppSession);
         }
@@ -60,7 +61,7 @@ export function useAuthService(): AuthService {
         setLoading(false);
       }
     }
-    
+
     fetchUser();
 
     // Listen for changes

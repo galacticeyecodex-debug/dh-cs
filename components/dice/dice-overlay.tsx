@@ -245,22 +245,24 @@ export default function DiceOverlay() {
         };
         setLastRollResult(damageRollResult);
 
-        // Log to activity feed if in a campaign
-        if (activeCampaign && user && character) {
+        // Log to activity feed if in a campaign (respect privacy for GM hidden rolls)
+        if (activeCampaign && user) {
+          const isPrivateRoll = activeRoll?.isPrivate || false;
           logActivity({
             campaign_id: activeCampaign.id,
             user_id: user.id,
-            character_id: character.id,
-            character_name: character.name,
+            character_id: character?.id,
+            character_name: activeRoll?.isGmRoll ? 'GM' : (character?.name || 'Unknown'),
             activity_type: 'dice_roll',
             data: {
-              roll_type: 'damage',
+              roll_type: activeRoll?.isGmRoll ? 'gm_roll' : 'damage',
               dice: individualDieResults.map(d => d.value),
               modifier: finalTotalModifier,
               total: damageRollResult.total,
               description: activeRoll.label || 'Damage Roll',
+              is_gm_roll: activeRoll?.isGmRoll || false,
             },
-            is_private: false,
+            is_private: isPrivateRoll,
           });
         }
       } catch (e) { console.error("Custom roll failed", e); }
@@ -319,26 +321,28 @@ export default function DiceOverlay() {
         };
         setLastRollResult(dualityRollResult);
 
-        // Log to activity feed if in a campaign
-        if (activeCampaign && user && character) {
+        // Log to activity feed if in a campaign (respect privacy for GM hidden rolls)
+        if (activeCampaign && user) {
           // Determine roll type based on activeRoll label or default to 'trait'
-          const rollType = activeRoll?.dice ? 'custom' : (activeRoll?.label?.toLowerCase().includes('attack') ? 'attack' : 'trait');
+          const rollType = activeRoll?.isGmRoll ? 'gm_roll' : (activeRoll?.dice ? 'custom' : (activeRoll?.label?.toLowerCase().includes('attack') ? 'attack' : 'trait'));
+          const isPrivateRoll = activeRoll?.isPrivate || false;
 
           logActivity({
             campaign_id: activeCampaign.id,
             user_id: user.id,
-            character_id: character.id,
-            character_name: character.name,
+            character_id: character?.id,
+            character_name: activeRoll?.isGmRoll ? 'GM' : (character?.name || 'Unknown'),
             activity_type: 'dice_roll',
             data: {
-              roll_type: rollType as 'attack' | 'damage' | 'trait' | 'spellcast' | 'custom',
+              roll_type: rollType as 'attack' | 'damage' | 'trait' | 'spellcast' | 'custom' | 'gm_roll',
               dice: individualDieResults.map(d => d.value),
               modifier: totalModifier,
               total: dualityRollResult.total,
               description: activeRoll?.label || 'Action Roll',
               hope_fear: type === 'Critical' ? 'hope' : type.toLowerCase() as 'hope' | 'fear',
+              is_gm_roll: activeRoll?.isGmRoll || false,
             },
-            is_private: false,
+            is_private: isPrivateRoll,
           });
         }
       }
