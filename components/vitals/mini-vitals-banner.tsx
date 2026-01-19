@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Heart, Zap, Shield, Eye, Skull } from 'lucide-react';
+import { Heart, Zap, Shield, Eye, Skull, Sparkles } from 'lucide-react';
 import { getClassBaseStat } from '@/lib/utils';
 import { getStatModifierTotal } from '@/lib/modifier-aggregator';
 import { cn } from '@/lib/utils';
@@ -169,7 +169,7 @@ export default function CharacterVitalsBanner() {
             label: 'Hope',
             current: vitalData.hope_current,
             max: vitalData.hopeMax,
-            icon: Zap,
+            icon: Sparkles,
             color: 'text-dagger-gold',
         }
     );

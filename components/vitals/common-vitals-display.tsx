@@ -23,7 +23,7 @@
 
 import React, { useMemo, useCallback } from 'react';
 import { useCharacterStore, Character, CharacterInventoryItem } from '@/store/character-store';
-import { Shield, Zap, Heart, Eye } from 'lucide-react';
+import { Shield, Zap, Heart, Eye, Sparkles } from 'lucide-react';
 import { getClassBaseStat, getSystemModifiers } from '@/lib/utils';
 import VitalCard from '@/components/vitals/vital-card';
 
@@ -279,7 +279,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
         current={character.hope}
         max={hopeDetails.total}
         color="text-dagger-gold"
-        icon={Zap}
+        icon={Sparkles}
         variant="rectangle"
         onIncrement={handleHopeIncrement}
         onDecrement={handleHopeDecrement}

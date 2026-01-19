@@ -15,7 +15,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { X, Trash2, Check, Pencil, Plus, PawPrint, ChevronDown, ChevronUp, Camera, Zap, Eye } from 'lucide-react';
+import { X, Trash2, Check, Pencil, Plus, PawPrint, ChevronDown, ChevronUp, Camera, Zap, Eye, Sparkles, Shield } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RangerCompanion, CompanionExperience } from '@/types/character';
@@ -469,7 +469,7 @@ export default function CompanionSheet({
                     {/* Hope Slots */}
                     <div className="bg-dagger-panel border border-dagger-gold/30 rounded-lg p-3">
                       <div className="text-[10px] font-bold uppercase tracking-wide text-dagger-gold flex items-center gap-1 mb-1">
-                        <Zap size={10} /> Hope Slots
+                        <Sparkles size={10} /> Hope Slots
                       </div>
                       <div className="text-2xl font-serif font-bold text-white">{localCompanion.hope_max}</div>
                       <div className="text-[10px] text-gray-500">Base companion hope</div>
@@ -479,7 +479,7 @@ export default function CompanionSheet({
                     {localCompanion.armor_slot && (
                       <div className="bg-dagger-panel border border-blue-500/30 rounded-lg p-3">
                         <div className="text-[10px] font-bold uppercase tracking-wide text-blue-400 flex items-center gap-1 mb-1">
-                          <Zap size={10} /> Armor Slot
+                          <Shield size={10} /> Armor Slot
                         </div>
                         <div className="text-2xl font-serif font-bold text-white">1</div>
                         <div className="text-[10px] text-gray-500">From Armored training</div>
