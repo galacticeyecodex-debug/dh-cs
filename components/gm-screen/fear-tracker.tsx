@@ -81,10 +81,11 @@ export function FearTracker({ campaignId, currentFear }: FearTrackerProps) {
                     className={clsx(
                         "transition-all duration-300",
                         isFilled
-                            ? clsx(isFullFear ? "text-red-500" : "text-purple-400", "scale-100")
+                            ? "scale-100"
                             : "text-white/10 scale-90"
                     )}
-                    fill={isFilled ? "currentColor" : "none"}
+                    fill={isFilled ? (isFullFear ? "#ef4444" : "#a855f7") : "none"}
+                    stroke={isFilled ? (isFullFear ? "#7f1d1d" : "#581c87") : "currentColor"}
                 />
             );
         }

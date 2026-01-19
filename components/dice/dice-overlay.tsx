@@ -183,6 +183,14 @@ export default function DiceOverlay() {
 
     // Mark that we've rolled to trigger UI fade
     setHasRolled(true);
+    console.log('[DiceOverlay] handleRoll called:', {
+      hasActiveCampaign: !!activeCampaign,
+      campaignId: activeCampaign?.id,
+      hasUser: !!user,
+      userId: user?.id,
+      hasCharacter: !!character,
+      characterName: character?.name,
+    });
 
     if (hopeCost > 0) {
       await updateHope(currentHope - hopeCost);
@@ -248,6 +256,12 @@ export default function DiceOverlay() {
         // Log to activity feed if in a campaign (respect privacy for GM hidden rolls)
         if (activeCampaign && user) {
           const isPrivateRoll = activeRoll?.isPrivate || false;
+          console.log('[DiceOverlay] Logging DAMAGE roll to activity feed:', {
+            campaignId: activeCampaign.id,
+            userId: user.id,
+            characterName: character?.name,
+            total: damageRollResult.total,
+          });
           logActivity({
             campaign_id: activeCampaign.id,
             user_id: user.id,
@@ -263,6 +277,11 @@ export default function DiceOverlay() {
               is_gm_roll: activeRoll?.isGmRoll || false,
             },
             is_private: isPrivateRoll,
+          });
+        } else {
+          console.log('[DiceOverlay] NOT logging DAMAGE roll - missing campaign or user:', {
+            hasActiveCampaign: !!activeCampaign,
+            hasUser: !!user,
           });
         }
       } catch (e) { console.error("Custom roll failed", e); }
@@ -327,6 +346,13 @@ export default function DiceOverlay() {
           const rollType = activeRoll?.isGmRoll ? 'gm_roll' : (activeRoll?.dice ? 'custom' : (activeRoll?.label?.toLowerCase().includes('attack') ? 'attack' : 'trait'));
           const isPrivateRoll = activeRoll?.isPrivate || false;
 
+          console.log('[DiceOverlay] Logging DUALITY roll to activity feed:', {
+            campaignId: activeCampaign.id,
+            userId: user.id,
+            characterName: character?.name,
+            total: dualityRollResult.total,
+            type: dualityRollResult.type,
+          });
           logActivity({
             campaign_id: activeCampaign.id,
             user_id: user.id,
@@ -343,6 +369,11 @@ export default function DiceOverlay() {
               is_gm_roll: activeRoll?.isGmRoll || false,
             },
             is_private: isPrivateRoll,
+          });
+        } else {
+          console.log('[DiceOverlay] NOT logging DUALITY roll - missing campaign or user:', {
+            hasActiveCampaign: !!activeCampaign,
+            hasUser: !!user,
           });
         }
       }
