@@ -82,11 +82,7 @@ export class FriendRealtimeManager {
 
         // Subscribe to the channel
         if (this.channel) {
-            this.channel.subscribe((status) => {
-                if (status === 'CHANNEL_ERROR') {
-                    console.error('[FriendRealtime] Error subscribing to friendship changes');
-                }
-            });
+            this.channel.subscribe();
         }
     }
 

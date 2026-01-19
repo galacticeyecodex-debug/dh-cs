@@ -23,6 +23,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCharacterStore } from '@/store/character-store';
 import { Users, Swords, Check, Loader2 } from 'lucide-react';
+import { getInitials } from '@/lib/format-utils';
 import { toast } from 'sonner';
 
 interface ShareHomebrewModalProps {
@@ -62,17 +63,11 @@ export function ShareHomebrewModal({
             );
             onOpenChange(false);
             setSelectedTarget(null);
-        } catch (error: any) {
-            console.error('Failed to share homebrew:', error);
+        } catch {
             toast.error('Failed to share item');
         } finally {
             setIsSharing(false);
         }
-    };
-
-    const getInitials = (name: string | null) => {
-        if (!name) return '?';
-        return name.slice(0, 2).toUpperCase();
     };
 
     return (

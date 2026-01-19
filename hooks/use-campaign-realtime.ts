@@ -94,7 +94,6 @@ export function useCampaignRealtime(): UseCampaignRealtimeReturn {
                     // Set active campaign and subscribe to realtime
                     await selectCampaign(campaign.id);
                     await subscribeToCampaignRealtime(campaign.id);
-                    console.log('[useCampaignRealtime] Subscribed to campaign:', campaign.name);
                 } else {
                     // No campaign for this character
                     if (realtimeSubscribed) {
@@ -106,7 +105,7 @@ export function useCampaignRealtime(): UseCampaignRealtimeReturn {
                 lastCharacterIdRef.current = character.id;
                 setIsInitialized(true);
             } catch (error) {
-                console.error('[useCampaignRealtime] Failed to initialize campaign:', error);
+                // Initialization failure is non-critical - character may not be in a campaign
             } finally {
                 initializingRef.current = false;
             }

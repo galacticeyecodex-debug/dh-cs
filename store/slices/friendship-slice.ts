@@ -17,6 +17,7 @@ import type { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
 import { friendRealtimeManager } from '@/lib/friend-realtime';
 import type { Friendship, Friend, FriendRequest, OutgoingRequest } from '@/types/friendship';
+import type { CharacterStore } from '@/types/store';
 import { toast } from 'sonner';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
 
@@ -72,7 +73,7 @@ export const createFriendshipSlice: StateCreator<
 
     // Fetch friends list
     fetchFriends: async () => {
-        const state = get() as any;
+        const state = get() as CharacterStore;
         const userId = state.user?.id;
         if (!userId) return;
 
@@ -80,43 +81,43 @@ export const createFriendshipSlice: StateCreator<
         try {
             const friends = await dataService.friendship.getFriends(userId);
             set({ friends, isLoadingFriends: false });
-        } catch (error: any) {
-            console.error('Failed to fetch friends:', error);
-            set({ friendshipError: error.message, isLoadingFriends: false });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to fetch friends';
+            set({ friendshipError: message, isLoadingFriends: false });
         }
     },
 
     // Fetch pending friend requests (incoming)
     fetchPendingRequests: async () => {
-        const state = get() as any;
+        const state = get() as CharacterStore;
         const userId = state.user?.id;
         if (!userId) return;
 
         try {
             const pendingRequests = await dataService.friendship.getPendingRequests(userId);
             set({ pendingRequests });
-        } catch (error: any) {
-            console.error('Failed to fetch pending requests:', error);
+        } catch {
+            // Error handled silently - UI will show stale data
         }
     },
 
     // Fetch outgoing friend requests
     fetchOutgoingRequests: async () => {
-        const state = get() as any;
+        const state = get() as CharacterStore;
         const userId = state.user?.id;
         if (!userId) return;
 
         try {
             const outgoingRequests = await dataService.friendship.getOutgoingRequests(userId);
             set({ outgoingRequests });
-        } catch (error: any) {
-            console.error('Failed to fetch outgoing requests:', error);
+        } catch {
+            // Error handled silently - UI will show stale data
         }
     },
 
     // Fetch all friendship data at once
     fetchAllFriendshipData: async () => {
-        const state = get() as any;
+        const state = get() as CharacterStore;
         const userId = state.user?.id;
         if (!userId) return;
 
@@ -128,15 +129,15 @@ export const createFriendshipSlice: StateCreator<
                 dataService.friendship.getOutgoingRequests(userId),
             ]);
             set({ friends, pendingRequests, outgoingRequests, isLoadingFriends: false });
-        } catch (error: any) {
-            console.error('Failed to fetch friendship data:', error);
-            set({ friendshipError: error.message, isLoadingFriends: false });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to fetch friends';
+            set({ friendshipError: message, isLoadingFriends: false });
         }
     },
 
     // Send a friend request by friend code
     sendFriendRequest: async (friendCode: string) => {
-        const state = get() as any;
+        const state = get() as CharacterStore;
         const userId = state.user?.id;
         if (!userId) {
             toast.error('You must be logged in to send friend requests');
@@ -183,10 +184,10 @@ export const createFriendshipSlice: StateCreator<
 
             toast.success(`Friend request sent to ${foundUser.username || 'user'}!`);
             return true;
-        } catch (error: any) {
-            console.error('Failed to send friend request:', error);
-            toast.error(error.message || 'Failed to send friend request');
-            set({ friendshipError: error.message });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to send friend request';
+            toast.error(message);
+            set({ friendshipError: message });
             return false;
         }
     },
@@ -327,7 +328,7 @@ export const createFriendshipSlice: StateCreator<
     // =========================================================================
 
     subscribeToFriendshipRealtime: () => {
-        const state = get() as any;
+        const state = get() as CharacterStore;
         const userId = state.user?.id;
         if (!userId || get().friendRealtimeSubscribed) return;
 
@@ -393,7 +394,7 @@ export const createFriendshipSlice: StateCreator<
     },
 
     updateFriendshipFromRealtime: (friendship: Friendship) => {
-        const state = get() as any;
+        const state = get() as CharacterStore;
         const userId = state.user?.id;
         if (!userId) return;
 

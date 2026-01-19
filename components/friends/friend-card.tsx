@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MoreVertical, UserMinus, Ban, Share2 } from 'lucide-react';
+import { getInitials, formatShortDate } from '@/lib/format-utils';
 import type { Friend } from '@/types/friendship';
 
 interface FriendCardProps {
@@ -19,16 +20,6 @@ interface FriendCardProps {
 
 export function FriendCard({ friend, onUnfriend, onBlock, onShareHomebrew }: FriendCardProps) {
     const [showMenu, setShowMenu] = useState(false);
-
-    const getInitials = (name: string | null) => {
-        if (!name) return '?';
-        return name.slice(0, 2).toUpperCase();
-    };
-
-    const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
-    };
 
     return (
         <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
@@ -42,7 +33,7 @@ export function FriendCard({ friend, onUnfriend, onBlock, onShareHomebrew }: Fri
                 <div>
                     <p className="font-medium text-white">{friend.username || 'Unknown User'}</p>
                     <p className="text-xs text-gray-500">
-                        Friends since {formatDate(friend.since)}
+                        Friends since {formatShortDate(friend.since)}
                     </p>
                 </div>
             </div>

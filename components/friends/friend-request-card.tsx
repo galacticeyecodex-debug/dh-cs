@@ -7,6 +7,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Check, X } from 'lucide-react';
+import { getInitials, formatRelativeDate } from '@/lib/format-utils';
 import type { FriendRequest } from '@/types/friendship';
 
 interface FriendRequestCardProps {
@@ -17,24 +18,6 @@ interface FriendRequestCardProps {
 }
 
 export function FriendRequestCard({ request, onAccept, onDecline, isLoading }: FriendRequestCardProps) {
-    const getInitials = (name: string | null) => {
-        if (!name) return '?';
-        return name.slice(0, 2).toUpperCase();
-    };
-
-    const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-        if (diffHours < 1) return 'Just now';
-        if (diffHours < 24) return `${diffHours}h ago`;
-        if (diffDays < 7) return `${diffDays}d ago`;
-        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    };
-
     return (
         <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
             <div className="flex items-center gap-3">
@@ -47,7 +30,7 @@ export function FriendRequestCard({ request, onAccept, onDecline, isLoading }: F
                 <div>
                     <p className="font-medium text-white">{request.from.username || 'Unknown User'}</p>
                     <p className="text-xs text-gray-500">
-                        {formatDate(request.created_at)}
+                        {formatRelativeDate(request.created_at)}
                     </p>
                 </div>
             </div>

@@ -58,7 +58,7 @@ export class CampaignRealtimeManager {
             try {
                 callback(activity);
             } catch (error) {
-                console.error('[Realtime] Roll notification callback error:', error);
+                // Callback error is non-critical, continue with other callbacks
             }
         });
     }
@@ -128,13 +128,7 @@ export class CampaignRealtimeManager {
                     this.showActivityNotification(activity);
                 }
             )
-            .subscribe((status: string) => {
-                if (status === 'SUBSCRIBED') {
-                    console.log('[Realtime] Subscribed to campaign activity:', campaignId);
-                } else if (status === 'CHANNEL_ERROR') {
-                    console.error('[Realtime] Error subscribing to activity channel');
-                }
-            });
+            .subscribe();
     }
 
     /**
@@ -158,11 +152,7 @@ export class CampaignRealtimeManager {
                     state?.updateActiveCampaign?.(updates);
                 }
             )
-            .subscribe((status: string) => {
-                if (status === 'SUBSCRIBED') {
-                    console.log('[Realtime] Subscribed to campaign updates:', campaignId);
-                }
-            });
+            .subscribe();
     }
 
     /**
@@ -187,11 +177,7 @@ export class CampaignRealtimeManager {
                         state?.updatePartyCharacterFromRealtime?.(characterId, updates);
                     }
                 )
-                .subscribe((status: string) => {
-                    if (status === 'SUBSCRIBED') {
-                        console.log('[Realtime] Subscribed to character vitals:', characterId);
-                    }
-                });
+                .subscribe();
 
             this.characterChannels.set(characterId, channel);
         });
@@ -201,8 +187,6 @@ export class CampaignRealtimeManager {
      * Unsubscribe from all channels
      */
     unsubscribe() {
-        const hadChannels = this.activityChannel || this.campaignChannel || this.characterChannels.size > 0;
-
         if (this.activityChannel) {
             this.activityChannel.unsubscribe();
             this.activityChannel = null;
@@ -214,11 +198,6 @@ export class CampaignRealtimeManager {
         this.characterChannels.forEach((channel) => channel.unsubscribe());
         this.characterChannels.clear();
         this.currentCampaignId = null;
-
-        // Only log if we actually had channels to unsubscribe from
-        if (hadChannels) {
-            console.log('[Realtime] Unsubscribed from all channels');
-        }
     }
 
     /**

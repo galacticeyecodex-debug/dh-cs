@@ -123,7 +123,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     fetchUserCampaigns: async () => {
         set({ isLoadingCampaigns: true, campaignError: null });
         try {
-            const state = get() as any;
+            const state = get() as CharacterStore;
             const userId = state.user?.id;
             if (!userId) throw new Error('Not authenticated');
 
@@ -140,7 +140,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     createCampaign: async (name: string, description?: string) => {
         set({ campaignError: null });
         try {
-            const state = get() as any;
+            const state = get() as CharacterStore;
             const userId = state.user?.id;
             if (!userId) throw new Error('Not authenticated');
 
@@ -229,14 +229,14 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     joinCampaignByCode: async (inviteCode: string, characterId?: string) => {
         set({ campaignError: null });
         try {
-            const state = get() as any;
+            const state = get() as CharacterStore;
             const userId = state.user?.id;
             if (!userId) throw new Error('Not authenticated');
 
             await dataService.campaign.joinByInviteCode(inviteCode, userId, characterId);
 
             // Refresh campaigns list
-            await (get() as any).fetchUserCampaigns();
+            await (get() as CharacterStore).fetchUserCampaigns();
 
             toast.success('Joined campaign successfully!');
         } catch (error) {
@@ -250,7 +250,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     leaveCampaign: async (campaignId: string) => {
         set({ campaignError: null });
         try {
-            const state = get() as any;
+            const state = get() as CharacterStore;
             const userId = state.user?.id;
             if (!userId) throw new Error('Not authenticated');
 
@@ -279,7 +279,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     assignCharacterToCampaign: async (campaignId: string, characterId: string) => {
         set({ campaignError: null });
         try {
-            const state = get() as any;
+            const state = get() as CharacterStore;
             const userId = state.user?.id;
             if (!userId) throw new Error('Not authenticated');
 
@@ -291,7 +291,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             await dataService.campaign.updateMember(member.id, { character_id: characterId });
 
             // Refresh active campaign if needed
-            const currentState = get() as any;
+            const currentState = get() as CharacterStore;
             if (currentState.activeCampaign?.id === campaignId) {
                 await currentState.selectCampaign(campaignId);
             }
@@ -311,7 +311,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             await dataService.campaign.removeMember(memberId);
 
             // Refresh active campaign
-            const state = get() as any;
+            const state = get() as CharacterStore;
             if (state.activeCampaign) {
                 await state.selectCampaign(state.activeCampaign.id);
             }
@@ -331,7 +331,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             await dataService.campaign.transferGM(campaignId, newGmUserId);
 
             // Refresh campaign data
-            const state = get() as any;
+            const state = get() as CharacterStore;
             await state.selectCampaign(campaignId);
 
             toast.success('GM transferred successfully!');
@@ -352,7 +352,6 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             const characters = await dataService.campaign.getPartyCharacters(campaignId);
             set({ partyCharacters: characters });
         } catch (error) {
-            console.error('Failed to fetch party characters:', error);
             throw error;
         }
     },
@@ -399,7 +398,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             await dataService.campaign.gmAdjustVital(characterId, vital, newValue);
 
             // Log activity if we're in a campaign
-            const state = get() as any;
+            const state = get() as CharacterStore;
             const activeCampaign = state.activeCampaign;
             const user = state.user;
 
@@ -425,7 +424,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             // Success - optimistic update is already applied
         } catch (error) {
             // Rollback on error - refetch party characters
-            const state = get() as any;
+            const state = get() as CharacterStore;
             if (state.activeCampaign) {
                 await state.fetchPartyCharacters(state.activeCampaign.id);
             }
@@ -479,7 +478,6 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                     count = await dataService.campaign.getActivityCount(campaignId);
                 } catch (countError) {
                     // If count fails, estimate from activity length
-                    console.warn('Failed to fetch activity count, using estimate:', countError);
                     count = activity.length;
                 }
             }
@@ -490,7 +488,6 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                 isLoadingActivity: false,
             }));
         } catch (error) {
-            console.error('Failed to fetch activity:', error);
             set({ isLoadingActivity: false });
         }
     },
@@ -505,7 +502,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                 activityTotalCount: state.activityTotalCount + 1,
             }));
         } catch (error) {
-            console.error('Failed to log activity:', error);
+            // Activity logging failure is non-critical, silently ignored
         }
     },
 
@@ -519,7 +516,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
 
         // Set up the store getter for the realtime manager
         realtimeManager.setStoreGetter(() => ({
-            user: (state as any).user,
+            user: (state as CharacterStore).user,
             addActivityToFeed: state.addActivityToFeed,
             updateActiveCampaign: state.updateActiveCampaignFromRealtime,
             updatePartyCharacterFromRealtime: state.updatePartyCharacterFromRealtime,
