@@ -27,7 +27,6 @@ export default function JoinCampaignForm({ isOpen, onClose }: JoinCampaignFormPr
             setInviteCode('');
             onClose();
         } catch (error) {
-            console.error('Failed to join campaign:', error);
             // Error toast is shown by the store
         } finally {
             setIsSubmitting(false);
