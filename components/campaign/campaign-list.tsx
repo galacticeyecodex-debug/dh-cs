@@ -53,7 +53,7 @@ export default function CampaignList() {
 
     return (
         <PageLayout
-            title="My Campaigns"
+            title="Campaigns"
             headerActions={headerActions}
         >
             <div className="w-full max-w-6xl mx-auto p-6">
