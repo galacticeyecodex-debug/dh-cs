@@ -722,7 +722,7 @@ function ProjectsPanel({
                         className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-dagger-gold/10 text-dagger-gold hover:bg-dagger-gold/20 transition-colors"
                     >
                         <Plus size={16} />
-                        New Project
+                        Create
                     </button>
                 </div>
             </div>

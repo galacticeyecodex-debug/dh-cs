@@ -52,8 +52,11 @@ export default function useCampaignDowntimeMoves(
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Memoize the enabled campaigns list to prevent infinite loops if the array reference isn't stable
+    const stableEnabledCampaigns = useMemo(() => enabledCampaigns, [enabledCampaigns.join(',')]);
+
     const loadMoves = useCallback(async () => {
-        if (enabledCampaigns.length === 0) {
+        if (stableEnabledCampaigns.length === 0) {
             setCampaignMoves([]);
             setLoading(false);
             return;
@@ -87,7 +90,7 @@ export default function useCampaignDowntimeMoves(
                         campaign: moveData.campaign,
                     };
                 })
-                .filter(move => enabledCampaigns.includes(move.campaign));
+                .filter(move => stableEnabledCampaigns.includes(move.campaign));
 
             setCampaignMoves(moves);
         } catch (err) {
@@ -97,7 +100,7 @@ export default function useCampaignDowntimeMoves(
         } finally {
             setLoading(false);
         }
-    }, [enabledCampaigns]);
+    }, [stableEnabledCampaigns]);
 
     useEffect(() => {
         loadMoves();

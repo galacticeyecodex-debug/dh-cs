@@ -211,7 +211,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
       <button
         onClick={openDiceOverlay}
         aria-label="Roll Dice"
-        className="fixed bottom-24 right-6 bg-dagger-gold/50 text-black p-4 rounded-full shadow-lg shadow-dagger-gold/20 hover:scale-105 transition-transform z-40"
+        className="fixed bottom-30 right-6 bg-dagger-gold/50 text-black p-4 rounded-full shadow-lg shadow-dagger-gold/20 hover:scale-105 transition-transform z-40"
       >
         <Dices size={28} />
       </button>
