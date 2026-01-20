@@ -65,7 +65,7 @@ export const createUiSlice: StateCreator<CharacterStore, [], [], UiSlice> = (set
     }
   },
   openDiceOverlay: () => set({ isDiceOverlayOpen: true }),
-  closeDiceOverlay: () => set({ isDiceOverlayOpen: false, activeRoll: null }),
+  closeDiceOverlay: () => set({ isDiceOverlayOpen: false, activeRoll: null, lastRollResult: null }),
   openMoreMenu: () => set({ isMoreMenuOpen: true }),
   closeMoreMenu: () => set({ isMoreMenuOpen: false }),
   prepareRoll: (label, modifier, dice, diceColor) => set({ isDiceOverlayOpen: true, activeRoll: { label, modifier, dice, diceColor } }),
