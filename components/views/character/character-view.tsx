@@ -18,7 +18,6 @@ import { useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
 import Image from 'next/image';
 import { getSystemModifiers } from '@/lib/utils';
-import { getProficiency } from '@/lib/modifier-aggregator';
 import StatButton from '@/components/views/character/trait-button';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
@@ -26,6 +25,7 @@ import ExperienceSheet from './experience-manager';
 import LevelUpModal from './level-up/level-up-modal';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import ManageCharacterModal from './manage-character-modal';
+import SectionHeader from '@/components/shared/section-header';
 import AdvancementHistory from './level-up/advancement-history';
 import SubclassFeatureCard from './subclass-features/subclass-feature-card';
 import CompanionSheet from './subclass-features/beastbound-companion-sheet';
@@ -35,9 +35,6 @@ import UnstoppableCard from './class-features/guardian-unstoppable-card';
 import StrangePatternsCard from './class-features/wizard-strange-patterns-card';
 import BeastformCard from './class-features/druid-beastform-card';
 import RangerFocusCard from './class-features/ranger-focus-card';
-import SlayerDiceCard from './class-features/warrior-slayer-dice-card';
-import SorcererElementCard from './subclass-features/sorcerer-element-card';
-import ElementalIncarnationCard from './subclass-features/druid-elemental-incarnation-card';
 import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap, Info, Sparkles, PawPrint } from 'lucide-react';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/storage-service';
@@ -49,8 +46,7 @@ import useContentAccess from '@/hooks/useContentAccess';
 
 export default function CharacterView() {
   const router = useRouter();
-  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice, updateBardRallyDice, updateGuardianUnstoppable, updateWizardStrangePatterns, updateDruidBeastform, updateRangerFocus, updateWarriorSlayerDice, updateSorcererElement, updateDruidElementalIncarnation } = useCharacterStore();
-  const effectiveProficiency = useMemo(() => character ? getProficiency(character, character.card_states as any) : 1, [character]);
+  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice, updateBardRallyDice, updateGuardianUnstoppable, updateWizardStrangePatterns, updateDruidBeastform, updateRangerFocus } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
@@ -434,41 +430,23 @@ export default function CharacterView() {
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
               {/* Vitals Grid */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Vitals</h3>
-                  <button
-                    onClick={() => setShowVitals(!showVitals)}
-                    className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
-                    aria-label={showVitals ? "Hide vitals" : "Show vitals"}
-                  >
-                    {showVitals ? <EyeOff size={12} /> : <Eye size={12} />}
-                    {showVitals ? 'Hide' : 'Show'}
-                  </button>
-                </div>
+                <SectionHeader
+                  title="Vitals"
+                  isVisible={showVitals}
+                  onToggle={() => setShowVitals(!showVitals)}
+                />
                 {showVitals && <CommonVitalsDisplay character={character} />}
               </div>
 
               {/* Stats Grid */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Traits</h3>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setIsTraitModifierSheetOpen(true)}
-                      className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
-                    >
-                      <Settings size={12} /> Manage
-                    </button>
-                    <button
-                      onClick={() => setShowTraits(!showTraits)}
-                      className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
-                      aria-label={showTraits ? "Hide traits" : "Show traits"}
-                    >
-                      {showTraits ? <EyeOff size={12} /> : <Eye size={12} />}
-                      {showTraits ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
-                </div>
+                <SectionHeader
+                  title="Traits"
+                  isVisible={showTraits}
+                  onToggle={() => setShowTraits(!showTraits)}
+                  onManage={() => setIsTraitModifierSheetOpen(true)}
+                  manageLabel="Manage"
+                />
                 {showTraits && (
                   <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     {Object.entries(character.stats).map(([key, value]) => {
@@ -513,25 +491,13 @@ export default function CharacterView() {
 
               {/* Experiences Section */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Experiences</h3>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setIsExperienceSheetOpen(true)}
-                      className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
-                    >
-                      <Settings size={12} /> Manage
-                    </button>
-                    <button
-                      onClick={() => setShowExperiences(!showExperiences)}
-                      className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
-                      aria-label={showExperiences ? "Hide experiences" : "Show experiences"}
-                    >
-                      {showExperiences ? <EyeOff size={12} /> : <Eye size={12} />}
-                      {showExperiences ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
-                </div>
+                <SectionHeader
+                  title="Experiences"
+                  isVisible={showExperiences}
+                  onToggle={() => setShowExperiences(!showExperiences)}
+                  onManage={() => setIsExperienceSheetOpen(true)}
+                  manageLabel="Manage"
+                />
 
                 {showExperiences && (<div className="space-y-2">
                   {character.experiences && character.experiences.length > 0 ? (
@@ -560,17 +526,11 @@ export default function CharacterView() {
               {/* Ancestry Section */}
               {character.ancestry && (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Ancestry</h3>
-                    <button
-                      onClick={() => setShowAncestry(!showAncestry)}
-                      className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
-                      aria-label={showAncestry ? "Hide ancestry features" : "Show ancestry features"}
-                    >
-                      {showAncestry ? <EyeOff size={12} /> : <Eye size={12} />}
-                      {showAncestry ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
+                  <SectionHeader
+                    title="Ancestry"
+                    isVisible={showAncestry}
+                    onToggle={() => setShowAncestry(!showAncestry)}
+                  />
 
                   {showAncestry && (
                     <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
@@ -616,17 +576,11 @@ export default function CharacterView() {
               {/* Community Section */}
               {character.community && (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Community</h3>
-                    <button
-                      onClick={() => setShowCommunity(!showCommunity)}
-                      className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
-                      aria-label={showCommunity ? "Hide community features" : "Show community features"}
-                    >
-                      {showCommunity ? <EyeOff size={12} /> : <Eye size={12} />}
-                      {showCommunity ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
+                  <SectionHeader
+                    title="Community"
+                    isVisible={showCommunity}
+                    onToggle={() => setShowCommunity(!showCommunity)}
+                  />
 
                   {showCommunity && (
                     <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
@@ -672,17 +626,11 @@ export default function CharacterView() {
               {/* Transformation Section */}
               {character.transformation && (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Transformation</h3>
-                    <button
-                      onClick={() => setShowTransformation(!showTransformation)}
-                      className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
-                      aria-label={showTransformation ? "Hide transformation features" : "Show transformation features"}
-                    >
-                      {showTransformation ? <EyeOff size={12} /> : <Eye size={12} />}
-                      {showTransformation ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
+                  <SectionHeader
+                    title="Transformation"
+                    isVisible={showTransformation}
+                    onToggle={() => setShowTransformation(!showTransformation)}
+                  />
 
                   {showTransformation && (
                     <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
@@ -744,19 +692,11 @@ export default function CharacterView() {
               {/* Class Features Section */}
               {character.class_data && (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                      Class Features
-                    </h3>
-                    <button
-                      onClick={() => setShowClassFeatures(!showClassFeatures)}
-                      className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
-                      aria-label={showClassFeatures ? "Hide class features" : "Show class features"}
-                    >
-                      {showClassFeatures ? <EyeOff size={12} /> : <Eye size={12} />}
-                      {showClassFeatures ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
+                  <SectionHeader
+                    title={<><Info size={14} /> Class Features</>}
+                    isVisible={showClassFeatures}
+                    onToggle={() => setShowClassFeatures(!showClassFeatures)}
+                  />
 
                   {showClassFeatures && (
                     <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
@@ -901,18 +841,11 @@ export default function CharacterView() {
               {/* Subclass Features Section */}
               {(character.subclass_progression || character.multiclass_progression) && (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                      Subclass Features
-                    </h3>
-                    <button
-                      onClick={() => setShowSubclassFeatures(!showSubclassFeatures)}
-                      className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                    >
-                      {showSubclassFeatures ? <EyeOff size={14} /> : <Eye size={14} />}
-                      {showSubclassFeatures ? 'Hide' : 'Show'}
-                    </button>
-                  </div>
+                  <SectionHeader
+                    title={<><Sparkles size={14} /> Subclass Features</>}
+                    isVisible={showSubclassFeatures}
+                    onToggle={() => setShowSubclassFeatures(!showSubclassFeatures)}
+                  />
 
                   {showSubclassFeatures && (
                     <div className="space-y-3">
@@ -952,40 +885,6 @@ export default function CharacterView() {
                           onToggleLore={() => setShowMulticlassLore(!showMulticlassLore)}
                         />
                       )}
-
-                      {/* Warrior Call of the Slayer - Slayer Dice */}
-                      {character.class_id?.toLowerCase() === 'warrior' &&
-                        character.subclass_data?.name?.toLowerCase()?.includes('slayer') &&
-                        character.subclass_progression?.foundation_obtained && (
-                          <SlayerDiceCard
-                            slayerDice={character.warrior_slayer_dice}
-                            proficiency={effectiveProficiency}
-                            description={character.subclass_data?.data?.foundation_features?.[0]?.text || 'You gain a pool of dice called Slayer Dice.'}
-                            onUpdateSlayerDice={updateWarriorSlayerDice}
-                          />
-                        )}
-
-                      {/* Sorcerer Elemental Origin - Element Selection */}
-                      {character.class_id?.toLowerCase() === 'sorcerer' &&
-                        character.subclass_data?.name?.toLowerCase()?.includes('elemental') &&
-                        character.subclass_progression?.foundation_obtained && (
-                          <SorcererElementCard
-                            element={character.sorcerer_element}
-                            description={character.subclass_data?.data?.foundation_features?.[0]?.text || 'Choose one of the following elements at character creation: air, earth, fire, lightning, water.'}
-                            onUpdateElement={updateSorcererElement}
-                          />
-                        )}
-
-                      {/* Druid Warden of the Elements - Elemental Incarnation */}
-                      {character.class_id?.toLowerCase() === 'druid' &&
-                        character.subclass_data?.name?.toLowerCase()?.includes('element') &&
-                        character.subclass_progression?.foundation_obtained && (
-                          <ElementalIncarnationCard
-                            incarnation={character.druid_elemental_incarnation}
-                            description={character.subclass_data?.data?.foundation_features?.[0]?.text || 'Mark a Stress to Channel one of the following elements until you take Severe damage or until your next rest.'}
-                            onUpdateIncarnation={updateDruidElementalIncarnation}
-                          />
-                        )}
                     </div>
                   )}
                 </div>
@@ -996,26 +895,13 @@ export default function CharacterView() {
                 character.subclass_data?.name?.toLowerCase() === 'beastbound' &&
                 character.subclass_progression?.foundation_obtained && (
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                          <PawPrint size={14} /> Companion
-                        </h3>
-                        <button
-                          onClick={() => setIsCompanionSheetOpen(true)}
-                          className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
-                        >
-                          <Settings size={12} /> Manage
-                        </button>
-                      </div>
-                      <button
-                        onClick={() => setShowCompanion(!showCompanion)}
-                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                      >
-                        {showCompanion ? <EyeOff size={14} /> : <Eye size={14} />}
-                        {showCompanion ? 'Hide' : 'Show'}
-                      </button>
-                    </div>
+                    <SectionHeader
+                      title={<><PawPrint size={14} /> Companion</>}
+                      isVisible={showCompanion}
+                      onToggle={() => setShowCompanion(!showCompanion)}
+                      onManage={() => setIsCompanionSheetOpen(true)}
+                      manageLabel="Manage"
+                    />
 
                     {showCompanion && (
                       <div className="bg-dagger-panel border border-white/10 rounded-xl overflow-hidden">

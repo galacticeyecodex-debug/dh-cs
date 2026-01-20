@@ -28,6 +28,7 @@ import AddItemModal from './add-item-modal';
 import CreateHomebrewItemModal, { HomebrewItemData } from './create-homebrew-item-modal';
 import ItemArtModal from './item-art-modal';
 import InventoryItemCard from './inventory-item-card';
+import SectionHeader from '@/components/shared/section-header';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import ViewHeader from '@/components/shared/view-header';
 import { useLibraryItems, LibraryPresets } from '@/hooks/useLibraryItems';
@@ -188,19 +189,11 @@ export default function InventoryView() {
 
         {/* Gold Tracker */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-              <Coins size={14} /> Wealth
-            </h3>
-            <button
-              onClick={() => setShowWealth(!showWealth)}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-              aria-label={showWealth ? "Hide wealth details" : "Show wealth details"}
-            >
-              {showWealth ? <EyeOff size={14} /> : <Eye size={14} />}
-              {showWealth ? 'Hide' : 'Show'}
-            </button>
-          </div>
+          <SectionHeader
+            title={<><Coins size={14} /> Wealth</>}
+            isVisible={showWealth}
+            onToggle={() => setShowWealth(!showWealth)}
+          />
 
           {showWealth && (
             <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
@@ -230,19 +223,11 @@ export default function InventoryView() {
 
         {/* Filter */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-              <Package size={14} /> Filter
-            </h3>
-            <button
-              onClick={() => setShowFilter(!showFilter)}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-              aria-label={showFilter ? "Hide filters" : "Show filters"}
-            >
-              {showFilter ? <EyeOff size={14} /> : <Eye size={14} />}
-              {showFilter ? 'Hide' : 'Show'}
-            </button>
-          </div>
+          <SectionHeader
+            title={<><Package size={14} /> Filter</>}
+            isVisible={showFilter}
+            onToggle={() => setShowFilter(!showFilter)}
+          />
 
           {showFilter && (
             <div className="flex gap-2 overflow-x-auto pb-2 -mb-2">
