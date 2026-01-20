@@ -35,7 +35,7 @@ export function MiniVitalsPanel({
     return (
         <div
             className={cn(
-                "fixed left-0 right-0 z-40 bg-dagger-panel backdrop-blur-lg border-t border-white/10 shadow-xl transition-all",
+                "fixed left-0 right-0 z-40 bg-dagger-panel backdrop-blur-lg border-t border-white/10 transition-all",
                 className
             )}
             style={{ bottom: bottomOffset }}
@@ -121,21 +121,8 @@ export default function CharacterVitalsBanner() {
     // Early return after hooks
     if (!vitalData) return null;
 
-    // Build vitals array - Fear appears first when in a campaign
+    // Build vitals array
     const vitals: VitalEntry[] = [];
-
-    // Add Fear if in an active campaign (read-only for players)
-    // SRD: Max Fear is always 12
-    if (activeCampaign) {
-        const isHighFear = activeCampaign.fear_current >= 10; // ~83% of max
-        vitals.push({
-            label: 'Fear',
-            current: activeCampaign.fear_current,
-            max: 12, // SRD: Max Fear is always 12
-            icon: Skull,
-            color: isHighFear ? 'text-red-400' : 'text-purple-400',
-        });
-    }
 
     // Character vitals
     vitals.push(
@@ -174,6 +161,19 @@ export default function CharacterVitalsBanner() {
             color: 'text-dagger-gold',
         }
     );
+
+    // Add Fear if in an active campaign (read-only for players)
+    // SRD: Max Fear is always 12
+    if (activeCampaign) {
+        const isHighFear = activeCampaign.fear_current >= 10; // ~83% of max
+        vitals.push({
+            label: 'Fear',
+            current: activeCampaign.fear_current,
+            max: 12, // SRD: Max Fear is always 12
+            icon: Skull,
+            color: isHighFear ? 'text-red-400' : 'text-purple-400',
+        });
+    }
 
     return <MiniVitalsPanel vitals={vitals} />;
 }
