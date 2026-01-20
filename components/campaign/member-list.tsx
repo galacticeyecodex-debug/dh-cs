@@ -2,16 +2,17 @@
 
 import React from 'react';
 import { EnrichedCampaignMember } from '@/types/campaign';
-import { Crown, User, Shield, X } from 'lucide-react';
+import { Crown, User, Shield, X, UserPlus } from 'lucide-react';
 import { useCharacterStore } from '@/store/character-store';
 
 interface MemberListProps {
     members: EnrichedCampaignMember[];
     campaignId: string;
     gmUserId: string;
+    onAssignCharacter?: () => void;
 }
 
-export default function MemberList({ members, campaignId, gmUserId }: MemberListProps) {
+export default function MemberList({ members, campaignId, gmUserId, onAssignCharacter }: MemberListProps) {
     const { user, kickMember } = useCharacterStore();
 
     const isCurrentUserGM = user?.id === gmUserId;
@@ -32,6 +33,16 @@ export default function MemberList({ members, campaignId, gmUserId }: MemberList
         <div className="bg-dagger-panel border border-white/10 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-white">Members ({members.length})</h3>
+                {onAssignCharacter && (
+                    <button
+                        onClick={onAssignCharacter}
+                        className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-2 text-xs font-bold"
+                        aria-label="Assign character"
+                    >
+                        <UserPlus size={14} />
+                        Assign
+                    </button>
+                )}
             </div>
 
             <div className="space-y-2">

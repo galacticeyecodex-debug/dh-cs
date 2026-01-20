@@ -164,33 +164,15 @@ export default function CampaignDetailPage() {
     const headerActions = (
         <div className="flex gap-2">
             {isGM && (
-                <>
-                    <button
-                        onClick={() => router.push(`/campaign/${activeCampaign.id}/gm`)}
-                        className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-lg transition-colors flex items-center gap-2 text-sm"
-                        aria-label="Open GM Screen"
-                    >
-                        <Crown size={16} />
-                        <span className="hidden sm:inline">GM Screen</span>
-                    </button>
-                    <button
-                        onClick={() => setShowSettings(true)}
-                        className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
-                        title="Campaign settings"
-                        aria-label="Open campaign settings"
-                    >
-                        <Settings size={18} className="text-gray-400" />
-                    </button>
-                </>
+                <button
+                    onClick={() => setShowSettings(true)}
+                    className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                    title="Campaign settings"
+                    aria-label="Open campaign settings"
+                >
+                    <Settings size={18} className="text-gray-400" />
+                </button>
             )}
-            <button
-                onClick={() => setShowAssignCharacter(true)}
-                className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
-                aria-label="Assign character to campaign"
-            >
-                <UserPlus size={16} />
-                <span className="hidden sm:inline">Assign</span>
-            </button>
             {!isGM && (
                 <button
                     onClick={handleLeave}
@@ -223,6 +205,16 @@ export default function CampaignDetailPage() {
                                 <Skull className="w-5 h-5 text-red-500" aria-hidden="true" />
                             </div>
                             <h2 className="text-lg font-bold text-white">Fear</h2>
+                            {isGM && (
+                                <button
+                                    onClick={() => router.push(`/campaign/${activeCampaign.id}/gm`)}
+                                    className="ml-2 px-2 py-1 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded text-xs transition-colors flex items-center gap-1"
+                                    aria-label="Open GM Screen"
+                                >
+                                    <Crown size={12} />
+                                    GM Screen
+                                </button>
+                            )}
                         </div>
                         <div className="text-xl font-bold tabular-nums text-white">
                             {activeCampaign.fear_current} / 12
@@ -253,6 +245,7 @@ export default function CampaignDetailPage() {
                             members={activeCampaign.members || []}
                             campaignId={activeCampaign.id}
                             gmUserId={activeCampaign.gm_user_id}
+                            onAssignCharacter={() => setShowAssignCharacter(true)}
                         />
                     </div>
 
