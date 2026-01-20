@@ -45,6 +45,7 @@ interface VitalConfig {
     current: number;
     max: number;
     color: string;
+    strokeColor?: string;
     trackType: TrackType;
 }
 
@@ -70,6 +71,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             current: hitPointsCurrent,
             max: hitPointsMax,
             color: 'text-red-400',
+            strokeColor: 'stroke-red-900',
             trackType: 'mark-bad',
         },
         {
@@ -79,6 +81,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             current: stressCurrent,
             max: stressMax,
             color: 'text-purple-400',
+            strokeColor: 'stroke-purple-900',
             trackType: 'fill-up-bad',
         },
         {
@@ -88,6 +91,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             current: armorSlots,
             max: armorMax,
             color: 'text-blue-400',
+            strokeColor: 'stroke-blue-900',
             trackType: 'mark-bad',
         },
         {
@@ -97,6 +101,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             current: hopeCurrent,
             max: hopeMax,
             color: 'text-dagger-gold',
+            strokeColor: 'stroke-amber-900',
             trackType: 'fill-up-good',
         },
     ];
@@ -176,7 +181,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
                     className={clsx(
                         'transition-all duration-200',
                         isFilled
-                            ? clsx(iconColor, 'scale-100')
+                            ? clsx(iconColor, 'scale-100', vital.strokeColor)
                             : 'text-white/10 scale-90'
                     )}
                     fill={isFilled ? 'currentColor' : 'none'}

@@ -45,6 +45,7 @@ interface VitalCardProps {
   trackType?: 'fill-up-good' | 'fill-up-bad' | 'mark-bad';
   modifiers?: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[];
   onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[]) => void;
+  strokeColor?: string;
   subStats?: ModifierTab[];
 }
 
@@ -66,6 +67,7 @@ const VitalCard = React.memo(function VitalCard({
   trackType,
   modifiers,
   onUpdateModifiers,
+  strokeColor,
   subStats
 }: VitalCardProps) {
   const [showModifierSheet, setShowModifierSheet] = useState(false);
@@ -80,23 +82,24 @@ const VitalCard = React.memo(function VitalCard({
     // Determine how many are "filled" based on type
     const filledCount = (trackType === 'fill-up-good' || trackType === 'fill-up-bad') ? current : Math.max(0, max - current);
 
-    // Check if track is "badly" full (e.g. full stress/damage)
-    // Respect disableCritColor prop (e.g. for Armor, which isn't "bad" when full)
-    const isFullBad = (trackType === 'mark-bad' || trackType === 'fill-up-bad') && filledCount >= max && !disableCritColor;
-
     // Base color for filled icons
-    const filledColor = isFullBad ? "text-red-500" : color;
+    const filledColor = color;
     const emptyColor = "text-white/10";
 
     for (let i = 0; i < max; i++) {
       const isFilled = i < filledCount;
+
+      // Apply stroke color if provided and icon is filled, otherwise use active/empty colors
+      // If strokeColor is provided (and not in critical 'bad' state), it is added to className.
+      // Lucide icons default to stroke="currentColor" so the class overrides it.
+
       icons.push(
         <Icon
           key={i}
           size={trackType === 'mark-bad' ? 16 : 14}
           className={clsx(
             "transition-all duration-300",
-            isFilled ? clsx(filledColor, "scale-100") : clsx(emptyColor, "scale-90")
+            isFilled ? clsx(filledColor, "scale-100", strokeColor) : clsx(emptyColor, "scale-90")
           )}
           fill={isFilled ? "currentColor" : "none"}
         />

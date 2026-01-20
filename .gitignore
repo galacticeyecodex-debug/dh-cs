@@ -79,3 +79,4 @@ docs/
 
 # Private campaign content (managed in separate private repo)
 content/private/
+.agents
