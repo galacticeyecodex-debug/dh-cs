@@ -22,6 +22,7 @@ import { dataService } from '@/lib/data-service';
 import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers, calculateAttackModifier, calculateDamageModifier } from '@/lib/utils';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
 import ModifierSheet from '@/components/shared/modifier-sheet';
+import SectionHeader from '@/components/shared/section-header';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import useContentAccess from '@/hooks/useContentAccess';
 import ViewHeader from '@/components/shared/view-header';
@@ -205,36 +206,22 @@ export default function CombatView() {
 
         {/* Vitals Toggle & Display */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">Vitals</h3>
-            <button
-              onClick={() => setShowVitals(!showVitals)}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-              aria-label={showVitals ? "Hide vitals" : "Show vitals"}
-            >
-              {showVitals ? <EyeOff size={14} /> : <Eye size={14} />}
-              {showVitals ? 'Hide' : 'Show'}
-            </button>
-          </div>
+          <SectionHeader
+            title="Vitals"
+            isVisible={showVitals}
+            onToggle={() => setShowVitals(!showVitals)}
+          />
           {showVitals && <CommonVitalsDisplay character={character} />}
         </div>
 
         {/* Active Armor */}
         {armor && (
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                <Shield size={14} /> Active Armor
-              </h3>
-              <button
-                onClick={() => setShowArmor(!showArmor)}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                aria-label={showArmor ? "Hide active armor" : "Show active armor"}
-              >
-                {showArmor ? <EyeOff size={14} /> : <Eye size={14} />}
-                {showArmor ? 'Hide' : 'Show'}
-              </button>
-            </div>
+            <SectionHeader
+              title={<><Shield size={14} /> Active Armor</>}
+              isVisible={showArmor}
+              onToggle={() => setShowArmor(!showArmor)}
+            />
             {showArmor && (
               <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
                 <h4 className="font-serif font-bold text-white mb-1">{armor.name}</h4>
@@ -258,19 +245,11 @@ export default function CombatView() {
 
         {/* Weapons List */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-              <Swords size={14} /> Active Weapons
-            </h3>
-            <button
-              onClick={() => setShowWeapons(!showWeapons)}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-              aria-label={showWeapons ? "Hide active weapons" : "Show active weapons"}
-            >
-              {showWeapons ? <EyeOff size={14} /> : <Eye size={14} />}
-              {showWeapons ? 'Hide' : 'Show'}
-            </button>
-          </div>
+          <SectionHeader
+            title={<><Swords size={14} /> Active Weapons</>}
+            isVisible={showWeapons}
+            onToggle={() => setShowWeapons(!showWeapons)}
+          />
 
           {showWeapons && (
             <>
@@ -384,19 +363,11 @@ export default function CombatView() {
         {/* Transformation Abilities */}
         {character.transformation && transformationCard && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                <Moon size={14} /> Transformation: {transformationCard.name}
-              </h3>
-              <button
-                onClick={() => setShowTransformation(!showTransformation)}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                aria-label={showTransformation ? "Hide transformation details" : "Show transformation details"}
-              >
-                {showTransformation ? <EyeOff size={14} /> : <Eye size={14} />}
-                {showTransformation ? 'Hide' : 'Show'}
-              </button>
-            </div>
+            <SectionHeader
+              title={<><Moon size={14} /> Transformation: {transformationCard.name}</>}
+              isVisible={showTransformation}
+              onToggle={() => setShowTransformation(!showTransformation)}
+            />
 
             {showTransformation && (
               <>
@@ -455,19 +426,11 @@ export default function CombatView() {
         {/* Traits & Features (Ancestry, Community, Class, Subclass) */}
         {combatFeatures.length > 0 && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                <Dna size={14} /> Traits & Features
-              </h3>
-              <button
-                onClick={() => setShowFeatures(!showFeatures)}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                aria-label={showFeatures ? "Hide traits and features" : "Show traits and features"}
-              >
-                {showFeatures ? <EyeOff size={14} /> : <Eye size={14} />}
-                {showFeatures ? 'Hide' : 'Show'}
-              </button>
-            </div>
+            <SectionHeader
+              title={<><Dna size={14} /> Traits & Features</>}
+              isVisible={showFeatures}
+              onToggle={() => setShowFeatures(!showFeatures)}
+            />
 
             {showFeatures && combatFeatures.map((feature) => {
               const attack = feature.attack;
@@ -543,19 +506,11 @@ export default function CombatView() {
         {/* Spells & Abilities */}
         {combatAbilities.length > 0 && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-                <Wand2 size={14} /> Spells & Abilities
-              </h3>
-              <button
-                onClick={() => setShowSpells(!showSpells)}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-                aria-label={showSpells ? "Hide spells and abilities" : "Show spells and abilities"}
-              >
-                {showSpells ? <EyeOff size={14} /> : <Eye size={14} />}
-                {showSpells ? 'Hide' : 'Show'}
-              </button>
-            </div>
+            <SectionHeader
+              title={<><Wand2 size={14} /> Spells & Abilities</>}
+              isVisible={showSpells}
+              onToggle={() => setShowSpells(!showSpells)}
+            />
 
             {showSpells && combatAbilities.map((ability) => {
               const enhancement = getEnhancement(ability);

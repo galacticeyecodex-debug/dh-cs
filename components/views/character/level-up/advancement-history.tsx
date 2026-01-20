@@ -20,6 +20,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Check, Eye, EyeOff, Heart, Zap, Shield, Star, Swords } from 'lucide-react';
 import { AdvancementRecord } from '@/store/character-store';
 import { Experience } from '@/types/modifiers';
+import SectionHeader from '@/components/shared/section-header';
 
 interface AdvancementHistoryProps {
   advancementHistory: Record<string, AdvancementRecord>;
@@ -66,17 +67,12 @@ export default function AdvancementHistory({ advancementHistory, experiences = [
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider">
-          Advancement History
-        </h3>
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded"
-        >
-          {!isCollapsed ? <EyeOff size={14} /> : <Eye size={14} />}
-          {!isCollapsed ? 'Hide' : 'Show'}
-        </button>
+      <div className="mb-3">
+        <SectionHeader
+          title="Advancement History"
+          isVisible={!isCollapsed}
+          onToggle={() => setIsCollapsed(!isCollapsed)}
+        />
       </div>
 
       {!isCollapsed && (

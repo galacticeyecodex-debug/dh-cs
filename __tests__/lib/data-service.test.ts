@@ -209,7 +209,7 @@ describe('Data Service', () => {
                 const result = await dataService.character.list('user-1');
 
                 expect(result[0].stats).toEqual({ strength: 2 });
-                expect(result[0].vitals).toEqual({ hit_points_current: 10 });
+                expect(result[0].vitals).toEqual(expect.objectContaining({ hit_points_current: 10 }));
             });
         });
 

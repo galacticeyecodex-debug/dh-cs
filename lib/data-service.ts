@@ -3,6 +3,7 @@ import { DataClient } from '@/types/data-client';
 import { Character, LibraryItem, HomebrewItem, CharacterInventoryItem, Experience } from '@/types/character';
 import type { Campaign, CampaignWithMembers } from '@/types/campaign';
 import type { CampaignActivity, CampaignActivityInsert } from '@/types/activity';
+import { hydrateCharacter } from '@/lib/data-helpers';
 
 // Helper to construct the service
 export const dataService: DataClient = {
@@ -107,45 +108,14 @@ export const dataService: DataClient = {
         };
       }) || [];
 
-      // Parse JSON fields
-      const rawVitals = typeof charData.vitals === 'string' ? JSON.parse(charData.vitals) : charData.vitals;
-      const vitals = {
-        hit_points_current: rawVitals.hit_points_current ?? rawVitals.hp_current ?? 0,
-        hit_points_max: rawVitals.hit_points_max ?? rawVitals.hp_max ?? 6,
-        stress_current: rawVitals.stress_current ?? 0,
-        stress_max: rawVitals.stress_max ?? 6,
-        armor_slots: rawVitals.armor_slots ?? rawVitals.armor_current ?? 0,
-        armor_score: rawVitals.armor_score ?? rawVitals.armor_max ?? 0
-      };
-
-      let experiences: Experience[] = [];
-      const rawExperiences = typeof charData.experiences === 'string' ? JSON.parse(charData.experiences) : charData.experiences;
-      if (Array.isArray(rawExperiences)) {
-        experiences = rawExperiences.length > 0 && typeof rawExperiences[0] === 'string'
-          ? rawExperiences.map((name: string) => ({ name, value: 2 }))
-          : rawExperiences;
-      }
-
-      let damage_thresholds;
-      if (charData.damage_thresholds) {
-        damage_thresholds = typeof charData.damage_thresholds === 'string'
-          ? JSON.parse(charData.damage_thresholds)
-          : charData.damage_thresholds;
-      } else {
-        damage_thresholds = { minor: 1, major: charData.level, severe: charData.level * 2 };
-      }
+      const hydratedChar = hydrateCharacter(charData);
 
       return {
-        ...charData,
+        ...hydratedChar,
         character_cards: enrichedCards,
         character_inventory: enrichedInventory,
         class_data: charData.class_id ? libraryMap.get(`class-${charData.class_id.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')}`) : undefined,
         subclass_data: charData.subclass_id ? libraryMap.get(`subclass-${charData.subclass_id.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')}`) : undefined,
-        stats: typeof charData.stats === 'string' ? JSON.parse(charData.stats) : charData.stats,
-        vitals,
-        damage_thresholds,
-        gold: typeof charData.gold === 'string' ? JSON.parse(charData.gold) : charData.gold,
-        experiences,
       } as Character;
     },
 
@@ -178,21 +148,7 @@ export const dataService: DataClient = {
       if (error) throw error;
 
       // Parse JSON fields for each character
-      return (data || []).map((charRaw: any) => ({
-        ...charRaw,
-        stats: typeof charRaw.stats === 'string' ? JSON.parse(charRaw.stats) : charRaw.stats,
-        vitals: typeof charRaw.vitals === 'string' ? JSON.parse(charRaw.vitals) : charRaw.vitals,
-        damage_thresholds: typeof charRaw.damage_thresholds === 'string' ? JSON.parse(charRaw.damage_thresholds) : charRaw.damage_thresholds,
-        experiences: typeof charRaw.experiences === 'string' ? JSON.parse(charRaw.experiences) : charRaw.experiences,
-        modifiers: typeof charRaw.modifiers === 'string' ? JSON.parse(charRaw.modifiers) : charRaw.modifiers,
-        gold: typeof charRaw.gold === 'string' ? JSON.parse(charRaw.gold) : charRaw.gold,
-        gallery_images: typeof charRaw.gallery_images === 'string' ? JSON.parse(charRaw.gallery_images) : charRaw.gallery_images,
-        domains: typeof charRaw.domains === 'string' ? JSON.parse(charRaw.domains) : charRaw.domains,
-        marked_traits_jsonb: typeof charRaw.marked_traits_jsonb === 'string' ? JSON.parse(charRaw.marked_traits_jsonb) : charRaw.marked_traits_jsonb,
-        advancement_history_jsonb: typeof charRaw.advancement_history_jsonb === 'string' ? JSON.parse(charRaw.advancement_history_jsonb) : charRaw.advancement_history_jsonb,
-        subclass_progression: typeof charRaw.subclass_progression === 'string' ? JSON.parse(charRaw.subclass_progression) : charRaw.subclass_progression,
-        multiclass_progression: typeof charRaw.multiclass_progression === 'string' ? JSON.parse(charRaw.multiclass_progression) : charRaw.multiclass_progression,
-      }));
+      return (data || []).map((charRaw: any) => hydrateCharacter(charRaw));
     },
 
     create: async (payload) => {
