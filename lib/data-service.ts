@@ -959,6 +959,70 @@ export const dataService: DataClient = {
         throw new Error(`Failed to update projects: ${error.message}`);
       }
     },
+
+    // Character Projects - for use in GM Screen
+    createCharacterProject: async (characterId: string, project: any): Promise<any> => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('character_projects')
+        .insert({
+          character_id: characterId,
+          name: project.name,
+          description: project.description || null,
+          type: project.type || 'generic',
+          countdown_total: project.countdown_total || 4,
+          countdown_current: 0,
+          completed: false,
+          data: project.data || {},
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to create project: ${error.message}`);
+      }
+
+      return data;
+    },
+
+    updateCharacterProject: async (projectId: string, updates: any): Promise<void> => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('character_projects')
+        .update(updates)
+        .eq('id', projectId);
+
+      if (error) {
+        throw new Error(`Failed to update project: ${error.message}`);
+      }
+    },
+
+    deleteCharacterProject: async (projectId: string): Promise<void> => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('character_projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) {
+        throw new Error(`Failed to delete project: ${error.message}`);
+      }
+    },
+
+    getCharacterProjects: async (characterId: string): Promise<any[]> => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('character_projects')
+        .select('*')
+        .eq('character_id', characterId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(`Failed to fetch projects: ${error.message}`);
+      }
+
+      return data || [];
+    },
   },
 
   // =========================================================================

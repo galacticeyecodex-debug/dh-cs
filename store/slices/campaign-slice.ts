@@ -484,38 +484,25 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
 
     fetchProjectsForCharacter: async (characterId: string) => {
         try {
-            const supabase = require('@/lib/supabase/client').default();
-            const { data, error } = await supabase
-                .from('character_projects')
-                .select('*')
-                .eq('character_id', characterId)
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-
+            const projects = await dataService.campaign.getCharacterProjects(characterId);
             set((state) => ({
                 characterProjects: {
                     ...state.characterProjects,
-                    [characterId]: data || [],
+                    [characterId]: projects,
                 },
             }));
         } catch (error) {
-            console.error('Failed to fetch projects for character:', error);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error('Failed to fetch projects for character:', errorMsg);
         }
     },
 
     setProjectProgress: async (projectId: string, progress: number) => {
         try {
-            const supabase = require('@/lib/supabase/client').default();
-            const { error } = await supabase
-                .from('character_projects')
-                .update({
-                    countdown_current: progress,
-                    updated_at: new Date().toISOString(),
-                })
-                .eq('id', projectId);
-
-            if (error) throw error;
+            await dataService.campaign.updateCharacterProject(projectId, {
+                countdown_current: progress,
+                updated_at: new Date().toISOString(),
+            });
 
             // Update cache
             set((state) => {
@@ -528,20 +515,15 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
                 return { characterProjects: newProjects };
             });
         } catch (error) {
-            console.error('Failed to set project progress:', error);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error('Failed to set project progress:', errorMsg);
             toast.error('Failed to update project progress');
         }
     },
 
     deleteProject: async (projectId: string) => {
         try {
-            const supabase = require('@/lib/supabase/client').default();
-            const { error } = await supabase
-                .from('character_projects')
-                .delete()
-                .eq('id', projectId);
-
-            if (error) throw error;
+            await dataService.campaign.deleteCharacterProject(projectId);
 
             // Update cache
             set((state) => {
@@ -554,40 +536,22 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
 
             toast.success('Project deleted');
         } catch (error) {
-            console.error('Failed to delete project:', error);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error('Failed to delete project:', errorMsg);
             toast.error('Failed to delete project');
         }
     },
 
     createProject: async (input: any) => {
         try {
-            const supabase = require('@/lib/supabase/client').default();
             const state = get() as CharacterStore;
 
             // Determine the character ID
             const characterId = input.character_id || (state.character?.id);
             if (!characterId) throw new Error('Character not found');
 
-            // Verify character exists (optional, but helps catch errors early)
-            const character = state.partyCharacters.find((c) => c.id === characterId) || (state.character && state.character.id === characterId);
-            if (!character && !characterId) throw new Error('Character not found');
-
-            const { data, error } = await supabase
-                .from('character_projects')
-                .insert({
-                    character_id: characterId,
-                    name: input.name,
-                    description: input.description || null,
-                    type: input.type || 'generic',
-                    countdown_total: input.countdown_total || 4,
-                    countdown_current: 0,
-                    completed: false,
-                    data: input.data || {},
-                })
-                .select()
-                .single();
-
-            if (error) throw error;
+            // Create project via data service
+            const data = await dataService.campaign.createCharacterProject(characterId, input);
 
             // Update cache
             set((state) => ({
@@ -600,7 +564,8 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             toast.success('Project created');
             return data;
         } catch (error) {
-            console.error('Failed to create project:', error);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error('Failed to create project:', errorMsg);
             toast.error('Failed to create project');
             return null;
         }

@@ -104,6 +104,12 @@ export interface DataClient {
     // Phase 9: Countdowns & Projects
     updateCountdowns: (campaignId: string, countdowns: any[]) => Promise<void>;
     updateProjects: (campaignId: string, projects: any[]) => Promise<void>;
+
+    // Character Projects (for GM Screen)
+    createCharacterProject: (characterId: string, project: any) => Promise<any>;
+    updateCharacterProject: (projectId: string, updates: any) => Promise<void>;
+    deleteCharacterProject: (projectId: string) => Promise<void>;
+    getCharacterProjects: (characterId: string) => Promise<any[]>;
   };
 
   // Phase 7: Friendships
