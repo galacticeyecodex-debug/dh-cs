@@ -390,45 +390,39 @@ BEGIN
       character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
     );
 
-    EXECUTE 'DROP POLICY IF EXISTS "Projects insertable by char owner or campaign GM" ON public.character_projects';
-    CREATE POLICY "Projects insertable by char owner or campaign GM" ON public.character_projects FOR INSERT WITH CHECK (
-      -- Allow if character belongs to user
-      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
-      OR
-      -- Allow if user is GM of a campaign that contains this character
-      character_id IN (
-        SELECT cm.character_id
-        FROM campaign_members cm
-        JOIN campaigns c ON c.id = cm.campaign_id
-        WHERE c.gm_user_id = auth.uid()
+    -- Allow users and GMs to manage projects
+    -- Users can manage their own character's projects
+    -- GMs can manage projects for characters in their campaigns
+    EXECUTE 'DROP POLICY IF EXISTS "Projects insertable by char owner" ON public.character_projects';
+    CREATE POLICY "Projects insertable by char owner" ON public.character_projects FOR INSERT WITH CHECK (
+      auth.uid() IN (
+        SELECT user_id FROM public.characters WHERE id = character_id
+        UNION
+        SELECT gm_user_id FROM public.campaigns c
+        INNER JOIN public.campaign_members cm ON c.id = cm.campaign_id
+        WHERE cm.character_id = character_id
       )
     );
 
-    EXECUTE 'DROP POLICY IF EXISTS "Projects updatable by char owner or campaign GM" ON public.character_projects';
-    CREATE POLICY "Projects updatable by char owner or campaign GM" ON public.character_projects FOR UPDATE USING (
-      -- Allow if character belongs to user
-      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
-      OR
-      -- Allow if user is GM of a campaign that contains this character
-      character_id IN (
-        SELECT cm.character_id
-        FROM campaign_members cm
-        JOIN campaigns c ON c.id = cm.campaign_id
-        WHERE c.gm_user_id = auth.uid()
+    EXECUTE 'DROP POLICY IF EXISTS "Projects updatable by char owner" ON public.character_projects';
+    CREATE POLICY "Projects updatable by char owner" ON public.character_projects FOR UPDATE USING (
+      auth.uid() IN (
+        SELECT user_id FROM public.characters WHERE id = character_id
+        UNION
+        SELECT gm_user_id FROM public.campaigns c
+        INNER JOIN public.campaign_members cm ON c.id = cm.campaign_id
+        WHERE cm.character_id = character_id
       )
     );
 
-    EXECUTE 'DROP POLICY IF EXISTS "Projects deletable by char owner or campaign GM" ON public.character_projects';
-    CREATE POLICY "Projects deletable by char owner or campaign GM" ON public.character_projects FOR DELETE USING (
-      -- Allow if character belongs to user
-      character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
-      OR
-      -- Allow if user is GM of a campaign that contains this character
-      character_id IN (
-        SELECT cm.character_id
-        FROM campaign_members cm
-        JOIN campaigns c ON c.id = cm.campaign_id
-        WHERE c.gm_user_id = auth.uid()
+    EXECUTE 'DROP POLICY IF EXISTS "Projects deletable by char owner" ON public.character_projects';
+    CREATE POLICY "Projects deletable by char owner" ON public.character_projects FOR DELETE USING (
+      auth.uid() IN (
+        SELECT user_id FROM public.characters WHERE id = character_id
+        UNION
+        SELECT gm_user_id FROM public.campaigns c
+        INNER JOIN public.campaign_members cm ON c.id = cm.campaign_id
+        WHERE cm.character_id = character_id
       )
     );
   END IF;
