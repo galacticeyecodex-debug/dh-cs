@@ -563,18 +563,23 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
         try {
             const supabase = require('@/lib/supabase/client').default();
             const state = get() as CharacterStore;
-            const character = state.partyCharacters.find((c) => c.id === input.character_id || (state.character && c.id === state.character.id));
 
-            if (!character) throw new Error('Character not found');
+            // Determine the character ID
+            const characterId = input.character_id || (state.character?.id);
+            if (!characterId) throw new Error('Character not found');
+
+            // Verify character exists (optional, but helps catch errors early)
+            const character = state.partyCharacters.find((c) => c.id === characterId) || (state.character && state.character.id === characterId);
+            if (!character && !characterId) throw new Error('Character not found');
 
             const { data, error } = await supabase
                 .from('character_projects')
                 .insert({
-                    character_id: character.id,
+                    character_id: characterId,
                     name: input.name,
                     description: input.description || null,
                     type: input.type || 'generic',
-                    countdown_total: input.countdown_total || input.countdown_total || 4,
+                    countdown_total: input.countdown_total || 4,
                     countdown_current: 0,
                     completed: false,
                     data: input.data || {},
@@ -588,7 +593,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             set((state) => ({
                 characterProjects: {
                     ...state.characterProjects,
-                    [character.id]: [data, ...(state.characterProjects[character.id] || [])],
+                    [characterId]: [data, ...(state.characterProjects[characterId] || [])],
                 },
             }));
 

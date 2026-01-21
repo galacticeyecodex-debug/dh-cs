@@ -82,13 +82,11 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
 
     // Load projects when section is expanded
     useEffect(() => {
-        if (isProjectsSectionExpanded && projects.length === 0) {
+        if (isProjectsSectionExpanded && !characterProjects[character.id]) {
             setIsLoadingProjects(true);
             const loadProjects = async () => {
                 try {
                     await fetchProjectsForCharacter(character.id);
-                    const charProjects = characterProjects[character.id] || [];
-                    setProjects(charProjects);
                 } catch (error) {
                     console.error('Failed to load projects:', error);
                 } finally {
@@ -97,7 +95,13 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             };
             loadProjects();
         }
-    }, [isProjectsSectionExpanded, character.id]);
+    }, [isProjectsSectionExpanded, character.id, fetchProjectsForCharacter, characterProjects]);
+
+    // Update local projects when store updates
+    useEffect(() => {
+        const charProjects = characterProjects[character.id] || [];
+        setProjects(charProjects);
+    }, [characterProjects, character.id]);
 
     // Get vitals from character
     const hitPointsCurrent = character.vitals?.hit_points_current ?? 0;
@@ -291,10 +295,10 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
     const handleProjectSubmit = async (data: any) => {
         if (editingProject) {
             // Edit existing project
-            await createProject({ ...data, id: editingProject.id } as any);
+            await createProject({ ...data, character_id: character.id, id: editingProject.id } as any);
         } else {
             // Create new project
-            await createProject(data);
+            await createProject({ ...data, character_id: character.id });
         }
         setEditingProject(undefined);
         // Refresh projects list
