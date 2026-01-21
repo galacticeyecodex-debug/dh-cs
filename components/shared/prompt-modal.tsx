@@ -20,7 +20,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 
 interface PromptModalProps {
     isOpen: boolean;
@@ -93,7 +93,7 @@ export function PromptModal({
                         onClick={onClose}
                         className="p-1 text-gray-400 hover:text-white transition-colors"
                     >
-                        <X size={20} />
+                        <AppIcons.ui.close size={20} />
                     </button>
                 </div>
 

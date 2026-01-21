@@ -25,6 +25,7 @@ vi.mock('@/store/character-store', () => ({
         updateFear: mockUpdateFear,
         logActivity: mockLogActivity,
         user: { id: 'user-123', email: 'gm@test.com' },
+        vitalIcons: {},
     }),
 }));
 

@@ -14,9 +14,9 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Megaphone, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCharacterStore } from '@/store/character-store';
+import { AppIcons } from '@/lib/icon-utils';
 
 interface AnnounceModalProps {
     isOpen: boolean;
@@ -100,7 +100,7 @@ export function AnnounceModal({ isOpen, onClose, campaignId }: AnnounceModalProp
                     <div className="flex items-center justify-between p-6 border-b border-white/5">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-blue-500/20 rounded-lg">
-                                <Megaphone size={20} className="text-blue-400" />
+                                <AppIcons.campaign.announce size={20} className="text-blue-400" />
                             </div>
                             <h2 className="text-xl font-bold text-white">Announce to Party</h2>
                         </div>
@@ -110,7 +110,7 @@ export function AnnounceModal({ isOpen, onClose, campaignId }: AnnounceModalProp
                             disabled={isSending}
                             aria-label="Close announcement"
                         >
-                            <X size={20} className="text-gray-400" />
+                            <AppIcons.ui.close size={20} className="text-gray-400" />
                         </button>
                     </div>
 
@@ -167,7 +167,7 @@ export function AnnounceModal({ isOpen, onClose, campaignId }: AnnounceModalProp
                             disabled={!message.trim() || isSending}
                             className="flex-1 px-4 py-2 text-sm font-bold bg-dagger-gold hover:bg-dagger-gold-light text-black rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                         >
-                            <Send size={16} />
+                            <AppIcons.ui.send size={16} />
                             {isSending ? 'Sending...' : 'Send'}
                         </button>
                     </div>

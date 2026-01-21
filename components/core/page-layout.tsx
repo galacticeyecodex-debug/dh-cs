@@ -17,9 +17,9 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, ChevronRight, ChevronDown, Sword, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
+import { AppIcons } from '@/lib/icon-utils';
 import UserMenu from './user-menu';
 import DiceOverlay from '../dice/dice-overlay';
 import clsx from 'clsx';
@@ -108,7 +108,7 @@ export default function PageLayout({
                             className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors shrink-0"
                             aria-label={backLabel}
                         >
-                            <ArrowLeft size={20} />
+                            <AppIcons.ui.back size={20} />
                             <span className="text-sm font-medium hidden sm:inline">{backLabel}</span>
                         </button>
                     )}
@@ -118,7 +118,7 @@ export default function PageLayout({
                         <nav className="hidden md:flex items-center gap-1 text-sm text-gray-400">
                             {breadcrumbs.map((crumb, index) => (
                                 <React.Fragment key={index}>
-                                    {index > 0 && <ChevronRight size={14} className="text-gray-600" />}
+                                    {index > 0 && <AppIcons.ui.chevronRight size={14} className="text-gray-600" />}
                                     {crumb.href ? (
                                         <button
                                             onClick={() => router.push(crumb.href!)}
@@ -148,7 +148,7 @@ export default function PageLayout({
                                 aria-haspopup="true"
                             >
                                 <span className="truncate">{title}</span>
-                                <ChevronDown
+                                <AppIcons.ui.expand
                                     size={18}
                                     className={clsx(
                                         'text-gray-400 transition-transform duration-200 flex-shrink-0',
@@ -172,7 +172,7 @@ export default function PageLayout({
                                             role="menuitem"
                                         >
                                             <div className="p-1.5 rounded-lg bg-dagger-gold/20">
-                                                <Sword size={16} className="text-dagger-gold" />
+                                                <AppIcons.combat.weapon size={16} className="text-dagger-gold" />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-bold text-white">Characters</p>
@@ -195,7 +195,7 @@ export default function PageLayout({
                                             role="menuitem"
                                         >
                                             <div className="p-1.5 rounded-lg bg-blue-500/20">
-                                                <Users size={16} className="text-blue-400" />
+                                                <AppIcons.campaign.party size={16} className="text-blue-400" />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-bold text-white">Campaigns</p>

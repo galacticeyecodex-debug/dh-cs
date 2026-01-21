@@ -8,7 +8,7 @@
  */
 
 import { CampaignActivity, PlayerJoinedActivityData, PlayerLeftActivityData, CharacterSwitchedActivityData } from '@/types/activity';
-import { Users, UserPlus, UserMinus, RefreshCw, Activity } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 
 interface GenericActivityProps {
     activity: CampaignActivity;
@@ -21,7 +21,7 @@ export function GenericActivity({ activity }: GenericActivityProps) {
             case 'player_joined': {
                 const data = activity.data as PlayerJoinedActivityData;
                 return {
-                    icon: UserPlus,
+                    icon: AppIcons.campaign.invite,
                     iconBg: 'bg-green-500/20',
                     iconColor: 'text-green-400',
                     message: (
@@ -38,7 +38,7 @@ export function GenericActivity({ activity }: GenericActivityProps) {
             case 'player_left': {
                 const data = activity.data as PlayerLeftActivityData;
                 return {
-                    icon: UserMinus,
+                    icon: AppIcons.campaign.kick,
                     iconBg: 'bg-red-500/20',
                     iconColor: 'text-red-400',
                     message: (
@@ -52,7 +52,7 @@ export function GenericActivity({ activity }: GenericActivityProps) {
             case 'character_switched': {
                 const data = activity.data as CharacterSwitchedActivityData;
                 return {
-                    icon: RefreshCw,
+                    icon: AppIcons.system.sync,
                     iconBg: 'bg-purple-500/20',
                     iconColor: 'text-purple-400',
                     message: (
@@ -71,7 +71,7 @@ export function GenericActivity({ activity }: GenericActivityProps) {
             }
             default:
                 return {
-                    icon: Activity,
+                    icon: AppIcons.ui.stats,
                     iconBg: 'bg-gray-500/20',
                     iconColor: 'text-gray-400',
                     message: (

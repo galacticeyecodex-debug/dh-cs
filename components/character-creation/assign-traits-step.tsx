@@ -14,10 +14,10 @@
 'use client';
 
 import React, { useMemo, useEffect, useRef } from 'react';
-import { User, RotateCcw, Info, Check, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
 import { CharacterFormData } from './types';
 import { PANEL } from '@/lib/styles';
+import { AppIcons, getIconByName } from '@/lib/icon-utils';
 
 interface AssignTraitsStepProps {
   formData: Partial<CharacterFormData>;
@@ -175,13 +175,13 @@ export default function AssignTraitsStep({
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold font-serif flex items-center gap-2">
-        <User size={20} /> Step 5: Assign Traits
+        <AppIcons.campaign.player size={20} /> Step 5: Assign Traits
       </h2>
 
       <div className="space-y-4">
         {/* Info Box with Pool Display */}
         <div className="bg-blue-900/20 border border-blue-500/30 rounded-xl p-4 flex gap-3 items-start shadow-sm">
-          <Info className="text-blue-400 shrink-0 mt-0.5" size={18} />
+          <AppIcons.ui.info className="text-blue-400 shrink-0 mt-0.5" size={18} />
           <div className="space-y-2 text-sm text-gray-300">
             <p>
               {classSource ? (
@@ -239,7 +239,7 @@ export default function AssignTraitsStep({
                   </span>
                   {isSuggestedValue && (
                     <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-dagger-gold/20 text-dagger-gold border border-dagger-gold/30 flex items-center gap-1">
-                      <Check size={8} /> Rec
+                      <AppIcons.ui.confirm size={8} /> Rec
                     </span>
                   )}
                 </div>
@@ -298,7 +298,7 @@ export default function AssignTraitsStep({
               onClick={applySuggestions}
               className="text-xs font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
             >
-              <RotateCcw size={12} />
+              <AppIcons.system.sync size={12} className="-scale-x-100" />
               Reset to Recommended
             </button>
           </div>
@@ -307,7 +307,7 @@ export default function AssignTraitsStep({
         {/* Validation Footer */}
         {!isValid && (
           <div className="bg-red-900/20 border border-red-500/30 rounded-xl px-4 py-3 flex items-center gap-2 text-red-400 text-sm">
-            <AlertCircle size={16} />
+            <AppIcons.system.error size={16} />
             <span>Assign all 6 traits to continue</span>
           </div>
         )}

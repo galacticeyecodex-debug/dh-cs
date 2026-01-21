@@ -20,8 +20,7 @@
  */
 
 import { useCharacterStore } from '@/store/character-store';
-import { getIconByName } from '@/lib/icon-utils';
-import { Skull } from 'lucide-react';
+import { getIconByName, AppIcons } from '@/lib/icon-utils';
 import { toast } from 'sonner';
 import clsx from 'clsx';
 
@@ -39,7 +38,7 @@ export function FearTracker({ campaignId, currentFear }: FearTrackerProps) {
     const { updateFear, logActivity, user, vitalIcons } = useCharacterStore();
 
     // Resolve dynamic icon for Fear
-    const FearIcon = getIconByName(vitalIcons.fear, Skull);
+    const FearIcon = getIconByName(vitalIcons.fear, AppIcons.vitals.fear);
 
     const handleFearChange = async (change: number) => {
         try {

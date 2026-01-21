@@ -23,7 +23,7 @@
 
 import React, { useMemo, useCallback } from 'react';
 import { useCharacterStore, Character, CharacterInventoryItem } from '@/store/character-store';
-import { Shield, Zap, Heart, Eye, Sparkles } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { getClassBaseStat, getSystemModifiers } from '@/lib/utils';
 import VitalCard from '@/components/vitals/vital-card';
 

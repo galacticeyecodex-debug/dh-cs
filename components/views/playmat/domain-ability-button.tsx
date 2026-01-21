@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { RefreshCw, Check, Zap, Skull, Clock } from 'lucide-react';
 import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
 import { CardCosts } from '@/types/cards';
+import { AppIcons } from '@/lib/icon-utils';
 
 interface DomainAbilityButtonProps {
   cardName: string;
@@ -63,29 +63,29 @@ export function DomainAbilityButton({
 
   // Determine effective label and icon
   let displayLabel = label;
-  let Icon = Zap;
+  let Icon = AppIcons.combat.activation;
   let costColor = 'text-gray-300';
   let activeColor = 'bg-dagger-gold/20 text-dagger-gold border-dagger-gold/50';
 
   if (costType === 'hope') {
     displayLabel = label || `Spend ${costValue > 0 ? costValue : 'a'} Hope`;
-    Icon = Zap;
+    Icon = AppIcons.vitals.hope;
     costColor = 'text-dagger-gold';
     activeColor = 'bg-dagger-gold/20 text-dagger-gold border-dagger-gold/50';
   } else if (costType === 'stress') {
     displayLabel = label || `Mark ${costValue > 0 ? costValue : 'a'} Stress`;
-    Icon = Skull;
+    Icon = AppIcons.vitals.stress;
     costColor = 'text-purple-400';
     activeColor = 'bg-purple-900/40 text-purple-300 border-purple-500/50';
   } else if (costType === 'activate' || costType === 'free') {
     // No-cost activation (e.g., Frenzy) - green styling
     displayLabel = label || 'Activate';
-    Icon = Zap;  // Could use Play or Power icon if desired
+    Icon = AppIcons.combat.activation;  // Could use Play or Power icon if desired
     costColor = 'text-emerald-400';
     activeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50';
   } else if (costType === 'duration') {
     displayLabel = label || 'Active';
-    Icon = Clock;
+    Icon = AppIcons.combat.duration;
     costColor = 'text-blue-400';
     activeColor = 'bg-blue-500/20 text-blue-300 border-blue-500/50';
   }
@@ -154,7 +154,7 @@ export function DomainAbilityButton({
 
   const buttonContent = (
     <span className="flex items-center gap-1.5 whitespace-nowrap">
-      {showActiveState ? <Check size={12} /> : <Icon size={12} />}
+      {showActiveState ? <AppIcons.ui.confirm size={12} /> : <Icon size={12} />}
       <span>{displayLabel}</span>
       {resourceInfo && (
         <span className="opacity-70 font-normal ml-0.5 text-[10px]">{resourceInfo}</span>
@@ -176,7 +176,7 @@ export function DomainAbilityButton({
           className="ml-1 p-0.5 hover:bg-black/20 rounded-full transition-colors group"
           title="Reset / Deactivate"
         >
-          <RefreshCw size={10} className="group-hover:rotate-180 transition-transform" />
+          <AppIcons.system.sync size={10} className="group-hover:rotate-180 transition-transform" />
         </button>
       </div>
     );
