@@ -3,9 +3,9 @@
 import React, { useMemo } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { Heart, Zap, Shield, Eye, Skull, Sparkles } from 'lucide-react';
-import { getClassBaseStat } from '@/lib/utils';
+import { getClassBaseStat, cn } from '@/lib/utils';
 import { getStatModifierTotal } from '@/lib/modifier-aggregator';
-import { cn } from '@/lib/utils';
+import { getIconByName } from '@/lib/icon-utils';
 
 export interface VitalEntry {
     label: string;
@@ -124,40 +124,43 @@ export default function CharacterVitalsBanner() {
     // Build vitals array
     const vitals: VitalEntry[] = [];
 
+    // Get icon preferences from store
+    const iconPreferences = useCharacterStore(state => state.vitalIcons);
+
     // Character vitals
     vitals.push(
         {
             label: 'Evasion',
             current: vitalData.evasionTotal,
-            icon: Eye,
+            icon: getIconByName(iconPreferences.evasion, Eye),
             color: 'text-cyan-400',
         },
         {
             label: 'Armor',
             current: vitalData.armor_current,
             max: vitalData.armorMax,
-            icon: Shield,
+            icon: getIconByName(iconPreferences.armor, Shield),
             color: 'text-blue-400',
         },
         {
             label: 'HP',
             current: vitalData.hp_current,
             max: vitalData.hpMax,
-            icon: Heart,
+            icon: getIconByName(iconPreferences.hitPoints, Heart),
             color: 'text-red-400',
         },
         {
             label: 'Stress',
             current: vitalData.stress_current,
             max: vitalData.stressMax,
-            icon: Zap,
+            icon: getIconByName(iconPreferences.stress, Zap),
             color: 'text-purple-400',
         },
         {
             label: 'Hope',
             current: vitalData.hope_current,
             max: vitalData.hopeMax,
-            icon: Sparkles,
+            icon: getIconByName(iconPreferences.hope, Sparkles),
             color: 'text-dagger-gold',
         }
     );
@@ -170,7 +173,7 @@ export default function CharacterVitalsBanner() {
             label: 'Fear',
             current: activeCampaign.fear_current,
             max: 12, // SRD: Max Fear is always 12
-            icon: Skull,
+            icon: getIconByName(iconPreferences.fear, Skull),
             color: isHighFear ? 'text-red-400' : 'text-purple-400',
         });
     }

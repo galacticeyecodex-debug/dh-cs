@@ -7,66 +7,48 @@
  */
 
 import { CampaignActivity, VitalChangeActivityData } from '@/types/activity';
-import { Heart, Brain, Shield, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
+import { Heart, Brain, Shield, Sparkles, TrendingUp, TrendingDown, LucideIcon } from 'lucide-react';
+import { useCharacterStore } from '@/store/character-store';
+import { getIconByName, VitalId } from '@/lib/icon-utils';
 
 interface VitalChangeActivityProps {
     activity: CampaignActivity;
     compact?: boolean;
 }
 
-const vitalConfig = {
-    hp: {
-        icon: Heart,
-        label: 'HP',
-        color: 'text-red-500',
-        bgColor: 'bg-red-500/20',
-        gainText: 'healed',
-        loseText: 'marked',
-    },
-    stress: {
-        icon: Brain,
-        label: 'Stress',
-        color: 'text-yellow-500',
-        bgColor: 'bg-yellow-500/20',
-        gainText: 'gained',
-        loseText: 'cleared',
-    },
-    armor: {
-        icon: Shield,
-        label: 'Armor',
-        color: 'text-blue-500',
-        bgColor: 'bg-blue-500/20',
-        gainText: 'repaired',
-        loseText: 'used',
-    },
-    hope: {
-        icon: Sparkles,
-        label: 'Hope',
-        color: 'text-amber-500',
-        bgColor: 'bg-amber-500/20',
-        gainText: 'gained',
-        loseText: 'spent',
-    },
-};
 
 export function VitalChangeActivity({ activity, compact = false }: VitalChangeActivityProps) {
     const data = activity.data as VitalChangeActivityData;
-    const config = vitalConfig[data.vital];
-    const Icon = config.icon;
+    const { vitalIcons } = useCharacterStore();
+
+    // Map activity vital IDs to SettingsSlice vital IDs
+    const vitalMap: Record<string, { id: VitalId, fallback: LucideIcon, label: string, color: string, bgColor: string }> = {
+        hp: { id: 'hitPoints', fallback: Heart, label: 'HP', color: 'text-red-500', bgColor: 'bg-red-500/20' },
+        stress: { id: 'stress', fallback: Brain, label: 'Stress', color: 'text-yellow-500', bgColor: 'bg-yellow-500/20' },
+        armor: { id: 'armor', fallback: Shield, label: 'Armor', color: 'text-blue-500', bgColor: 'bg-blue-500/20' },
+        hope: { id: 'hope', fallback: Sparkles, label: 'Hope', color: 'text-amber-500', bgColor: 'bg-amber-500/20' },
+    };
+
+    const config = vitalMap[data.vital];
+    if (!config) return null;
+
+    const Icon = getIconByName(vitalIcons[config.id], config.fallback);
+
+    // Get gain/lose text
+    const textConfig: Record<string, { gain: string, lose: string }> = {
+        hp: { gain: 'healed', lose: 'marked' },
+        stress: { gain: 'gained', lose: 'cleared' },
+        armor: { gain: 'repaired', lose: 'used' },
+        hope: { gain: 'gained', lose: 'spent' },
+    };
+    const { gain: gainText, lose: loseText } = textConfig[data.vital] || { gain: 'changed', lose: 'changed' };
 
     // For HP: positive change = healing (good), negative = damage (bad)
     // For Stress: positive = gaining stress (bad), negative = clearing (good)
     // So we need to determine what action text to use based on vital type and direction
     const isPositive = data.change > 0;
 
-    let actionText: string;
-    if (data.vital === 'hp') {
-        actionText = isPositive ? config.gainText : config.loseText;
-    } else if (data.vital === 'stress') {
-        actionText = isPositive ? config.gainText : config.loseText;
-    } else {
-        actionText = isPositive ? config.gainText : config.loseText;
-    }
+    const actionText = isPositive ? gainText : loseText;
 
     const TrendIcon = isPositive ? TrendingUp : TrendingDown;
 

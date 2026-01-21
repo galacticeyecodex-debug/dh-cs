@@ -21,8 +21,9 @@ import { DowntimeSlice } from '@/store/slices/downtime-slice';
 import { JournalSlice } from '@/store/slices/journal-slice';
 import { CampaignSlice } from '@/store/slices/campaign-slice';
 import { FriendshipSlice } from '@/store/slices/friendship-slice';
+import { SettingsSlice } from '@/store/slices/settings-slice';
 
-export type CharacterStore = AuthSlice & CharacterSlice & VitalsSlice & InventorySlice & UiSlice & HomebrewSlice & LevelingSlice & CardStateSlice & DowntimeSlice & JournalSlice & CampaignSlice & FriendshipSlice;
+export type CharacterStore = AuthSlice & CharacterSlice & VitalsSlice & InventorySlice & UiSlice & HomebrewSlice & LevelingSlice & CardStateSlice & DowntimeSlice & JournalSlice & CampaignSlice & FriendshipSlice & SettingsSlice;
 
 
 
