@@ -20,6 +20,7 @@
  */
 
 import { useCharacterStore } from '@/store/character-store';
+import { getIconByName } from '@/lib/icon-utils';
 import { Skull } from 'lucide-react';
 import { toast } from 'sonner';
 import clsx from 'clsx';
@@ -35,7 +36,10 @@ interface FearTrackerProps {
 }
 
 export function FearTracker({ campaignId, currentFear }: FearTrackerProps) {
-    const { updateFear, logActivity, user } = useCharacterStore();
+    const { updateFear, logActivity, user, vitalIcons } = useCharacterStore();
+
+    // Resolve dynamic icon for Fear
+    const FearIcon = getIconByName(vitalIcons.fear, Skull);
 
     const handleFearChange = async (change: number) => {
         try {
@@ -75,7 +79,7 @@ export function FearTracker({ campaignId, currentFear }: FearTrackerProps) {
         for (let i = 0; i < MAX_FEAR; i++) {
             const isFilled = i < filledCount;
             icons.push(
-                <Skull
+                <FearIcon
                     key={i}
                     size={20}
                     className={clsx(
@@ -103,7 +107,7 @@ export function FearTracker({ campaignId, currentFear }: FearTrackerProps) {
             <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded-lg bg-red-500/20">
-                        <Skull className="w-5 h-5 text-red-500" aria-hidden="true" />
+                        <FearIcon className="w-5 h-5 text-red-500" aria-hidden="true" />
                     </div>
                     <div>
                         <h2 className="text-base font-serif font-bold text-white">Fear</h2>

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Shield, Sword, Heart, Sparkle, X } from 'lucide-react';
+import { AppIcons, getIconByName } from '@/lib/icon-utils';
+import { useCharacterStore } from '@/store/character-store';
 import clsx from 'clsx';
 import { CharacterFormData, LibraryData, LibraryLookupItem } from './types';
 import AddItemModal from '@/components/views/inventory/add-item-modal';
@@ -24,6 +25,10 @@ export default function EquipmentStep({
   onBack,
   isValid
 }: EquipmentStepProps) {
+  const { vitalIcons } = useCharacterStore();
+  const HPIcon = getIconByName(vitalIcons.hitPoints, AppIcons.vitals.hitPoints);
+  const StressIcon = getIconByName(vitalIcons.stress, AppIcons.vitals.stress);
+
   const [equipmentModalOpen, setEquipmentModalOpen] = useState(false);
   const [equipmentModalContext, setEquipmentModalContext] = useState<'primary' | 'secondary' | 'armor' | null>(null);
 
@@ -119,7 +124,7 @@ export default function EquipmentStep({
             }}
             className="text-[10px] font-bold uppercase px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white flex items-center gap-1"
           >
-            <Sword size={12} /> {item ? 'Change' : 'Select'}
+            <AppIcons.combat.weapon size={12} /> {item ? 'Change' : 'Select'}
           </button>
         )}
         {item && enabled && (
@@ -132,7 +137,7 @@ export default function EquipmentStep({
             }}
             className="text-[10px] font-bold uppercase px-2 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded flex items-center gap-1 ml-auto"
           >
-            <X size={12} /> Remove
+            <AppIcons.ui.close size={12} /> Remove
           </button>
         )}
       </div>
@@ -141,7 +146,7 @@ export default function EquipmentStep({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Shield size={20} /> Step 7: Starting Equipment</h2>
+      <h2 className="text-xl font-bold font-serif flex items-center gap-2"><AppIcons.vitals.armor size={20} /> Step 7: Starting Equipment</h2>
       <p className="text-sm text-gray-400">
         Choose from Tier 1 equipment: either a two-handed primary weapon OR a one-handed primary weapon and secondary weapon, plus one set of armor.
       </p>
@@ -169,7 +174,7 @@ export default function EquipmentStep({
             )}
           >
             <div className="flex items-center gap-2 mb-1">
-              <Heart size={16} className="text-red-400" />
+              <HPIcon size={16} className="text-red-400" />
               <span className="font-bold text-white text-sm">Minor Health Potion</span>
             </div>
             <div className="text-xs text-gray-400">Clear 1d4 Hit Points</div>
@@ -185,7 +190,7 @@ export default function EquipmentStep({
             )}
           >
             <div className="flex items-center gap-2 mb-1">
-              <Sparkle size={16} className="text-blue-400" />
+              <StressIcon size={16} className="text-blue-400" />
               <span className="font-bold text-white text-sm">Minor Stamina Potion</span>
             </div>
             <div className="text-xs text-gray-400">Clear 1d4 Stress</div>

@@ -1,9 +1,14 @@
 /**
- * ICON UTILS
+ * ICON UTILITIES
  * ----------------------------------------------------------------------------
- * Maps icon name strings to Lucide React component instances.
- * This allows storing icon preferences as strings in the database or store
- * while still using them as dynamic components.
+ * Central icon registry and semantic mapping system for the application.
+ * 
+ * FUNCTIONALITY:
+ * - Provides a single source of truth for all Lucide icons used (ICON_MAP).
+ * - Defines semantic mappings (AppIcons) to decouple UI components from 
+ *   specific icon implementations.
+ * - Supports dynamic icon resolution based on user preferences (getIconByName).
+ * - Harmonizes iconography across Character, GM, and Combat views.
  */
 
 import {
@@ -19,12 +24,79 @@ import {
     Wind,
     Skull,
     Moon,
+    Settings,
+    Crown,
+    ArrowLeft,
+    Activity,
+    Map,
+    Timer,
+    Search,
+    ChevronDown,
+    ChevronUp,
+    Target,
+    Swords,
+    X,
+    EyeOff,
+    RefreshCw,
+    Info,
+    StickyNote,
+    TrendingUp,
+    TrendingDown,
+    Wand2,
+    Brain,
+    Megaphone,
+    Bug,
+    AlertCircle,
+    Dices,
+    Package,
+    Plus,
+    Gem,
+    Backpack,
+    FlaskConical,
+    Sword,
+    ArrowRightLeft,
+    AlertTriangle,
+    BookOpen,
+    Lock,
+    Check,
+    Minus,
+    ShieldOff,
+    Users,
+    Archive,
+    Upload,
+    Image as ImageIcon,
+    Layers,
+    LibraryBig,
+    ScrollText,
+    Dna,
+    Star,
+    CheckCircle2,
+    Circle,
+    RotateCcw,
+    Footprints,
+    PawPrint,
+    Mountain,
+    Droplets,
+    Pencil,
+    Trash2,
+    LogOut,
+    UserPlus,
+    User,
+    Grid,
+    Book,
+    Camera,
+    Hash,
     type LucideIcon
 } from 'lucide-react';
 
 export type VitalId = 'hitPoints' | 'stress' | 'hope' | 'armor' | 'evasion' | 'fear';
 
+/**
+ * ICON_MAP
+ * Central registry of all icons available for dynamic lookup.
+ */
 export const ICON_MAP: Record<string, LucideIcon> = {
+    // Vitals
     'Heart': Heart,
     'Flame': Flame,
     'Zap': Zap,
@@ -37,6 +109,140 @@ export const ICON_MAP: Record<string, LucideIcon> = {
     'Wind': Wind,
     'Skull': Skull,
     'Moon': Moon,
+
+    // UI Elements
+    'Settings': Settings,
+    'Trash': Trash2,
+    'Pencil': Pencil,
+    'Plus': Plus,
+    'Minus': Minus,
+    'Check': Check,
+    'X': X,
+    'Info': Info,
+    'Search': Search,
+    'ChevronDown': ChevronDown,
+    'ChevronUp': ChevronUp,
+    'ArrowLeft': ArrowLeft,
+    'ArrowRightLeft': ArrowRightLeft,
+    'Upload': Upload,
+    'Image': ImageIcon,
+    'Camera': Camera,
+    'Grid': Grid,
+    'Book': Book,
+    'ScrollText': ScrollText,
+
+    // Campaign & Social
+    'Crown': Crown,
+    'Users': Users,
+    'User': User,
+    'UserPlus': UserPlus,
+    'LogOut': LogOut,
+    'Map': Map,
+    'Timer': Timer,
+    'Megaphone': Megaphone,
+    'StickyNote': StickyNote,
+
+    // Combat & Action
+    'Dices': Dices,
+    'Swords': Swords,
+    'Sword': Sword,
+    'Target': Target,
+    'Wand2': Wand2,
+    'TrendingUp': TrendingUp,
+    'TrendingDown': TrendingDown,
+
+    // Inventory
+    'Package': Package,
+    'Gem': Gem,
+    'Backpack': Backpack,
+    'FlaskConical': FlaskConical,
+
+    // Status & System
+    'AlertCircle': AlertCircle,
+    'AlertTriangle': AlertTriangle,
+    'Bug': Bug,
+    'Lock': Lock,
+    'RefreshCw': RefreshCw,
+    'Hash': Hash,
+};
+
+/**
+ * AppIcons
+ * Semantic mapping for consistent icon usage across the app.
+ */
+export const AppIcons = {
+    vitals: {
+        hitPoints: Heart,
+        stress: Zap,
+        hope: Sparkles,
+        armor: Shield,
+        evasion: Eye,
+        fear: Skull,
+    },
+    ui: {
+        settings: Settings,
+        delete: Trash2,
+        edit: Pencil,
+        add: Plus,
+        remove: Minus,
+        confirm: Check,
+        close: X,
+        info: Info,
+        search: Search,
+        expand: ChevronDown,
+        collapse: ChevronUp,
+        back: ArrowLeft,
+        swap: ArrowRightLeft,
+        upload: Upload,
+        image: ImageIcon,
+        camera: Camera,
+        dashboard: Grid,
+        stats: Activity,
+        lore: Book,
+        notability: ScrollText,
+        external: BookOpen,
+        lock: Lock,
+        visibility: Eye,
+        visibilityOff: EyeOff,
+    },
+    campaign: {
+        gm: Crown,
+        party: Users,
+        player: User,
+        companion: PawPrint,
+        invite: UserPlus,
+        leave: LogOut,
+        map: Map,
+        timer: Timer,
+        announce: Megaphone,
+        note: StickyNote,
+    },
+    combat: {
+        roll: Dices,
+        attack: Swords,
+        weapon: Sword,
+        target: Target,
+        ability: Wand2,
+        buff: TrendingUp,
+        debuff: TrendingDown,
+        proficiency: Star,
+        activation: Zap,
+        damage: Skull,
+    },
+    inventory: {
+        item: Package,
+        valuable: Gem,
+        gear: Backpack,
+        consumable: FlaskConical,
+    },
+    system: {
+        error: AlertCircle,
+        warning: AlertTriangle,
+        debug: Bug,
+        secure: Lock,
+        sync: RefreshCw,
+        id: Hash,
+    }
 };
 
 /**

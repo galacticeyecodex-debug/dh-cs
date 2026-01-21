@@ -26,7 +26,7 @@ import { CountdownCreatorModal } from './countdown-creator-modal';
 import { ActivityFeed, RollNotification } from '@/components/activity';
 import { realtimeManager } from '@/lib/realtime';
 import { CampaignActivity } from '@/types/activity';
-import { Settings, Crown, Shield, ArrowLeft, Activity, Skull, Map, Timer } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import type { CountdownInsert } from '@/types/campaign';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
@@ -144,7 +144,7 @@ export function GmScreen({ campaignId }: GmScreenProps) {
             <div className="min-h-screen bg-dagger-dark flex items-center justify-center">
                 <div className="text-center max-w-md mx-auto p-8">
                     <div className="p-4 rounded-xl bg-white/5 inline-block mb-4">
-                        <Shield className="w-12 h-12 text-gray-500" />
+                        <AppIcons.ui.lock className="w-12 h-12 text-gray-500" />
                     </div>
                     <h1 className="text-2xl font-serif font-bold text-white mb-2">Access Denied</h1>
                     <p className="text-gray-400 mb-6">
@@ -154,7 +154,7 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                         onClick={() => router.push(`/campaign/${campaignId}`)}
                         className="bg-dagger-gold hover:bg-yellow-500 text-black font-bold px-6 py-3 rounded-full transition-colors flex items-center gap-2 mx-auto"
                     >
-                        <ArrowLeft className="w-4 h-4" />
+                        <AppIcons.ui.back className="w-4 h-4" />
                         Back to Campaign
                     </button>
                 </div>
@@ -165,7 +165,7 @@ export function GmScreen({ campaignId }: GmScreenProps) {
     const headerActions = (
         <div className="flex items-center gap-2">
             <span className="hidden md:flex items-center gap-1 px-3 py-1.5 bg-dagger-gold/20 text-dagger-gold rounded-full text-xs font-bold">
-                <Crown className="w-3 h-3" />
+                <AppIcons.campaign.gm className="w-3 h-3" />
                 GM Screen
             </span>
             <button
@@ -173,7 +173,7 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                 className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors border border-white/10"
                 aria-label="Campaign settings"
             >
-                <Settings className="w-4 h-4 text-gray-400" />
+                <AppIcons.ui.settings className="w-4 h-4 text-gray-400" />
             </button>
         </div>
     );
@@ -216,7 +216,7 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                                             : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                     )}
                                 >
-                                    <Activity size={16} />
+                                    <AppIcons.ui.stats size={16} />
                                     <span className="hidden sm:inline">Activity</span>
                                 </button>
                                 <button
@@ -228,7 +228,7 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                                             : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                     )}
                                 >
-                                    <Timer size={16} />
+                                    <AppIcons.campaign.timer size={16} />
                                     <span className="hidden sm:inline">Countdowns</span>
                                 </button>
                             </div>
@@ -242,7 +242,7 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                                             : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                     )}
                                 >
-                                    <Skull size={16} />
+                                    <AppIcons.vitals.fear size={16} />
                                     <span className="hidden sm:inline">Adversaries</span>
                                 </button>
                                 <button
@@ -254,7 +254,7 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                                             : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                     )}
                                 >
-                                    <Map size={16} />
+                                    <AppIcons.campaign.map size={16} />
                                     <span className="hidden sm:inline">Environments</span>
                                 </button>
                             </div>
