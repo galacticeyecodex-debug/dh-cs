@@ -21,9 +21,8 @@
  */
 
 import React, { useState } from 'react';
-import { Heart, Zap, Shield, Eye, Settings } from 'lucide-react';
 import { useCharacterStore } from '@/store/character-store';
-import { getIconByName, VitalId } from '@/lib/icon-utils';
+import { getIconByName, VitalId, AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import ModifierSheet, { ModifierTab } from '@/components/shared/modifier-sheet';
 import { getValueColor, getPanelBorder, PANEL } from '@/lib/styles';
@@ -78,7 +77,7 @@ const VitalCard = React.memo(function VitalCard({
 
   // Resolve icon: Prop > dynamic from store > Heart fallback
   const iconPreference = useCharacterStore(state => vitalId ? state.vitalIcons[vitalId] : null);
-  const Icon = PassedIcon || (vitalId && iconPreference ? getIconByName(iconPreference) : Heart);
+  const Icon = PassedIcon || (vitalId && iconPreference ? getIconByName(iconPreference) : AppIcons.vitals.hitPoints);
 
   const isReadOnly = onIncrement === undefined || onDecrement === undefined;
   const isUnarmored = label === 'Armor' && (!max || max === 0);
@@ -153,7 +152,7 @@ const VitalCard = React.memo(function VitalCard({
                 className="absolute right-0 text-gray-500 hover:text-gray-300 transition-colors"
                 aria-label={`Manage ${label} modifiers`}
               >
-                <Settings size={12} />
+                <AppIcons.ui.settings size={12} />
               </button>
             )}
           </div>
@@ -210,7 +209,7 @@ const VitalCard = React.memo(function VitalCard({
               className="absolute right-0 text-gray-500 hover:text-gray-300 transition-colors"
               aria-label={`Manage ${label} modifiers`}
             >
-              <Settings size={12} />
+              <AppIcons.ui.settings size={12} />
             </button>
           )}
         </div>

@@ -35,9 +35,9 @@ vi.mock('@/store/character-store', () => ({
         characterProjects: mockCharacterProjects,
         fetchProjectsForCharacter: mockFetchProjectsForCharacter,
         setProjectProgress: mockSetProjectProgress,
-        deleteProject: mockDeleteProject,
         createProject: mockCreateProject,
         gmAdjustVital: mockGmAdjustVital,
+        vitalIcons: {},
     }),
 }));
 

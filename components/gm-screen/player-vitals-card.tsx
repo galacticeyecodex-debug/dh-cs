@@ -21,25 +21,11 @@
 
 import { Character } from '@/types/character';
 import { useCharacterStore } from '@/store/character-store';
-import {
-    Lock,
-    Unlock,
-    Heart,
-    Zap,
-    Shield,
-    AlertTriangle,
-    Sparkles,
-    ChevronDown,
-    ChevronUp,
-    Plus,
-    Pencil,
-    Trash2,
-} from 'lucide-react';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 import { Project } from '@/types/downtime';
 import { ProjectFormModal } from '@/components/views/downtime/project-modals';
-import { getIconByName, VitalId } from '@/lib/icon-utils';
+import { getIconByName, VitalId, AppIcons } from '@/lib/icon-utils';
 
 interface PlayerVitalsCardProps {
     character: Character;
@@ -121,7 +107,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             id: 'hp',
             vitalId: 'hitPoints',
             label: 'HP',
-            icon: getIconByName(vitalIcons.hitPoints, Heart),
+            icon: getIconByName(vitalIcons.hitPoints, AppIcons.vitals.hitPoints),
             current: hitPointsCurrent,
             max: hitPointsMax,
             color: 'text-red-400',
@@ -132,7 +118,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             id: 'stress',
             vitalId: 'stress',
             label: 'Stress',
-            icon: getIconByName(vitalIcons.stress, Zap),
+            icon: getIconByName(vitalIcons.stress, AppIcons.vitals.stress),
             current: stressCurrent,
             max: stressMax,
             color: 'text-purple-400',
@@ -143,7 +129,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             id: 'armor',
             vitalId: 'armor',
             label: 'Armor',
-            icon: getIconByName(vitalIcons.armor, Shield),
+            icon: getIconByName(vitalIcons.armor, AppIcons.vitals.armor),
             current: armorSlots,
             max: armorMax,
             color: 'text-blue-400',
@@ -154,7 +140,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             id: 'hope',
             vitalId: 'hope',
             label: 'Hope',
-            icon: getIconByName(vitalIcons.hope, Sparkles),
+            icon: getIconByName(vitalIcons.hope, AppIcons.vitals.hope),
             current: hopeCurrent,
             max: hopeMax,
             color: 'text-dagger-gold',
@@ -340,7 +326,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
                     <div className="flex items-center gap-2">
                         <h3 className="text-lg font-serif font-bold text-white truncate">{character.name}</h3>
                         {hasWarning && (
-                            <AlertTriangle
+                            <AppIcons.system.warning
                                 className="w-4 h-4 text-orange-500 flex-shrink-0"
                                 aria-label="Character needs attention"
                             />
@@ -361,9 +347,9 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
                     aria-label={isUnlocked ? 'Lock vitals card' : 'Unlock vitals card'}
                 >
                     {isUnlocked ? (
-                        <Unlock className="w-4 h-4" />
+                        <AppIcons.ui.unlock className="w-4 h-4" />
                     ) : (
-                        <Lock className="w-4 h-4" />
+                        <AppIcons.ui.lock className="w-4 h-4" />
                     )}
                 </button>
             </div>
@@ -447,9 +433,9 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
                         className="flex items-center gap-2 text-xs font-bold uppercase text-gray-500 tracking-wider hover:text-gray-400 transition-colors"
                     >
                         {isProjectsSectionExpanded ? (
-                            <ChevronUp size={14} />
+                            <AppIcons.ui.collapse size={14} />
                         ) : (
-                            <ChevronDown size={14} />
+                            <AppIcons.ui.expand size={14} />
                         )}
                         Projects {projects.length > 0 && `(${projects.length})`}
                     </button>
@@ -465,9 +451,9 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
                         title={isProjectsUnlocked ? 'Projects unlocked' : 'Projects locked'}
                     >
                         {isProjectsUnlocked ? (
-                            <Unlock className="w-3 h-3" />
+                            <AppIcons.ui.unlock className="w-3 h-3" />
                         ) : (
-                            <Lock className="w-3 h-3" />
+                            <AppIcons.ui.lock className="w-3 h-3" />
                         )}
                     </button>
                 </div>
@@ -501,7 +487,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
                                                         aria-label="Edit project"
                                                         title="Edit"
                                                     >
-                                                        <Pencil size={12} />
+                                                        <AppIcons.ui.edit size={12} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteProject(project.id)}
@@ -509,7 +495,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
                                                         aria-label="Delete project"
                                                         title="Delete"
                                                     >
-                                                        <Trash2 size={12} />
+                                                        <AppIcons.ui.delete size={12} />
                                                     </button>
                                                 </div>
                                             )}
@@ -580,7 +566,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
                                 }}
                                 className="w-full h-8 flex items-center justify-center gap-1 text-xs font-bold uppercase tracking-wider text-dagger-gold hover:text-white hover:bg-dagger-gold/10 border border-dagger-gold/30 hover:border-dagger-gold/50 rounded transition-colors"
                             >
-                                <Plus size={12} />
+                                <AppIcons.ui.add size={12} />
                                 Create Project
                             </button>
                         )}

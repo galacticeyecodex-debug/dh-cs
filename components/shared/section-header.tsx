@@ -1,6 +1,6 @@
 import React from 'react';
-import { Eye, EyeOff, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AppIcons } from '@/lib/icon-utils';
 
 interface SectionHeaderProps {
     title: string | React.ReactNode;
@@ -35,7 +35,7 @@ export default function SectionHeader({
                         }}
                         className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
                     >
-                        {manageIcon || <Settings size={12} />} {manageLabel}
+                        {manageIcon || <AppIcons.ui.settings size={12} />} {manageLabel}
                     </button>
                 )}
                 <button
@@ -46,7 +46,7 @@ export default function SectionHeader({
                     className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors px-1.5 py-0.5 rounded"
                     aria-label={isVisible ? typeof title === 'string' ? `Hide ${title}` : 'Hide section' : typeof title === 'string' ? `Show ${title}` : 'Show section'}
                 >
-                    {isVisible ? <EyeOff size={12} /> : <Eye size={12} />}
+                    {isVisible ? <AppIcons.ui.visibilityOff size={12} /> : <AppIcons.ui.visibility size={12} />}
                     {isVisible ? 'Hide' : 'Show'}
                 </button>
             </div>

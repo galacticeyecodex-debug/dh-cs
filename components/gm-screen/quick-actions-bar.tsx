@@ -14,10 +14,10 @@
  */
 
 import { useState } from 'react';
-import { Dices, Megaphone, EyeOff, StickyNote, Zap, RefreshCw } from 'lucide-react';
 import { GmDiceRollerModal } from './gm-dice-roller-modal';
 import { AnnounceModal } from './announce-modal';
 import { useCharacterStore } from '@/store/character-store';
+import { AppIcons } from '@/lib/icon-utils';
 
 interface QuickActionsBarProps {
     campaignId: string;
@@ -45,7 +45,7 @@ export function QuickActionsBar({ campaignId }: QuickActionsBarProps) {
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 rounded-lg bg-dagger-gold/20">
-                        <Zap className="w-5 h-5 text-dagger-gold" />
+                        <AppIcons.vitals.stress className="w-5 h-5 text-dagger-gold" />
                     </div>
                     <h2 className="text-lg font-serif font-bold text-white">Quick Actions</h2>
                 </div>
@@ -60,7 +60,7 @@ export function QuickActionsBar({ campaignId }: QuickActionsBarProps) {
                         }}
                         className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-dagger-gold/10 border border-white/10 hover:border-dagger-gold/30 rounded-xl transition-colors group"
                     >
-                        <Dices className="w-6 h-6 text-gray-400 group-hover:text-dagger-gold transition-colors" />
+                        <AppIcons.combat.roll className="w-6 h-6 text-gray-400 group-hover:text-dagger-gold transition-colors" />
                         <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">Roll Dice</span>
                     </button>
 
@@ -72,7 +72,7 @@ export function QuickActionsBar({ campaignId }: QuickActionsBarProps) {
                         }}
                         className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-purple-500/10 border border-white/10 hover:border-purple-500/30 rounded-xl transition-colors group"
                     >
-                        <EyeOff className="w-6 h-6 text-gray-400 group-hover:text-purple-400 transition-colors" />
+                        <AppIcons.ui.visibilityOff className="w-6 h-6 text-gray-400 group-hover:text-purple-400 transition-colors" />
                         <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">Hidden Roll</span>
                     </button>
 
@@ -81,7 +81,7 @@ export function QuickActionsBar({ campaignId }: QuickActionsBarProps) {
                         onClick={() => setShowAnnounce(true)}
                         className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-blue-500/10 border border-white/10 hover:border-blue-500/30 rounded-xl transition-colors group"
                     >
-                        <Megaphone className="w-6 h-6 text-gray-400 group-hover:text-blue-400 transition-colors" />
+                        <AppIcons.campaign.announce className="w-6 h-6 text-gray-400 group-hover:text-blue-400 transition-colors" />
                         <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">Announce</span>
                     </button>
 
@@ -91,7 +91,7 @@ export function QuickActionsBar({ campaignId }: QuickActionsBarProps) {
                         disabled={isRefreshing}
                         className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-green-500/10 border border-white/10 hover:border-green-500/30 rounded-xl transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <RefreshCw className={`w-6 h-6 text-gray-400 group-hover:text-green-400 transition-colors ${isRefreshing ? 'animate-spin' : ''}`} />
+                        <AppIcons.system.sync className={`w-6 h-6 text-gray-400 group-hover:text-green-400 transition-colors ${isRefreshing ? 'animate-spin' : ''}`} />
                         <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">Refresh</span>
                     </button>
 
@@ -100,7 +100,7 @@ export function QuickActionsBar({ campaignId }: QuickActionsBarProps) {
                         disabled
                         className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-xl opacity-50 cursor-not-allowed"
                     >
-                        <StickyNote className="w-6 h-6 text-gray-600" />
+                        <AppIcons.campaign.note className="w-6 h-6 text-gray-600" />
                         <span className="text-sm font-medium text-gray-500">Notes</span>
                         <span className="text-[10px] text-gray-600 uppercase tracking-wider">Coming Soon</span>
                     </button>

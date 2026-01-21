@@ -19,7 +19,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { User, Layers, Dices, Swords, ChevronDown, MoreHorizontal, Sword, Users } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import DiceOverlay from '../dice/dice-overlay';
 import MoreMenu from './more-menu';
 import UserMenu from './user-menu';
@@ -88,7 +88,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
 
   // Determine header display based on context
   const headerTitle = character?.name || 'Daggerheart';
-  const headerIcon = character ? Sword : Sword;
+  const headerIcon = character ? AppIcons.combat.weapon : AppIcons.combat.weapon;
 
   return (
     <div className="flex flex-col h-[100dvh] bg-dagger-dark text-white overflow-hidden">
@@ -105,9 +105,9 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
             aria-expanded={isContextMenuOpen}
             aria-haspopup="true"
           >
-            <Sword size={20} aria-hidden="true" />
+            <AppIcons.combat.weapon size={20} aria-hidden="true" />
             <span>{headerTitle}</span>
-            <ChevronDown
+            <AppIcons.ui.expand
               size={18}
               className={clsx(
                 'text-gray-400 transition-transform duration-200',
@@ -131,7 +131,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
                   role="menuitem"
                 >
                   <div className="p-1.5 rounded-lg bg-dagger-gold/20">
-                    <Sword size={16} className="text-dagger-gold" />
+                    <AppIcons.combat.weapon size={16} className="text-dagger-gold" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white">Characters</p>
@@ -154,7 +154,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
                   role="menuitem"
                 >
                   <div className="p-1.5 rounded-lg bg-blue-500/20">
-                    <Users size={16} className="text-blue-400" />
+                    <AppIcons.campaign.party size={16} className="text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white">Campaigns</p>
@@ -213,7 +213,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
         aria-label="Roll Dice"
         className="fixed bottom-30 right-6 bg-dagger-gold/50 text-black p-4 rounded-full shadow-lg shadow-dagger-gold/20 hover:scale-105 transition-transform z-40"
       >
-        <Dices size={28} />
+        <AppIcons.combat.roll size={28} />
       </button>
 
       {/* Bottom Navigation */}
@@ -222,25 +222,25 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
           <NavButton
             active={activeTab === 'character'}
             onClick={() => setActiveTab('character')}
-            icon={User}
+            icon={AppIcons.campaign.player}
             label="Character"
           />
           <NavButton
             active={activeTab === 'combat'}
             onClick={() => setActiveTab('combat')}
-            icon={Swords}
+            icon={AppIcons.combat.attack} // Swords
             label="Combat"
           />
           <NavButton
             active={activeTab === 'playmat'}
             onClick={() => setActiveTab('playmat')}
-            icon={Layers}
+            icon={AppIcons.ui.playmat}
             label="Playmat"
           />
           <NavButton
             active={isMoreTabActive || isMoreMenuOpen}
             onClick={openMoreMenu}
-            icon={MoreHorizontal}
+            icon={AppIcons.ui.more}
             label="More"
           />
         </div>

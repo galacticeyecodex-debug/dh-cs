@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { BookOpen, X, Upload, Wand2, User } from 'lucide-react';
 import clsx from 'clsx';
 import { CharacterFormData, LibraryData } from './types';
+import { AppIcons } from '@/lib/icon-utils';
 
 interface BasicInfoStepProps {
   formData: Partial<CharacterFormData>;
@@ -47,8 +47,8 @@ export default function BasicInfoStep({
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold font-serif flex items-center gap-2"><BookOpen size={20} /> Step 1: Basic Info</h2>
-      
+      <h2 className="text-xl font-bold font-serif flex items-center gap-2"><AppIcons.ui.external size={20} /> Step 1: Basic Info</h2>
+
       {/* Basic Info Fields */}
       <div className="space-y-4">
         <div>
@@ -79,13 +79,13 @@ export default function BasicInfoStep({
                   }}
                   className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 rounded-full text-white"
                 >
-                  <X size={12} />
+                  <AppIcons.ui.close size={12} />
                 </button>
               </div>
             )}
             <label className="cursor-pointer">
               <div className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg border border-white/10 transition-colors w-fit">
-                <Upload size={16} />
+                <AppIcons.ui.upload size={16} />
                 <span className="text-sm">{selectedImageFile ? 'Change Image' : 'Upload Image'}</span>
               </div>
               <input
@@ -116,11 +116,11 @@ export default function BasicInfoStep({
                 : "bg-black/20 border-white/10 text-gray-400 hover:bg-black/40"
             )}
           >
-            <User size={24} />
+            <AppIcons.campaign.player size={24} />
             <span className="font-bold">Custom Character</span>
             <span className="text-xs text-center opacity-70">Build your character step-by-step from scratch</span>
           </button>
-          
+
           <button
             type="button"
             onClick={() => setCreationMode('template')}
@@ -131,7 +131,7 @@ export default function BasicInfoStep({
                 : "bg-black/20 border-white/10 text-gray-400 hover:bg-black/40"
             )}
           >
-            <Wand2 size={24} />
+            <AppIcons.combat.ability size={24} />
             <span className="font-bold">Class Template</span>
             <span className="text-xs text-center opacity-70">Start with a pre-generated archetype</span>
           </button>

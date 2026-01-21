@@ -36,7 +36,6 @@ import {
     Target,
     Swords,
     X,
-    EyeOff,
     RefreshCw,
     Info,
     StickyNote,
@@ -65,7 +64,6 @@ import {
     Archive,
     Upload,
     Image as ImageIcon,
-    Layers,
     LibraryBig,
     ScrollText,
     Dna,
@@ -73,6 +71,7 @@ import {
     CheckCircle2,
     Circle,
     RotateCcw,
+    EyeOff,
     Footprints,
     PawPrint,
     Mountain,
@@ -81,11 +80,18 @@ import {
     Trash2,
     LogOut,
     UserPlus,
+    UserMinus,
     User,
     Grid,
     Book,
     Camera,
     Hash,
+    Clock,
+    Send,
+    Layers,
+    MoreHorizontal,
+    Unlock,
+    ChevronRight,
     type LucideIcon
 } from 'lucide-react';
 
@@ -141,6 +147,12 @@ export const ICON_MAP: Record<string, LucideIcon> = {
     'Timer': Timer,
     'Megaphone': Megaphone,
     'StickyNote': StickyNote,
+    'Send': Send,
+    'UserMinus': UserMinus,
+    'Unlock': Unlock,
+    'Layers': Layers,
+    'MoreHorizontal': MoreHorizontal,
+    'ChevronRight': ChevronRight,
 
     // Combat & Action
     'Dices': Dices,
@@ -164,6 +176,9 @@ export const ICON_MAP: Record<string, LucideIcon> = {
     'Lock': Lock,
     'RefreshCw': RefreshCw,
     'Hash': Hash,
+    'Clock': Clock,
+    'RotateCcw': RotateCcw,
+    'EyeOff': EyeOff,
 };
 
 /**
@@ -191,6 +206,7 @@ export const AppIcons = {
         search: Search,
         expand: ChevronDown,
         collapse: ChevronUp,
+        chevronRight: ChevronRight,
         back: ArrowLeft,
         swap: ArrowRightLeft,
         upload: Upload,
@@ -204,6 +220,10 @@ export const AppIcons = {
         lock: Lock,
         visibility: Eye,
         visibilityOff: EyeOff,
+        send: Send,
+        playmat: Layers,
+        more: MoreHorizontal,
+        unlock: Unlock,
     },
     campaign: {
         gm: Crown,
@@ -211,6 +231,7 @@ export const AppIcons = {
         player: User,
         companion: PawPrint,
         invite: UserPlus,
+        kick: UserMinus,
         leave: LogOut,
         map: Map,
         timer: Timer,
@@ -228,6 +249,7 @@ export const AppIcons = {
         proficiency: Star,
         activation: Zap,
         damage: Skull,
+        duration: Clock,
     },
     inventory: {
         item: Package,
