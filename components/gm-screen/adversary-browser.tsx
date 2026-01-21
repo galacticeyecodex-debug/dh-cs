@@ -13,7 +13,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Skull, ChevronDown, ChevronUp, Shield, Heart, Zap, Target, Swords } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { Adversary } from '@/types/adversary';
 import clsx from 'clsx';
 
@@ -60,7 +60,7 @@ export function AdversaryBrowser({ compact = false }: AdversaryBrowserProps) {
             <div className="p-4 border-b border-white/10">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 rounded-lg bg-red-500/20">
-                        <Skull size={20} className="text-red-400" />
+                        <AppIcons.vitals.fear size={20} className="text-red-400" />
                     </div>
                     <div>
                         <h2 className="text-lg font-serif font-bold text-white">Adversaries</h2>
@@ -70,7 +70,7 @@ export function AdversaryBrowser({ compact = false }: AdversaryBrowserProps) {
 
                 {/* Search */}
                 <div className="relative mb-3">
-                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <AppIcons.ui.search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                     <input
                         type="text"
                         value={searchTerm}
@@ -106,7 +106,7 @@ export function AdversaryBrowser({ compact = false }: AdversaryBrowserProps) {
             )}>
                 {filteredAdversaries.length === 0 ? (
                     <div className="p-8 text-center text-gray-500">
-                        <Skull size={32} className="mx-auto mb-2 opacity-50" />
+                        <AppIcons.vitals.fear size={32} className="mx-auto mb-2 opacity-50" />
                         <p>No adversaries found</p>
                     </div>
                 ) : (
@@ -155,9 +155,9 @@ function AdversaryCard({ adversary, isExpanded, onToggle, compact }: AdversaryCa
                     <p className="text-xs text-gray-500 mt-1 line-clamp-2">{adversary.description}</p>
                 </div>
                 {isExpanded ? (
-                    <ChevronUp size={18} className="text-gray-500 flex-shrink-0 mt-1" />
+                    <AppIcons.ui.collapse size={18} className="text-gray-500 flex-shrink-0 mt-1" />
                 ) : (
-                    <ChevronDown size={18} className="text-gray-500 flex-shrink-0 mt-1" />
+                    <AppIcons.ui.expand size={18} className="text-gray-500 flex-shrink-0 mt-1" />
                 )}
             </button>
 
@@ -167,22 +167,22 @@ function AdversaryCard({ adversary, isExpanded, onToggle, compact }: AdversaryCa
                     {/* Stats Row */}
                     <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="flex items-center gap-2 bg-black/20 rounded-lg px-3 py-2">
-                            <Target size={14} className="text-yellow-400" />
+                            <AppIcons.combat.target size={14} className="text-yellow-400" />
                             <span className="text-gray-400">Difficulty:</span>
                             <span className="text-white font-bold">{adversary.difficulty}</span>
                         </div>
                         <div className="flex items-center gap-2 bg-black/20 rounded-lg px-3 py-2">
-                            <Shield size={14} className="text-blue-400" />
+                            <AppIcons.vitals.armor size={14} className="text-blue-400" />
                             <span className="text-gray-400">Thresholds:</span>
                             <span className="text-white font-bold">{adversary.thresholds}</span>
                         </div>
                         <div className="flex items-center gap-2 bg-black/20 rounded-lg px-3 py-2">
-                            <Heart size={14} className="text-red-400" />
+                            <AppIcons.vitals.hitPoints size={14} className="text-red-400" />
                             <span className="text-gray-400">HP:</span>
                             <span className="text-white font-bold">{adversary.hp}</span>
                         </div>
                         <div className="flex items-center gap-2 bg-black/20 rounded-lg px-3 py-2">
-                            <Zap size={14} className="text-purple-400" />
+                            <AppIcons.vitals.stress size={14} className="text-purple-400" />
                             <span className="text-gray-400">Stress:</span>
                             <span className="text-white font-bold">{adversary.stress}</span>
                         </div>
@@ -191,7 +191,7 @@ function AdversaryCard({ adversary, isExpanded, onToggle, compact }: AdversaryCa
                     {/* Attack Info */}
                     <div className="bg-black/20 rounded-lg p-3">
                         <div className="flex items-center gap-2 mb-2">
-                            <Swords size={14} className="text-orange-400" />
+                            <AppIcons.combat.attack size={14} className="text-orange-400" />
                             <span className="text-sm font-bold text-white">{adversary.attack}</span>
                             <span className="text-xs text-gray-500">({adversary.range})</span>
                         </div>

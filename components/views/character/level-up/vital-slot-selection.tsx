@@ -16,6 +16,8 @@
 
 import React from 'react';
 import { Plus, Minus, Heart, Zap } from 'lucide-react';
+import { useCharacterStore } from '@/store/character-store';
+import { getIconByName } from '@/lib/icon-utils';
 
 interface VitalSlotSelectionProps {
   selectedAdvancements: string[];
@@ -36,6 +38,10 @@ export default function VitalSlotSelection({
   onSetHpSlots,
   onSetStressSlots,
 }: VitalSlotSelectionProps) {
+  const { vitalIcons } = useCharacterStore();
+  const HPIcon = getIconByName(vitalIcons.hitPoints, Heart);
+  const StressIcon = getIconByName(vitalIcons.stress, Zap);
+
   const hasHp = selectedAdvancements.includes('add_hp');
   const hasStress = selectedAdvancements.includes('add_stress');
 
@@ -73,7 +79,7 @@ export default function VitalSlotSelection({
           <div className="p-4 bg-black/30 rounded-lg border border-dagger-gold/20">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-red-900/30 flex items-center justify-center">
-                <Heart size={20} className="text-red-400" />
+                <HPIcon size={20} className="text-red-400" />
               </div>
               <div>
                 <p className="font-bold text-white">Hit Points</p>
@@ -120,7 +126,7 @@ export default function VitalSlotSelection({
           <div className="p-4 bg-black/30 rounded-lg border border-dagger-gold/20">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-purple-900/30 flex items-center justify-center">
-                <Zap size={20} className="text-purple-400" />
+                <StressIcon size={20} className="text-purple-400" />
               </div>
               <div>
                 <p className="font-bold text-white">Stress</p>

@@ -18,7 +18,7 @@
 
 import React, { useState } from 'react';
 import { MarkdownText } from '@/components/shared/markdown-text';
-import { Zap, Skull, Dices, Info } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { getValueColor } from '@/lib/styles';
 import { DomainAbilityButton } from '@/components/views/playmat/domain-ability-button';
@@ -197,7 +197,7 @@ const AttackCard = React.memo(function AttackCard({
                             aria-label={`${showDescription ? 'Hide' : 'Show'} ${name} description`}
                             title={showDescription ? "Hide description" : "Show description"}
                         >
-                            <Info size={12} />
+                            <AppIcons.ui.info size={12} />
                         </button>
                     )}
                     {/* Gear button for modifiers */}
@@ -322,14 +322,13 @@ const AttackCard = React.memo(function AttackCard({
                             !isCostPaid && needsActivation && 'border border-dashed border-white/20'
                         )}
                     >
-                        {/* Dice icon for roll action */}
                         <div
                             className="absolute top-1 right-1 text-gray-500 transition-colors pointer-events-none"
                             aria-hidden="true"
                         >
-                            <Dices size={12} />
+                            <AppIcons.combat.roll size={12} />
                         </div>
-                        <Zap size={16} className={clsx(canRoll ? "text-yellow-400" : "text-gray-500")} />
+                        <AppIcons.combat.activation size={16} className={clsx(canRoll ? "text-yellow-400" : "text-gray-500")} />
                         {finalRollLabel} ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
                     </button>
                 )}
@@ -349,14 +348,13 @@ const AttackCard = React.memo(function AttackCard({
                             !isCostPaid && needsActivation && 'border border-dashed border-white/20'
                         )}
                     >
-                        {/* Dice icon for roll action */}
                         <div
                             className="absolute top-1 right-1 text-gray-500 transition-colors pointer-events-none"
                             aria-hidden="true"
                         >
-                            <Dices size={12} />
+                            <AppIcons.combat.roll size={12} />
                         </div>
-                        <Skull size={16} className={clsx(canRoll ? "text-red-400" : "text-gray-500")} />
+                        <AppIcons.combat.damage size={16} className={clsx(canRoll ? "text-red-400" : "text-gray-500")} />
                         Damage {damageModifier !== 0 && `(${damageModifier >= 0 ? `+${damageModifier}` : damageModifier})`}
                     </button>
                 )}
@@ -380,9 +378,9 @@ const AttackCard = React.memo(function AttackCard({
                             className="absolute top-0.5 right-0.5 text-gray-600 transition-colors pointer-events-none"
                             aria-hidden="true"
                         >
-                            <Dices size={8} />
+                            <AppIcons.combat.roll size={8} />
                         </div>
-                        <Skull size={12} className="text-red-400/70" />
+                        <AppIcons.combat.damage size={12} className="text-red-400/70" />
                         <div className="flex flex-col items-start leading-none gap-0.5">
                             <span>{extra.damage}</span>
                             <span className="text-[9px] text-gray-400 font-normal uppercase">{extra.label}</span>

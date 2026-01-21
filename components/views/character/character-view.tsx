@@ -35,7 +35,7 @@ import UnstoppableCard from './class-features/guardian-unstoppable-card';
 import StrangePatternsCard from './class-features/wizard-strange-patterns-card';
 import BeastformCard from './class-features/druid-beastform-card';
 import RangerFocusCard from './class-features/ranger-focus-card';
-import { Settings, Grid, Book, Activity, Camera, Hash, Trash2, Eye, EyeOff, User, Image as ImageIcon, Zap, Info, Sparkles, PawPrint } from 'lucide-react';
+import { AppIcons, getIconByName } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { uploadCharacterImage } from '@/lib/storage-service';
 import { MAX_IMAGE_FILE_SIZE, MAX_IMAGE_FILE_SIZE_MB } from '@/lib/image-utils';
@@ -82,6 +82,12 @@ export default function CharacterView() {
   const [savingField, setSavingField] = useState<string>('');
   const [savedField, setSavedField] = useState<string>('');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Resolve dynamic icons for vitals
+  const { vitalIcons } = useCharacterStore();
+  const HPIcon = getIconByName(vitalIcons.hitPoints, AppIcons.vitals.hitPoints);
+  const StressIcon = getIconByName(vitalIcons.stress, AppIcons.vitals.stress);
+  const HopeIcon = getIconByName(vitalIcons.hope, AppIcons.vitals.hope);
 
   // Memoize trait tabs for centralized ModifierSheet
   const traitTabs = useMemo(() => {
@@ -308,7 +314,7 @@ export default function CharacterView() {
               className="bg-black/40 hover:bg-black/60 text-white backdrop-blur-md px-4 py-2 rounded-full transition-all flex items-center gap-2 border border-white/10 shadow-lg"
               aria-label="Manage character settings"
             >
-              <Settings size={16} />
+              <AppIcons.ui.settings size={16} />
               <span className="text-sm font-bold hidden sm:inline">Manage</span>
             </button>
           </div>
@@ -333,7 +339,7 @@ export default function CharacterView() {
                 )}
               </div>
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Camera className="text-white" size={24} />
+                <AppIcons.ui.camera size={24} className="text-white" />
               </div>
               <input
                 type="file"
@@ -367,19 +373,19 @@ export default function CharacterView() {
                 <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-200 font-medium drop-shadow-md hidden sm:flex">
                   {character.ancestry && (
                     <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm">
-                      <User size={14} className="text-gray-400" />
+                      <AppIcons.campaign.player size={14} className="text-gray-400" />
                       {character.ancestry}
                     </div>
                   )}
                   {character.community && (
                     <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm">
-                      <User size={14} className="text-gray-400" />
+                      <AppIcons.campaign.player size={14} className="text-gray-400" />
                       {character.community}
                     </div>
                   )}
                   {character.transformation && (
                     <div className="flex items-center gap-1.5 bg-purple-500/20 px-2 py-1 rounded-md backdrop-blur-sm border border-purple-500/30">
-                      <Sparkles size={14} className="text-purple-400" />
+                      <AppIcons.vitals.hope size={14} className="text-purple-400" />
                       {character.transformation}
                     </div>
                   )}
@@ -402,7 +408,7 @@ export default function CharacterView() {
                 activeTab === 'stats' ? "bg-dagger-gold text-black shadow-sm" : "text-gray-400 hover:text-white hover:bg-white/5"
               )}
             >
-              <Activity size={14} /> Stats
+              <AppIcons.ui.stats size={14} /> Stats
             </button>
             <button
               onClick={() => setActiveTab('gallery')}
@@ -411,7 +417,7 @@ export default function CharacterView() {
                 activeTab === 'gallery' ? "bg-dagger-gold text-black shadow-sm" : "text-gray-400 hover:text-white hover:bg-white/5"
               )}
             >
-              <Grid size={14} /> Gallery
+              <AppIcons.ui.dashboard size={14} /> Gallery
             </button>
             <button
               onClick={() => setActiveTab('lore')}
@@ -420,7 +426,7 @@ export default function CharacterView() {
                 activeTab === 'lore' ? "bg-dagger-gold text-black shadow-sm" : "text-gray-400 hover:text-white hover:bg-white/5"
               )}
             >
-              <Book size={14} /> Lore
+              <AppIcons.ui.lore size={14} /> Lore
             </button>
           </div>
         </div>
@@ -544,7 +550,7 @@ export default function CharacterView() {
                               aria-label={showAncestryLore ? `Hide lore for ${ancestryCard.name}` : `Show lore for ${ancestryCard.name}`}
                               title={showAncestryLore ? "Hide lore" : "Show lore"}
                             >
-                              <Info size={12} className={showAncestryLore ? "text-dagger-gold" : "text-gray-400"} />
+                              <AppIcons.ui.info size={12} className={showAncestryLore ? "text-dagger-gold" : "text-gray-400"} />
                             </button>
                           </div>
                           {showAncestryLore && (
@@ -594,7 +600,7 @@ export default function CharacterView() {
                               aria-label={showCommunityLore ? `Hide lore for ${communityCard.name}` : `Show lore for ${communityCard.name}`}
                               title={showCommunityLore ? "Hide lore" : "Show lore"}
                             >
-                              <Info size={12} className={showCommunityLore ? "text-dagger-gold" : "text-gray-400"} />
+                              <AppIcons.ui.info size={12} className={showCommunityLore ? "text-dagger-gold" : "text-gray-400"} />
                             </button>
                           </div>
                           {showCommunityLore && (
@@ -644,7 +650,7 @@ export default function CharacterView() {
                               aria-label={showTransformationLore ? `Hide lore for ${transformationCard.name}` : `Show lore for ${transformationCard.name}`}
                               title={showTransformationLore ? "Hide lore" : "Show lore"}
                             >
-                              <Info size={12} className="text-gray-400" />
+                              <AppIcons.ui.info size={12} className="text-gray-400" />
                             </button>
                           </div>
                           {showTransformationLore && (
@@ -693,7 +699,7 @@ export default function CharacterView() {
               {character.class_data && (
                 <div className="space-y-2">
                   <SectionHeader
-                    title={<><Info size={14} /> Class Features</>}
+                    title={<><AppIcons.ui.info size={14} /> Class Features</>}
                     isVisible={showClassFeatures}
                     onToggle={() => setShowClassFeatures(!showClassFeatures)}
                   />
@@ -709,7 +715,7 @@ export default function CharacterView() {
                           aria-label={showClassLore ? `Hide lore for ${character.class_data.name}` : `Show lore for ${character.class_data.name}`}
                           title={showClassLore ? "Hide lore" : "Show lore"}
                         >
-                          <Info size={12} className={showClassLore ? "text-dagger-gold" : "text-gray-400"} />
+                          <AppIcons.ui.info size={12} className={showClassLore ? "text-dagger-gold" : "text-gray-400"} />
                         </button>
                       </div>
 
@@ -724,7 +730,7 @@ export default function CharacterView() {
                       {character.class_data.data.hope_feature && (
                         <div className="mt-2 bg-white/5 rounded p-3 border border-white/5">
                           <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1 flex items-center gap-1">
-                            <Zap size={12} />
+                            <HopeIcon size={12} />
                             {character.class_data.data.hope_feature.name}
                           </div>
                           <div className="text-sm text-gray-300 leading-relaxed">
@@ -842,7 +848,7 @@ export default function CharacterView() {
               {(character.subclass_progression || character.multiclass_progression) && (
                 <div className="space-y-2">
                   <SectionHeader
-                    title={<><Sparkles size={14} /> Subclass Features</>}
+                    title={<><AppIcons.vitals.hope size={14} /> Subclass Features</>}
                     isVisible={showSubclassFeatures}
                     onToggle={() => setShowSubclassFeatures(!showSubclassFeatures)}
                   />
@@ -896,7 +902,7 @@ export default function CharacterView() {
                 character.subclass_progression?.foundation_obtained && (
                   <div className="space-y-2">
                     <SectionHeader
-                      title={<><PawPrint size={14} /> Companion</>}
+                      title={<><AppIcons.campaign.companion size={14} /> Companion</>}
                       isVisible={showCompanion}
                       onToggle={() => setShowCompanion(!showCompanion)}
                       onManage={() => setIsCompanionSheetOpen(true)}
@@ -924,11 +930,11 @@ export default function CharacterView() {
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-dagger-gold/20 to-dagger-gold/5">
-                                    <PawPrint size={24} className="text-dagger-gold/60" />
+                                    <AppIcons.campaign.companion size={24} className="text-dagger-gold/60" />
                                   </div>
                                 )}
                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Camera className="text-white" size={16} />
+                                  <AppIcons.ui.camera size={16} className="text-white" />
                                 </div>
                               </div>
 
@@ -943,7 +949,7 @@ export default function CharacterView() {
                               {/* Evasion Badge */}
                               <div className="bg-dagger-panel border border-cyan-500/30 rounded-lg px-3 py-2 text-center">
                                 <div className="text-[10px] font-bold uppercase tracking-wide text-cyan-400 flex items-center gap-1">
-                                  <Eye size={10} /> Evasion
+                                  <AppIcons.ui.visibility size={10} /> Evasion
                                 </div>
                                 <div className="text-xl font-serif font-bold text-white">{character.ranger_companion.evasion}</div>
                               </div>
@@ -952,7 +958,7 @@ export default function CharacterView() {
                             {/* Stress */}
                             <div className="bg-dagger-panel p-3 border-t border-white/5">
                               <div className="text-[10px] font-bold uppercase tracking-wide text-purple-400 flex items-center gap-1 mb-2">
-                                <Zap size={10} /> Stress
+                                <AppIcons.combat.activation size={10} /> Stress
                               </div>
                               <div className="flex flex-wrap gap-1.5">
                                 {Array.from({ length: character.ranger_companion.stress_max }).map((_, i) => {
@@ -967,7 +973,7 @@ export default function CharacterView() {
                                       }}
                                       className="transition-all"
                                     >
-                                      <Zap
+                                      <AppIcons.combat.activation
                                         size={16}
                                         className={clsx(
                                           "transition-all",
@@ -1021,7 +1027,7 @@ export default function CharacterView() {
                                       onClick={() => updateCompanion({ ...character.ranger_companion!, armor_slot_used: !character.ranger_companion!.armor_slot_used })}
                                       className="block"
                                     >
-                                      <Zap
+                                      <AppIcons.combat.activation
                                         size={16}
                                         className={clsx(
                                           "transition-all",
@@ -1113,7 +1119,7 @@ export default function CharacterView() {
                             className="text-center py-8 cursor-pointer hover:bg-white/5 transition-colors"
                           >
                             <div className="w-16 h-16 mx-auto mb-3 rounded-xl bg-dagger-gold/10 border-2 border-dashed border-dagger-gold/30 flex items-center justify-center">
-                              <PawPrint size={28} className="text-dagger-gold/50" />
+                              <AppIcons.campaign.companion size={28} className="text-dagger-gold/50" />
                             </div>
                             <p className="text-gray-400 text-sm">No companion configured yet.</p>
                             <p className="text-dagger-gold text-sm font-medium mt-1">Tap to set up your companion</p>
@@ -1141,7 +1147,7 @@ export default function CharacterView() {
                   disabled={isUploading}
                   className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold transition-colors disabled:opacity-50"
                 >
-                  <Camera size={16} />
+                  <AppIcons.ui.camera size={16} />
                   {isUploading ? 'Uploading...' : 'Upload Image'}
                 </button>
               </div>
@@ -1171,7 +1177,7 @@ export default function CharacterView() {
                           className="p-1.5 bg-black/60 text-white rounded-full hover:bg-dagger-gold hover:text-black transition-colors"
                           title="Set as Profile Picture"
                         >
-                          <User size={14} />
+                          <AppIcons.campaign.player size={14} />
                         </button>
                         <button
                           onClick={() => {
@@ -1183,14 +1189,14 @@ export default function CharacterView() {
                           className="p-1.5 bg-black/60 text-white rounded-full hover:bg-dagger-gold hover:text-black transition-colors"
                           title="Set as Background"
                         >
-                          <ImageIcon size={14} />
+                          <AppIcons.ui.image size={14} />
                         </button>
                         <button
                           onClick={() => handleDeleteImage(url)}
                           className="p-1.5 bg-black/60 text-white rounded-full hover:bg-red-500/80 transition-colors"
                           title="Delete Image"
                         >
-                          <Trash2 size={14} />
+                          <AppIcons.ui.delete size={14} />
                         </button>
                       </div>
                     </div>
