@@ -29,8 +29,16 @@ import {
     Shield,
     AlertTriangle,
     Sparkles,
+    ChevronDown,
+    ChevronUp,
+    Plus,
+    Pencil,
+    Trash2,
 } from 'lucide-react';
 import clsx from 'clsx';
+import { useEffect, useState } from 'react';
+import { Project } from '@/types/downtime';
+import { ProjectFormModal } from '@/components/views/downtime/project-modals';
 
 interface PlayerVitalsCardProps {
     character: Character;
@@ -50,8 +58,46 @@ interface VitalConfig {
 }
 
 export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
-    const { unlockedVitalsCards, toggleVitalsLock, gmAdjustVital } = useCharacterStore();
+    const {
+        unlockedVitalsCards,
+        toggleVitalsLock,
+        gmAdjustVital,
+        unlockedProjectSections,
+        toggleProjectsLock,
+        characterProjects,
+        fetchProjectsForCharacter,
+        setProjectProgress,
+        deleteProject,
+        createProject,
+    } = useCharacterStore();
     const isUnlocked = unlockedVitalsCards.has(character.id);
+    const isProjectsUnlocked = unlockedProjectSections.has(character.id);
+
+    // Projects section state
+    const [isProjectsSectionExpanded, setIsProjectsSectionExpanded] = useState(false);
+    const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
+    const [editingProject, setEditingProject] = useState<Project | undefined>();
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+
+    // Load projects when section is expanded
+    useEffect(() => {
+        if (isProjectsSectionExpanded && projects.length === 0) {
+            setIsLoadingProjects(true);
+            const loadProjects = async () => {
+                try {
+                    await fetchProjectsForCharacter(character.id);
+                    const charProjects = characterProjects[character.id] || [];
+                    setProjects(charProjects);
+                } catch (error) {
+                    console.error('Failed to load projects:', error);
+                } finally {
+                    setIsLoadingProjects(false);
+                }
+            };
+            loadProjects();
+        }
+    }, [isProjectsSectionExpanded, character.id]);
 
     // Get vitals from character
     const hitPointsCurrent = character.vitals?.hit_points_current ?? 0;
@@ -241,6 +287,34 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
     const ancestryDisplay = character.ancestry || 'Unknown';
     const classDisplay = character.class_id || 'Unknown';
 
+    // Handle project creation/editing
+    const handleProjectSubmit = async (data: any) => {
+        if (editingProject) {
+            // Edit existing project
+            await createProject({ ...data, id: editingProject.id } as any);
+        } else {
+            // Create new project
+            await createProject(data);
+        }
+        setEditingProject(undefined);
+        // Refresh projects list
+        const charProjects = characterProjects[character.id] || [];
+        setProjects(charProjects);
+    };
+
+    const handleDeleteProject = async (projectId: string) => {
+        if (confirm('Delete this project?')) {
+            await deleteProject(projectId);
+            setProjects(projects.filter(p => p.id !== projectId));
+        }
+    };
+
+    const handleProjectProgressChange = async (projectId: string, newProgress: number) => {
+        await setProjectProgress(projectId, newProgress);
+        const charProjects = characterProjects[character.id] || [];
+        setProjects(charProjects);
+    };
+
     return (
         <div
             className={clsx(
@@ -352,6 +426,167 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
                     );
                 })}
             </div>
+
+            {/* Projects Section */}
+            <div className="mt-4 pt-4 border-t border-white/10">
+                {/* Section Header */}
+                <div className="flex items-center justify-between mb-3">
+                    <button
+                        onClick={() => setIsProjectsSectionExpanded(!isProjectsSectionExpanded)}
+                        className="flex items-center gap-2 text-xs font-bold uppercase text-gray-500 tracking-wider hover:text-gray-400 transition-colors"
+                    >
+                        {isProjectsSectionExpanded ? (
+                            <ChevronUp size={14} />
+                        ) : (
+                            <ChevronDown size={14} />
+                        )}
+                        Projects {projects.length > 0 && `(${projects.length})`}
+                    </button>
+                    <button
+                        onClick={() => toggleProjectsLock(character.id)}
+                        className={clsx(
+                            'p-1 rounded transition-colors',
+                            isProjectsUnlocked
+                                ? 'text-green-400 hover:bg-green-500/20'
+                                : 'text-gray-500 hover:bg-white/5'
+                        )}
+                        aria-label={isProjectsUnlocked ? 'Lock projects' : 'Unlock projects'}
+                        title={isProjectsUnlocked ? 'Projects unlocked' : 'Projects locked'}
+                    >
+                        {isProjectsUnlocked ? (
+                            <Unlock className="w-3 h-3" />
+                        ) : (
+                            <Lock className="w-3 h-3" />
+                        )}
+                    </button>
+                </div>
+
+                {/* Projects Content */}
+                {isProjectsSectionExpanded && (
+                    <div className="space-y-2">
+                        {isLoadingProjects ? (
+                            <div className="text-center py-3 text-xs text-gray-500">Loading...</div>
+                        ) : projects.length === 0 ? (
+                            <div className="text-center py-3 text-xs text-gray-600">No projects</div>
+                        ) : (
+                            <div className="space-y-2">
+                                {projects.filter(p => !p.completed).map((project) => (
+                                    <div
+                                        key={project.id}
+                                        className="bg-black/40 rounded-lg p-2 border border-white/5"
+                                    >
+                                        {/* Project Name & Controls */}
+                                        <div className="flex items-start justify-between gap-2 mb-2">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-semibold text-white truncate">
+                                                    {project.name}
+                                                </p>
+                                            </div>
+                                            {isProjectsUnlocked && (
+                                                <div className="flex items-center gap-1 flex-shrink-0">
+                                                    <button
+                                                        onClick={() => setEditingProject(project)}
+                                                        className="p-1 text-blue-400 hover:bg-white/10 rounded transition-colors"
+                                                        aria-label="Edit project"
+                                                        title="Edit"
+                                                    >
+                                                        <Pencil size={12} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteProject(project.id)}
+                                                        className="p-1 text-red-400 hover:bg-white/10 rounded transition-colors"
+                                                        aria-label="Delete project"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 size={12} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Progress Bar & Count */}
+                                        <div className="mb-1.5">
+                                            <div className="flex items-center justify-between mb-0.5">
+                                                <div className="h-1.5 flex-1 bg-white/10 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-dagger-gold transition-all"
+                                                        style={{
+                                                            width: `${(project.countdown_current / project.countdown_total) * 100}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                                <span className="ml-2 text-[9px] text-gray-500 tabular-nums whitespace-nowrap">
+                                                    {project.countdown_current}/{project.countdown_total}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* +/- Buttons (only when unlocked) */}
+                                        {isProjectsUnlocked && (
+                                            <div className="flex gap-1">
+                                                <button
+                                                    onClick={() =>
+                                                        handleProjectProgressChange(
+                                                            project.id,
+                                                            Math.max(0, project.countdown_current - 1)
+                                                        )
+                                                    }
+                                                    disabled={project.countdown_current === 0}
+                                                    className="flex-1 h-5 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed rounded text-[9px] font-bold uppercase tracking-wider text-gray-400 transition-colors"
+                                                    aria-label="Decrease progress"
+                                                >
+                                                    -
+                                                </button>
+                                                <button
+                                                    onClick={() =>
+                                                        handleProjectProgressChange(
+                                                            project.id,
+                                                            Math.min(
+                                                                project.countdown_total,
+                                                                project.countdown_current + 1
+                                                            )
+                                                        )
+                                                    }
+                                                    disabled={project.countdown_current >= project.countdown_total}
+                                                    className="flex-1 h-5 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed rounded text-[9px] font-bold uppercase tracking-wider text-gray-400 transition-colors"
+                                                    aria-label="Increase progress"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Create Project Button */}
+                        {isProjectsUnlocked && (
+                            <button
+                                onClick={() => {
+                                    setEditingProject(undefined);
+                                    setIsProjectFormOpen(true);
+                                }}
+                                className="w-full h-8 flex items-center justify-center gap-1 text-xs font-bold uppercase tracking-wider text-dagger-gold hover:text-white hover:bg-dagger-gold/10 border border-dagger-gold/30 hover:border-dagger-gold/50 rounded transition-colors"
+                            >
+                                <Plus size={12} />
+                                Create Project
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Project Form Modal */}
+            <ProjectFormModal
+                isOpen={isProjectFormOpen || editingProject !== undefined}
+                onClose={() => {
+                    setIsProjectFormOpen(false);
+                    setEditingProject(undefined);
+                }}
+                onSubmit={handleProjectSubmit}
+                initialData={editingProject}
+            />
         </div>
     );
 }

@@ -43,6 +43,8 @@ export interface CampaignSlice {
     // Phase 2: GM Screen state
     partyCharacters: Character[];
     unlockedVitalsCards: Set<string>; // Character IDs with unlocked vitals
+    unlockedProjectSections: Set<string>; // Character IDs with unlocked project sections
+    characterProjects: Record<string, any[]>; // Cache of projects by character ID
 
     // Phase 3: Activity Feed state
     activityFeed: CampaignActivity[];
@@ -71,6 +73,11 @@ export interface CampaignSlice {
     gmAdjustVital: (characterId: string, vital: 'hp' | 'stress' | 'armor' | 'hope', newValue: number) => Promise<void>;
     updateFear: (campaignId: string, change: number) => Promise<void>;
     toggleVitalsLock: (characterId: string) => void;
+    toggleProjectsLock: (characterId: string) => void;
+    fetchProjectsForCharacter: (characterId: string) => Promise<void>;
+    setProjectProgress: (projectId: string, progress: number) => Promise<void>;
+    deleteProject: (projectId: string) => Promise<void>;
+    createProject: (input: any) => Promise<any>;
 
     // Phase 3: Activity Feed actions
     fetchActivityFeed: (campaignId: string, offset?: number) => Promise<void>;
@@ -111,6 +118,8 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     // Phase 2: GM Screen state
     partyCharacters: [],
     unlockedVitalsCards: new Set(),
+    unlockedProjectSections: new Set(),
+    characterProjects: {},
 
     // Phase 3: Activity Feed state
     activityFeed: [],
@@ -459,6 +468,137 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             }
             return { unlockedVitalsCards: newUnlocked };
         });
+    },
+
+    toggleProjectsLock: (characterId: string) => {
+        set((state) => {
+            const newUnlocked = new Set(state.unlockedProjectSections);
+            if (newUnlocked.has(characterId)) {
+                newUnlocked.delete(characterId);
+            } else {
+                newUnlocked.add(characterId);
+            }
+            return { unlockedProjectSections: newUnlocked };
+        });
+    },
+
+    fetchProjectsForCharacter: async (characterId: string) => {
+        try {
+            const supabase = require('@/lib/supabase/client').default();
+            const { data, error } = await supabase
+                .from('character_projects')
+                .select('*')
+                .eq('character_id', characterId)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            set((state) => ({
+                characterProjects: {
+                    ...state.characterProjects,
+                    [characterId]: data || [],
+                },
+            }));
+        } catch (error) {
+            console.error('Failed to fetch projects for character:', error);
+        }
+    },
+
+    setProjectProgress: async (projectId: string, progress: number) => {
+        try {
+            const supabase = require('@/lib/supabase/client').default();
+            const { error } = await supabase
+                .from('character_projects')
+                .update({
+                    countdown_current: progress,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq('id', projectId);
+
+            if (error) throw error;
+
+            // Update cache
+            set((state) => {
+                const newProjects = { ...state.characterProjects };
+                for (const characterId in newProjects) {
+                    newProjects[characterId] = newProjects[characterId].map((p: any) =>
+                        p.id === projectId ? { ...p, countdown_current: progress } : p
+                    );
+                }
+                return { characterProjects: newProjects };
+            });
+        } catch (error) {
+            console.error('Failed to set project progress:', error);
+            toast.error('Failed to update project progress');
+        }
+    },
+
+    deleteProject: async (projectId: string) => {
+        try {
+            const supabase = require('@/lib/supabase/client').default();
+            const { error } = await supabase
+                .from('character_projects')
+                .delete()
+                .eq('id', projectId);
+
+            if (error) throw error;
+
+            // Update cache
+            set((state) => {
+                const newProjects = { ...state.characterProjects };
+                for (const characterId in newProjects) {
+                    newProjects[characterId] = newProjects[characterId].filter((p: any) => p.id !== projectId);
+                }
+                return { characterProjects: newProjects };
+            });
+
+            toast.success('Project deleted');
+        } catch (error) {
+            console.error('Failed to delete project:', error);
+            toast.error('Failed to delete project');
+        }
+    },
+
+    createProject: async (input: any) => {
+        try {
+            const supabase = require('@/lib/supabase/client').default();
+            const state = get() as CharacterStore;
+            const character = state.partyCharacters.find((c) => c.id === input.character_id || (state.character && c.id === state.character.id));
+
+            if (!character) throw new Error('Character not found');
+
+            const { data, error } = await supabase
+                .from('character_projects')
+                .insert({
+                    character_id: character.id,
+                    name: input.name,
+                    description: input.description || null,
+                    type: input.type || 'generic',
+                    countdown_total: input.countdown_total || input.countdown_total || 4,
+                    countdown_current: 0,
+                    completed: false,
+                    data: input.data || {},
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            // Update cache
+            set((state) => ({
+                characterProjects: {
+                    ...state.characterProjects,
+                    [character.id]: [data, ...(state.characterProjects[character.id] || [])],
+                },
+            }));
+
+            toast.success('Project created');
+            return data;
+        } catch (error) {
+            console.error('Failed to create project:', error);
+            toast.error('Failed to create project');
+            return null;
+        }
     },
 
     // =========================================================================

@@ -15,13 +15,28 @@ import type { Character } from '@/types/character';
 // ============================================================================
 
 const mockToggleVitalsLock = vi.fn();
+const mockToggleProjectsLock = vi.fn();
 const mockGmAdjustVital = vi.fn();
+const mockFetchProjectsForCharacter = vi.fn().mockResolvedValue(undefined);
+const mockSetProjectProgress = vi.fn().mockResolvedValue(undefined);
+const mockDeleteProject = vi.fn().mockResolvedValue(undefined);
+const mockCreateProject = vi.fn().mockResolvedValue(undefined);
+
 let mockUnlockedCards = new Set<string>();
+let mockUnlockedProjectSections = new Set<string>();
+let mockCharacterProjects: Record<string, any[]> = {};
 
 vi.mock('@/store/character-store', () => ({
     useCharacterStore: () => ({
         unlockedVitalsCards: mockUnlockedCards,
         toggleVitalsLock: mockToggleVitalsLock,
+        unlockedProjectSections: mockUnlockedProjectSections,
+        toggleProjectsLock: mockToggleProjectsLock,
+        characterProjects: mockCharacterProjects,
+        fetchProjectsForCharacter: mockFetchProjectsForCharacter,
+        setProjectProgress: mockSetProjectProgress,
+        deleteProject: mockDeleteProject,
+        createProject: mockCreateProject,
         gmAdjustVital: mockGmAdjustVital,
     }),
 }));
@@ -71,7 +86,13 @@ describe('PlayerVitalsCard', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockGmAdjustVital.mockResolvedValue(undefined);
+        mockFetchProjectsForCharacter.mockResolvedValue(undefined);
+        mockSetProjectProgress.mockResolvedValue(undefined);
+        mockDeleteProject.mockResolvedValue(undefined);
+        mockCreateProject.mockResolvedValue(undefined);
         mockUnlockedCards = new Set<string>();
+        mockUnlockedProjectSections = new Set<string>();
+        mockCharacterProjects = {};
     });
 
     describe('Rendering', () => {

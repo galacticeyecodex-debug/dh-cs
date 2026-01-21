@@ -23,13 +23,11 @@ import { AdversaryBrowser } from './adversary-browser';
 import { EnvironmentBrowser } from './environment-browser';
 import { CountdownTracker } from './countdown-tracker';
 import { CountdownCreatorModal } from './countdown-creator-modal';
-import { ProjectTracker } from './project-tracker';
-import { ProjectCreatorModal } from './project-creator-modal';
 import { ActivityFeed, RollNotification } from '@/components/activity';
 import { realtimeManager } from '@/lib/realtime';
 import { CampaignActivity } from '@/types/activity';
-import { Settings, Crown, Shield, ArrowLeft, Activity, Skull, Map, Timer, Hammer } from 'lucide-react';
-import type { CountdownInsert, ProjectInsert } from '@/types/campaign';
+import { Settings, Crown, Shield, ArrowLeft, Activity, Skull, Map, Timer } from 'lucide-react';
+import type { CountdownInsert } from '@/types/campaign';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import CampaignSettingsModal from '@/components/campaign/campaign-settings-modal';
@@ -53,20 +51,15 @@ export function GmScreen({ campaignId }: GmScreenProps) {
         subscribeToCampaignRealtime,
         unsubscribeFromCampaignRealtime,
         setUser,
-        // Phase 9: Countdowns and Projects
+        // Phase 9: Countdowns
         createCountdown,
         advanceCountdown,
         resetCountdown,
         deleteCountdown,
-        createCampaignProject,
-        advanceCampaignProject,
-        completeCampaignProject,
-        abandonCampaignProject,
     } = useCharacterStore();
     const [showSettings, setShowSettings] = useState(false);
     const [showCountdownCreator, setShowCountdownCreator] = useState(false);
-    const [showProjectCreator, setShowProjectCreator] = useState(false);
-    const [sidebarTab, setSidebarTab] = useState<'activity' | 'adversaries' | 'environments' | 'countdowns' | 'projects'>('activity');
+    const [sidebarTab, setSidebarTab] = useState<'activity' | 'adversaries' | 'environments' | 'countdowns'>('activity');
 
     // Roll notification state for GM Screen
     const [currentRollNotification, setCurrentRollNotification] = useState<CampaignActivity | null>(null);
@@ -238,18 +231,6 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                                     <Timer size={16} />
                                     <span className="hidden sm:inline">Countdowns</span>
                                 </button>
-                                <button
-                                    onClick={() => setSidebarTab('projects')}
-                                    className={clsx(
-                                        'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                                        sidebarTab === 'projects'
-                                            ? 'bg-orange-500/20 text-orange-300'
-                                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                    )}
-                                >
-                                    <Hammer size={16} />
-                                    <span className="hidden sm:inline">Projects</span>
-                                </button>
                             </div>
                             <div className="flex gap-1">
                                 <button
@@ -296,15 +277,6 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                                 onCreateNew={() => setShowCountdownCreator(true)}
                             />
                         )}
-                        {sidebarTab === 'projects' && (
-                            <ProjectTracker
-                                projects={activeCampaign.projects || []}
-                                onAdvance={(projectId) => advanceCampaignProject(campaignId, projectId)}
-                                onComplete={(projectId) => completeCampaignProject(campaignId, projectId)}
-                                onAbandon={(projectId) => abandonCampaignProject(campaignId, projectId)}
-                                onCreateNew={() => setShowProjectCreator(true)}
-                            />
-                        )}
                         {sidebarTab === 'adversaries' && (
                             <AdversaryBrowser compact />
                         )}
@@ -329,16 +301,6 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                 onSubmit={async (countdown: CountdownInsert) => {
                     await createCountdown(campaignId, countdown);
                 }}
-            />
-
-            {/* Project Creator Modal */}
-            <ProjectCreatorModal
-                isOpen={showProjectCreator}
-                onClose={() => setShowProjectCreator(false)}
-                onSubmit={async (project: ProjectInsert) => {
-                    await createCampaignProject(campaignId, project);
-                }}
-                partyCharacters={partyCharacters}
             />
 
             {/* Roll notification pop-ups for campaign members */}
