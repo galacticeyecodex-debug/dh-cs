@@ -210,10 +210,10 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
       {/* Evasion */}
       <VitalCard
         label="Evasion"
+        vitalId="evasion"
         current={evasionDetails.total}
         color="text-cyan-400"
         strokeColor="stroke-cyan-900"
-        icon={Eye}
         variant="rectangle"
         isModified={evasionDetails.isModified}
         expectedValue={evasionDetails.baseValue}
@@ -224,11 +224,11 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
       {/* Armor */}
       <VitalCard
         label="Armor"
+        vitalId="armor"
         current={character.vitals.armor_slots}
         max={armorDetails.total}
         color="text-blue-400"
         strokeColor="stroke-blue-900"
-        icon={Shield}
         variant="rectangle"
         onIncrement={handleArmorIncrement}
         onDecrement={handleArmorDecrement}
@@ -244,11 +244,11 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
       {/* Row 2: Hit Points (Rectangle) */}
       <VitalCard
         label="Hit Points"
+        vitalId="hitPoints"
         current={character.vitals.hit_points_current}
         max={hpDetails.total}
         color="text-red-400"
         strokeColor="stroke-red-900"
-        icon={Heart}
         variant="rectangle"
         onIncrement={handleHPIncrement}
         onDecrement={handleHPDecrement}
@@ -262,11 +262,11 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
       {/* Row 3: Stress (Rectangle) */}
       <VitalCard
         label="Stress"
+        vitalId="stress"
         current={character.vitals.stress_current}
         max={stressDetails.total}
         color="text-purple-400"
         strokeColor="stroke-purple-900"
-        icon={Zap}
         variant="rectangle"
         onIncrement={handleStressIncrement}
         onDecrement={handleStressDecrement}
@@ -280,11 +280,11 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
       {/* Row 4: Hope (Rectangle) */}
       <VitalCard
         label="Hope"
+        vitalId="hope"
         current={character.hope}
         max={hopeDetails.total}
         color="text-dagger-gold"
         strokeColor="stroke-amber-900"
-        icon={Sparkles}
         variant="rectangle"
         onIncrement={handleHopeIncrement}
         onDecrement={handleHopeDecrement}

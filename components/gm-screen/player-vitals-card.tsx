@@ -39,6 +39,7 @@ import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 import { Project } from '@/types/downtime';
 import { ProjectFormModal } from '@/components/views/downtime/project-modals';
+import { getIconByName, VitalId } from '@/lib/icon-utils';
 
 interface PlayerVitalsCardProps {
     character: Character;
@@ -48,6 +49,7 @@ type TrackType = 'mark-bad' | 'fill-up-bad' | 'fill-up-good';
 
 interface VitalConfig {
     id: 'hp' | 'stress' | 'armor' | 'hope';
+    vitalId: VitalId; // Mapping to SettingsSlice vitalId
     label: string;
     icon: React.ElementType;
     current: number;
@@ -69,6 +71,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
         setProjectProgress,
         deleteProject,
         createProject,
+        vitalIcons,
     } = useCharacterStore();
     const isUnlocked = unlockedVitalsCards.has(character.id);
     const isProjectsUnlocked = unlockedProjectSections.has(character.id);
@@ -116,8 +119,9 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
     const vitalsList: VitalConfig[] = [
         {
             id: 'hp',
+            vitalId: 'hitPoints',
             label: 'HP',
-            icon: Heart,
+            icon: getIconByName(vitalIcons.hitPoints, Heart),
             current: hitPointsCurrent,
             max: hitPointsMax,
             color: 'text-red-400',
@@ -126,8 +130,9 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
         },
         {
             id: 'stress',
+            vitalId: 'stress',
             label: 'Stress',
-            icon: Zap,
+            icon: getIconByName(vitalIcons.stress, Zap),
             current: stressCurrent,
             max: stressMax,
             color: 'text-purple-400',
@@ -136,8 +141,9 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
         },
         {
             id: 'armor',
+            vitalId: 'armor',
             label: 'Armor',
-            icon: Shield,
+            icon: getIconByName(vitalIcons.armor, Shield),
             current: armorSlots,
             max: armorMax,
             color: 'text-blue-400',
@@ -146,8 +152,9 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
         },
         {
             id: 'hope',
+            vitalId: 'hope',
             label: 'Hope',
-            icon: Sparkles,
+            icon: getIconByName(vitalIcons.hope, Sparkles),
             current: hopeCurrent,
             max: hopeMax,
             color: 'text-dagger-gold',

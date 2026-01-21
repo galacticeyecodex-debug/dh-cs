@@ -22,6 +22,8 @@
 
 import React, { useState } from 'react';
 import { Heart, Zap, Shield, Eye, Settings } from 'lucide-react';
+import { useCharacterStore } from '@/store/character-store';
+import { getIconByName, VitalId } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import ModifierSheet, { ModifierTab } from '@/components/shared/modifier-sheet';
 import { getValueColor, getPanelBorder, PANEL } from '@/lib/styles';
@@ -32,7 +34,8 @@ interface VitalCardProps {
   current: number;
   max?: number;
   color: string;
-  icon: React.ElementType;
+  icon?: React.ElementType;
+  vitalId?: VitalId;
   onIncrement?: () => void;
   onDecrement?: () => void;
   isCriticalCondition?: boolean;
@@ -54,7 +57,8 @@ const VitalCard = React.memo(function VitalCard({
   current,
   max,
   color,
-  icon: Icon,
+  icon: PassedIcon,
+  vitalId,
   onIncrement,
   onDecrement,
   isCriticalCondition = false,
@@ -71,6 +75,11 @@ const VitalCard = React.memo(function VitalCard({
   subStats
 }: VitalCardProps) {
   const [showModifierSheet, setShowModifierSheet] = useState(false);
+
+  // Resolve icon: Prop > dynamic from store > Heart fallback
+  const iconPreference = useCharacterStore(state => vitalId ? state.vitalIcons[vitalId] : null);
+  const Icon = PassedIcon || (vitalId && iconPreference ? getIconByName(iconPreference) : Heart);
+
   const isReadOnly = onIncrement === undefined || onDecrement === undefined;
   const isUnarmored = label === 'Armor' && (!max || max === 0);
 
