@@ -201,7 +201,7 @@ export default function CombatView() {
         <ViewHeader
           icon={Swords}
           title="Combat"
-          subtitle="Manage your weapons, spells, and combat maneuvers"
+          subtitle="Manage your weapons, spells, and combat abilities"
         />
 
         {/* Vitals Toggle & Display */}
