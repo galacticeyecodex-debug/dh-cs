@@ -34,6 +34,12 @@ export interface DataClient {
     count: (userId: string) => Promise<number>;
     update: (characterId: string, data: Partial<Character>) => Promise<void>;
     updateVitals: (characterId: string, vitals: any, damageThresholds: any, evasion: number) => Promise<void>;
+
+    // Character Projects
+    createCharacterProject: (characterId: string, project: any) => Promise<any>;
+    updateCharacterProject: (projectId: string, updates: any) => Promise<void>;
+    deleteCharacterProject: (projectId: string) => Promise<void>;
+    getCharacterProjects: (characterId: string) => Promise<any[]>;
   };
   inventory: {
     add: (characterId: string, item: any) => Promise<CharacterInventoryItem>;
@@ -104,12 +110,6 @@ export interface DataClient {
     // Phase 9: Countdowns & Projects
     updateCountdowns: (campaignId: string, countdowns: any[]) => Promise<void>;
     updateProjects: (campaignId: string, projects: any[]) => Promise<void>;
-
-    // Character Projects (for GM Screen)
-    createCharacterProject: (characterId: string, project: any) => Promise<any>;
-    updateCharacterProject: (projectId: string, updates: any) => Promise<void>;
-    deleteCharacterProject: (projectId: string) => Promise<void>;
-    getCharacterProjects: (characterId: string) => Promise<any[]>;
   };
 
   // Phase 7: Friendships
@@ -132,6 +132,19 @@ export interface DataClient {
 
     // Status check
     checkFriendship: (userId: string, otherUserId: string) => Promise<{ exists: boolean; friendshipId?: string; status?: string }>;
+  };
+
+  // Sharing
+  sharing: {
+    create: (payload: {
+      source_user_id: string;
+      target_type: 'campaign' | 'friend' | 'public';
+      target_id?: string;
+      item_data: any;
+      original_item_id?: string;
+    }) => Promise<any>;
+    list: (userId: string) => Promise<any[]>;
+    listForCampaign: (campaignId: string) => Promise<any[]>;
   };
 }
 

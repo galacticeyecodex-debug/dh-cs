@@ -57,11 +57,6 @@ export function useCampaignRealtime(): UseCampaignRealtimeReturn {
     // Listen for roll notifications from the realtime manager
     useEffect(() => {
         const unsubscribe = realtimeManager.onRollNotification((activity) => {
-            console.log('[RollNotification] Hook received notification:', {
-                characterName: activity.character_name,
-                activityType: activity.activity_type,
-                total: (activity.data as { total?: number })?.total,
-            });
             setCurrentRollNotification(activity);
         });
 

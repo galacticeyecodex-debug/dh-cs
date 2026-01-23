@@ -17,7 +17,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import ModifierBuilder from '@/components/views/inventory/modifier-builder';
 import { Modifier } from '@/types/modifiers';
 
-describe.skip('ModifierBuilder', () => {
+describe('ModifierBuilder', () => {
   const mockOnChange = vi.fn();
 
   const defaultProps = {
@@ -37,21 +37,21 @@ describe.skip('ModifierBuilder', () => {
 
     it('should show "Add Modifier" button', () => {
       render(<ModifierBuilder {...defaultProps} />);
-      expect(screen.getByText('Add Modifier')).toBeTruthy();
+      expect(screen.getByText('Add Manually')).toBeTruthy();
     });
   });
 
   describe('Adding Modifiers', () => {
     it('should show form when "Add Modifier" is clicked', () => {
       render(<ModifierBuilder {...defaultProps} />);
-      fireEvent.click(screen.getByText('Add Modifier'));
+      fireEvent.click(screen.getByText('Add Manually'));
       expect(screen.getByText('New Modifier')).toBeTruthy();
       expect(screen.getByText('Target Stat')).toBeTruthy();
     });
 
     it('should add a modifier when form is submitted', () => {
       render(<ModifierBuilder {...defaultProps} />);
-      fireEvent.click(screen.getByText('Add Modifier'));
+      fireEvent.click(screen.getByText('Add Manually'));
 
       // Fill form
       fireEvent.change(screen.getByLabelText(/target stat/i), { target: { value: 'strength' } });
@@ -75,7 +75,7 @@ describe.skip('ModifierBuilder', () => {
 
     it('should generate correct description for add operator', () => {
       render(<ModifierBuilder {...defaultProps} />);
-      fireEvent.click(screen.getByText('Add Modifier'));
+      fireEvent.click(screen.getByText('Add Manually'));
 
       fireEvent.change(screen.getByLabelText(/target stat/i), { target: { value: 'agility' } });
       fireEvent.change(screen.getByLabelText(/value/i), { target: { value: '3' } });
@@ -87,7 +87,7 @@ describe.skip('ModifierBuilder', () => {
 
     it('should support conditional modifiers', () => {
       render(<ModifierBuilder {...defaultProps} />);
-      fireEvent.click(screen.getByText('Add Modifier'));
+      fireEvent.click(screen.getByText('Add Manually'));
 
       fireEvent.change(screen.getByLabelText(/target stat/i), { target: { value: 'evasion' } });
       fireEvent.change(screen.getByLabelText(/value/i), { target: { value: '2' } });
@@ -109,7 +109,7 @@ describe.skip('ModifierBuilder', () => {
     it('should reject non-numeric values', () => {
       const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
       render(<ModifierBuilder {...defaultProps} />);
-      fireEvent.click(screen.getByText('Add Modifier'));
+      fireEvent.click(screen.getByText('Add Manually'));
 
       fireEvent.change(screen.getByLabelText(/value/i), { target: { value: 'invalid' } });
       fireEvent.click(screen.getByText('Add'));
@@ -122,7 +122,7 @@ describe.skip('ModifierBuilder', () => {
 
     it('should support negative values', () => {
       render(<ModifierBuilder {...defaultProps} />);
-      fireEvent.click(screen.getByText('Add Modifier'));
+      fireEvent.click(screen.getByText('Add Manually'));
 
       fireEvent.change(screen.getByLabelText(/value/i), { target: { value: '-2' } });
       fireEvent.click(screen.getByText('Add'));
@@ -138,7 +138,7 @@ describe.skip('ModifierBuilder', () => {
 
     it('should close form when Cancel is clicked', () => {
       render(<ModifierBuilder {...defaultProps} />);
-      fireEvent.click(screen.getByText('Add Modifier'));
+      fireEvent.click(screen.getByText('Add Manually'));
       expect(screen.getByText('New Modifier')).toBeTruthy();
 
       fireEvent.click(screen.getByText('Cancel'));
@@ -194,10 +194,9 @@ describe.skip('ModifierBuilder', () => {
     it('should populate form with modifier data when Edit is clicked', () => {
       render(<ModifierBuilder modifiers={existingModifiers} onChange={mockOnChange} />);
 
-      // Hover to show edit button, then click
-      const modifierCard = screen.getByText('+2 to Strength').closest('div');
-      const editButton = modifierCard?.querySelector('button[title="Edit modifier"]');
-      if (editButton) fireEvent.click(editButton);
+      // Click the edit button directly
+      const editButton = screen.getByTitle('Edit modifier');
+      fireEvent.click(editButton);
 
       expect(screen.getByText('Edit Modifier')).toBeTruthy();
       expect(screen.getByLabelText(/target stat/i)).toHaveValue('strength');
@@ -207,9 +206,8 @@ describe.skip('ModifierBuilder', () => {
     it('should update modifier when Update is clicked', () => {
       render(<ModifierBuilder modifiers={existingModifiers} onChange={mockOnChange} />);
 
-      const modifierCard = screen.getByText('+2 to Strength').closest('div');
-      const editButton = modifierCard?.querySelector('button[title="Edit modifier"]');
-      if (editButton) fireEvent.click(editButton);
+      const editButton = screen.getByTitle('Edit modifier');
+      fireEvent.click(editButton);
 
       fireEvent.change(screen.getByLabelText(/value/i), { target: { value: '5' } });
       fireEvent.click(screen.getByText('Update'));
@@ -248,9 +246,9 @@ describe.skip('ModifierBuilder', () => {
     it('should remove modifier when Delete is clicked', () => {
       render(<ModifierBuilder modifiers={existingModifiers} onChange={mockOnChange} />);
 
-      const modifierCard = screen.getByText('+2 to Strength').closest('div');
-      const deleteButton = modifierCard?.querySelector('button[title="Delete modifier"]');
-      if (deleteButton) fireEvent.click(deleteButton);
+      // Click the delete button for the first modifier
+      const deleteButtons = screen.getAllByTitle('Delete modifier');
+      fireEvent.click(deleteButtons[0]);
 
       expect(mockOnChange).toHaveBeenCalledWith([existingModifiers[1]]);
     });
@@ -259,7 +257,7 @@ describe.skip('ModifierBuilder', () => {
   describe('Different Operators', () => {
     it('should generate correct description for subtract operator', () => {
       render(<ModifierBuilder {...defaultProps} />);
-      fireEvent.click(screen.getByText('Add Modifier'));
+      fireEvent.click(screen.getByText('Add Manually'));
 
       fireEvent.change(screen.getByLabelText(/operator/i), { target: { value: 'subtract' } });
       fireEvent.change(screen.getByLabelText(/value/i), { target: { value: '1' } });
@@ -269,7 +267,7 @@ describe.skip('ModifierBuilder', () => {
 
     it('should generate correct description for multiply operator', () => {
       render(<ModifierBuilder {...defaultProps} />);
-      fireEvent.click(screen.getByText('Add Modifier'));
+      fireEvent.click(screen.getByText('Add Manually'));
 
       fireEvent.change(screen.getByLabelText(/operator/i), { target: { value: 'multiply' } });
       fireEvent.change(screen.getByLabelText(/value/i), { target: { value: '2' } });
@@ -279,7 +277,7 @@ describe.skip('ModifierBuilder', () => {
 
     it('should generate correct description for set operator', () => {
       render(<ModifierBuilder {...defaultProps} />);
-      fireEvent.click(screen.getByText('Add Modifier'));
+      fireEvent.click(screen.getByText('Add Manually'));
 
       fireEvent.change(screen.getByLabelText(/operator/i), { target: { value: 'set' } });
       fireEvent.change(screen.getByLabelText(/value/i), { target: { value: '10' } });

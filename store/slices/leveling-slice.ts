@@ -335,7 +335,7 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
 
         // Only insert if card exists in library
         if (libraryCard) {
-            const newCard = await dataService.card.add(characterId, options.multiclassFoundationCardId, 'feature');
+          const newCard = await dataService.card.add(characterId, options.multiclassFoundationCardId, 'feature');
 
           if (newCard) {
             // Update local state to include the new foundation card WITH library data
@@ -434,7 +434,10 @@ export const createLevelingSlice: StateCreator<CharacterStore, [], [], LevelingS
     const characterId = state.character.id;
 
     // Handle de-leveling: rollback all advancement changes
-    const updatePayload: Record<string, any> = { ...updates };
+    // clean updates to remove undefined keys
+    const updatePayload: Record<string, any> = Object.fromEntries(
+      Object.entries(updates).filter(([_, v]) => v !== undefined)
+    );
     const character = { ...state.character };
 
     if (updates.level !== undefined && updates.level < state.character.level) {

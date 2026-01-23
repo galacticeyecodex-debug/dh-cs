@@ -209,12 +209,8 @@ describe('MobileLayout', () => {
                 </MobileLayout>
             );
 
-            // Find the FAB button (it contains the Dices icon and has specific styling)
-            const fabButtons = screen.getAllByRole('button');
-            const diceFab = fabButtons.find(btn =>
-                btn.className.includes('fixed') && btn.className.includes('bottom-24')
-            );
-
+            // Find the FAB button by its aria-label
+            const diceFab = screen.getByLabelText('Roll Dice');
             expect(diceFab).toBeInTheDocument();
         });
 
@@ -225,13 +221,8 @@ describe('MobileLayout', () => {
                 </MobileLayout>
             );
 
-            // Find the FAB button by its position styling
-            const fabButtons = screen.getAllByRole('button');
-            const diceFab = fabButtons.find(btn =>
-                btn.className.includes('fixed') && btn.className.includes('bottom-24')
-            );
-
-            fireEvent.click(diceFab!);
+            const diceFab = screen.getByLabelText('Roll Dice');
+            fireEvent.click(diceFab);
 
             expect(mockOpenDiceOverlay).toHaveBeenCalled();
         });

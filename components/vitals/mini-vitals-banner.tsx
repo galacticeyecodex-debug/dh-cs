@@ -14,6 +14,7 @@ export interface VitalEntry {
     color: string;
     bgColor?: string;
     onClick?: () => void;
+    subLabel?: string;
 }
 
 export interface MiniVitalsBannerProps {
@@ -57,13 +58,20 @@ export function MiniVitalsPanel({
                                 {vital.label.substring(0, 3)}
                             </span>
                         </div>
-                        <div className="flex items-baseline gap-0.5">
-                            <span className={cn("text-sm font-bold leading-none", vital.color)}>
-                                {vital.current}
-                            </span>
-                            {vital.max !== undefined && vital.max > 0 && (
-                                <span className="text-[10px] text-gray-500 leading-none">
-                                    /{vital.max}
+                        <div className="flex flex-col items-center gap-0">
+                            <div className="flex items-baseline gap-0.5">
+                                <span className={cn("text-sm font-bold leading-none", vital.color)}>
+                                    {vital.current}
+                                </span>
+                                {vital.max !== undefined && vital.max > 0 && (
+                                    <span className="text-[10px] text-gray-500 leading-none">
+                                        /{vital.max}
+                                    </span>
+                                )}
+                            </div>
+                            {vital.subLabel && (
+                                <span className="text-[8px] text-gray-500 font-medium uppercase tracking-wider">
+                                    {vital.subLabel}
                                 </span>
                             )}
                         </div>
@@ -80,7 +88,7 @@ export function MiniVitalsPanel({
  * When a character is in an active campaign, also shows the campaign's Fear level.
  */
 export default function CharacterVitalsBanner() {
-    const { character, cardStates, activeCampaign } = useCharacterStore();
+    const { character, cardStates, activeCampaign, vitalIcons: iconPreferences } = useCharacterStore();
 
     // --- VITAL CALCULATIONS (must be before any early returns) ---
     // We compute all values in a single useMemo to avoid hook ordering issues
@@ -110,10 +118,10 @@ export default function CharacterVitalsBanner() {
             hopeMax,
             evasionTotal,
             armorMax,
-            hp_current: character.vitals.hit_points_current,
+            hp_marked: hpMax - character.vitals.hit_points_current,
             stress_current: character.vitals.stress_current,
             hope_current: character.hope,
-            armor_current: character.vitals.armor_slots,
+            armor_marked: armorMax - character.vitals.armor_slots,
         };
     }, [character, cardStates]);
 
@@ -123,9 +131,6 @@ export default function CharacterVitalsBanner() {
     // Build vitals array
     const vitals: VitalEntry[] = [];
 
-    // Get icon preferences from store
-    const iconPreferences = useCharacterStore(state => state.vitalIcons);
-
     // Character vitals
     vitals.push(
         {
@@ -133,20 +138,23 @@ export default function CharacterVitalsBanner() {
             current: vitalData.evasionTotal,
             icon: getIconByName(iconPreferences.evasion, AppIcons.vitals.evasion),
             color: 'text-cyan-400',
+            subLabel: 'Score',
         },
         {
             label: 'Armor',
-            current: vitalData.armor_current,
+            current: vitalData.armor_marked,
             max: vitalData.armorMax,
             icon: getIconByName(iconPreferences.armor, AppIcons.vitals.armor),
             color: 'text-blue-400',
+            subLabel: 'Marked',
         },
         {
             label: 'HP',
-            current: vitalData.hp_current,
+            current: vitalData.hp_marked,
             max: vitalData.hpMax,
             icon: getIconByName(iconPreferences.hitPoints, AppIcons.vitals.hitPoints),
             color: 'text-red-400',
+            subLabel: 'Marked',
         },
         {
             label: 'Stress',
@@ -154,6 +162,7 @@ export default function CharacterVitalsBanner() {
             max: vitalData.stressMax,
             icon: getIconByName(iconPreferences.stress, AppIcons.vitals.stress),
             color: 'text-purple-400',
+            subLabel: 'Marked',
         },
         {
             label: 'Hope',
@@ -161,6 +170,7 @@ export default function CharacterVitalsBanner() {
             max: vitalData.hopeMax,
             icon: getIconByName(iconPreferences.hope, AppIcons.vitals.hope),
             color: 'text-dagger-gold',
+            subLabel: 'Gained',
         }
     );
 
@@ -174,6 +184,7 @@ export default function CharacterVitalsBanner() {
             max: 12, // SRD: Max Fear is always 12
             icon: getIconByName(iconPreferences.fear, AppIcons.vitals.fear),
             color: isHighFear ? 'text-red-400' : 'text-purple-400',
+            subLabel: 'Gained',
         });
     }
 

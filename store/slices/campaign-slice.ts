@@ -75,9 +75,9 @@ export interface CampaignSlice {
     toggleVitalsLock: (characterId: string) => void;
     toggleProjectsLock: (characterId: string) => void;
     fetchProjectsForCharacter: (characterId: string) => Promise<void>;
-    setProjectProgress: (projectId: string, progress: number) => Promise<void>;
-    deleteProject: (projectId: string) => Promise<void>;
-    createProject: (input: any) => Promise<any>;
+    gmSetProjectProgress: (projectId: string, progress: number) => Promise<void>;
+    gmDeleteProject: (projectId: string) => Promise<void>;
+    gmCreateProject: (input: any) => Promise<any>;
 
     // Phase 3: Activity Feed actions
     fetchActivityFeed: (campaignId: string, offset?: number) => Promise<void>;
@@ -484,7 +484,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
 
     fetchProjectsForCharacter: async (characterId: string) => {
         try {
-            const projects = await dataService.campaign.getCharacterProjects(characterId);
+            const projects = await dataService.character.getCharacterProjects(characterId);
             set((state) => ({
                 characterProjects: {
                     ...state.characterProjects,
@@ -497,9 +497,9 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
         }
     },
 
-    setProjectProgress: async (projectId: string, progress: number) => {
+    gmSetProjectProgress: async (projectId: string, progress: number) => {
         try {
-            await dataService.campaign.updateCharacterProject(projectId, {
+            await dataService.character.updateCharacterProject(projectId, {
                 countdown_current: progress,
                 updated_at: new Date().toISOString(),
             });
@@ -521,9 +521,9 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
         }
     },
 
-    deleteProject: async (projectId: string) => {
+    gmDeleteProject: async (projectId: string) => {
         try {
-            await dataService.campaign.deleteCharacterProject(projectId);
+            await dataService.character.deleteCharacterProject(projectId);
 
             // Update cache
             set((state) => {
@@ -542,7 +542,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
         }
     },
 
-    createProject: async (input: any) => {
+    gmCreateProject: async (input: any) => {
         try {
             const state = get() as CharacterStore;
 
@@ -551,7 +551,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             if (!characterId) throw new Error('Character not found');
 
             // Create project via data service
-            const data = await dataService.campaign.createCharacterProject(characterId, input);
+            const data = await dataService.character.createCharacterProject(characterId, input);
 
             // Update cache
             set((state) => ({

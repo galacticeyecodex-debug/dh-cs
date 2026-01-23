@@ -209,7 +209,71 @@ export const dataService: DataClient = {
         .eq('user_id', userId);
       if (error) throw error;
       return count || 0;
-    }
+    },
+
+    // Character Projects
+    createCharacterProject: async (characterId: string, project: any): Promise<any> => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('character_projects')
+        .insert({
+          character_id: characterId,
+          name: project.name,
+          description: project.description || null,
+          type: project.type || 'generic',
+          countdown_total: project.countdown_total || 4,
+          countdown_current: 0,
+          completed: false,
+          data: project.data || {},
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to create project: ${error.message}`);
+      }
+
+      return data;
+    },
+
+    updateCharacterProject: async (projectId: string, updates: any): Promise<void> => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('character_projects')
+        .update(updates)
+        .eq('id', projectId);
+
+      if (error) {
+        throw new Error(`Failed to update project: ${error.message}`);
+      }
+    },
+
+    deleteCharacterProject: async (projectId: string): Promise<void> => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('character_projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) {
+        throw new Error(`Failed to delete project: ${error.message}`);
+      }
+    },
+
+    getCharacterProjects: async (characterId: string): Promise<any[]> => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('character_projects')
+        .select('*')
+        .eq('character_id', characterId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(`Failed to fetch projects: ${error.message}`);
+      }
+
+      return data || [];
+    },
   },
 
   inventory: {
@@ -960,69 +1024,7 @@ export const dataService: DataClient = {
       }
     },
 
-    // Character Projects - for use in GM Screen
-    createCharacterProject: async (characterId: string, project: any): Promise<any> => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('character_projects')
-        .insert({
-          character_id: characterId,
-          name: project.name,
-          description: project.description || null,
-          type: project.type || 'generic',
-          countdown_total: project.countdown_total || 4,
-          countdown_current: 0,
-          completed: false,
-          data: project.data || {},
-        })
-        .select()
-        .single();
 
-      if (error) {
-        throw new Error(`Failed to create project: ${error.message}`);
-      }
-
-      return data;
-    },
-
-    updateCharacterProject: async (projectId: string, updates: any): Promise<void> => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('character_projects')
-        .update(updates)
-        .eq('id', projectId);
-
-      if (error) {
-        throw new Error(`Failed to update project: ${error.message}`);
-      }
-    },
-
-    deleteCharacterProject: async (projectId: string): Promise<void> => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('character_projects')
-        .delete()
-        .eq('id', projectId);
-
-      if (error) {
-        throw new Error(`Failed to delete project: ${error.message}`);
-      }
-    },
-
-    getCharacterProjects: async (characterId: string): Promise<any[]> => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('character_projects')
-        .select('*')
-        .eq('character_id', characterId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw new Error(`Failed to fetch projects: ${error.message}`);
-      }
-
-      return data || [];
-    },
   },
 
   // =========================================================================
@@ -1323,5 +1325,50 @@ export const dataService: DataClient = {
         status: data[0].status,
       };
     },
+  },
+
+  sharing: {
+    create: async (payload: {
+      source_user_id: string;
+      target_type: 'campaign' | 'friend' | 'public';
+      target_id?: string;
+      item_data: any;
+      original_item_id?: string;
+    }) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('shared_homebrew')
+        .insert(payload)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    list: async (userId: string) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('shared_homebrew')
+        .select('*')
+        .or(`target_type.eq.public,and(target_type.eq.friend,target_id.eq.${userId})`)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+
+    listForCampaign: async (campaignId: string) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('shared_homebrew')
+        .select('*')
+        .eq('target_type', 'campaign')
+        .eq('target_id', campaignId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    }
   },
 };

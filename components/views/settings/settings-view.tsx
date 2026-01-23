@@ -71,6 +71,8 @@ export function useDevMode() {
 
 export default function SettingsView() {
     const { devMode, setDevMode, loaded } = useDevMode();
+    const vitalIcons = useCharacterStore(state => state.vitalIcons);
+    const setVitalIcon = useCharacterStore(state => state.setVitalIcon);
 
     return (
         <div className="p-4 space-y-6">
@@ -102,8 +104,6 @@ export default function SettingsView() {
 
                 <div className="p-6 space-y-6">
                     {Object.entries(VITAL_ICON_OPTIONS).map(([vitalId, options]) => {
-                        const currentIconId = useCharacterStore(state => state.vitalIcons[vitalId as VitalId]);
-                        const setVitalIcon = useCharacterStore(state => state.setVitalIcon);
 
                         return (
                             <div key={vitalId} className="space-y-3">
@@ -117,14 +117,14 @@ export default function SettingsView() {
                                             onClick={() => setVitalIcon(vitalId as VitalId, option.id)}
                                             className={clsx(
                                                 "flex items-center gap-3 p-3 rounded-lg border transition-all",
-                                                currentIconId === option.id
+                                                vitalIcons[vitalId as VitalId] === option.id
                                                     ? "bg-dagger-gold/20 border-dagger-gold text-white"
                                                     : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
                                             )}
                                         >
                                             <div className={clsx(
                                                 "p-2 rounded-md",
-                                                currentIconId === option.id ? "bg-dagger-gold text-black" : "bg-white/10 text-white"
+                                                vitalIcons[vitalId as VitalId] === option.id ? "bg-dagger-gold text-black" : "bg-white/10 text-white"
                                             )}>
                                                 <option.icon size={20} />
                                             </div>

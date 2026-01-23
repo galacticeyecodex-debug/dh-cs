@@ -18,9 +18,9 @@ const mockToggleVitalsLock = vi.fn();
 const mockToggleProjectsLock = vi.fn();
 const mockGmAdjustVital = vi.fn();
 const mockFetchProjectsForCharacter = vi.fn().mockResolvedValue(undefined);
-const mockSetProjectProgress = vi.fn().mockResolvedValue(undefined);
-const mockDeleteProject = vi.fn().mockResolvedValue(undefined);
-const mockCreateProject = vi.fn().mockResolvedValue(undefined);
+const mockGmSetProjectProgress = vi.fn().mockResolvedValue(undefined);
+const mockGmDeleteProject = vi.fn().mockResolvedValue(undefined);
+const mockGmCreateProject = vi.fn().mockResolvedValue(undefined);
 
 let mockUnlockedCards = new Set<string>();
 let mockUnlockedProjectSections = new Set<string>();
@@ -34,8 +34,9 @@ vi.mock('@/store/character-store', () => ({
         toggleProjectsLock: mockToggleProjectsLock,
         characterProjects: mockCharacterProjects,
         fetchProjectsForCharacter: mockFetchProjectsForCharacter,
-        setProjectProgress: mockSetProjectProgress,
-        createProject: mockCreateProject,
+        setProjectProgress: mockGmSetProjectProgress,
+        createProject: mockGmCreateProject,
+        deleteProject: mockGmDeleteProject,
         gmAdjustVital: mockGmAdjustVital,
         vitalIcons: {},
     }),
@@ -87,9 +88,9 @@ describe('PlayerVitalsCard', () => {
         vi.clearAllMocks();
         mockGmAdjustVital.mockResolvedValue(undefined);
         mockFetchProjectsForCharacter.mockResolvedValue(undefined);
-        mockSetProjectProgress.mockResolvedValue(undefined);
-        mockDeleteProject.mockResolvedValue(undefined);
-        mockCreateProject.mockResolvedValue(undefined);
+        mockGmSetProjectProgress.mockResolvedValue(undefined);
+        mockGmDeleteProject.mockResolvedValue(undefined);
+        mockGmCreateProject.mockResolvedValue(undefined);
         mockUnlockedCards = new Set<string>();
         mockUnlockedProjectSections = new Set<string>();
         mockCharacterProjects = {};

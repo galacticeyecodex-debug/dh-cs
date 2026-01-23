@@ -1194,3 +1194,51 @@ ALTER PUBLICATION supabase_realtime ADD TABLE campaigns;
 
 -- Add characters to realtime (for vital updates on GM screen)
 ALTER PUBLICATION supabase_realtime ADD TABLE characters;
+
+-- 9. SHARED HOMEBREW (Social Features)
+-- Allows sharing items/content between users or campaigns
+CREATE TABLE IF NOT EXISTS public.shared_homebrew (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  source_user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  target_type TEXT CHECK (target_type IN ('campaign', 'friend', 'public')),
+  target_id UUID, -- Can be campaign_id or user_id (optional for public)
+  item_data JSONB NOT NULL, -- Snapshot of the item being shared
+  original_item_id UUID, -- Reference to original item if from library
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Shared Homebrew RLS
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = 'shared_homebrew' AND n.nspname = 'public') THEN
+
+    ALTER TABLE public.shared_homebrew ENABLE ROW LEVEL SECURITY;
+
+    -- 1. Source user can manage their shared items
+    CREATE POLICY "Users can manage their shared items" ON public.shared_homebrew
+      USING (auth.uid() = source_user_id);
+
+    -- 2. Users can view items shared with them specifically (Friend)
+    CREATE POLICY "Users can view items shared with them" ON public.shared_homebrew
+      FOR SELECT USING (
+        target_type = 'friend' AND target_id = auth.uid()
+      );
+
+    -- 3. Campaign members can view items shared with the campaign
+    CREATE POLICY "Campaign members can view shared items" ON public.shared_homebrew
+      FOR SELECT USING (
+        target_type = 'campaign' AND
+        EXISTS (
+            SELECT 1 FROM public.characters c
+            WHERE c.campaign_id = shared_homebrew.target_id
+            AND c.user_id = auth.uid()
+        )
+      );
+
+    -- 4. Public items are visible to everyone
+    CREATE POLICY "Everyone can view public items" ON public.shared_homebrew
+      FOR SELECT USING (target_type = 'public');
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
