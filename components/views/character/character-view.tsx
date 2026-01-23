@@ -334,7 +334,7 @@ export default function CharacterView() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-3xl md:text-4xl font-bold bg-dagger-gold text-black">
-                    {character.name[0]}
+                    {character.name?.[0] || '?'}
                   </div>
                 )}
               </div>

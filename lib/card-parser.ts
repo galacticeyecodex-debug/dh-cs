@@ -2025,7 +2025,6 @@ export function parseStatBonuses(text: string): {
 /**
  * Enhance a basic ability card with parsed metadata
  * @param card The raw ability card to enhance
- * @param verbose If true, log override usage to console (used by enhance_json.ts script)
  */
 export function enhanceAbilityCard(card: {
   name: string;
@@ -2040,7 +2039,7 @@ export function enhanceAbilityCard(card: {
   frequency_override?: Frequency;
   keywords_override?: string[];
   costs_override?: CardCosts;
-}, verbose = false): EnhancedAbilityCard {
+}): EnhancedAbilityCard {
   const text = card.text;
   const cardType = card.type as 'Spell' | 'Ability';
 
@@ -2057,16 +2056,6 @@ export function enhanceAbilityCard(card: {
   const keywords = card.keywords_override || extractKeywords(text, cardType);
 
   // Log overrides for visibility (only when running enhance_json script)
-  if (verbose && (card.action_type_override || card.timing_override || card.frequency_override || card.keywords_override || card.costs_override)) {
-    const overrides = [];
-    if (card.action_type_override) overrides.push(`action_type=${card.action_type_override}`);
-    if (card.timing_override) overrides.push(`timing=${card.timing_override}`);
-    if (card.frequency_override) overrides.push(`frequency=${card.frequency_override}`);
-    if (card.keywords_override) overrides.push(`keywords`);
-    if (card.costs_override) overrides.push(`costs`);
-    console.log(`  ⚠️  ${card.name}: Using overrides [${overrides.join(', ')}]`);
-  }
-
   const enhanced: EnhancedAbilityCard = {
     name: card.name,
     level: card.level,

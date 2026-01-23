@@ -18,7 +18,7 @@ import {
     StudyToken,
     getMovesForRestType,
 } from '@/types/downtime';
-import createClient from '@/lib/supabase/client';
+import { dataService } from '@/lib/data-service';
 
 export interface DowntimeSlice {
     // Rest state
@@ -110,15 +110,7 @@ export const createDowntimeSlice: StateCreator<
         set({ projectsLoading: true, projectsError: null });
 
         try {
-            const supabase = createClient();
-            const { data, error } = await supabase
-                .from('character_projects')
-                .select('*')
-                .eq('character_id', character.id)
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-
+            const data = await dataService.character.getCharacterProjects(character.id);
             set({ projects: data || [], projectsLoading: false });
         } catch (error) {
             console.error('Failed to fetch projects:', error);
@@ -134,23 +126,7 @@ export const createDowntimeSlice: StateCreator<
         if (!character?.id) return null;
 
         try {
-            const supabase = createClient();
-            const { data, error } = await supabase
-                .from('character_projects')
-                .insert({
-                    character_id: character.id,
-                    name: input.name,
-                    description: input.description || null,
-                    type: input.type,
-                    countdown_total: input.countdown_total || 4,
-                    countdown_current: 0,
-                    completed: false,
-                    data: input.data || {},
-                })
-                .select()
-                .single();
-
-            if (error) throw error;
+            const data = await dataService.character.createCharacterProject(character.id, input);
 
             // Refresh projects list
             await fetchProjects();
@@ -173,18 +149,12 @@ export const createDowntimeSlice: StateCreator<
         const isNowComplete = newCurrent >= project.countdown_total;
 
         try {
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('character_projects')
-                .update({
-                    countdown_current: newCurrent,
-                    completed: isNowComplete,
-                    completed_at: isNowComplete ? new Date().toISOString() : null,
-                    updated_at: new Date().toISOString(),
-                })
-                .eq('id', projectId);
-
-            if (error) throw error;
+            await dataService.character.updateCharacterProject(projectId, {
+                countdown_current: newCurrent,
+                completed: isNowComplete,
+                completed_at: isNowComplete ? new Date().toISOString() : null,
+                updated_at: new Date().toISOString(),
+            });
 
             // Refresh projects list
             await fetchProjects();
@@ -204,20 +174,14 @@ export const createDowntimeSlice: StateCreator<
         const wasComplete = project.completed;
 
         try {
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('character_projects')
-                .update({
-                    countdown_current: newCurrent,
-                    completed: isNowComplete,
-                    // Only set completed_at if transitioning to complete
-                    completed_at: isNowComplete && !wasComplete ? new Date().toISOString() :
-                        !isNowComplete ? null : project.completed_at,
-                    updated_at: new Date().toISOString(),
-                })
-                .eq('id', projectId);
-
-            if (error) throw error;
+            await dataService.character.updateCharacterProject(projectId, {
+                countdown_current: newCurrent,
+                completed: isNowComplete,
+                // Only set completed_at if transitioning to complete
+                completed_at: isNowComplete && !wasComplete ? new Date().toISOString() :
+                    !isNowComplete ? null : project.completed_at,
+                updated_at: new Date().toISOString(),
+            });
 
             await fetchProjects();
         } catch (error) {
@@ -229,17 +193,11 @@ export const createDowntimeSlice: StateCreator<
         const { fetchProjects } = get();
 
         try {
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('character_projects')
-                .update({
-                    completed: true,
-                    completed_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                })
-                .eq('id', projectId);
-
-            if (error) throw error;
+            await dataService.character.updateCharacterProject(projectId, {
+                completed: true,
+                completed_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            });
 
             await fetchProjects();
         } catch (error) {
@@ -251,18 +209,12 @@ export const createDowntimeSlice: StateCreator<
         const { fetchProjects } = get();
 
         try {
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('character_projects')
-                .update({
-                    name: updates.name,
-                    description: updates.description,
-                    countdown_total: updates.countdown_total,
-                    updated_at: new Date().toISOString(),
-                })
-                .eq('id', projectId);
-
-            if (error) throw error;
+            await dataService.character.updateCharacterProject(projectId, {
+                name: updates.name,
+                description: updates.description,
+                countdown_total: updates.countdown_total,
+                updated_at: new Date().toISOString(),
+            });
 
             await fetchProjects();
         } catch (error) {
@@ -274,13 +226,7 @@ export const createDowntimeSlice: StateCreator<
         const { fetchProjects } = get();
 
         try {
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('character_projects')
-                .delete()
-                .eq('id', projectId);
-
-            if (error) throw error;
+            await dataService.character.deleteCharacterProject(projectId);
 
             await fetchProjects();
         } catch (error) {

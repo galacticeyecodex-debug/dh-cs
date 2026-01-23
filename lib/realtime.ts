@@ -54,11 +54,6 @@ export class CampaignRealtimeManager {
      * Emit a roll notification to all registered callbacks
      */
     private emitRollNotification(activity: CampaignActivity) {
-        console.log('[RollNotification] Emitting to', this.rollNotificationCallbacks.size, 'callbacks:', {
-            characterName: activity.character_name,
-            activityType: activity.activity_type,
-            data: activity.data,
-        });
         this.rollNotificationCallbacks.forEach(callback => {
             try {
                 callback(activity);
@@ -93,7 +88,7 @@ export class CampaignRealtimeManager {
      */
     private subscribeToActivity(campaignId: string) {
         const supabase = createClient();
-        console.log('[Realtime] Subscribing to campaign activity:', campaignId);
+
         this.activityChannel = supabase
             .channel(`campaign-activity:${campaignId}`)
             .on(
@@ -105,14 +100,6 @@ export class CampaignRealtimeManager {
                     filter: `campaign_id=eq.${campaignId}`,
                 },
                 (payload: RealtimePostgresChangesPayload<CampaignActivity>) => {
-                    // Log EVERY incoming activity from Supabase (before any filtering)
-                    console.log('[Realtime] ⚡ RECEIVED activity from Supabase:', {
-                        activityType: (payload.new as CampaignActivity).activity_type,
-                        characterName: (payload.new as CampaignActivity).character_name,
-                        activityId: (payload.new as CampaignActivity).id,
-                        timestamp: new Date().toISOString(),
-                    });
-
                     const activity = payload.new as CampaignActivity;
                     const state = this.getStore?.();
                     const currentUserId = state?.user?.id;
@@ -122,18 +109,9 @@ export class CampaignRealtimeManager {
                     if (activity.is_private && !isOwnActivity) return;
 
                     // For dice rolls, always emit the notification (including own rolls for confirmation)
-                    // But only add to feed if it's not our own (own is optimistically added)
                     if (activity.activity_type === 'dice_roll') {
-                        console.log('[RollNotification] Received dice_roll via realtime:', {
-                            characterName: activity.character_name,
-                            userId: activity.user_id,
-                            isOwnActivity,
-                            data: activity.data,
-                        });
-                        // Emit roll notification for all dice rolls (own roll = "sent" confirmation)
                         this.emitRollNotification(activity);
-
-                        // Only add others' rolls to feed (own is already there via optimistic update)
+                        // Only add to feed if it's not our own
                         if (!isOwnActivity) {
                             state?.addActivityToFeed?.(activity);
                         }
@@ -149,13 +127,10 @@ export class CampaignRealtimeManager {
                 }
             )
             .subscribe((status, err) => {
-                console.log('[Realtime] Subscription status for campaign activity:', status);
                 if (err) {
                     console.error('[Realtime] Subscription error:', err);
                 }
-                if (status === 'SUBSCRIBED') {
-                    console.log('[Realtime] ✅ Successfully subscribed to campaign activity!');
-                } else if (status === 'CHANNEL_ERROR') {
+                if (status === 'CHANNEL_ERROR') {
                     console.error('[Realtime] ❌ Channel error - subscription failed');
                 } else if (status === 'TIMED_OUT') {
                     console.error('[Realtime] ⏰ Subscription timed out');

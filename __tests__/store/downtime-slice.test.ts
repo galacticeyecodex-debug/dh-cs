@@ -20,27 +20,9 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 // MOCKS - All vi.mock calls must be at the top, before any variable definitions
 // ============================================================================
 
-// Mock Supabase client
-const mockSelect = vi.fn().mockReturnThis();
-const mockInsert = vi.fn().mockReturnThis();
-const mockUpdate = vi.fn().mockReturnThis();
-const mockDelete = vi.fn().mockReturnThis();
-const mockEq = vi.fn().mockReturnThis();
-const mockOrder = vi.fn().mockReturnThis();
-const mockSingle = vi.fn();
-
+// Mock Supabase client - No longer used directly
 vi.mock('@/lib/supabase/client', () => ({
-  default: () => ({
-    from: vi.fn(() => ({
-      select: mockSelect,
-      insert: mockInsert,
-      update: mockUpdate,
-      delete: mockDelete,
-      eq: mockEq,
-      order: mockOrder,
-      single: mockSingle,
-    })),
-  }),
+  default: () => ({}),
 }));
 
 // Mock toast notifications
@@ -64,6 +46,10 @@ vi.mock('@/lib/data-service', () => ({
       update: vi.fn(),
       get: vi.fn(),
       updateVitals: vi.fn(),
+      getCharacterProjects: vi.fn(),
+      createCharacterProject: vi.fn(),
+      updateCharacterProject: vi.fn(),
+      deleteCharacterProject: vi.fn(),
     },
     inventory: {
       equip: vi.fn(),
@@ -75,6 +61,7 @@ vi.mock('@/lib/data-service', () => ({
 // IMPORTS - After all mocks are declared
 // ============================================================================
 import { useCharacterStore } from '@/store/character-store';
+import { dataService } from '@/lib/data-service';
 import type { Character } from '@/types/character';
 import type { Project } from '@/types/downtime';
 
@@ -137,10 +124,16 @@ describe('Downtime Slice', () => {
     // Reset all mocks
     vi.clearAllMocks();
 
+    // Default successful mock responses
+    vi.mocked((dataService.character as any).getCharacterProjects).mockResolvedValue([]);
+    vi.mocked((dataService.character as any).createCharacterProject).mockResolvedValue(createMockProject());
+    vi.mocked((dataService.character as any).updateCharacterProject).mockResolvedValue(undefined);
+    vi.mocked((dataService.character as any).deleteCharacterProject).mockResolvedValue(undefined);
+
     // Reset store to initial state
     useCharacterStore.setState({
       character: null,
-      user: { id: 'user-1', email: 'test@test.com' },
+      user: { id: 'user-1', email: 'test@test.com', user_metadata: {} },
       isLoading: false,
       currentRest: null,
       projects: [],
@@ -148,12 +141,6 @@ describe('Downtime Slice', () => {
       projectsError: null,
       studyTokens: [],
     });
-
-    // Default successful mock responses
-    mockSelect.mockReturnThis();
-    mockEq.mockReturnThis();
-    mockOrder.mockResolvedValue({ data: [], error: null });
-    mockSingle.mockResolvedValue({ data: null, error: null });
   });
 
   afterEach(() => {
@@ -260,7 +247,7 @@ describe('Downtime Slice', () => {
       // Create a delayed promise to check loading state
       let resolvePromise: (value: any) => void;
       const delayedPromise = new Promise(resolve => { resolvePromise = resolve; });
-      mockOrder.mockReturnValue(delayedPromise);
+      vi.mocked((dataService.character as any).getCharacterProjects).mockReturnValue(delayedPromise);
 
       const fetchPromise = useCharacterStore.getState().fetchProjects();
 
@@ -268,7 +255,7 @@ describe('Downtime Slice', () => {
       expect(useCharacterStore.getState().projectsLoading).toBe(true);
 
       // Resolve the promise
-      resolvePromise!({ data: [], error: null });
+      resolvePromise!([]);
       await fetchPromise;
 
       expect(useCharacterStore.getState().projectsLoading).toBe(false);
@@ -283,7 +270,7 @@ describe('Downtime Slice', () => {
         createMockProject({ id: 'project-2', name: 'Project 2' }),
       ];
 
-      mockOrder.mockResolvedValue({ data: mockProjects, error: null });
+      vi.mocked((dataService.character as any).getCharacterProjects).mockResolvedValue(mockProjects);
 
       await useCharacterStore.getState().fetchProjects();
 
@@ -296,7 +283,7 @@ describe('Downtime Slice', () => {
       const character = createMockCharacter();
       useCharacterStore.getState().setCharacter(character);
 
-      mockOrder.mockResolvedValue({ data: null, error: new Error('Fetch failed') });
+      vi.mocked((dataService.character as any).getCharacterProjects).mockRejectedValue(new Error('Fetch failed'));
 
       await useCharacterStore.getState().fetchProjects();
 
@@ -311,7 +298,7 @@ describe('Downtime Slice', () => {
       await useCharacterStore.getState().fetchProjects();
 
       // Should not have called the database
-      expect(mockSelect).not.toHaveBeenCalled();
+      expect(vi.mocked((dataService.character as any).getCharacterProjects)).not.toHaveBeenCalled();
     });
   });
 
@@ -325,8 +312,8 @@ describe('Downtime Slice', () => {
       useCharacterStore.getState().setCharacter(character);
 
       const newProject = createMockProject({ id: 'new-project' });
-      mockSingle.mockResolvedValue({ data: newProject, error: null });
-      mockOrder.mockResolvedValue({ data: [newProject], error: null });
+      vi.mocked((dataService.character as any).createCharacterProject).mockResolvedValue(newProject);
+      vi.mocked((dataService.character as any).getCharacterProjects).mockResolvedValue([newProject]);
 
       const result = await useCharacterStore.getState().createProject({
         name: 'New Project',
@@ -336,6 +323,10 @@ describe('Downtime Slice', () => {
 
       expect(result).toBeDefined();
       expect(result?.name).toBe('Forge Magic Sword');
+      expect(vi.mocked((dataService.character as any).createCharacterProject)).toHaveBeenCalledWith(
+        character.id,
+        expect.objectContaining({ name: 'New Project' })
+      );
     });
 
     it('should return null when no character loaded', async () => {
@@ -353,7 +344,7 @@ describe('Downtime Slice', () => {
       const character = createMockCharacter();
       useCharacterStore.getState().setCharacter(character);
 
-      mockSingle.mockResolvedValue({ data: null, error: new Error('DB error') });
+      vi.mocked((dataService.character as any).createCharacterProject).mockRejectedValue(new Error('DB error'));
 
       const result = await useCharacterStore.getState().createProject({
         name: 'New Project',
@@ -372,16 +363,15 @@ describe('Downtime Slice', () => {
       const project = createMockProject({ countdown_current: 1 });
       useCharacterStore.setState({ projects: [project] });
 
-      mockEq.mockResolvedValue({ error: null });
-      mockOrder.mockResolvedValue({
-        data: [{ ...project, countdown_current: 2 }],
-        error: null
-      });
+      vi.mocked((dataService.character as any).getCharacterProjects).mockResolvedValue([{ ...project, countdown_current: 2 }]);
 
       await useCharacterStore.getState().advanceProject('project-1');
 
       // Verify update was called with incremented value
-      expect(mockUpdate).toHaveBeenCalled();
+      expect(vi.mocked((dataService.character as any).updateCharacterProject)).toHaveBeenCalledWith(
+        'project-1',
+        expect.objectContaining({ countdown_current: 2 })
+      );
     });
 
     it('should advance project by specified segments', async () => {
@@ -391,15 +381,14 @@ describe('Downtime Slice', () => {
       const project = createMockProject({ countdown_current: 0 });
       useCharacterStore.setState({ projects: [project] });
 
-      mockEq.mockResolvedValue({ error: null });
-      mockOrder.mockResolvedValue({
-        data: [{ ...project, countdown_current: 3 }],
-        error: null
-      });
+      vi.mocked((dataService.character as any).getCharacterProjects).mockResolvedValue([{ ...project, countdown_current: 3 }]);
 
       await useCharacterStore.getState().advanceProject('project-1', 3);
 
-      expect(mockUpdate).toHaveBeenCalled();
+      expect(vi.mocked((dataService.character as any).updateCharacterProject)).toHaveBeenCalledWith(
+        'project-1',
+        expect.objectContaining({ countdown_current: 3 })
+      );
     });
 
     it('should not exceed countdown_total', async () => {
@@ -409,15 +398,14 @@ describe('Downtime Slice', () => {
       const project = createMockProject({ countdown_current: 3, countdown_total: 4 });
       useCharacterStore.setState({ projects: [project] });
 
-      mockEq.mockResolvedValue({ error: null });
-      mockOrder.mockResolvedValue({
-        data: [{ ...project, countdown_current: 4, completed: true }],
-        error: null
-      });
+      vi.mocked((dataService.character as any).getCharacterProjects).mockResolvedValue([{ ...project, countdown_current: 4, completed: true }]);
 
       await useCharacterStore.getState().advanceProject('project-1', 5);
 
-      expect(mockUpdate).toHaveBeenCalled();
+      expect(vi.mocked((dataService.character as any).updateCharacterProject)).toHaveBeenCalledWith(
+        'project-1',
+        expect.objectContaining({ countdown_current: 4, completed: true })
+      );
     });
 
     it('should not crash when project not found', async () => {
@@ -437,15 +425,14 @@ describe('Downtime Slice', () => {
       const project = createMockProject({ countdown_current: 1 });
       useCharacterStore.setState({ projects: [project] });
 
-      mockEq.mockResolvedValue({ error: null });
-      mockOrder.mockResolvedValue({
-        data: [{ ...project, countdown_current: 3 }],
-        error: null
-      });
+      vi.mocked((dataService.character as any).getCharacterProjects).mockResolvedValue([{ ...project, countdown_current: 3 }]);
 
       await useCharacterStore.getState().setProjectProgress('project-1', 3);
 
-      expect(mockUpdate).toHaveBeenCalled();
+      expect(vi.mocked((dataService.character as any).updateCharacterProject)).toHaveBeenCalledWith(
+        'project-1',
+        expect.objectContaining({ countdown_current: 3 })
+      );
     });
 
     it('should clamp progress to valid range', async () => {
@@ -455,16 +442,15 @@ describe('Downtime Slice', () => {
       const project = createMockProject({ countdown_current: 2, countdown_total: 4 });
       useCharacterStore.setState({ projects: [project] });
 
-      mockEq.mockResolvedValue({ error: null });
-      mockOrder.mockResolvedValue({
-        data: [{ ...project, countdown_current: 4, completed: true }],
-        error: null
-      });
+      vi.mocked((dataService.character as any).getCharacterProjects).mockResolvedValue([{ ...project, countdown_current: 4, completed: true }]);
 
       // Try to set above max
       await useCharacterStore.getState().setProjectProgress('project-1', 10);
 
-      expect(mockUpdate).toHaveBeenCalled();
+      expect(vi.mocked((dataService.character as any).updateCharacterProject)).toHaveBeenCalledWith(
+        'project-1',
+        expect.objectContaining({ countdown_current: 4 })
+      );
     });
   });
 
@@ -476,15 +462,14 @@ describe('Downtime Slice', () => {
       const project = createMockProject();
       useCharacterStore.setState({ projects: [project] });
 
-      mockEq.mockResolvedValue({ error: null });
-      mockOrder.mockResolvedValue({
-        data: [{ ...project, completed: true }],
-        error: null
-      });
+      vi.mocked((dataService.character as any).getCharacterProjects).mockResolvedValue([{ ...project, completed: true }]);
 
       await useCharacterStore.getState().completeProject('project-1');
 
-      expect(mockUpdate).toHaveBeenCalled();
+      expect(vi.mocked((dataService.character as any).updateCharacterProject)).toHaveBeenCalledWith(
+        'project-1',
+        expect.objectContaining({ completed: true })
+      );
     });
   });
 
@@ -496,18 +481,17 @@ describe('Downtime Slice', () => {
       const project = createMockProject();
       useCharacterStore.setState({ projects: [project] });
 
-      mockEq.mockResolvedValue({ error: null });
-      mockOrder.mockResolvedValue({
-        data: [{ ...project, name: 'Updated Name' }],
-        error: null
-      });
+      vi.mocked((dataService.character as any).getCharacterProjects).mockResolvedValue([{ ...project, name: 'Updated Name' }]);
 
       await useCharacterStore.getState().updateProject('project-1', {
         name: 'Updated Name',
         description: 'Updated description',
       });
 
-      expect(mockUpdate).toHaveBeenCalled();
+      expect(vi.mocked((dataService.character as any).updateCharacterProject)).toHaveBeenCalledWith(
+        'project-1',
+        expect.objectContaining({ name: 'Updated Name' })
+      );
     });
   });
 
@@ -519,12 +503,11 @@ describe('Downtime Slice', () => {
       const project = createMockProject();
       useCharacterStore.setState({ projects: [project] });
 
-      mockEq.mockResolvedValue({ error: null });
-      mockOrder.mockResolvedValue({ data: [], error: null });
+      vi.mocked((dataService.character as any).getCharacterProjects).mockResolvedValue([]);
 
       await useCharacterStore.getState().deleteProject('project-1');
 
-      expect(mockDelete).toHaveBeenCalled();
+      expect(vi.mocked((dataService.character as any).deleteCharacterProject)).toHaveBeenCalledWith('project-1');
     });
   });
 

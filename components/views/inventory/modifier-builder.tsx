@@ -13,7 +13,7 @@
  * - Validation: Ensures required fields are filled and values are numeric
  */
 
-import React, { useState } from 'react';
+import React, { useState, useId } from 'react';
 import { Plus, Trash2, Edit2, Check, X, Wand2 } from 'lucide-react';
 import clsx from 'clsx';
 import { Modifier, ModifierOperator, CharacterStat } from '@/types/modifiers';
@@ -50,6 +50,9 @@ const OPERATOR_OPTIONS: { value: ModifierOperator; label: string }[] = [
 ];
 
 export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilderProps) {
+
+  const rawId = useId();
+  const id = `mod-${rawId.replace(/:/g, '')}`;
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showTextParser, setShowTextParser] = useState(false);
@@ -137,14 +140,14 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
     const updated = modifiers.map(m =>
       m.id === editingId
         ? {
-            ...m,
-            type: getModifierType(target),
-            target: target,
-            value: numValue,
-            operator,
-            condition: condition || undefined,
-            description: generateDescription({ target, value: numValue, operator, condition }),
-          }
+          ...m,
+          type: getModifierType(target),
+          target: target,
+          value: numValue,
+          operator,
+          condition: condition || undefined,
+          description: generateDescription({ target, value: numValue, operator, condition }),
+        }
         : m
     );
 
@@ -212,7 +215,7 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
       {/* Modifier List */}
       {modifiers.length === 0 && !isAdding && (
         <div className="text-center text-gray-600 italic py-4 text-sm">
-          No modifiers yet. Click &ldquo;Add Modifier&rdquo; to create one.
+          No modifiers yet. Click &ldquo;Add Manually&rdquo; to create one.
         </div>
       )}
 
@@ -264,10 +267,11 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
           </div>
 
           <div>
-            <label className="block text-xs text-gray-400 mb-1">
+            <label htmlFor={`${id}-parse-text`} className="block text-xs text-gray-400 mb-1">
               Feature Text
             </label>
             <textarea
+              id={`${id}-parse-text`}
               value={parseText}
               onChange={(e) => {
                 setParseText(e.target.value);
@@ -323,8 +327,10 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
 
           {/* Target Stat */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Target Stat</label>
+            <label htmlFor={`${id}-target`} className="block text-xs text-gray-400 mb-1">Target Stat</label>
             <select
+              id={`${id}-target`}
+              aria-label="Target Stat"
               value={target}
               onChange={(e) => setTarget(e.target.value)}
               className="w-full p-2 rounded bg-black/40 border border-white/20 text-white text-sm focus:border-dagger-gold outline-none"
@@ -339,8 +345,10 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
 
           {/* Operator */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Operator</label>
+            <label htmlFor={`${id}-operator`} className="block text-xs text-gray-400 mb-1">Operator</label>
             <select
+              id={`${id}-operator`}
+              aria-label="Operator"
               value={operator}
               onChange={(e) => setOperator(e.target.value as ModifierOperator)}
               className="w-full p-2 rounded bg-black/40 border border-white/20 text-white text-sm focus:border-dagger-gold outline-none"
@@ -355,8 +363,10 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
 
           {/* Value */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Value</label>
+            <label htmlFor={`${id}-value`} className="block text-xs text-gray-400 mb-1">Value</label>
             <input
+              id={`${id}-value`}
+              aria-label="Value"
               type="number"
               value={value}
               onChange={(e) => setValue(e.target.value)}
@@ -367,10 +377,12 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
 
           {/* Condition (Optional) */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">
+            <label htmlFor={`${id}-condition`} className="block text-xs text-gray-400 mb-1">
               Condition <span className="text-gray-600">(optional)</span>
             </label>
             <input
+              id={`${id}-condition`}
+              aria-label="Condition"
               type="text"
               value={condition}
               onChange={(e) => setCondition(e.target.value)}

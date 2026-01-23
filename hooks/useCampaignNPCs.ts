@@ -55,11 +55,7 @@ export default function useCampaignNPCs() {
             // Only seed if no NPCs exist for this campaign
             if (!hasExistingCampaignNPCs) {
                 seedingAttemptedRef.current.add(seedKey);
-                seedCampaignNPCs(campaignId).then(result => {
-                    if (result.success && result.seeded > 0) {
-                        console.log(`Seeded ${result.seeded} NPCs for ${campaignId} campaign`);
-                    }
-                });
+                seedCampaignNPCs(campaignId);
             }
         }
     }, [character?.id, enabledCampaigns, accessLoading, relationships, seedCampaignNPCs]);

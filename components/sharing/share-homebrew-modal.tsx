@@ -25,10 +25,12 @@ import { useCharacterStore } from '@/store/character-store';
 import { Users, Swords, Check, Loader2 } from 'lucide-react';
 import { getInitials } from '@/lib/format-utils';
 import { toast } from 'sonner';
+import { dataService } from '@/lib/data-service';
 
 interface ShareHomebrewModalProps {
     itemId: string;
     itemName: string;
+    itemData: any;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
@@ -36,10 +38,11 @@ interface ShareHomebrewModalProps {
 export function ShareHomebrewModal({
     itemId,
     itemName,
+    itemData,
     open,
     onOpenChange
 }: ShareHomebrewModalProps) {
-    const { campaigns, friends } = useCharacterStore();
+    const { campaigns, friends, user } = useCharacterStore();
     const [selectedTarget, setSelectedTarget] = useState<{
         type: 'campaign' | 'friend';
         id: string;
@@ -48,22 +51,29 @@ export function ShareHomebrewModal({
     const [isSharing, setIsSharing] = useState(false);
 
     const handleShare = async () => {
-        if (!selectedTarget) {
+        if (!selectedTarget || !user) {
             toast.error('Please select someone to share with');
             return;
         }
 
         setIsSharing(true);
         try {
-            // TODO: Implement actual sharing logic when shared_homebrew table is fully set up
-            // For now, show a success message
+            await dataService.sharing.create({
+                source_user_id: user.id,
+                target_type: selectedTarget.type,
+                target_id: selectedTarget.id,
+                item_data: itemData,
+                original_item_id: itemId
+            });
+
             toast.success(
                 `Shared "${itemName}" with ${selectedTarget.name}!`,
-                { description: `They can now add this item to their characters.` }
+                { description: `They can now view this item.` }
             );
             onOpenChange(false);
             setSelectedTarget(null);
-        } catch {
+        } catch (error) {
+            console.error('Share failed:', error);
             toast.error('Failed to share item');
         } finally {
             setIsSharing(false);
@@ -115,8 +125,8 @@ export function ShareHomebrewModal({
                                                 name: campaign.name,
                                             })}
                                             className={`w-full flex items-center justify-between p-2 rounded-md text-left transition-colors ${selectedTarget?.id === campaign.id && selectedTarget?.type === 'campaign'
-                                                    ? 'bg-primary/10 border border-primary'
-                                                    : 'hover:bg-accent border border-transparent'
+                                                ? 'bg-primary/10 border border-primary'
+                                                : 'hover:bg-accent border border-transparent'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2">
@@ -158,8 +168,8 @@ export function ShareHomebrewModal({
                                                 name: friend.username || 'Friend',
                                             })}
                                             className={`w-full flex items-center justify-between p-2 rounded-md text-left transition-colors ${selectedTarget?.id === friend.user_id && selectedTarget?.type === 'friend'
-                                                    ? 'bg-primary/10 border border-primary'
-                                                    : 'hover:bg-accent border border-transparent'
+                                                ? 'bg-primary/10 border border-primary'
+                                                : 'hover:bg-accent border border-transparent'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2">

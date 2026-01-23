@@ -17,7 +17,7 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { parseCardPassiveModifiers, getBareBonesBonuses, calculateDynamicValue } from './card-parser';
+import { parseCardPassiveModifiers, parseStaticModifiers, getBareBonesBonuses, calculateDynamicValue } from './card-parser';
 import { getModifiers, isModifierActive, getEnhancement, WithEnhancement } from './enhancement-utils';
 
 export function cn(...inputs: ClassValue[]) {
@@ -119,7 +119,41 @@ export function getSystemModifiers(
     });
   }
 
-  // B. DOMAIN CARDS IN LOADOUT
+  // B. ANCESTRY FEATURES
+  if (character.ancestry_features) {
+    character.ancestry_features.forEach((feature: any) => {
+      // 1. Text Parsing
+      if (feature.text) {
+        const mods = parseStaticModifiers(feature.text, `${character.ancestry || 'Ancestry'} Feature: ${feature.name}`);
+        mods.filter(mod => mod.stat === stat).forEach((mod, index) => {
+          systemModifiers.push({
+            id: `ancestry-${feature.name || index}-${stat}-${index}`,
+            name: mod.source,
+            value: mod.value,
+            source: 'ancestry',
+            type: 'ancestry'
+          });
+        });
+      }
+
+      // 2. Structured Bonuses (if available in JSON data)
+      if (feature.stat_bonuses) {
+        Object.entries(feature.stat_bonuses).forEach(([bonusStat, bonusValue]) => {
+          if (bonusStat === stat) {
+            systemModifiers.push({
+              id: `ancestry-${feature.name}-structured-${stat}`,
+              name: `${character.ancestry || 'Ancestry'}: ${feature.name}`,
+              value: Number(bonusValue),
+              source: 'ancestry',
+              type: 'ancestry'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  // C. DOMAIN CARDS IN LOADOUT
   if (character.character_cards) {
     // CRITICAL FIX: For dynamic formulas like "half your Agility" to work correctly,
     // we need to use TOTAL stat values (base + modifiers), not just base values.
@@ -255,7 +289,9 @@ export function calculateBaseEvasion(character: any, cardStates: Record<string, 
   // 1. Class Base
   const base = getClassBaseStat(character, 'evasion');
 
-  // 2. Ancestry Modifiers (TODO: Fetch and parse ancestry features if needed)
+  // 2. Ancestry Modifiers
+  // Handled by getSystemModifiers via parseStaticModifiers and structured bonuses
+
 
   // 3. Item Modifiers
   const systemMods = getSystemModifiers(character, 'evasion', cardStates);

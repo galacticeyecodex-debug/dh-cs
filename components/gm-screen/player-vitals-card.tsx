@@ -54,9 +54,9 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
         toggleProjectsLock,
         characterProjects,
         fetchProjectsForCharacter,
-        setProjectProgress,
-        deleteProject,
-        createProject,
+        setProjectProgress: gmSetProjectProgress,
+        deleteProject: gmDeleteProject,
+        createProject: gmCreateProject,
         vitalIcons,
     } = useCharacterStore();
     const isUnlocked = unlockedVitalsCards.has(character.id);
@@ -288,10 +288,10 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
     const handleProjectSubmit = async (data: any) => {
         if (editingProject) {
             // Edit existing project
-            await createProject({ ...data, character_id: character.id, id: editingProject.id } as any);
+            await gmCreateProject({ ...data, character_id: character.id, id: editingProject.id } as any);
         } else {
             // Create new project
-            await createProject({ ...data, character_id: character.id });
+            await gmCreateProject({ ...data, character_id: character.id });
         }
         setEditingProject(undefined);
         // Refresh projects list
@@ -301,13 +301,13 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
 
     const handleDeleteProject = async (projectId: string) => {
         if (confirm('Delete this project?')) {
-            await deleteProject(projectId);
+            await gmDeleteProject(projectId);
             setProjects(projects.filter(p => p.id !== projectId));
         }
     };
 
     const handleProjectProgressChange = async (projectId: string, newProgress: number) => {
-        await setProjectProgress(projectId, newProgress);
+        await gmSetProjectProgress(projectId, newProgress);
         const charProjects = characterProjects[character.id] || [];
         setProjects(charProjects);
     };
@@ -315,7 +315,7 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
     return (
         <div
             className={clsx(
-                'bg-dagger-panel border rounded-xl p-4 transition-all duration-200',
+                'bg-dagger-panel border rounded-xl p-4 transition-all duration-200 min-w-0 w-full',
                 hasWarning ? 'border-orange-500/50 shadow-lg shadow-orange-500/10' : 'border-white/10',
                 isUnlocked && 'ring-2 ring-green-500/50'
             )}
