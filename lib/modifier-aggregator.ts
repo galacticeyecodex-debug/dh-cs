@@ -26,9 +26,14 @@
  * - Hard-to-debug modifier issues
  * 
  * HOW TO USE:
- * 1. Call initModifierAggregator() once when enhanced abilities are loaded
- * 2. Use getStatModifiers()/getRollBonus() for calculations
- * 3. Use getAllActiveModifiers() for UI display
+ * 1. Use the useModifierAggregatorInit() hook in your app root (automatically done in app/layout.tsx)
+ * 2. Call getStatModifiers()/getRollBonus() for modifier calculations
+ * 3. Call getAllActiveModifiers() for UI display of active modifiers
+ *
+ * INITIALIZATION:
+ * The aggregator is initialized in app/layout-client.tsx via the useModifierAggregatorInit hook.
+ * This ensures the cache is populated before any components attempt to access modifier data.
+ * Components no longer need to call initModifierAggregator() themselves.
  * 
  * @see lib/enhancement-utils.ts for card-level modifier extraction
  * @see lib/modifier-service.ts for applying modifier operations
@@ -83,6 +88,16 @@ export function initModifierAggregator(enhancedAbilities: EnhancedAbilityCard[])
  * Get the cached enhanced abilities (for components that need direct access)
  */
 export function getEnhancedAbilitiesCache(): EnhancedAbilityCard[] {
+    if (cachedEnhancedAbilities.length === 0) {
+        if (process.env.NODE_ENV === 'development') {
+            console.warn(
+                '[modifier-aggregator] Cache is empty. ' +
+                'Did you call initModifierAggregator() at app startup? ' +
+                'The aggregator will still work, but with incomplete modifier data. ' +
+                'See: useModifierAggregatorInit hook for proper initialization.'
+            );
+        }
+    }
     return cachedEnhancedAbilities;
 }
 
@@ -374,7 +389,31 @@ export function getModifiersByStat(
 
 /**
  * Calculate trait totals for dynamic formula evaluation.
- * Avoids circular dependency when calculating trait modifiers.
+ *
+ * CIRCULAR DEPENDENCY MITIGATION:
+ * ============================================================================
+ * Problem: Domain cards can use dynamic formulas that reference trait values
+ * (e.g., "Deal [2d8 + Strength] damage"). But calculating trait totals requires
+ * knowing what domain card modifiers apply, which depends on evaluating those
+ * same domain card formulas. This creates a circular dependency.
+ *
+ * Solution: Pre-calculate trait totals BEFORE processing domain card modifiers.
+ * This creates a single-pass evaluation:
+ * 1. Calculate base trait totals using character base values (no modifiers yet)
+ * 2. Process domain cards with those pre-calculated trait values
+ * 3. Return complete modifier list including domain card modifiers
+ *
+ * The base trait calculation does NOT include domain card modifiers, so when
+ * you evaluate a domain card formula like "[2d8 + Strength]", the Strength
+ * value is the base value, not the modified value. This is correct because
+ * domain card bonuses are meant to stack on top of base traits.
+ *
+ * Example:
+ * - Character base Strength: 4
+ * - Domain card modifier to Strength: +2
+ * - Formula in domain card: "[1d8 + Strength]"
+ * - Strength value used in formula: 4 (base value, not 6)
+ * - Final Strength total: 4 + 2 = 6 (the +2 is added as a separate modifier)
  */
 function calculateTraitsWithTotals(
     character: Character,

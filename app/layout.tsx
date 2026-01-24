@@ -2,13 +2,14 @@
  * ROOT LAYOUT
  * ----------------------------------------------------------------------------
  * This is the top-level layout component that wraps the entire application.
- * 
+ *
  * FUNCTIONALITY:
  * - Defines the HTML structure (`html`, `body`) shared by all pages.
  * - Applies global fonts (`Geist` and `Geist_Mono`) via Next.js Font optimization.
  * - Imports global CSS (`globals.css`) for Tailwind and custom styles.
  * - Injects global providers, such as the `ToastProvider` for notifications, ensuring
  *   they are available throughout the app hierarchy.
+ * - Initializes the modifier aggregator cache at app startup.
  * - Sets default SEO metadata (title, description).
  */
 
@@ -18,6 +19,7 @@ import localFont from "next/font/local";
 
 import "./globals.css";
 import { ToastProvider } from "@/components/providers/toast-provider";
+import RootLayoutClient from "./layout-client";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,8 +56,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${eveleth.variable} antialiased`}
       >
-        <ToastProvider />
-        {children}
+        <RootLayoutClient>
+          <ToastProvider />
+          {children}
+        </RootLayoutClient>
       </body>
     </html>
   );
