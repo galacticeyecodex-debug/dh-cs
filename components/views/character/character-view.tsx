@@ -42,11 +42,17 @@ import { MAX_IMAGE_FILE_SIZE, MAX_IMAGE_FILE_SIZE_MB } from '@/lib/image-utils';
 import { toast } from 'sonner';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/core/error-boundary';
+import CardTokenTrack from '@/components/shared/token-track';
+import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
+import { DomainCostsRow } from '@/components/shared/ability-costs-row';
+import FrequencyCheckbox from '@/components/shared/frequency-checkbox';
 import useContentAccess from '@/hooks/useContentAccess';
+import { srdAncestries, srdCommunities, srdClasses } from '@/lib/content-loaders';
+import type { EnhancedAncestry, EnhancedCommunity } from '@/types/cards';
 
 export default function CharacterView() {
   const router = useRouter();
-  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice, updateBardRallyDice, updateGuardianUnstoppable, updateWizardStrangePatterns, updateDruidBeastform, updateRangerFocus } = useCharacterStore();
+  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice, updateBardRallyDice, updateGuardianUnstoppable, updateWizardStrangePatterns, updateDruidBeastform, updateRangerFocus, prepareRoll } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
@@ -88,6 +94,44 @@ export default function CharacterView() {
   const HPIcon = getIconByName(vitalIcons.hitPoints, AppIcons.vitals.hitPoints);
   const StressIcon = getIconByName(vitalIcons.stress, AppIcons.vitals.stress);
   const HopeIcon = getIconByName(vitalIcons.hope, AppIcons.vitals.hope);
+
+  // Look up enhanced class data (has costs info for features)
+  const enhancedClassData = useMemo(() => {
+    if (!character?.class_data?.name) return null;
+    const enhancedClasses = (srdClasses || []) as any[];
+    return enhancedClasses.find(c => c.name === character.class_data?.name) || null;
+  }, [character?.class_data?.name]);
+
+  // Look up enhanced Hope Feature from class data (has costs info)
+  const enhancedHopeFeature = useMemo(() => {
+    return enhancedClassData?.hope_feat_enhanced || null;
+  }, [enhancedClassData]);
+
+  // Look up enhanced class features (class_feats with enhancement data)
+  const enhancedClassFeats = useMemo(() => {
+    return enhancedClassData?.class_feats || [];
+  }, [enhancedClassData]);
+
+  // Helper to look up enhanced ancestry feature by name
+  // This ensures we always get enhancement data even if character.ancestry_features is set
+  const getEnhancedAncestryFeature = useMemo(() => {
+    const enhancedAncestries = (srdAncestries || []) as any[];
+    return (ancestryName: string, featureName: string) => {
+      const ancestry = enhancedAncestries.find(a => a.name === ancestryName);
+      if (!ancestry) return null;
+      return (ancestry.feats || []).find((f: any) => f.name === featureName) || null;
+    };
+  }, []);
+
+  // Helper to look up enhanced community feature by name
+  const getEnhancedCommunityFeature = useMemo(() => {
+    const enhancedCommunities = (srdCommunities || []) as any[];
+    return (communityName: string, featureName: string) => {
+      const community = enhancedCommunities.find(c => c.name === communityName);
+      if (!community) return null;
+      return (community.feats || []).find((f: any) => f.name === featureName) || null;
+    };
+  }, []);
 
   // Memoize trait tabs for centralized ModifierSheet
   const traitTabs = useMemo(() => {
@@ -143,7 +187,8 @@ export default function CharacterView() {
     };
   }, []);
 
-  // Fetch domain cards, ancestry, and community from library
+  // Fetch domain cards and other library data from database
+  // Ancestry and community use enhanced JSON directly for token support (same as combat-view)
   useEffect(() => {
     const fetchLibraryData = async () => {
       try {
@@ -171,17 +216,19 @@ export default function CharacterView() {
           const classesList = cards.filter((c: any) => c.type === 'class');
           setClasses(classesList);
 
-          // Find ancestry card
+          // Find ancestry card - use enhanced JSON for proper feature data with tokens
           if (character?.ancestry) {
-            const ancestry = data.find((lib: any) => lib.name === character.ancestry);
+            const enhancedAncestries = (srdAncestries || []) as EnhancedAncestry[];
+            const ancestry = enhancedAncestries.find(a => a.name === character.ancestry);
             if (ancestry) {
               setAncestryCard({
                 name: ancestry.name,
-                description: ancestry.data?.description || ancestry.data?.markdown || '',
-                features: character.ancestry_features || ancestry.data?.features || [],
+                description: ancestry.description || '',
+                // Character-specific features override default ancestry features (for mixed ancestry)
+                features: character.ancestry_features || ancestry.feats || [],
               });
             } else if (character.ancestry_features) {
-              // Mixed ancestry case or custom ancestry
+              // Mixed ancestry case or custom ancestry not in SRD
               setAncestryCard({
                 name: character.ancestry,
                 description: 'Mixed Ancestry',
@@ -190,19 +237,21 @@ export default function CharacterView() {
             }
           }
 
-          // Find community card
+          // Find community card - use enhanced JSON for proper token support
           if (character?.community) {
-            const community = data.find((lib: any) => lib.name === character.community);
+            const enhancedCommunities = (srdCommunities || []) as EnhancedCommunity[];
+            const community = enhancedCommunities.find(c => c.name === character.community);
             if (community) {
               setCommunityCard({
                 name: community.name,
-                description: community.data?.description || community.data?.markdown || '',
-                features: community.data?.features || [],
+                description: community.description || '',
+                // Enhanced JSON has feats with enhancement.tokens structure
+                features: community.feats || [],
               });
             }
           }
 
-          // Find transformation card
+          // Find transformation card from database
           if (character?.transformation) {
             const transformation = data.find((lib: any) => lib.name === character.transformation && lib.type === 'transformation');
             if (transformation) {
@@ -558,16 +607,75 @@ export default function CharacterView() {
                               {ancestryCard.description}
                             </p>
                           )}
-                          {ancestryCard.features?.map((feature: any, i: number) => (
-                            <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
-                              <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
-                                {feature.name}
+                          {ancestryCard.features?.map((feature: any, i: number) => {
+                            // Always look up enhancement from enhanced JSON (character.ancestry_features may not have it)
+                            const enhancedFeature = getEnhancedAncestryFeature(ancestryCard.name, feature.name);
+                            const enhancement = enhancedFeature?.enhancement || feature.enhancement;
+                            const hasCosts = enhancement?.costs?.stress || enhancement?.costs?.hope;
+                            const hasTokens = enhancement?.tokens?.has_tokens;
+                            const hasFrequency = enhancement?.frequency && enhancement.frequency !== 'at_will';
+                            const hasRoll = enhancement?.roll?.trait;
+                            const cardName = `ancestry-${ancestryCard.name}-${feature.name}`;
+
+                            // Calculate roll bonus for trait rolls
+                            let rollBonus = 0;
+                            let rollLabel = '';
+                            if (hasRoll) {
+                              const rollTrait = enhancement.roll.trait;
+                              rollBonus = character.stats[rollTrait.toLowerCase() as keyof typeof character.stats] || 0;
+                              rollLabel = `${rollTrait}${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}`;
+                            }
+
+                            return (
+                              <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
+                                <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
+                                  {feature.name}
+                                </div>
+                                <div className="text-sm text-gray-300 leading-relaxed">
+                                  <MarkdownText>{feature.text}</MarkdownText>
+                                </div>
+                                {/* Interactive elements for ancestry features */}
+                                {(hasCosts || hasTokens || hasFrequency || hasRoll) && (
+                                  <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                                    {hasTokens && (
+                                      <CardTokenTrack
+                                        cardName={cardName}
+                                        maxTokens={enhancement.tokens.max_tokens ?? null}
+                                        tokenSource={enhancement.tokens.token_source}
+                                      />
+                                    )}
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                      {hasCosts && (
+                                        <DomainCostsRow
+                                          cardName={cardName}
+                                          costs={enhancement.costs}
+                                          className="flex flex-wrap gap-2"
+                                        />
+                                      )}
+                                      {hasFrequency && (
+                                        <FrequencyCheckbox
+                                          cardName={cardName}
+                                          frequency={enhancement.frequency}
+                                        />
+                                      )}
+                                      {hasRoll && (
+                                        <button
+                                          onClick={() => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus)}
+                                          className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors bg-white/5 border-white/10 hover:bg-white/10 text-cyan-400"
+                                        >
+                                          <div className="absolute top-0.5 right-0.5 text-gray-500" aria-hidden="true">
+                                            <AppIcons.combat.roll size={10} />
+                                          </div>
+                                          <AppIcons.combat.activation size={12} />
+                                          <span>{rollLabel} ({rollBonus >= 0 ? `+${rollBonus}` : rollBonus})</span>
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                              <div className="text-sm text-gray-300 leading-relaxed">
-                                <MarkdownText>{feature.text}</MarkdownText>
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </>
                       ) : (
                         <div className="text-gray-400 italic text-sm">
@@ -608,16 +716,75 @@ export default function CharacterView() {
                               {communityCard.description}
                             </p>
                           )}
-                          {communityCard.features?.map((feature: any, i: number) => (
-                            <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
-                              <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
-                                {feature.name}
+                          {communityCard.features?.map((feature: any, i: number) => {
+                            // Always look up enhancement from enhanced JSON for safety
+                            const enhancedFeature = getEnhancedCommunityFeature(communityCard.name, feature.name);
+                            const enhancement = enhancedFeature?.enhancement || feature.enhancement;
+                            const hasCosts = enhancement?.costs?.stress || enhancement?.costs?.hope;
+                            const hasTokens = enhancement?.tokens?.has_tokens;
+                            const hasFrequency = enhancement?.frequency && enhancement.frequency !== 'at_will';
+                            const hasRoll = enhancement?.roll?.trait;
+                            const cardName = `community-${communityCard.name}-${feature.name}`;
+
+                            // Calculate roll bonus for trait rolls
+                            let rollBonus = 0;
+                            let rollLabel = '';
+                            if (hasRoll) {
+                              const rollTrait = enhancement.roll.trait;
+                              rollBonus = character.stats[rollTrait.toLowerCase() as keyof typeof character.stats] || 0;
+                              rollLabel = `${rollTrait}${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}`;
+                            }
+
+                            return (
+                              <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
+                                <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
+                                  {feature.name}
+                                </div>
+                                <div className="text-sm text-gray-300 leading-relaxed">
+                                  <MarkdownText>{feature.text}</MarkdownText>
+                                </div>
+                                {/* Interactive elements for community features */}
+                                {(hasCosts || hasTokens || hasFrequency || hasRoll) && (
+                                  <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                                    {hasTokens && (
+                                      <CardTokenTrack
+                                        cardName={cardName}
+                                        maxTokens={enhancement.tokens.max_tokens ?? null}
+                                        tokenSource={enhancement.tokens.token_source}
+                                      />
+                                    )}
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                      {hasCosts && (
+                                        <DomainCostsRow
+                                          cardName={cardName}
+                                          costs={enhancement.costs}
+                                          className="flex flex-wrap gap-2"
+                                        />
+                                      )}
+                                      {hasFrequency && (
+                                        <FrequencyCheckbox
+                                          cardName={cardName}
+                                          frequency={enhancement.frequency}
+                                        />
+                                      )}
+                                      {hasRoll && (
+                                        <button
+                                          onClick={() => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus)}
+                                          className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors bg-white/5 border-white/10 hover:bg-white/10 text-cyan-400"
+                                        >
+                                          <div className="absolute top-0.5 right-0.5 text-gray-500" aria-hidden="true">
+                                            <AppIcons.combat.roll size={10} />
+                                          </div>
+                                          <AppIcons.combat.activation size={12} />
+                                          <span>{rollLabel} ({rollBonus >= 0 ? `+${rollBonus}` : rollBonus})</span>
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                              <div className="text-sm text-gray-300 leading-relaxed">
-                                <MarkdownText>{feature.text}</MarkdownText>
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </>
                       ) : (
                         <div className="text-gray-400 italic text-sm">
@@ -726,16 +893,26 @@ export default function CharacterView() {
                         </p>
                       )}
 
-                      {/* Hope Feature */}
-                      {character.class_data.data.hope_feature && (
+                      {/* Hope Feature - use enhanced data for costs */}
+                      {(enhancedHopeFeature || character.class_data.data.hope_feature) && (
                         <div className="mt-2 bg-white/5 rounded p-3 border border-white/5">
                           <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1 flex items-center gap-1">
                             <HopeIcon size={12} />
-                            {character.class_data.data.hope_feature.name}
+                            {enhancedHopeFeature?.name || character.class_data.data.hope_feature?.name}
                           </div>
                           <div className="text-sm text-gray-300 leading-relaxed">
-                            <MarkdownText>{character.class_data.data.hope_feature.description}</MarkdownText>
+                            <MarkdownText>{enhancedHopeFeature?.text || character.class_data.data.hope_feature?.description}</MarkdownText>
                           </div>
+                          {/* Add cost button if enhanced data has costs */}
+                          {enhancedHopeFeature?.enhancement?.costs?.hope && (
+                            <div className="mt-3 pt-3 border-t border-white/10">
+                              <DomainAbilityButton
+                                cardName={`hope-feature-${character.class_data.name}`}
+                                costType="hope"
+                                costValue={enhancedHopeFeature.enhancement.costs.hope}
+                              />
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -827,7 +1004,32 @@ export default function CharacterView() {
                           );
                         }
 
-                        // Standard class feature display
+                        // Standard class feature display - look up enhanced data for interactive elements
+                        const enhancedFeat = enhancedClassFeats.find((f: any) => f.name === feature.name);
+                        const enhancement = enhancedFeat?.enhancement;
+                        const hasCosts = enhancement?.costs?.stress || enhancement?.costs?.hope;
+                        const hasTokens = enhancement?.tokens?.has_tokens;
+                        const hasFrequency = enhancement?.frequency && enhancement.frequency !== 'at_will';
+                        const hasRoll = enhancement?.roll?.trait;
+                        const cardName = `class-feature-${character.class_data!.name}-${feature.name}`;
+
+                        // Calculate roll bonus for Spellcast or trait rolls
+                        let rollBonus = 0;
+                        let rollLabel = '';
+                        if (hasRoll) {
+                          const rollTrait = enhancement.roll.trait;
+                          if (rollTrait.toLowerCase() === 'spellcast') {
+                            const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
+                            rollBonus = spellcastTraitName
+                              ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0)
+                              : (character.spellcast || 0);
+                            rollLabel = `Spellcast${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}`;
+                          } else {
+                            rollBonus = character.stats[rollTrait.toLowerCase() as keyof typeof character.stats] || 0;
+                            rollLabel = `${rollTrait}${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}`;
+                          }
+                        }
+
                         return (
                           <div key={idx} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
                             <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
@@ -836,6 +1038,45 @@ export default function CharacterView() {
                             <div className="text-sm text-gray-300 leading-relaxed">
                               <MarkdownText>{feature.text}</MarkdownText>
                             </div>
+                            {/* Interactive elements for class features */}
+                            {(hasCosts || hasTokens || hasFrequency || hasRoll) && (
+                              <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                                {hasTokens && (
+                                  <CardTokenTrack
+                                    cardName={cardName}
+                                    maxTokens={enhancement.tokens.max_tokens ?? null}
+                                    tokenSource={enhancement.tokens.token_source}
+                                  />
+                                )}
+                                <div className="flex flex-wrap gap-2 items-center">
+                                  {hasCosts && (
+                                    <DomainCostsRow
+                                      cardName={cardName}
+                                      costs={enhancement.costs}
+                                      className="flex flex-wrap gap-2"
+                                    />
+                                  )}
+                                  {hasFrequency && (
+                                    <FrequencyCheckbox
+                                      cardName={cardName}
+                                      frequency={enhancement.frequency}
+                                    />
+                                  )}
+                                  {hasRoll && (
+                                    <button
+                                      onClick={() => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus)}
+                                      className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors bg-white/5 border-white/10 hover:bg-white/10 text-cyan-400"
+                                    >
+                                      <div className="absolute top-0.5 right-0.5 text-gray-500" aria-hidden="true">
+                                        <AppIcons.combat.roll size={10} />
+                                      </div>
+                                      <AppIcons.combat.activation size={12} />
+                                      <span>{rollLabel} ({rollBonus >= 0 ? `+${rollBonus}` : rollBonus})</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -1328,6 +1569,7 @@ export default function CharacterView() {
           currentName={character?.name}
           currentLevel={character?.level || 1}
           currentAncestry={character?.ancestry}
+          currentAncestryFeatures={character?.ancestry_features}
           currentCommunity={character?.community}
           currentTransformation={character?.transformation}
           currentSpellcastTrait={character?.spellcast_trait || character?.subclass_data?.data?.spellcast_trait || ''}

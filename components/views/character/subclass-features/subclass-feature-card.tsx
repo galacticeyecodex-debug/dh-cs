@@ -12,13 +12,18 @@
  * - Collapsible Lore: Toggleable subclass description.
  * - Rich Text Rendering: Uses split('**') pattern for bold text, matching Ancestry/Community cards.
  * - Contextual Styling: Applies gold accents for feature names and badges for tiers/multiclass.
+ * - Interactive Elements: Cost buttons, token tracks, and frequency checkboxes for features.
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import clsx from 'clsx';
-import { CharacterCard } from '@/store/character-store';
-import { Info } from 'lucide-react';
+import { CharacterCard, useCharacterStore } from '@/store/character-store';
+import { Info, Dices } from 'lucide-react';
 import { MarkdownText } from '@/components/shared/markdown-text';
+import CardTokenTrack from '@/components/shared/token-track';
+import { DomainCostsRow } from '@/components/shared/ability-costs-row';
+import FrequencyCheckbox from '@/components/shared/frequency-checkbox';
+import { srdSubclasses } from '@/lib/content-loaders';
 
 interface SubclassFeatureCardProps {
   card?: CharacterCard;
@@ -41,6 +46,13 @@ export default function SubclassFeatureCard({
   onToggleLore,
   onCardNotFound
 }: SubclassFeatureCardProps) {
+  // Look up enhanced subclass data for interactive elements
+  const enhancedSubclass = useMemo(() => {
+    if (!card?.library_item?.name) return null;
+    const enhanced = (srdSubclasses || []) as any[];
+    return enhanced.find(s => s.name === card.library_item?.name) || null;
+  }, [card?.library_item?.name]);
+
   if (!card?.library_item) {
     onCardNotFound?.();
     return (
@@ -54,6 +66,15 @@ export default function SubclassFeatureCard({
 
   const item = card.library_item;
   const data = item.data || {};
+
+  // Helper to find enhanced feature data by name and tier
+  const getEnhancedFeature = (featureName: string, tier: string) => {
+    if (!enhancedSubclass) return null;
+    const tierKey = tier.toLowerCase() === 'foundation' ? 'foundations' :
+                    tier.toLowerCase() === 'specialization' ? 'specializations' : 'masteries';
+    const tierFeatures = enhancedSubclass[tierKey] || [];
+    return tierFeatures.find((f: any) => f.name === featureName) || null;
+  };
 
   // Collect all features to display based on progression
   const allFeatures: Array<{ tier: string; features: Array<{ name: string; text: string }> }> = [];
@@ -123,16 +144,53 @@ export default function SubclassFeatureCard({
           </div>
 
           {/* Features for this tier */}
-          {tierGroup.features.map((feature, featureIdx) => (
-            <div key={featureIdx} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
-              <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
-                {feature.name}
+          {tierGroup.features.map((feature, featureIdx) => {
+            // Look up enhanced feature data for interactive elements
+            const enhancedFeature = getEnhancedFeature(feature.name, tierGroup.tier);
+            const enhancement = enhancedFeature?.enhancement;
+            const hasCosts = enhancement?.costs?.stress || enhancement?.costs?.hope;
+            const hasTokens = enhancement?.tokens?.has_tokens;
+            const hasFrequency = enhancement?.frequency && enhancement.frequency !== 'at_will';
+            const cardName = `subclass-${item.name}-${tierGroup.tier}-${feature.name}`;
+
+            return (
+              <div key={featureIdx} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
+                <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
+                  {feature.name}
+                </div>
+                <div className="text-sm text-gray-300 leading-relaxed">
+                  <MarkdownText>{feature.text}</MarkdownText>
+                </div>
+                {/* Interactive elements for subclass features */}
+                {(hasCosts || hasTokens || hasFrequency) && (
+                  <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                    {hasTokens && (
+                      <CardTokenTrack
+                        cardName={cardName}
+                        maxTokens={enhancement.tokens.max_tokens ?? null}
+                        tokenSource={enhancement.tokens.token_source}
+                      />
+                    )}
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {hasCosts && (
+                        <DomainCostsRow
+                          cardName={cardName}
+                          costs={enhancement.costs}
+                          className="flex flex-wrap gap-2"
+                        />
+                      )}
+                      {hasFrequency && (
+                        <FrequencyCheckbox
+                          cardName={cardName}
+                          frequency={enhancement.frequency}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="text-sm text-gray-300 leading-relaxed">
-                <MarkdownText>{feature.text}</MarkdownText>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ))}
 

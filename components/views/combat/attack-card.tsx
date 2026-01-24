@@ -21,8 +21,8 @@ import { MarkdownText } from '@/components/shared/markdown-text';
 import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { getValueColor } from '@/lib/styles';
-import { DomainAbilityButton } from '@/components/views/playmat/domain-ability-button';
-import { DomainCostsRow } from '@/components/views/playmat/domain-costs-row';
+import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
+import { DomainCostsRow } from '@/components/shared/ability-costs-row';
 
 import { AdditionalDamage } from '@/types/cards';
 
