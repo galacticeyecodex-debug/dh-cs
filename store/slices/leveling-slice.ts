@@ -34,6 +34,7 @@ export interface LevelingSlice {
     name?: string;
     level?: number;
     ancestry?: string;
+    ancestry_features?: any[];
     community?: string;
     transformation?: string;
     spellcast_trait?: string;

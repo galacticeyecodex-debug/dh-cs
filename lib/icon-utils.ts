@@ -213,7 +213,7 @@ export const AppIcons = {
         image: ImageIcon,
         camera: Camera,
         dashboard: Grid,
-        stats: Activity,
+        stats: User,
         lore: Book,
         notability: ScrollText,
         external: BookOpen,
