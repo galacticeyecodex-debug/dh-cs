@@ -199,7 +199,7 @@ export interface EnhancedAbilityCard {
  * Character card state - tracks runtime state per card per character
  */
 export interface CharacterCardState {
-  card_name: string;
+  card_name?: string;
   current_tokens: number;
   used_this_rest: boolean;
   used_this_long_rest: boolean;

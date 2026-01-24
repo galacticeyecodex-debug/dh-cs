@@ -22,7 +22,7 @@ import {
   clampVitalValue,
   parseDiceNotation,
 } from '@/lib/game-logic';
-import { getSystemModifiers } from '@/lib/utils';
+import { getStatModifiers } from '@/lib/modifier-aggregator';
 
 // ============================================================================
 // CHARACTER CREATION SCENARIO
@@ -203,7 +203,7 @@ describe('Scenario: Equipping New Armor', () => {
     };
 
     // Get armor modifiers from items
-    const armorMods = getSystemModifiers(character, 'armor');
+    const armorMods = getStatModifiers(character, 'armor');
     const stats = calculateDerivedStats(character, armorMods, [], [], []);
 
     // Armor increased
@@ -280,7 +280,7 @@ describe('Scenario: Equipping New Armor', () => {
       modifiers: {},
     };
 
-    const systemMods = getSystemModifiers(character, 'evasion');
+    const systemMods = getStatModifiers(character, 'evasion');
     expect(systemMods).toHaveLength(1);
     expect(systemMods[0].value).toBe(-1);
   });
@@ -406,7 +406,7 @@ describe('Scenario: Ability with Modifier Bonuses', () => {
     };
 
     // Recalculate with card modifiers
-    const hpMods = getSystemModifiers(character, 'hit_points');
+    const hpMods = getStatModifiers(character, 'hit_points');
     expect(hpMods).toHaveLength(1);
     expect(hpMods[0].value).toBe(2);
 
@@ -456,7 +456,7 @@ describe('Scenario: Ability with Modifier Bonuses', () => {
       modifiers: {},
     };
 
-    const strengthMods = getSystemModifiers(character, 'strength');
+    const strengthMods = getStatModifiers(character, 'strength');
     expect(strengthMods).toHaveLength(2);
     const totalBonus = strengthMods.reduce((acc, mod) => acc + mod.value, 0);
     expect(totalBonus).toBe(3); // 1 + 2

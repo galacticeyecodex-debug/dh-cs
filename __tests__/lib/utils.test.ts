@@ -13,7 +13,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { calculateWeaponDamage, calculateAttackModifier, calculateDamageModifier } from '@/lib/utils';
+import { calculateWeaponDamage } from '@/lib/utils';
+import { calculateAttackBonus, calculateDamageBonus } from '@/lib/roll-utils';
 
 describe('calculateWeaponDamage', () => {
   it('scales single die correctly', () => {
@@ -50,9 +51,9 @@ describe('calculateWeaponDamage', () => {
 // ATTACK MODIFIER CALCULATION TESTS
 // ============================================================================
 
-describe('calculateAttackModifier', () => {
+describe('calculateAttackBonus', () => {
   it('should return 0 for null character', () => {
-    expect(calculateAttackModifier(null)).toBe(0);
+    expect(calculateAttackBonus(null)).toBe(0);
   });
 
   it('should return 0 for character with no modifiers', () => {
@@ -60,7 +61,7 @@ describe('calculateAttackModifier', () => {
       character_inventory: [],
       modifiers: {},
     };
-    expect(calculateAttackModifier(character)).toBe(0);
+    expect(calculateAttackBonus(character)).toBe(0);
   });
 
   it('should calculate system modifiers from equipped weapon', () => {
@@ -81,7 +82,7 @@ describe('calculateAttackModifier', () => {
       ],
       modifiers: {},
     };
-    expect(calculateAttackModifier(character)).toBe(1);
+    expect(calculateAttackBonus(character)).toBe(1);
   });
 
   it('should sum multiple attack modifiers', () => {
@@ -114,7 +115,7 @@ describe('calculateAttackModifier', () => {
       ],
       modifiers: {},
     };
-    expect(calculateAttackModifier(character)).toBe(3);
+    expect(calculateAttackBonus(character)).toBe(3);
   });
 
   it('should include user-added modifiers', () => {
@@ -126,7 +127,7 @@ describe('calculateAttackModifier', () => {
         ],
       },
     };
-    expect(calculateAttackModifier(character)).toBe(2);
+    expect(calculateAttackBonus(character)).toBe(2);
   });
 
   it('should combine system and user modifiers', () => {
@@ -151,7 +152,7 @@ describe('calculateAttackModifier', () => {
         ],
       },
     };
-    expect(calculateAttackModifier(character)).toBe(3);
+    expect(calculateAttackBonus(character)).toBe(3);
   });
 
   it('should handle negative modifiers', () => {
@@ -172,7 +173,7 @@ describe('calculateAttackModifier', () => {
       ],
       modifiers: {},
     };
-    expect(calculateAttackModifier(character)).toBe(-1);
+    expect(calculateAttackBonus(character)).toBe(-1);
   });
 });
 
@@ -180,9 +181,9 @@ describe('calculateAttackModifier', () => {
 // DAMAGE MODIFIER CALCULATION TESTS
 // ============================================================================
 
-describe('calculateDamageModifier', () => {
+describe('calculateDamageBonus', () => {
   it('should return 0 for null character', () => {
-    expect(calculateDamageModifier(null)).toBe(0);
+    expect(calculateDamageBonus(null)).toBe(0);
   });
 
   it('should return 0 for character with no modifiers', () => {
@@ -190,7 +191,7 @@ describe('calculateDamageModifier', () => {
       character_inventory: [],
       modifiers: {},
     };
-    expect(calculateDamageModifier(character)).toBe(0);
+    expect(calculateDamageBonus(character)).toBe(0);
   });
 
   it('should calculate system modifiers from equipped weapon', () => {
@@ -211,7 +212,7 @@ describe('calculateDamageModifier', () => {
       ],
       modifiers: {},
     };
-    expect(calculateDamageModifier(character)).toBe(2);
+    expect(calculateDamageBonus(character)).toBe(2);
   });
 
   it('should sum multiple damage modifiers', () => {
@@ -244,7 +245,7 @@ describe('calculateDamageModifier', () => {
       ],
       modifiers: {},
     };
-    expect(calculateDamageModifier(character)).toBe(3);
+    expect(calculateDamageBonus(character)).toBe(3);
   });
 
   it('should include user-added modifiers', () => {
@@ -256,7 +257,7 @@ describe('calculateDamageModifier', () => {
         ],
       },
     };
-    expect(calculateDamageModifier(character)).toBe(3);
+    expect(calculateDamageBonus(character)).toBe(3);
   });
 
   it('should combine system and user modifiers', () => {
@@ -281,7 +282,7 @@ describe('calculateDamageModifier', () => {
         ],
       },
     };
-    expect(calculateDamageModifier(character)).toBe(5);
+    expect(calculateDamageBonus(character)).toBe(5);
   });
 
   it('should handle negative modifiers', () => {
@@ -302,6 +303,6 @@ describe('calculateDamageModifier', () => {
       ],
       modifiers: {},
     };
-    expect(calculateDamageModifier(character)).toBe(-1);
+    expect(calculateDamageBonus(character)).toBe(-1);
   });
 });

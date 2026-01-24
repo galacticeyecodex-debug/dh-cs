@@ -79,9 +79,9 @@ const ModifierService = {
     // Usually + and - happen after multiplication in math, but in RPGs base * mult + flat is common.
     // However, if we have "Set to X", that overrides everything usually, or becomes the new base.
     // Let's assume standard math order for now, but prioritize SET)
-    
+
     let currentValue = baseStat;
-    
+
     // First, check for any 'set' operators. If multiple, the last one wins (or highest/lowest? Defaulting to last).
     const setModifiers = activeModifiers.filter(m => m.operator === 'set');
     if (setModifiers.length > 0) {
@@ -91,7 +91,7 @@ const ModifierService = {
     // Then apply multiplications and divisions
     const multModifiers = activeModifiers.filter(m => m.operator === 'multiply');
     const divModifiers = activeModifiers.filter(m => m.operator === 'divide');
-    
+
     // Then apply additions and subtractions
     const addModifiers = activeModifiers.filter(m => m.operator === 'add');
     const subModifiers = activeModifiers.filter(m => m.operator === 'subtract');
@@ -127,7 +127,7 @@ const ModifierService = {
     if (!modifier.id) errors.push('Modifier ID is missing');
     if (!modifier.target) errors.push('Target stat is missing');
     if (modifier.value === undefined || modifier.value === null) errors.push('Value is missing');
-    
+
     // Check if operator is valid
     const validOperators: ModifierOperator[] = ['add', 'subtract', 'multiply', 'divide', 'set'];
     if (!validOperators.includes(modifier.operator)) {
@@ -222,19 +222,24 @@ const ModifierService = {
   /**
    * Checks if a condition string is met by the character state.
    */
-  isConditionalMet(condition: string, character: Character, context: GameContext): boolean {
-    const cond = condition.toLowerCase();
+  isConditionalMet(condition: any, character: Character, context: GameContext): boolean {
+    if (typeof condition !== 'string') {
+      // If the condition is an object, it's from the new system which 
+      // pre-resolves conditions before returning the modifier.
+      return true;
+    }
+    const cond = (condition as string).toLowerCase();
 
     // Example conditions - expandable based on rules
     if (cond.includes('unarmored')) {
       return character.vitals.armor_score === 0;
     }
-    
+
     if (cond.includes('stress')) {
-       // Check if context indicates stress marked? 
-       // Or if character has max stress? 
-       // Context-dependent.
-       if (context.trigger === 'mark_stress') return true;
+      // Check if context indicates stress marked? 
+      // Or if character has max stress? 
+      // Context-dependent.
+      if (context.trigger === 'mark_stress') return true;
     }
 
     if (cond.includes('bloodied') || cond.includes('below half health')) {

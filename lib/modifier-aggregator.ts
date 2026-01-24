@@ -38,7 +38,28 @@
 import type { EnhancedAbilityCard, CardModifier, CardStates } from '@/types/cards';
 import type { Character } from '@/types/character';
 import { getModifiers, isModifierActive } from './enhancement-utils';
-import { calculateDynamicValue, parseCardPassiveModifiers, getBareBonesBonuses, type PassiveModifier } from './card-parser';
+import { calculateDynamicValue, parseCardPassiveModifiers, getBareBonesBonuses, parseStaticModifiers, type PassiveModifier } from './card-parser';
+
+// ============================================================================
+// MODIFIER SOURCE REGISTRY (Exhaustive - TypeScript enforces completeness)
+// ============================================================================
+
+/**
+ * All possible sources of character stat modifiers.
+ * Adding a new source here requires implementing a handler in getStatModifiers.
+ * TypeScript will error if any source is unhandled (via exhaustive switch).
+ */
+export const MODIFIER_SOURCES = [
+    'equipment',
+    'domain_card',
+    'user',
+    'ancestry',
+    'community',
+    'class',
+    'subclass'
+] as const;
+
+export type ModifierSourceType = typeof MODIFIER_SOURCES[number];
 
 // ============================================================================
 // SERVICE STATE
@@ -73,7 +94,7 @@ export interface ModifierSource {
     id: string;
     name: string;
     value: number;
-    source: 'equipment' | 'domain_card' | 'user' | 'class' | 'ancestry';
+    source: ModifierSourceType;
     type: string;
     formula?: string;
     condition?: CardModifier['condition'];
@@ -93,11 +114,14 @@ export interface TraitTotal {
 /**
  * Get all modifiers for a specific stat from all sources.
  * This is the core function that replaces getSystemModifiers.
+ *
+ * Uses exhaustive switch to ensure all MODIFIER_SOURCES are handled.
+ * TypeScript will error if a new source is added without a handler.
  */
 export function getStatModifiers(
     character: Character | null,
     stat: string,
-    cardStates: CardStates = {}
+    cardStates: CardStates | Record<string, unknown> = {}
 ): ModifierSource[] {
     if (!character) return [];
 
@@ -107,23 +131,36 @@ export function getStatModifiers(
     const traitsWithTotals = calculateTraitsWithTotals(character, stat);
     const charForParsing = { ...character, stats: traitsWithTotals };
 
-    // A. EQUIPPED ITEMS
-    modifiers.push(...getEquipmentModifiers(character, stat));
-
-    // B. DOMAIN CARDS IN LOADOUT
-    modifiers.push(...getDomainCardModifiers(charForParsing, stat, cardStates));
-
-    // C. USER-ADDED MODIFIERS
-    const userMods = (character.modifiers?.[stat] || []) as any[];
-    userMods.forEach((mod: any, index: number) => {
-        modifiers.push({
-            id: `user-${stat}-${index}`,
-            name: mod.name || 'Custom',
-            value: mod.value || 0,
-            source: 'user',
-            type: 'user'
-        });
-    });
+    // Exhaustive handling of all modifier sources
+    for (const sourceType of MODIFIER_SOURCES) {
+        switch (sourceType) {
+            case 'equipment':
+                modifiers.push(...getEquipmentModifiers(character, stat));
+                break;
+            case 'domain_card':
+                modifiers.push(...getDomainCardModifiers(charForParsing, stat, cardStates as CardStates));
+                break;
+            case 'user':
+                modifiers.push(...getUserModifiers(character, stat));
+                break;
+            case 'ancestry':
+                modifiers.push(...getAncestryModifiers(character, stat));
+                break;
+            case 'community':
+                modifiers.push(...getCommunityModifiers(character, stat));
+                break;
+            case 'class':
+                modifiers.push(...getClassModifiers(character, stat));
+                break;
+            case 'subclass':
+                modifiers.push(...getSubclassModifiers(character, stat));
+                break;
+            default:
+                // TypeScript compile-time exhaustiveness check
+                const _exhaustive: never = sourceType;
+                throw new Error(`Unhandled modifier source: ${_exhaustive}`);
+        }
+    }
 
     return modifiers;
 }
@@ -363,6 +400,267 @@ function calculateTraitsWithTotals(
 }
 
 /**
+ * Get user-added modifiers (manually entered by player)
+ */
+function getUserModifiers(character: Character, stat: string): ModifierSource[] {
+    const modifiers: ModifierSource[] = [];
+    const userMods = (character.modifiers?.[stat] || []) as any[];
+
+    userMods.forEach((mod: any, index: number) => {
+        modifiers.push({
+            id: `user-${stat}-${index}`,
+            name: mod.name || 'Custom',
+            value: mod.value || 0,
+            source: 'user',
+            type: 'user'
+        });
+    });
+
+    return modifiers;
+}
+
+/**
+ * Get modifiers from ancestry features.
+ * CRITICAL: Check structured stat_bonuses FIRST to avoid duplication.
+ * Only fall back to text parsing if no structured data exists for this stat.
+ */
+function getAncestryModifiers(character: Character, stat: string): ModifierSource[] {
+    const modifiers: ModifierSource[] = [];
+    if (!character.ancestry_features) return modifiers;
+
+    character.ancestry_features.forEach((feature: any) => {
+        // CRITICAL: Check structured stat_bonuses FIRST to avoid duplication
+        const hasStructuredBonus = feature.stat_bonuses &&
+            Object.keys(feature.stat_bonuses).includes(stat);
+
+        if (hasStructuredBonus) {
+            // Use structured data (preferred - exact value)
+            modifiers.push({
+                id: `ancestry-${feature.name}-${stat}`,
+                name: `${character.ancestry || 'Ancestry'}: ${feature.name}`,
+                value: Number(feature.stat_bonuses[stat]),
+                source: 'ancestry',
+                type: 'ancestry'
+            });
+        } else if (feature.text) {
+            // Fallback to text parsing ONLY if no structured data for this stat
+            const featureSource = `${character.ancestry || 'Ancestry'}: ${feature.name}`;
+            const textMods = parseStaticModifiers(feature.text, featureSource);
+            textMods.filter(mod => mod.stat === stat).forEach((mod, index) => {
+                modifiers.push({
+                    id: `ancestry-${feature.name}-text-${stat}-${index}`,
+                    name: mod.source || featureSource,
+                    value: mod.value,
+                    source: 'ancestry',
+                    type: 'ancestry'
+                });
+            });
+        }
+    });
+
+    return modifiers;
+}
+
+/**
+ * Get modifiers from community features.
+ * Same pattern as ancestry: structured first, text fallback.
+ */
+function getCommunityModifiers(character: Character, stat: string): ModifierSource[] {
+    const modifiers: ModifierSource[] = [];
+
+    // Check for community_features array on the character
+    const communityFeatures = (character as any).community_features;
+    if (!communityFeatures) return modifiers;
+
+    communityFeatures.forEach((feature: any) => {
+        // Check structured stat_bonuses FIRST
+        const hasStructuredBonus = feature.stat_bonuses &&
+            Object.keys(feature.stat_bonuses).includes(stat);
+
+        if (hasStructuredBonus) {
+            modifiers.push({
+                id: `community-${feature.name}-${stat}`,
+                name: `${character.community || 'Community'}: ${feature.name}`,
+                value: Number(feature.stat_bonuses[stat]),
+                source: 'community',
+                type: 'community'
+            });
+        } else if (feature.text) {
+            // Fallback to text parsing
+            const featureSource = `${character.community || 'Community'}: ${feature.name}`;
+            const textMods = parseStaticModifiers(feature.text, featureSource);
+            textMods.filter(mod => mod.stat === stat).forEach((mod, index) => {
+                modifiers.push({
+                    id: `community-${feature.name}-text-${stat}-${index}`,
+                    name: mod.source || featureSource,
+                    value: mod.value,
+                    source: 'community',
+                    type: 'community'
+                });
+            });
+        }
+    });
+
+    return modifiers;
+}
+
+/**
+ * Get modifiers from class features.
+ * Extracts from character.class_data.data.class_features
+ */
+function getClassModifiers(character: Character, stat: string): ModifierSource[] {
+    const modifiers: ModifierSource[] = [];
+
+    // Class features are in class_data.data.class_features
+    const classFeatures = (character.class_data as any)?.data?.class_features;
+    if (!classFeatures || !Array.isArray(classFeatures)) return modifiers;
+
+    const className = character.class_data?.name || 'Class';
+
+    classFeatures.forEach((feature: any) => {
+        // Check structured stat_bonuses FIRST
+        const hasStructuredBonus = feature.stat_bonuses &&
+            Object.keys(feature.stat_bonuses).includes(stat);
+
+        if (hasStructuredBonus) {
+            modifiers.push({
+                id: `class-${feature.name}-${stat}`,
+                name: `${className}: ${feature.name}`,
+                value: Number(feature.stat_bonuses[stat]),
+                source: 'class',
+                type: 'class'
+            });
+        } else if (feature.text) {
+            // Fallback to text parsing
+            const featureSource = `${className}: ${feature.name}`;
+            const textMods = parseStaticModifiers(feature.text, featureSource);
+            textMods.filter(mod => mod.stat === stat).forEach((mod, index) => {
+                modifiers.push({
+                    id: `class-${feature.name}-text-${stat}-${index}`,
+                    name: mod.source || featureSource,
+                    value: mod.value,
+                    source: 'class',
+                    type: 'class'
+                });
+            });
+        }
+    });
+
+    return modifiers;
+}
+
+/**
+ * Get modifiers from subclass features.
+ * Extracts from foundation_features, specialization_features, mastery_features
+ * based on character's subclass_progression.
+ */
+function getSubclassModifiers(character: Character, stat: string): ModifierSource[] {
+    const modifiers: ModifierSource[] = [];
+
+    const subclassData = character.subclass_data?.data as any;
+    if (!subclassData) return modifiers;
+
+    const subclassName = character.subclass_data?.name || 'Subclass';
+    const progression = character.subclass_progression || {};
+
+    // Helper to process a feature array
+    const processFeatures = (features: any[] | undefined, tier: string) => {
+        if (!features || !Array.isArray(features)) return;
+
+        features.forEach((feature: any) => {
+            // Check structured stat_bonuses FIRST
+            const hasStructuredBonus = feature.stat_bonuses &&
+                Object.keys(feature.stat_bonuses).includes(stat);
+
+            if (hasStructuredBonus) {
+                modifiers.push({
+                    id: `subclass-${tier}-${feature.name}-${stat}`,
+                    name: `${subclassName}: ${feature.name}`,
+                    value: Number(feature.stat_bonuses[stat]),
+                    source: 'subclass',
+                    type: 'subclass'
+                });
+            } else if (feature.text) {
+                // Fallback to text parsing
+                const featureSource = `${subclassName}: ${feature.name}`;
+                const textMods = parseStaticModifiers(feature.text, featureSource);
+                textMods.filter(mod => mod.stat === stat).forEach((mod, index) => {
+                    modifiers.push({
+                        id: `subclass-${tier}-${feature.name}-text-${stat}-${index}`,
+                        name: mod.source || featureSource,
+                        value: mod.value,
+                        source: 'subclass',
+                        type: 'subclass'
+                    });
+                });
+            }
+        });
+    };
+
+    // Process features based on progression
+    // Foundation features are always available if subclass is selected
+    processFeatures(subclassData.foundation_features, 'foundation');
+
+    // Specialization features only if obtained
+    if (progression.specialization_obtained) {
+        processFeatures(subclassData.specialization_features, 'specialization');
+    }
+
+    // Mastery features only if obtained
+    if (progression.mastery_obtained) {
+        processFeatures(subclassData.mastery_features, 'mastery');
+    }
+
+    // Also check multiclass if present
+    const multiclassData = (character as any).multiclass_data?.data;
+    const multiclassProgression = character.multiclass_progression || {};
+    if (multiclassData) {
+        const multiclassName = (character as any).multiclass_data?.name || 'Multiclass';
+
+        const processMulticlassFeatures = (features: any[] | undefined, tier: string) => {
+            if (!features || !Array.isArray(features)) return;
+
+            features.forEach((feature: any) => {
+                const hasStructuredBonus = feature.stat_bonuses &&
+                    Object.keys(feature.stat_bonuses).includes(stat);
+
+                if (hasStructuredBonus) {
+                    modifiers.push({
+                        id: `multiclass-${tier}-${feature.name}-${stat}`,
+                        name: `${multiclassName}: ${feature.name}`,
+                        value: Number(feature.stat_bonuses[stat]),
+                        source: 'subclass', // Multiclass is treated as subclass source
+                        type: 'multiclass'
+                    });
+                } else if (feature.text) {
+                    const featureSource = `${multiclassName}: ${feature.name}`;
+                    const textMods = parseStaticModifiers(feature.text, featureSource);
+                    textMods.filter(mod => mod.stat === stat).forEach((mod, index) => {
+                        modifiers.push({
+                            id: `multiclass-${tier}-${feature.name}-text-${stat}-${index}`,
+                            name: mod.source || featureSource,
+                            value: mod.value,
+                            source: 'subclass',
+                            type: 'multiclass'
+                        });
+                    });
+                }
+            });
+        };
+
+        processMulticlassFeatures(multiclassData.foundation_features, 'foundation');
+        if (multiclassProgression.specialization_obtained) {
+            processMulticlassFeatures(multiclassData.specialization_features, 'specialization');
+        }
+        if (multiclassProgression.mastery_obtained) {
+            processMulticlassFeatures(multiclassData.mastery_features, 'mastery');
+        }
+    }
+
+    return modifiers;
+}
+
+/**
  * Get modifiers from equipped items
  */
 function getEquipmentModifiers(character: Character, stat: string): ModifierSource[] {
@@ -464,13 +762,16 @@ function getDomainCardModifiers(
 
         if (enhancedData) {
             const jsonModifiers = getModifiers(enhancedData);
-            const matchingMods = jsonModifiers.filter(mod => mod.stat === stat);
 
-            matchingMods.forEach((mod, index) => {
+            // Iterate over ALL modifiers to find matching ones while preserving the absolute index
+            // for correct modifierKey lookup (matches UI in CardEnhancementPanel)
+            jsonModifiers.forEach((mod, absIndex) => {
+                if (mod.stat !== stat) return;
+
                 // Determine activation
                 let isActive: boolean;
                 if (mod.condition?.type === 'when_active' || mod.condition?.type === 'cost_activated') {
-                    const modifierKey = `${mod.stat}-${index}`;
+                    const modifierKey = `${mod.stat}-${absIndex}`;
                     isActive = cardStates[cardName]?.active_modifiers?.[modifierKey] ?? false;
                 } else {
                     isActive = isModifierActive(mod, isCardActive, character);
@@ -482,7 +783,7 @@ function getDomainCardModifiers(
                         : mod.value;
 
                     modifiers.push({
-                        id: `card-${card.id}-enhanced-${mod.stat}-${index}`,
+                        id: `card-${card.id}-enhanced-${mod.stat}-${absIndex}`,
                         name: mod.source || cardName,
                         value: calculatedValue,
                         source: 'domain_card',
@@ -493,10 +794,8 @@ function getDomainCardModifiers(
                 }
             });
 
-            // Skip text parsing if we found matching enhanced modifiers
-            if (matchingMods.length > 0) {
-                return;
-            }
+            // Skip text parsing if we have enhanced data for this card
+            return;
         }
 
         // Fallback: Text parsing

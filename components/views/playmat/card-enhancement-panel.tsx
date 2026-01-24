@@ -28,7 +28,8 @@ import FrequencyCheckbox from '@/components/shared/frequency-checkbox';
 import CardTokenTrack from '@/components/shared/token-track';
 import ModifierActivationRow from '@/components/views/playmat/modifier-activation-row';
 import { useCharacterStore } from '@/store/character-store';
-import { getSystemModifiers, parseDamageRoll, calculateWeaponDamage } from '@/lib/utils';
+import { parseDamageRoll, calculateWeaponDamage } from '@/lib/utils';
+import { getStatModifiers } from '@/lib/modifier-aggregator';
 import { getActionTypeLabel, getFrequencyLabel } from '@/lib/card-parser';
 import { getEnhancement, getModifiers } from '@/lib/enhancement-utils';
 import type { EnhancedAbilityCard } from '@/types/cards';
@@ -69,7 +70,7 @@ export default function CardEnhancementPanel({
 
   // Get total proficiency
   const baseProficiency = character.proficiency || 1;
-  const systemProfMods = getSystemModifiers(character, 'proficiency');
+  const systemProfMods = getStatModifiers(character, 'proficiency');
   const userProfMods = character.modifiers?.['proficiency'] || [];
   const totalProficiency = Math.max(1, baseProficiency + [...systemProfMods, ...userProfMods].reduce((acc, mod) => acc + mod.value, 0));
 
@@ -82,13 +83,13 @@ export default function CardEnhancementPanel({
   let traitModSum = 0;
   if (spellcastTraitName) {
     const tKey = spellcastTraitName.toLowerCase();
-    const tSystem = getSystemModifiers(character, tKey);
+    const tSystem = getStatModifiers(character, tKey);
     const tUser = character.modifiers?.[tKey] || [];
     traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
   }
 
   const spellcastBase = rawTraitValue + traitModSum;
-  const spellcastMods = getSystemModifiers(character, 'spellcast');
+  const spellcastMods = getStatModifiers(character, 'spellcast');
   const userSpellcastMods = character.modifiers?.['spellcast'] || [];
   const totalSpellcast = spellcastBase + [...spellcastMods, ...userSpellcastMods].reduce((acc, mod) => acc + mod.value, 0);
 
@@ -103,7 +104,7 @@ export default function CardEnhancementPanel({
       rollLabel = 'Spellcast';
     } else {
       const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-      const systemTraitMods = getSystemModifiers(character, traitKey);
+      const systemTraitMods = getStatModifiers(character, traitKey);
       const userTraitMods = character.modifiers?.[traitKey] || [];
       rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
       rollLabel = enhancement.roll.trait;
@@ -115,7 +116,7 @@ export default function CardEnhancementPanel({
       rollLabel = 'Spellcast';
     } else {
       const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-      const systemTraitMods = getSystemModifiers(character, traitKey);
+      const systemTraitMods = getStatModifiers(character, traitKey);
       const userTraitMods = character.modifiers?.[traitKey] || [];
       rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
       rollLabel = enhancement.attack.trait;

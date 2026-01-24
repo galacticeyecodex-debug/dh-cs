@@ -17,7 +17,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
 import Image from 'next/image';
-import { getSystemModifiers } from '@/lib/utils';
+import { getStatModifiers } from '@/lib/modifier-aggregator';
 import { calculateRollBonus } from '@/lib/roll-utils';
 import StatButton from '@/components/views/character/trait-button';
 import { RollButton } from '@/components/shared/roll-button';
@@ -164,17 +164,13 @@ export default function CharacterView() {
   const traitTabs = useMemo(() => {
     if (!character) return [];
     return Object.entries(character.stats).map(([key, value]) => {
-      // Helper to calculate totals and combine modifiers for Traits
-      const systemMods = getSystemModifiers(character, key);
-      const userMods = character.modifiers?.[key] || [];
-      const allMods = [...systemMods, ...userMods];
-      const uniqueMods = Array.from(new Map(allMods.map(mod => [mod.id, mod])).values());
+      const allMods = getStatModifiers(character, key);
 
       return {
         id: key,
         label: key.charAt(0).toUpperCase() + key.slice(1),
         baseValue: value,
-        currentModifiers: uniqueMods,
+        currentModifiers: allMods,
         onUpdateModifiers: (mods: any[]) => updateModifiers(key, mods)
       };
     });
@@ -416,12 +412,9 @@ export default function CharacterView() {
 
   // Helper to calculate totals and combine modifiers for Traits
   const getStatDetails = (stat: string, base: number) => {
-    const systemMods = getSystemModifiers(character, stat);
-    const userMods = character.modifiers?.[stat] || [];
-    const allMods = [...systemMods, ...userMods];
-    const uniqueMods = Array.from(new Map(allMods.map(mod => [mod.id, mod])).values());
-    const total = base + uniqueMods.reduce((acc, mod) => acc + mod.value, 0);
-    return { total, allMods: uniqueMods };
+    const allMods = getStatModifiers(character, stat);
+    const total = base + allMods.reduce((acc, mod) => acc + mod.value, 0);
+    return { total, allMods };
   };
 
   return (
