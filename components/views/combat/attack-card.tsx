@@ -23,6 +23,7 @@ import clsx from 'clsx';
 import { getValueColor } from '@/lib/styles';
 import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
 import { DomainCostsRow } from '@/components/shared/ability-costs-row';
+import { RollButton } from '@/components/shared/roll-button';
 
 import { AdditionalDamage } from '@/types/cards';
 
@@ -261,9 +262,6 @@ const AttackCard = React.memo(function AttackCard({
                         <div className={clsx('text-xl font-bold', getValueColor(damageModifier !== 0))}>
                             {calculatedDamage}
                         </div>
-                        <div className="text-[10px] text-gray-500 uppercase">
-                            {baseDamage.replace(/\*\*/g, '')} × {proficiency}
-                        </div>
                     </div>
                 )}
             </div>
@@ -309,87 +307,48 @@ const AttackCard = React.memo(function AttackCard({
 
                 {/* Attack Button */}
                 {onAttackRoll && (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onAttackRoll();
-                        }}
+                    <RollButton
+                        label={finalRollLabel}
+                        onClick={onAttackRoll}
+                        bonus={totalAttackBonus}
                         disabled={isUsed || !canRoll}
                         className={clsx(
-                            'relative flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors',
+                            'flex-1 py-2',
                             attackModifier !== 0 && 'text-dagger-gold',
-                            (isUsed || !canRoll) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-opacity-60',
                             !isCostPaid && needsActivation && 'border border-dashed border-white/20'
                         )}
-                    >
-                        <div
-                            className="absolute top-1 right-1 text-gray-500 transition-colors pointer-events-none"
-                            aria-hidden="true"
-                        >
-                            <AppIcons.combat.roll size={12} />
-                        </div>
-                        {finalRollLabel.includes('Spellcast') ? (
-                            <AppIcons.combat.spellcast size={16} className={clsx(canRoll ? "text-purple-400" : "text-gray-500")} />
-                        ) : (
-                            <AppIcons.combat.attack size={16} className={clsx(canRoll ? "text-dagger-gold" : "text-gray-500")} />
-                        )}
-                        {finalRollLabel} ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
-                    </button>
+                    />
                 )}
 
                 {/* Damage Button - only show if we have damage */}
                 {hasDamage && onDamageRoll && (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onDamageRoll();
-                        }}
+                    <RollButton
+                        label={`Damage (${calculatedDamage})`}
+                        onClick={onDamageRoll}
+                        bonus={damageModifier !== 0 ? damageModifier : undefined}
+                        variant="damage"
                         disabled={isUsed || !canRoll}
                         className={clsx(
-                            'relative flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors',
+                            'flex-1 py-2',
                             damageModifier !== 0 && 'text-dagger-gold',
-                            (isUsed || !canRoll) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-opacity-60',
                             !isCostPaid && needsActivation && 'border border-dashed border-white/20'
                         )}
-                    >
-                        <div
-                            className="absolute top-1 right-1 text-gray-500 transition-colors pointer-events-none"
-                            aria-hidden="true"
-                        >
-                            <AppIcons.combat.roll size={12} />
-                        </div>
-                        <AppIcons.combat.damage size={16} className={clsx(canRoll ? "text-red-400" : "text-gray-500")} />
-                        Damage {damageModifier !== 0 && `(${damageModifier >= 0 ? `+${damageModifier}` : damageModifier})`}
-                    </button>
+                    />
                 )}
 
                 {/* Additional Damage Buttons */}
                 {additionalDamage?.map((extra, idx) => (
-                    <button
+                    <RollButton
                         key={idx}
+                        label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
                         onClick={(e) => {
                             e.stopPropagation();
                             onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra');
                         }}
+                        variant="damage"
                         disabled={isUsed || !canRoll}
-                        className={clsx(
-                            'relative py-2 px-3 bg-white/5 hover:bg-white/15 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors',
-                            (isUsed || !canRoll) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-opacity-60',
-                        )}
-                        title={extra.condition}
-                    >
-                        <div
-                            className="absolute top-0.5 right-0.5 text-gray-600 transition-colors pointer-events-none"
-                            aria-hidden="true"
-                        >
-                            <AppIcons.combat.roll size={8} />
-                        </div>
-                        <AppIcons.combat.damage size={12} className="text-red-400/70" />
-                        <div className="flex flex-col items-start leading-none gap-0.5">
-                            <span>{extra.damage}</span>
-                            <span className="text-[9px] text-gray-400 font-normal uppercase">{extra.label}</span>
-                        </div>
-                    </button>
+                        className="opacity-90 py-2 px-3 text-xs"
+                    />
                 ))}
 
                 {/* Frequency Checkbox */}
