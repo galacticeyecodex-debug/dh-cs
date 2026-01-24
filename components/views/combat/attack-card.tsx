@@ -328,7 +328,11 @@ const AttackCard = React.memo(function AttackCard({
                         >
                             <AppIcons.combat.roll size={12} />
                         </div>
-                        <AppIcons.combat.activation size={16} className={clsx(canRoll ? "text-yellow-400" : "text-gray-500")} />
+                        {finalRollLabel.includes('Spellcast') ? (
+                            <AppIcons.combat.spellcast size={16} className={clsx(canRoll ? "text-purple-400" : "text-gray-500")} />
+                        ) : (
+                            <AppIcons.combat.attack size={16} className={clsx(canRoll ? "text-dagger-gold" : "text-gray-500")} />
+                        )}
                         {finalRollLabel} ({totalAttackBonus >= 0 ? `+${totalAttackBonus}` : totalAttackBonus})
                     </button>
                 )}

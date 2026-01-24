@@ -228,7 +228,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
           <NavButton
             active={activeTab === 'combat'}
             onClick={() => setActiveTab('combat')}
-            icon={AppIcons.combat.attack} // Swords
+            icon={AppIcons.combat.navCombat} // Swords
             label="Combat"
           />
           <NavButton

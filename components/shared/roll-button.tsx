@@ -31,8 +31,17 @@ export function RollButton({
         damage: 'bg-white/10 hover:bg-white/20 text-white border-white/10', // specialized handling below
     };
 
-    const activeIconColor = variant === 'damage' ? 'text-red-400' : 'text-dagger-gold';
-    const Icon = icon || (variant === 'damage' ? AppIcons.combat.damage : AppIcons.combat.activation);
+    const isDamage = label.toLowerCase().includes('damage');
+    const isAttack = label.toLowerCase().includes('attack');
+    const isSpellcast = label === 'Spellcast';
+
+    const activeIconColor = isDamage ? 'text-red-400' : (isSpellcast ? 'text-purple-400' : 'text-dagger-gold');
+
+    const Icon = icon || (isDamage ? AppIcons.combat.damage :
+        isSpellcast ? (AppIcons.combat as any).spellcast :
+            isAttack ? AppIcons.combat.attack :
+                variant === 'primary' ? AppIcons.combat.attack :
+                    AppIcons.combat.activation);
 
     return (
         <button

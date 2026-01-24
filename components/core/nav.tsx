@@ -10,7 +10,7 @@
 
 import Link from "next/link";
 
-import { Menu, Sword } from "lucide-react";
+import { Menu, Swords } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -99,7 +99,7 @@ export default function Nav() {
 const Logo = () => {
   return (
     <Link href="/" className="flex items-center gap-2">
-      <Sword className="size-5 text-dagger-gold" />
+      <Swords className="size-5 text-dagger-gold" />
       <span className="text-lg font-serif font-semibold tracking-tight text-white">Daggerheart</span>
     </Link>
   );

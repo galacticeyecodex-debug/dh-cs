@@ -240,10 +240,12 @@ export const AppIcons = {
     },
     combat: {
         roll: Dices,
-        attack: Swords,
+        navCombat: Swords,
+        attack: Sword,
         weapon: Sword,
         target: Target,
         ability: Wand2,
+        spellcast: Wand2,
         buff: TrendingUp,
         debuff: TrendingDown,
         proficiency: Star,
