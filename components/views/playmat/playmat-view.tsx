@@ -34,7 +34,7 @@ import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { uploadCharacterImage } from '@/lib/storage-service';
 import { MAX_IMAGE_FILE_SIZE, MAX_IMAGE_FILE_SIZE_MB } from '@/lib/image-utils';
-import { getStatModifiers, initModifierAggregator, getAllActiveModifiers } from '@/lib/modifier-aggregator';
+import { getStatModifiers, getAllActiveModifiers } from '@/lib/modifier-aggregator';
 import Image from 'next/image';
 import PlaymatCard from './playmat-card';
 import type { EnhancedAbilityCard } from '@/types/cards';
@@ -88,8 +88,6 @@ export default function PlaymatView() {
     const communityFeats = (srdCommunities as any[]).flatMap(c => c.feats || []);
 
     const all = [...abilities, ...ancestryFeats, ...communityFeats];
-    // Initialize global aggregator
-    initModifierAggregator(all);
     return all;
   }, [includePlaytest]);
 

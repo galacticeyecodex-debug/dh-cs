@@ -21,7 +21,7 @@ import { dataService } from '@/lib/data-service';
 
 import { parseDamageRoll, calculateWeaponDamage } from '@/lib/utils';
 import { calculateDamageBonus, calculateAttackBonus } from '@/lib/roll-utils';
-import { getStatModifiers, initModifierAggregator } from '@/lib/modifier-aggregator';
+import { getStatModifiers } from '@/lib/modifier-aggregator';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import SectionHeader from '@/components/shared/section-header';
@@ -54,8 +54,6 @@ export default function CombatView() {
   // Memoize enhanced abilities based on playtest setting
   const enhancedAbilities = useMemo(() => {
     const abilities = getAllAbilities(includePlaytest);
-    // Initialize global aggregator with current abilities
-    initModifierAggregator(abilities);
     return abilities;
   }, [includePlaytest]);
 
