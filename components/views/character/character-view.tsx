@@ -424,23 +424,12 @@ export default function CharacterView() {
         <div className="relative w-full h-48 md:h-64 bg-gray-900 overflow-hidden group/header">
           {/* Banner Background */}
           <div className="absolute inset-0 opacity-60 transition-opacity duration-700 group-hover/header:opacity-70">
-            {character.background_image_url ? (
-              <Image
-                src={character.background_image_url}
-                alt="Banner Background"
-                fill
-                className="object-cover"
-              />
-            ) : character.image_url ? (
-              <Image
-                src={character.image_url}
-                alt="Background"
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black" />
-            )}
+            <Image
+              src={character.background_image_url || '/images/banner-placeholder.jpg'}
+              alt="Banner Background"
+              fill
+              className="object-cover"
+            />
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-dagger-dark via-dagger-dark/40 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-dagger-dark/40 via-transparent to-transparent hidden md:block" />
@@ -479,19 +468,13 @@ export default function CharacterView() {
               {/* Portrait Avatar Container */}
               <div className="w-[120px] h-[120px] bg-gray-800 rounded-3xl rotate-2 p-1.5 border-4 border-dagger-gold shadow-2xl flex-shrink-0 relative group transition-transform duration-300 overflow-hidden">
                 <div className="w-full h-full rounded-2xl overflow-hidden relative">
-                  {character.image_url ? (
-                    <Image
-                      src={character.image_url}
-                      alt={character.name || "Character Avatar"}
-                      width={120}
-                      height={120}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-dagger-gold text-black">
-                      {character.name?.[0] || '?'}
-                    </div>
-                  )}
+                  <Image
+                    src={character.image_url || '/images/portrait-placeholder.jpg'}
+                    alt={character.name || "Character Avatar"}
+                    width={120}
+                    height={120}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
 
                 {/* Artwork Edit Button (Art Icon style) */}

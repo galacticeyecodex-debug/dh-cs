@@ -323,14 +323,12 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
         >
             {/* Header */}
             <div className="flex items-start gap-2 mb-3">
-                {character.image_url && (
-                    <Avatar className="h-10 w-10 border border-white/10 flex-shrink-0">
-                        <AvatarImage src={character.image_url} alt={character.name} className="object-cover" />
-                        <AvatarFallback className="bg-dagger-panel-hover text-dagger-gold text-[10px]">
-                            {character.name.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                    </Avatar>
-                )}
+                <Avatar className="h-10 w-10 border border-white/10 flex-shrink-0">
+                    <AvatarImage src={character.image_url || '/images/portrait-placeholder.jpg'} alt={character.name} className="object-cover" />
+                    <AvatarFallback className="bg-dagger-panel-hover text-dagger-gold text-[10px]">
+                        {character.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                </Avatar>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                         <h3 className="text-base font-serif font-bold text-white truncate leading-tight">{character.name}</h3>
