@@ -497,6 +497,13 @@ export default function CombatView() {
                   onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (feature.costs?.stress || 0))}
                   onSpendHope={() => character && updateHope(character.hope - (feature.costs?.hope || 0))}
                   rollLabel={combatCategory === 'damage_bonus' ? undefined : (combatCategory === 'roll_only' ? 'Roll' : 'Attack')}
+                  tokenTrack={feature.tokens?.has_tokens ? (
+                    <CardTokenTrack
+                      cardName={`heritage-${feature.source}-${feature.name}`}
+                      maxTokens={feature.tokens.max_tokens ?? null}
+                      tokenSource={feature.tokens.token_source}
+                    />
+                  ) : undefined}
                 />
               );
             })}

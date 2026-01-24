@@ -4,24 +4,40 @@
  * MANAGE CHARACTER MODAL
  * ----------------------------------------------------------------------------
  * A settings interface for modifying core character attributes and level state.
- * 
+ *
  * FUNCTIONALITY:
- * - Level Management: 
+ * - Level Management:
  *   - "Level Up": Triggers the Level Up flow if increasing the current level.
- *   - "De-Level": Allows reducing the character's level, which triggers a destructive confirmation 
+ *   - "De-Level": Allows reducing the character's level, which triggers a destructive confirmation
  *     dialog as it removes associated advancements.
- * - Attribute Editing: Enables changing Name, Ancestry, and Community.
+ * - Attribute Editing: Enables changing Name, Ancestry (including Mixed Ancestry), and Community.
  *   - Fetches available options for Ancestry/Community dynamically from the library.
+ *   - Mixed Ancestry: Allows selecting two ancestries and one feature from each.
  * - Validation: Ensures required fields are present and warns users about data loss during de-leveling.
  */
 
-import React, { useState } from 'react';
-import { X, AlertCircle, Settings, Plus, Minus, Zap, Sparkles, Trash2 } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { X, AlertCircle, Settings, Plus, Minus, Zap, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/core/error-boundary';
-import { PANEL_BORDERS } from '@/lib/styles';
+import clsx from 'clsx';
 import useContentAccess from '@/hooks/useContentAccess';
+
+interface AncestryFeature {
+  name: string;
+  text?: string;
+  [key: string]: any;
+}
+
+interface AncestryData {
+  id: string;
+  name: string;
+  data?: {
+    features?: AncestryFeature[];
+    [key: string]: any;
+  };
+}
 
 interface ManageCharacterModalProps {
   isOpen: boolean;
@@ -29,6 +45,7 @@ interface ManageCharacterModalProps {
   currentLevel: number;
   currentName: string;
   currentAncestry?: string;
+  currentAncestryFeatures?: any[];
   currentCommunity?: string;
   currentTransformation?: string;
   currentSpellcastTrait?: string;
@@ -37,6 +54,7 @@ interface ManageCharacterModalProps {
     name?: string;
     level?: number;
     ancestry?: string;
+    ancestry_features?: any[];
     community?: string;
     transformation?: string;
     spellcast_trait?: string;
@@ -53,6 +71,7 @@ export default function ManageCharacterModal({
   currentLevel,
   currentName,
   currentAncestry = '',
+  currentAncestryFeatures = [],
   currentCommunity = '',
   currentTransformation = '',
   currentSpellcastTrait = '',
@@ -65,7 +84,6 @@ export default function ManageCharacterModal({
   const { includePlaytest } = useContentAccess();
   const [name, setName] = useState<string>(currentName);
   const [level, setLevel] = useState<number>(currentLevel);
-  const [ancestry, setAncestry] = useState<string>(currentAncestry);
   const [community, setCommunity] = useState<string>(currentCommunity);
   const [transformation, setTransformation] = useState<string>(currentTransformation);
   const [spellcastTrait, setSpellcastTrait] = useState<string>(currentSpellcastTrait);
@@ -73,10 +91,75 @@ export default function ManageCharacterModal({
   const [confirmDeLevelOpen, setConfirmDeLevelOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Mixed ancestry state
+  const [isMixedAncestry, setIsMixedAncestry] = useState(false);
+  const [primaryAncestryId, setPrimaryAncestryId] = useState<string>('');
+  const [secondaryAncestryId, setSecondaryAncestryId] = useState<string>('');
+  const [mixedAncestryName, setMixedAncestryName] = useState<string>('');
+  const [primaryFeatureIndex, setPrimaryFeatureIndex] = useState<number>(0);
+  const [secondaryFeatureIndex, setSecondaryFeatureIndex] = useState<number>(0);
+
   // Dynamic lists
-  const [availableAncestries, setAvailableAncestries] = useState<{ name: string }[]>([]);
+  const [availableAncestries, setAvailableAncestries] = useState<AncestryData[]>([]);
   const [availableCommunities, setAvailableCommunities] = useState<{ name: string }[]>([]);
   const [availableTransformations, setAvailableTransformations] = useState<{ name: string; source?: string }[]>([]);
+
+  // Derived ancestry data
+  const primaryAncestry = useMemo(() =>
+    availableAncestries.find(a => a.id === primaryAncestryId),
+    [availableAncestries, primaryAncestryId]
+  );
+
+  const secondaryAncestry = useMemo(() =>
+    availableAncestries.find(a => a.id === secondaryAncestryId),
+    [availableAncestries, secondaryAncestryId]
+  );
+
+  const suggestedMixedName = useMemo(() => {
+    if (primaryAncestry && secondaryAncestry) {
+      return `${primaryAncestry.name}-${secondaryAncestry.name}`;
+    }
+    return '';
+  }, [primaryAncestry, secondaryAncestry]);
+
+  // Compute effective ancestry name for single ancestry mode
+  const singleAncestryName = useMemo(() => {
+    if (!isMixedAncestry && primaryAncestryId) {
+      return primaryAncestry?.name || '';
+    }
+    return '';
+  }, [isMixedAncestry, primaryAncestryId, primaryAncestry]);
+
+  // Helper to find ancestry by feature name
+  const findAncestryByFeature = useCallback((features: any[]) => {
+    if (!features || features.length < 2) return;
+
+    for (const anc of availableAncestries) {
+      if (anc.data?.features) {
+        const idx1 = anc.data.features.findIndex(
+          (f: AncestryFeature) => f.name === features[0]?.name
+        );
+        if (idx1 >= 0) {
+          setPrimaryAncestryId(anc.id);
+          setPrimaryFeatureIndex(idx1);
+          break;
+        }
+      }
+    }
+
+    for (const anc of availableAncestries) {
+      if (anc.data?.features) {
+        const idx2 = anc.data.features.findIndex(
+          (f: AncestryFeature) => f.name === features[1]?.name
+        );
+        if (idx2 >= 0) {
+          setSecondaryAncestryId(anc.id);
+          setSecondaryFeatureIndex(idx2);
+          break;
+        }
+      }
+    }
+  }, [availableAncestries]);
 
   // Fetch dynamic options on mount
   React.useEffect(() => {
@@ -88,7 +171,7 @@ export default function ManageCharacterModal({
           dataService.library.getByType('transformation', { includePlaytest })
         ]);
 
-        if (ancestries) setAvailableAncestries(ancestries);
+        if (ancestries) setAvailableAncestries(ancestries as AncestryData[]);
         if (communities) setAvailableCommunities(communities);
         if (transformations) setAvailableTransformations(transformations);
       } catch (e) {
@@ -101,20 +184,98 @@ export default function ManageCharacterModal({
 
   // Sync state with props when modal opens
   React.useEffect(() => {
-    if (isOpen) {
+    if (isOpen && availableAncestries.length > 0) {
       setName(currentName || '');
       setLevel(currentLevel);
-      setAncestry(currentAncestry || '');
       setCommunity(currentCommunity || '');
       setTransformation(currentTransformation || '');
       setSpellcastTrait(currentSpellcastTrait || '');
+
+      // Detect if character has mixed ancestry (2 features from different ancestries)
+      const hasMixedAncestry = currentAncestryFeatures && currentAncestryFeatures.length === 2;
+
+      if (hasMixedAncestry && currentAncestry) {
+        setIsMixedAncestry(true);
+        // Try to parse ancestry name to find the two ancestries
+        // Format is usually "Ancestry1-Ancestry2" or a custom name
+        const parts = currentAncestry.split('-');
+        if (parts.length === 2) {
+          const anc1 = availableAncestries.find(a => a.name === parts[0]);
+          const anc2 = availableAncestries.find(a => a.name === parts[1]);
+          if (anc1 && anc2) {
+            setPrimaryAncestryId(anc1.id);
+            setSecondaryAncestryId(anc2.id);
+            setMixedAncestryName(''); // It was auto-generated
+
+            // Try to find which feature index matches
+            if (anc1.data?.features && currentAncestryFeatures[0]) {
+              const idx = anc1.data.features.findIndex(
+                (f: AncestryFeature) => f.name === currentAncestryFeatures[0].name
+              );
+              setPrimaryFeatureIndex(idx >= 0 ? idx : 0);
+            }
+            if (anc2.data?.features && currentAncestryFeatures[1]) {
+              const idx = anc2.data.features.findIndex(
+                (f: AncestryFeature) => f.name === currentAncestryFeatures[1].name
+              );
+              setSecondaryFeatureIndex(idx >= 0 ? idx : 0);
+            }
+          } else {
+            // Custom mixed ancestry name - try to match features to ancestries
+            setMixedAncestryName(currentAncestry);
+            findAncestryByFeature(currentAncestryFeatures);
+          }
+        } else {
+          // Custom mixed ancestry name
+          setMixedAncestryName(currentAncestry);
+          findAncestryByFeature(currentAncestryFeatures);
+        }
+      } else {
+        // Single ancestry
+        setIsMixedAncestry(false);
+        const matchedAncestry = availableAncestries.find(a => a.name === currentAncestry);
+        setPrimaryAncestryId(matchedAncestry?.id || '');
+        setSecondaryAncestryId('');
+        setMixedAncestryName('');
+        setPrimaryFeatureIndex(0);
+        setSecondaryFeatureIndex(0);
+      }
     }
-  }, [isOpen, currentName, currentLevel, currentAncestry, currentCommunity, currentTransformation, currentSpellcastTrait]);
+  }, [isOpen, currentName, currentLevel, currentAncestry, currentAncestryFeatures, currentCommunity, currentTransformation, currentSpellcastTrait, availableAncestries, findAncestryByFeature]);
 
   if (!isOpen) return null;
 
   const isDeLeveling = level < currentLevel;
-  const hasChanges = name !== currentName || level !== currentLevel || ancestry !== currentAncestry || community !== currentCommunity || transformation !== currentTransformation || spellcastTrait !== currentSpellcastTrait;
+
+  // Compute the effective ancestry value
+  const getEffectiveAncestry = () => {
+    if (isMixedAncestry) {
+      return mixedAncestryName || suggestedMixedName;
+    }
+    return singleAncestryName;
+  };
+
+  // Compute ancestry features array
+  const getAncestryFeatures = (): any[] => {
+    if (isMixedAncestry && primaryAncestry && secondaryAncestry) {
+      const feat1 = primaryAncestry.data?.features?.[primaryFeatureIndex];
+      const feat2 = secondaryAncestry.data?.features?.[secondaryFeatureIndex];
+      return [feat1, feat2].filter(Boolean);
+    } else if (!isMixedAncestry && primaryAncestry) {
+      // Single ancestry: include all features
+      return primaryAncestry.data?.features || [];
+    }
+    return [];
+  };
+
+  const hasChanges =
+    name !== currentName ||
+    level !== currentLevel ||
+    getEffectiveAncestry() !== currentAncestry ||
+    community !== currentCommunity ||
+    transformation !== currentTransformation ||
+    spellcastTrait !== currentSpellcastTrait ||
+    JSON.stringify(getAncestryFeatures()) !== JSON.stringify(currentAncestryFeatures);
 
   const getLeveledUpString = () => {
     const levels = Object.keys(advancementHistory)
@@ -138,8 +299,14 @@ export default function ManageCharacterModal({
       return;
     }
 
-    if (!ancestry || !community) {
+    const effectiveAncestry = getEffectiveAncestry();
+    if (!effectiveAncestry || !community) {
       setError('Ancestry and Community are required');
+      return;
+    }
+
+    if (isMixedAncestry && (!primaryAncestryId || !secondaryAncestryId)) {
+      setError('Both ancestries must be selected for mixed ancestry');
       return;
     }
 
@@ -168,10 +335,14 @@ export default function ManageCharacterModal({
   const performUpdate = async () => {
     if (onUpdate) {
       try {
+        const effectiveAncestry = getEffectiveAncestry();
+        const ancestryFeatures = getAncestryFeatures();
+
         await onUpdate({
           name: name !== currentName ? name : undefined,
           level: level !== currentLevel ? level : undefined,
-          ancestry: ancestry !== currentAncestry ? ancestry : undefined,
+          ancestry: effectiveAncestry !== currentAncestry ? effectiveAncestry : undefined,
+          ancestry_features: JSON.stringify(ancestryFeatures) !== JSON.stringify(currentAncestryFeatures) ? ancestryFeatures : undefined,
           community: community !== currentCommunity ? community : undefined,
           transformation: transformation !== currentTransformation ? transformation : undefined,
           spellcast_trait: spellcastTrait !== currentSpellcastTrait ? spellcastTrait : undefined,
@@ -182,6 +353,36 @@ export default function ManageCharacterModal({
       }
     }
   };
+
+  const handleMixedAncestryToggle = (enabled: boolean) => {
+    setIsMixedAncestry(enabled);
+    if (!enabled) {
+      setSecondaryAncestryId('');
+      setMixedAncestryName('');
+      setSecondaryFeatureIndex(0);
+    }
+  };
+
+  const renderFeatureCard = (
+    feature: AncestryFeature,
+    isSelected: boolean,
+    onClick: () => void,
+    key: React.Key
+  ) => (
+    <div
+      key={key}
+      onClick={onClick}
+      className={clsx(
+        "p-2 border rounded text-xs transition-all cursor-pointer",
+        isSelected
+          ? "bg-dagger-gold/20 border-dagger-gold/40 text-dagger-gold ring-1 ring-offset-1 ring-offset-black ring-white/20 scale-[1.02]"
+          : "bg-white/5 border-white/5 opacity-60 grayscale-[0.5] hover:opacity-100 hover:grayscale-0"
+      )}
+    >
+      <span className="font-bold uppercase tracking-tight">{feature.name}</span>
+      <p className="text-gray-400 mt-1 line-clamp-2">{feature.text?.replace(/\*\*/g, '')}</p>
+    </div>
+  );
 
   if (confirmDeLevelOpen) {
     return (
@@ -370,24 +571,125 @@ export default function ManageCharacterModal({
                   )}
                 </div>
 
-                {/* Ancestry */}
+                {/* Mixed Ancestry Toggle */}
+                <div className="flex items-center gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
+                  <input
+                    type="checkbox"
+                    id="is_mixed_ancestry"
+                    checked={isMixedAncestry}
+                    onChange={(e) => handleMixedAncestryToggle(e.target.checked)}
+                    className="w-4 h-4 rounded border-white/20 bg-black/20 text-dagger-gold focus:ring-dagger-gold"
+                  />
+                  <label htmlFor="is_mixed_ancestry" className="text-sm font-medium text-gray-200 cursor-pointer">
+                    Mixed Ancestry (Hybrid)
+                  </label>
+                </div>
+
+                {/* Custom Mixed Ancestry Name */}
+                {isMixedAncestry && (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="block text-sm font-bold text-gray-300 mb-2">
+                      Custom Ancestry Name
+                    </label>
+                    <input
+                      type="text"
+                      value={mixedAncestryName}
+                      onChange={(e) => setMixedAncestryName(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-white focus:border-dagger-gold outline-none transition-colors font-bold"
+                      placeholder={suggestedMixedName || "e.g. Toothling"}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Leave blank to use &quot;{suggestedMixedName || 'Ancestry1-Ancestry2'}&quot;
+                    </p>
+                  </div>
+                )}
+
+                {/* Primary Ancestry */}
                 <div>
                   <label className="block text-sm font-bold text-gray-300 mb-2">
-                    Ancestry
+                    {isMixedAncestry ? 'Primary Ancestry' : 'Ancestry'}
                   </label>
                   <select
-                    value={ancestry}
-                    onChange={(e) => setAncestry(e.target.value)}
+                    value={primaryAncestryId}
+                    onChange={(e) => {
+                      setPrimaryAncestryId(e.target.value);
+                      setPrimaryFeatureIndex(0);
+                    }}
                     className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-white focus:border-dagger-gold outline-none transition-colors"
                   >
                     <option value="">Select an ancestry...</option>
                     {availableAncestries.map((anc) => (
-                      <option key={anc.name} value={anc.name}>
+                      <option key={anc.id} value={anc.id}>
                         {anc.name}
                       </option>
                     ))}
                   </select>
+
+                  {/* Primary Ancestry Features */}
+                  {primaryAncestry?.data?.features && (
+                    <div className="mt-2 grid grid-cols-1 gap-2">
+                      {isMixedAncestry ? (
+                        <>
+                          <p className="text-[10px] text-gray-500 uppercase font-bold ml-1">Select one feature:</p>
+                          {primaryAncestry.data.features.map((feat: AncestryFeature, i: number) => (
+                            renderFeatureCard(
+                              feat,
+                              primaryFeatureIndex === i,
+                              () => setPrimaryFeatureIndex(i),
+                              i
+                            )
+                          ))}
+                        </>
+                      ) : (
+                        primaryAncestry.data.features.map((feat: AncestryFeature, i: number) => (
+                          <div key={i} className="p-2 bg-dagger-gold/10 border border-dagger-gold/20 rounded text-xs opacity-80">
+                            <span className="font-bold text-dagger-gold uppercase tracking-tight">{feat.name}</span>
+                            <p className="text-gray-400 mt-1">{feat.text?.replace(/\*\*/g, '')}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
+
+                {/* Secondary Ancestry (Mixed only) */}
+                {isMixedAncestry && (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-300 border-t border-white/5 pt-4">
+                    <label className="block text-sm font-bold text-gray-300 mb-2">
+                      Secondary Ancestry
+                    </label>
+                    <select
+                      value={secondaryAncestryId}
+                      onChange={(e) => {
+                        setSecondaryAncestryId(e.target.value);
+                        setSecondaryFeatureIndex(0);
+                      }}
+                      className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-white focus:border-dagger-gold outline-none transition-colors"
+                    >
+                      <option value="">Select an ancestry...</option>
+                      {availableAncestries.map((anc) => (
+                        <option key={anc.id} value={anc.id}>
+                          {anc.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Secondary Ancestry Features */}
+                    {secondaryAncestry?.data?.features && (
+                      <div className="mt-2 grid grid-cols-1 gap-2">
+                        <p className="text-[10px] text-gray-500 uppercase font-bold ml-1">Select one feature:</p>
+                        {secondaryAncestry.data.features.map((feat: AncestryFeature, i: number) => (
+                          renderFeatureCard(
+                            feat,
+                            secondaryFeatureIndex === i,
+                            () => setSecondaryFeatureIndex(i),
+                            i
+                          )
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Community */}
                 <div>
