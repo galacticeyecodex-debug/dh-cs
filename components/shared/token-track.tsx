@@ -18,6 +18,7 @@ import { Minus, Plus, RotateCcw } from 'lucide-react';
 import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
 import type { CardTokenTrackProps } from '@/types/cards';
+import { getSystemModifiers } from '@/lib/utils';
 
 export default function CardTokenTrack({
   cardName,
@@ -31,9 +32,11 @@ export default function CardTokenTrack({
 
   // Calculate max tokens
   let calculatedMax = maxTokens ?? 0;
-  if (maxTokens === null && tokenSource && character) {
+
+  // Allow dynamic calculation if maxTokens is null OR undefined (missing), provided we have a source
+  if ((maxTokens === null || maxTokens === undefined) && tokenSource && character) {
     // Dynamic max based on trait
-    const lowerSource = tokenSource.toLowerCase();
+    const lowerSource = tokenSource.trim().toLowerCase();
 
     // Handle spellcast specially - it's derived from the character's spellcast trait
     if (lowerSource === 'spellcast') {
@@ -42,17 +45,45 @@ export default function CardTokenTrack({
         character.spellcast_trait ||
         character.subclass_data?.data?.spellcast_trait
       )?.toLowerCase();
+
+      // If we have a spellcast trait, use that stat
       if (spellcastTrait && character.stats) {
         const stat = character.stats[spellcastTrait as keyof typeof character.stats];
         if (typeof stat === 'number') {
           calculatedMax = stat;
         }
+      } else if (character.spellcast) {
+        // Fallback to raw spellcast value if no trait mapped (e.g. fixed value)
+        calculatedMax = character.spellcast;
+      }
+    } else if (lowerSource === 'level') {
+      // Handle level specially - it's on the root character object
+      if (typeof character.level === 'number') {
+        calculatedMax = character.level;
       }
     } else if (character.stats) {
-      // Direct trait lookup
-      const stat = character.stats[lowerSource as keyof typeof character.stats];
-      if (typeof stat === 'number') {
-        calculatedMax = stat;
+      // Direct trait lookup with fallbacks for casing
+      // 1. Try lowercase (standard)
+      const baseStat = character.stats[lowerSource as keyof typeof character.stats];
+
+      // 2. Try Title Case if undefined (legacy data potential)
+      let finalStat = baseStat;
+
+      if (typeof baseStat === 'undefined') {
+        const titleCase = lowerSource.charAt(0).toUpperCase() + lowerSource.slice(1);
+        finalStat = (character.stats as any)[titleCase];
+      }
+
+      if (typeof finalStat === 'number') {
+        // Calculate total stat: Base + System Mods + User Mods
+        const systemMods = getSystemModifiers(character, lowerSource, cardStates);
+        const userMods = character.modifiers?.[lowerSource] || [];
+        const totalMods = [...systemMods, ...userMods].reduce((acc, mod) => acc + mod.value, 0);
+
+        // Standard Daggerheart rule: Minimum 1 token for stat-based tracks (e.g. Flight)
+        // unless trait specifically resolves to <= 0 and card doesn't say "minimum 1"
+        // But most abilities like Flight say "minimum 1". Safest default is max(1, total).
+        calculatedMax = Math.max(1, finalStat + totalMods);
       }
     }
   }
