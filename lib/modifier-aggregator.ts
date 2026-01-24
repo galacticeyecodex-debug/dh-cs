@@ -44,6 +44,7 @@ import type { EnhancedAbilityCard, CardModifier, CardStates } from '@/types/card
 import type { Character } from '@/types/character';
 import { getModifiers, isModifierActive } from './enhancement-utils';
 import { calculateDynamicValue, parseCardPassiveModifiers, getBareBonesBonuses, parseStaticModifiers, type PassiveModifier } from './card-parser';
+import { validateModifierValue } from './modifier-validator';
 
 // ============================================================================
 // MODIFIER SOURCE REGISTRY (Exhaustive - TypeScript enforces completeness)
@@ -449,7 +450,7 @@ function getUserModifiers(character: Character, stat: string): ModifierSource[] 
         modifiers.push({
             id: `user-${stat}-${index}`,
             name: mod.name || 'Custom',
-            value: mod.value || 0,
+            value: validateModifierValue(mod.value || 0),
             source: 'user',
             type: 'user'
         });
@@ -477,7 +478,7 @@ function getAncestryModifiers(character: Character, stat: string): ModifierSourc
             modifiers.push({
                 id: `ancestry-${feature.name}-${stat}`,
                 name: `${character.ancestry || 'Ancestry'}: ${feature.name}`,
-                value: Number(feature.stat_bonuses[stat]),
+                value: validateModifierValue(feature.stat_bonuses[stat]),
                 source: 'ancestry',
                 type: 'ancestry'
             });
@@ -489,7 +490,7 @@ function getAncestryModifiers(character: Character, stat: string): ModifierSourc
                 modifiers.push({
                     id: `ancestry-${feature.name}-text-${stat}-${index}`,
                     name: mod.source || featureSource,
-                    value: mod.value,
+                    value: validateModifierValue(mod.value),
                     source: 'ancestry',
                     type: 'ancestry'
                 });
@@ -520,7 +521,7 @@ function getCommunityModifiers(character: Character, stat: string): ModifierSour
             modifiers.push({
                 id: `community-${feature.name}-${stat}`,
                 name: `${character.community || 'Community'}: ${feature.name}`,
-                value: Number(feature.stat_bonuses[stat]),
+                value: validateModifierValue(feature.stat_bonuses[stat]),
                 source: 'community',
                 type: 'community'
             });
@@ -532,7 +533,7 @@ function getCommunityModifiers(character: Character, stat: string): ModifierSour
                 modifiers.push({
                     id: `community-${feature.name}-text-${stat}-${index}`,
                     name: mod.source || featureSource,
-                    value: mod.value,
+                    value: validateModifierValue(mod.value),
                     source: 'community',
                     type: 'community'
                 });
@@ -565,7 +566,7 @@ function getClassModifiers(character: Character, stat: string): ModifierSource[]
             modifiers.push({
                 id: `class-${feature.name}-${stat}`,
                 name: `${className}: ${feature.name}`,
-                value: Number(feature.stat_bonuses[stat]),
+                value: validateModifierValue(feature.stat_bonuses[stat]),
                 source: 'class',
                 type: 'class'
             });
@@ -615,7 +616,7 @@ function getSubclassModifiers(character: Character, stat: string): ModifierSourc
                 modifiers.push({
                     id: `subclass-${tier}-${feature.name}-${stat}`,
                     name: `${subclassName}: ${feature.name}`,
-                    value: Number(feature.stat_bonuses[stat]),
+                    value: validateModifierValue(feature.stat_bonuses[stat]),
                     source: 'subclass',
                     type: 'subclass'
                 });
@@ -667,7 +668,7 @@ function getSubclassModifiers(character: Character, stat: string): ModifierSourc
                     modifiers.push({
                         id: `multiclass-${tier}-${feature.name}-${stat}`,
                         name: `${multiclassName}: ${feature.name}`,
-                        value: Number(feature.stat_bonuses[stat]),
+                        value: validateModifierValue(feature.stat_bonuses[stat]),
                         source: 'subclass', // Multiclass is treated as subclass source
                         type: 'multiclass'
                     });
