@@ -177,26 +177,24 @@ export default function CombatView() {
     return features;
   }, [ancestryData, communityData, character?.ancestry, character?.ancestry_features, character?.class_data, character?.subclass_data, character?.subclass_progression]);
 
-  if (!character) return null;
-
-  // Find equipped items
-  const weapons = character.character_inventory?.filter(
-    item => item.location === 'equipped_primary' || item.location === 'equipped_secondary'
-  ) || [];
-
-  const armor = character.character_inventory?.find(item => item.location === 'equipped_armor');
-
-  // Calculate Proficiency with Modifiers
-  const baseProficiency = character.proficiency || 1;
-  const systemProfMods = getSystemModifiers(character, 'proficiency', cardStates);
-  const userProfMods = character.modifiers?.['proficiency'] || [];
-  const allProfMods = [...systemProfMods, ...userProfMods];
-
-  const totalProficiency = Math.max(1, baseProficiency + allProfMods.reduce((acc, mod) => acc + mod.value, 0));
-  const isProficiencyModified = totalProficiency !== baseProficiency;
-
   // Calculate Spellcast Trait and Bonus
+  // NOTE: This hook must be called before any early returns
   const spellcastDetails = useMemo(() => {
+    if (!character) {
+      return {
+        traitName: 'Instinct',
+        traitKey: 'instinct',
+        baseTraitValue: 0,
+        totalTraitValue: 0,
+        allTraitMods: [],
+        allSpellcastMods: [],
+        totalSpellcastBonus: 0,
+        isSpellcastModified: false,
+        userSpellcastMods: [],
+        userTraitMods: []
+      };
+    }
+
     const traitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait || 'Instinct';
     const traitKey = traitName.toLowerCase();
     const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
@@ -228,6 +226,24 @@ export default function CombatView() {
       userTraitMods
     };
   }, [character, cardStates]);
+
+  if (!character) return null;
+
+  // Find equipped items
+  const weapons = character.character_inventory?.filter(
+    item => item.location === 'equipped_primary' || item.location === 'equipped_secondary'
+  ) || [];
+
+  const armor = character.character_inventory?.find(item => item.location === 'equipped_armor');
+
+  // Calculate Proficiency with Modifiers
+  const baseProficiency = character.proficiency || 1;
+  const systemProfMods = getSystemModifiers(character, 'proficiency', cardStates);
+  const userProfMods = character.modifiers?.['proficiency'] || [];
+  const allProfMods = [...systemProfMods, ...userProfMods];
+
+  const totalProficiency = Math.max(1, baseProficiency + allProfMods.reduce((acc, mod) => acc + mod.value, 0));
+  const isProficiencyModified = totalProficiency !== baseProficiency;
 
   return (
     <ErrorBoundary>

@@ -293,6 +293,7 @@ export default function CardEnhancementPanel({
         {/* Cost buttons */}
         <DomainCostsRow
           cardName={card.name}
+          displayName={card.name}
           costs={enhancement.costs || undefined}
           className="flex flex-wrap gap-2"
         />

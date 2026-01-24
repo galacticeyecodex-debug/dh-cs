@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCharacterStore, Character } from '@/store/character-store';
 import { dataService } from '@/lib/data-service';
 import { Trash2, Sword } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 
 export default function CharacterSelectPage() {
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -183,7 +185,7 @@ export default function CharacterSelectPage() {
           {characters.length === 0 ? (
             <p className="text-center text-gray-300">No characters found. Create one to get started!</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-md">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full max-w-7xl">
               {characters.map((char) => {
                 const isSelecting = selectingId === char.id;
                 const isDisabled = selectingId !== null;
@@ -192,40 +194,60 @@ export default function CharacterSelectPage() {
                   <Card
                     key={char.id}
                     className={`
-                    touch-manipulation bg-dagger-panel text-white border-white/10
-                    transition-all duration-200
-                    ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-dagger-panel-hover active:bg-dagger-panel-hover'}
+                    relative touch-manipulation bg-dagger-panel text-white border-white/10
+                    transition-all duration-200 overflow-hidden min-h-[160px] flex flex-col justify-end
+                    ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-dagger-panel-hover active:bg-dagger-panel-hover hover:scale-[1.02]'}
                     ${isSelecting ? 'ring-2 ring-dagger-gold scale-[0.98] opacity-80' : ''}
                     ${isDisabled && !isSelecting ? 'opacity-50' : ''}
                   `}
                     onClick={() => !isDisabled && handleSelectCharacter(char.id)}
                   >
-                    <CardHeader>
-                      <CardTitle className="text-dagger-gold flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 truncate">
-                          {char.name}
-                          {isSelecting && (
-                            <span className="inline-block w-4 h-4 border-2 border-dagger-gold border-t-transparent rounded-full animate-spin flex-shrink-0" />
-                          )}
-                        </div>
-                        <button
-                          onClick={(e) => handleDeleteCharacter(e, char.id, char.name)}
-                          disabled={isDisabled || deletingId !== null}
-                          className="text-red-400 hover:text-red-300 transition-colors p-1 disabled:opacity-50 flex-shrink-0"
-                          title="Delete character"
-                        >
-                          {deletingId === char.id ? (
-                            <span className="inline-block w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <Trash2 size={18} />
-                          )}
-                        </button>
-                      </CardTitle>
+                    {/* Background Image Overlay */}
+                    {char.image_url && (
+                      <div className="absolute inset-0 z-0">
+                        <img
+                          src={char.image_url}
+                          alt={char.name}
+                          className="w-full h-full object-cover opacity-40 transition-opacity duration-500 group-hover:opacity-60"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-dagger-panel via-dagger-panel/60 to-transparent" />
+                      </div>
+                    )}
+
+                    <CardHeader className="relative z-10 flex-row items-center gap-4 space-y-0 pb-2">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-dagger-gold flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 truncate min-w-0 drop-shadow-lg">
+                            <span className="truncate text-xl font-serif">{char.name}</span>
+                            {isSelecting && (
+                              <span className="inline-block w-4 h-4 border-2 border-dagger-gold border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                            )}
+                          </div>
+                          <button
+                            onClick={(e) => handleDeleteCharacter(e, char.id, char.name)}
+                            disabled={isDisabled || deletingId !== null}
+                            className="text-red-400 hover:text-red-300 transition-colors p-1 disabled:opacity-50 flex-shrink-0 bg-black/20 rounded-full"
+                            title="Delete character"
+                          >
+                            {deletingId === char.id ? (
+                              <span className="inline-block w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Trash2 size={18} />
+                            )}
+                          </button>
+                        </CardTitle>
+                      </div>
                     </CardHeader>
-                    <CardContent>
-                      <p>Level {char.level}</p>
-                      <p>Class: {char.class_id || 'Unknown'}</p>
-                      <p>Ancestry: {char.ancestry || 'Unknown'}</p>
+                    <CardContent className="relative z-10 pt-0 pb-4">
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline" className="bg-black/30 border-white/10 text-white backdrop-blur-sm">Level {char.level}</Badge>
+                        {(char.class_id || char.ancestry) && (
+                          <div className="flex flex-wrap gap-1">
+                            {char.class_id && <Badge variant="secondary" className="bg-dagger-gold/20 border-dagger-gold/20 text-dagger-gold backdrop-blur-sm">{char.class_id}</Badge>}
+                            {char.ancestry && <Badge variant="secondary" className="bg-white/5 border-white/5 text-gray-300 backdrop-blur-sm">{char.ancestry}</Badge>}
+                          </div>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 );

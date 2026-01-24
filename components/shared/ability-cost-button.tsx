@@ -10,6 +10,11 @@ import { toast } from 'sonner';
 interface DomainAbilityButtonProps {
   cardName: string;
   /**
+   * Human-readable display name for the ability (used in notifications).
+   * If not provided, cardName will be used.
+   */
+  displayName?: string;
+  /**
    * Cost type determines button appearance and behavior:
    * - 'hope': Spend Hope to activate (yellow/gold styling)
    * - 'stress': Mark Stress to activate (purple styling)
@@ -30,6 +35,7 @@ interface DomainAbilityButtonProps {
 
 export function DomainAbilityButton({
   cardName,
+  displayName,
   costType,
   costValue = 0,
   label,
@@ -39,6 +45,8 @@ export function DomainAbilityButton({
   onActivate,
   onDeactivate,
 }: DomainAbilityButtonProps) {
+  // Use displayName for notifications if provided, otherwise use cardName
+  const friendlyName = displayName || cardName;
   const {
     character,
     cardStates,
@@ -119,7 +127,7 @@ export function DomainAbilityButton({
             activity_type: 'card_used',
             data: {
               card_id: cardName,
-              card_name: cardName,
+              card_name: friendlyName,
               card_type: 'ability',
               cost_paid: { hope: costValue }
             },
@@ -146,7 +154,7 @@ export function DomainAbilityButton({
             activity_type: 'card_used',
             data: {
               card_id: cardName,
-              card_name: cardName,
+              card_name: friendlyName,
               card_type: 'ability',
               cost_paid: { stress: costValue }
             },

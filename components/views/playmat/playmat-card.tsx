@@ -419,6 +419,7 @@ export default function PlaymatCard({
           {costs && (
             <DomainCostsRow
               cardName={libraryItem.name}
+              displayName={libraryItem.name}
               costs={costs}
               className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5"
             />

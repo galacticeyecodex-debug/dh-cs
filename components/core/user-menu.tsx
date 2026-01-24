@@ -15,9 +15,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Settings, LogOut, ChevronDown, Users, Sword } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User, Settings, LogOut, Users, Sword } from 'lucide-react';
 import useUser from '@/hooks/useUser';
+import HeaderMenuButton from './header-menu-button';
 import clsx from 'clsx';
 
 interface UserMenuProps {
@@ -91,30 +91,16 @@ export default function UserMenu({ onNavigateToTab }: UserMenuProps) {
     return (
         <div className="relative" ref={menuRef}>
             {/* Trigger Button */}
-            <button
+            <HeaderMenuButton
+                isOpen={isOpen}
                 onClick={() => setIsOpen(!isOpen)}
-                className={clsx(
-                    'flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors',
-                    isOpen ? 'bg-white/10' : 'hover:bg-white/5'
-                )}
-                aria-label="User menu"
-                aria-expanded={isOpen}
-                aria-haspopup="true"
-            >
-                <Avatar className="h-8 w-8 border border-white/20">
-                    <AvatarImage src={avatarUrl} alt={fullName} />
-                    <AvatarFallback className="bg-dagger-gold/20 text-dagger-gold text-sm">
-                        {userInitial}
-                    </AvatarFallback>
-                </Avatar>
-                <ChevronDown
-                    size={16}
-                    className={clsx(
-                        'text-gray-400 transition-transform duration-200',
-                        isOpen && 'rotate-180'
-                    )}
-                />
-            </button>
+                avatarUrl={avatarUrl}
+                avatarAlt={fullName}
+                avatarFallback={userInitial}
+                label=""
+                ariaLabel="User menu"
+                labelClassName="hidden"
+            />
 
             {/* Dropdown Menu */}
             {isOpen && (

@@ -71,7 +71,7 @@ export default function SubclassFeatureCard({
   const getEnhancedFeature = (featureName: string, tier: string) => {
     if (!enhancedSubclass) return null;
     const tierKey = tier.toLowerCase() === 'foundation' ? 'foundations' :
-                    tier.toLowerCase() === 'specialization' ? 'specializations' : 'masteries';
+      tier.toLowerCase() === 'specialization' ? 'specializations' : 'masteries';
     const tierFeatures = enhancedSubclass[tierKey] || [];
     return tierFeatures.find((f: any) => f.name === featureName) || null;
   };
@@ -175,6 +175,7 @@ export default function SubclassFeatureCard({
                       {hasCosts && (
                         <DomainCostsRow
                           cardName={cardName}
+                          displayName={feature.name}
                           costs={enhancement.costs}
                           className="flex flex-wrap gap-2"
                         />

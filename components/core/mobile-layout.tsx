@@ -24,6 +24,7 @@ import DiceOverlay from '../dice/dice-overlay';
 import MoreMenu from './more-menu';
 import UserMenu from './user-menu';
 import MiniVitalsBanner from '../vitals/mini-vitals-banner';
+import HeaderMenuButton from './header-menu-button';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import { useTabPersistence } from '@/hooks/useTabPersistence';
@@ -95,26 +96,15 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
       {/* Header with context switcher */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-dagger-panel">
         <div className="relative" ref={contextMenuRef}>
-          <button
+          <HeaderMenuButton
+            isOpen={isContextMenuOpen}
             onClick={() => setIsContextMenuOpen(!isContextMenuOpen)}
-            className={clsx(
-              'flex items-center gap-2 text-lg font-serif font-bold transition-colors',
-              isContextMenuOpen ? 'text-white' : 'text-dagger-gold hover:text-white'
-            )}
-            aria-label="Context menu"
-            aria-expanded={isContextMenuOpen}
-            aria-haspopup="true"
-          >
-            <AppIcons.combat.weapon size={20} aria-hidden="true" />
-            <span>{headerTitle}</span>
-            <AppIcons.ui.expand
-              size={18}
-              className={clsx(
-                'text-gray-400 transition-transform duration-200',
-                isContextMenuOpen && 'rotate-180'
-              )}
-            />
-          </button>
+            avatarUrl={character?.image_url}
+            avatarAlt={headerTitle}
+            avatarFallback={headerTitle[0]?.toUpperCase() || '?'}
+            label={headerTitle}
+            ariaLabel="Character menu"
+          />
 
           {/* Context Dropdown Menu */}
           {isContextMenuOpen && (

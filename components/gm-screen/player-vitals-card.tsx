@@ -26,6 +26,7 @@ import { useEffect, useState } from 'react';
 import { Project } from '@/types/downtime';
 import { ProjectFormModal } from '@/components/views/downtime/project-modals';
 import { getIconByName, VitalId, AppIcons } from '@/lib/icon-utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface PlayerVitalsCardProps {
     character: Character;
@@ -321,10 +322,18 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             )}
         >
             {/* Header */}
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start gap-2 mb-3">
+                {character.image_url && (
+                    <Avatar className="h-10 w-10 border border-white/10 flex-shrink-0">
+                        <AvatarImage src={character.image_url} alt={character.name} className="object-cover" />
+                        <AvatarFallback className="bg-dagger-panel-hover text-dagger-gold text-[10px]">
+                            {character.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                    </Avatar>
+                )}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-serif font-bold text-white truncate">{character.name}</h3>
+                        <h3 className="text-base font-serif font-bold text-white truncate leading-tight">{character.name}</h3>
                         {hasWarning && (
                             <AppIcons.system.warning
                                 className="w-4 h-4 text-orange-500 flex-shrink-0"
@@ -332,14 +341,14 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
                             />
                         )}
                     </div>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-[10px] text-gray-500 truncate">
                         {ancestryDisplay} {classDisplay} (Lvl {character.level})
                     </p>
                 </div>
                 <button
                     onClick={() => toggleVitalsLock(character.id)}
                     className={clsx(
-                        'p-2 rounded-lg transition-colors',
+                        'p-2 rounded-lg transition-colors flex-shrink-0',
                         isUnlocked
                             ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
                             : 'bg-white/5 text-gray-500 hover:bg-white/10'
