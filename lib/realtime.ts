@@ -22,8 +22,8 @@ type StoreGetter = () => {
     updatePartyCharacterFromRealtime?: (characterId: string, updates: Record<string, unknown>) => void;
 };
 
-// Callback type for roll notifications
-type RollNotificationCallback = (activity: CampaignActivity) => void;
+// Callback type for broadcast notifications (dice rolls, card usage, etc.)
+type BroadcastNotificationCallback = (activity: CampaignActivity) => void;
 
 export class CampaignRealtimeManager {
     private activityChannel: RealtimeChannel | null = null;
@@ -31,7 +31,7 @@ export class CampaignRealtimeManager {
     private characterChannels: Map<string, RealtimeChannel> = new Map();
     private getStore: StoreGetter | null = null;
     private currentCampaignId: string | null = null;
-    private rollNotificationCallbacks: Set<RollNotificationCallback> = new Set();
+    private broadcastNotificationCallbacks: Set<BroadcastNotificationCallback> = new Set();
 
     /**
      * Set the store getter function to access state without circular imports
@@ -41,20 +41,20 @@ export class CampaignRealtimeManager {
     }
 
     /**
-     * Register a callback to be notified when roll activities arrive
+     * Register a callback to be notified when broadcastable activities arrive
      */
-    onRollNotification(callback: RollNotificationCallback) {
-        this.rollNotificationCallbacks.add(callback);
+    onBroadcastActivity(callback: BroadcastNotificationCallback) {
+        this.broadcastNotificationCallbacks.add(callback);
         return () => {
-            this.rollNotificationCallbacks.delete(callback);
+            this.broadcastNotificationCallbacks.delete(callback);
         };
     }
 
     /**
-     * Emit a roll notification to all registered callbacks
+     * Emit a broadcast notification to all registered callbacks
      */
-    private emitRollNotification(activity: CampaignActivity) {
-        this.rollNotificationCallbacks.forEach(callback => {
+    private emitBroadcastNotification(activity: CampaignActivity) {
+        this.broadcastNotificationCallbacks.forEach(callback => {
             try {
                 callback(activity);
             } catch (error) {
@@ -108,10 +108,10 @@ export class CampaignRealtimeManager {
                     // Don't show private activity from others
                     if (activity.is_private && !isOwnActivity) return;
 
-                    // For dice rolls, always emit the notification (including own rolls for confirmation)
-                    if (activity.activity_type === 'dice_roll') {
-                        this.emitRollNotification(activity);
-                        // Only add to feed if it's not our own
+                    // For dice rolls or card usage (resource spending), always emit the notification
+                    if (activity.activity_type === 'dice_roll' || activity.activity_type === 'card_used') {
+                        this.emitBroadcastNotification(activity);
+                        // Only add to feed if it's not our own (own added optimistically)
                         if (!isOwnActivity) {
                             state?.addActivityToFeed?.(activity);
                         }

@@ -42,15 +42,15 @@ import { AppUser } from '@/types/auth';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import DevErrorTriggers from '@/components/core/dev-error-triggers';
 import { useCampaignRealtime } from '@/hooks/use-campaign-realtime';
-import { RollNotification } from '@/components/activity/roll-notification';
+import { BroadcastNotification } from '@/components/activity';
 
 export default function DaggerheartApp({ clientUser }: { clientUser: AppUser | null }) {
   const router = useRouter();
   const { activeTab, setCharacter, setUser, fetchUser, isLoading, character, user, selectedCharacterId } = useCharacterStore();
   const [initialLoad, setInitialLoad] = useState(true);
 
-  // Campaign realtime subscription and roll notifications
-  const { currentRollNotification, dismissRollNotification, activeCampaign } = useCampaignRealtime();
+  // Campaign realtime subscription and broadcast notifications
+  const { currentBroadcastNotification, dismissBroadcastNotification, activeCampaign } = useCampaignRealtime();
 
   useEffect(() => {
     // Only run this effect once on mount
@@ -138,10 +138,10 @@ export default function DaggerheartApp({ clientUser }: { clientUser: AppUser | n
         {activeTab === 'dev' && <DevModifiersView />}
       </MobileLayout>
 
-      {/* Roll notification pop-ups for campaign members */}
-      <RollNotification
-        activity={currentRollNotification}
-        onDismiss={dismissRollNotification}
+      {/* Broadcast notification pop-ups for campaign members */}
+      <BroadcastNotification
+        activity={currentBroadcastNotification}
+        onDismiss={dismissBroadcastNotification}
       />
 
       <DevErrorTriggers />

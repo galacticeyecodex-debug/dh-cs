@@ -10,7 +10,7 @@ import InviteCodeDisplay from '@/components/campaign/invite-code-display';
 import MemberList from '@/components/campaign/member-list';
 import CampaignSettingsModal from '@/components/campaign/campaign-settings-modal';
 import AssignCharacterModal from '@/components/campaign/assign-character-modal';
-import { ActivityFeed, RollNotification } from '@/components/activity';
+import { ActivityFeed, BroadcastNotification } from '@/components/activity';
 import { realtimeManager } from '@/lib/realtime';
 import { CampaignActivity } from '@/types/activity';
 
@@ -36,16 +36,16 @@ export default function CampaignDetailPage() {
     const [showSettings, setShowSettings] = useState(false);
     const [showAssignCharacter, setShowAssignCharacter] = useState(false);
 
-    // Roll notification state for Campaign Page
-    const [currentRollNotification, setCurrentRollNotification] = useState<CampaignActivity | null>(null);
-    const dismissRollNotification = useCallback(() => {
-        setCurrentRollNotification(null);
+    // Broadcast notification state for Campaign Page
+    const [currentBroadcastNotification, setCurrentBroadcastNotification] = useState<CampaignActivity | null>(null);
+    const dismissBroadcastNotification = useCallback(() => {
+        setCurrentBroadcastNotification(null);
     }, []);
 
-    // Listen for roll notifications from the realtime manager
+    // Listen for broadcast notifications from the realtime manager
     useEffect(() => {
-        const unsubscribe = realtimeManager.onRollNotification((activity) => {
-            setCurrentRollNotification(activity);
+        const unsubscribe = realtimeManager.onBroadcastActivity((activity) => {
+            setCurrentBroadcastNotification(activity);
         });
 
         return unsubscribe;
@@ -281,10 +281,10 @@ export default function CampaignDetailPage() {
                 campaignId={activeCampaign.id}
             />
 
-            {/* Roll notification pop-ups for campaign members */}
-            <RollNotification
-                activity={currentRollNotification}
-                onDismiss={dismissRollNotification}
+            {/* Broadcast notification pop-ups for campaign members */}
+            <BroadcastNotification
+                activity={currentBroadcastNotification}
+                onDismiss={dismissBroadcastNotification}
             />
         </PageLayout>
     );
