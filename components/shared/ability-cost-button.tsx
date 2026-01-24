@@ -151,10 +151,10 @@ export function DomainAbilityButton({
     return true;
   }, [character, costType, costValue]);
 
-  // Cost buttons (stress/hope) should never be disabled - users can always spend resources
-  // Only activation buttons (duration/activate) can be disabled
+  // All buttons should be disabled if they cannot be afforded (e.g. not enough Hope)
+  // or if explicitly disabled by parent (e.g. already paid)
   const isCostButton = costType === 'stress' || costType === 'hope';
-  const isActuallyDisabled = isCostButton ? disabled : (disabled || !canAfford);
+  const isActuallyDisabled = disabled || !canAfford;
 
   // Cost buttons NEVER show "active" state - they just pay resources
   // Only activation buttons show active/inactive states
