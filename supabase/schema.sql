@@ -904,7 +904,16 @@ CREATE TABLE IF NOT EXISTS public.campaign_activity (
     'gm_roll',        -- GM dice roll (can be private)
     'player_joined',  -- Player joined campaign
     'player_left',    -- Player left campaign
-    'character_switched' -- Player switched characters
+    'character_switched', -- Player switched characters
+    'countdown_created', -- GM created a countdown clock
+    'countdown_advanced', -- Count increased/decreased
+    'countdown_triggered', -- Countdown reached zero
+    'countdown_deleted',  -- GM removed a countdown
+    'countdown_reset',    -- GM reset a countdown
+    'project_created',    -- Player started a project
+    'project_advanced',   -- Progress made on project
+    'project_completed',  -- Project finished
+    'project_abandoned'   -- Project stopped
   )),
 
   -- Flexible payload (structure depends on activity_type)
