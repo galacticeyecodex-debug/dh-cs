@@ -19,6 +19,7 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { parseCardPassiveModifiers, parseStaticModifiers, getBareBonesBonuses, calculateDynamicValue } from './card-parser';
 import { getModifiers, isModifierActive, getEnhancement, WithEnhancement } from './enhancement-utils';
+import { getStatModifiers } from './modifier-aggregator';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -56,14 +57,35 @@ export function parseDamageRoll(input: string): { dice: string; modifier: number
   };
 }
 
-// Helper to extract System Modifiers from Equipment AND Domain Cards
-// @param enhancedAbilities - Optional array of enhanced ability data for proper condition evaluation
+/**
+ * @deprecated Use `getStatModifiers` from `@/lib/modifier-aggregator` instead.
+ * This function will be removed in a future version.
+ *
+ * Migration guide:
+ * - Replace: `getSystemModifiers(char, stat, states, abilities)`
+ * - With: `getStatModifiers(char, stat, states)`
+ *
+ * The new function:
+ * - Uses cached enhanced abilities (call `initModifierAggregator()` once at startup)
+ * - Handles ALL modifier sources (equipment, domain cards, user, ancestry, community, class, subclass)
+ * - Fixes the ancestry duplication bug
+ *
+ * @see lib/modifier-aggregator.ts
+ */
 export function getSystemModifiers(
   character: any,
   stat: string,
   cardStates: Record<string, any> = {},
   enhancedAbilities?: Array<WithEnhancement & { name: string }>
 ): any[] {
+  // Development warning
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(
+      '[DEPRECATED] getSystemModifiers() is deprecated. ' +
+      'Use getStatModifiers() from @/lib/modifier-aggregator instead. ' +
+      'See migration guide in function JSDoc.'
+    );
+  }
   if (!character) return [];
 
   const systemModifiers: any[] = [];
@@ -289,54 +311,22 @@ export function calculateBaseEvasion(character: any, cardStates: Record<string, 
   // 1. Class Base
   const base = getClassBaseStat(character, 'evasion');
 
-  // 2. Ancestry Modifiers
-  // Handled by getSystemModifiers via parseStaticModifiers and structured bonuses
+  // 2. System Modifiers (ancestry, equipment, domain cards, etc.)
+  const systemMods = getStatModifiers(character, 'evasion', cardStates);
+  const modBonus = systemMods.reduce((acc, mod) => acc + mod.value, 0);
 
-
-  // 3. Item Modifiers
-  const systemMods = getSystemModifiers(character, 'evasion', cardStates);
-  const itemBonus = systemMods.reduce((acc, mod) => acc + mod.value, 0);
-
-  return base + itemBonus;
+  return base + modBonus;
 }
 
-// Helper to calculate total attack modifier from equipped items and domain cards
-export function calculateAttackModifier(
-  character: any,
-  cardStates: Record<string, any> = {},
-  enhancedAbilities?: Array<WithEnhancement & { name: string }>
-): number {
-  if (!character) return 0;
-
-  const systemMods = getSystemModifiers(character, 'attack', cardStates, enhancedAbilities);
-  const userMods = character.modifiers?.['attack'] || [];
-  const allMods = [...systemMods, ...userMods];
-
-  return allMods.reduce((acc, mod) => acc + mod.value, 0);
-}
-
-// Helper to calculate total damage modifier from equipped items and domain cards
-export function calculateDamageModifier(
-  character: any,
-  cardStates: Record<string, any> = {},
-  enhancedAbilities?: Array<WithEnhancement & { name: string }>
-): number {
-  if (!character) return 0;
-
-  const systemMods = getSystemModifiers(character, 'damage', cardStates, enhancedAbilities);
-  const userMods = character.modifiers?.['damage'] || [];
-  const allMods = [...systemMods, ...userMods];
-
-  return allMods.reduce((acc, mod) => acc + mod.value, 0);
-}
-
-export function calculateWeaponDamage(baseDamage: string, proficiency: number): string {
+export function calculateWeaponDamage(baseDamage: string, proficiency: number, bonus: number = 0): string {
   if (!baseDamage) return '';
 
   // Parse using existing helper
   const { dice, modifier } = parseDamageRoll(baseDamage);
 
   if (!dice) return baseDamage;
+
+  const totalModifier = modifier + bonus;
 
   // Split dice string (e.g. "1d8+1d6")
   const diceGroups = dice.split('+');
@@ -353,8 +343,8 @@ export function calculateWeaponDamage(baseDamage: string, proficiency: number): 
 
   const newDiceString = scaledDice.join('+');
 
-  if (modifier !== 0) {
-    return `${newDiceString}${modifier >= 0 ? '+' : ''}${modifier}`;
+  if (totalModifier !== 0) {
+    return `${newDiceString}${totalModifier >= 0 ? '+' : ''}${totalModifier}`;
   }
 
   return newDiceString;

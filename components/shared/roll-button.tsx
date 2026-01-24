@@ -24,11 +24,13 @@ export function RollButton({
     className,
 }: RollButtonProps) {
 
+    const hasTextColorOverride = className?.includes('text-');
+
     // Determine styles based on variant
     const variantStyles = {
-        primary: 'bg-white/10 hover:bg-white/20 text-white border-white/10',
-        secondary: 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5',
-        damage: 'bg-white/10 hover:bg-white/20 text-white border-white/10', // specialized handling below
+        primary: clsx('bg-white/10 hover:bg-white/20 border-white/10', !hasTextColorOverride && 'text-white'),
+        secondary: clsx('bg-white/5 hover:bg-white/10 border-white/5', !hasTextColorOverride && 'text-gray-300'),
+        damage: clsx('bg-white/10 hover:bg-white/20 border-white/10', !hasTextColorOverride && 'text-white'),
     };
 
     const isDamage = label.toLowerCase().includes('damage');
@@ -69,7 +71,7 @@ export function RollButton({
             <span>{label}</span>
 
             {bonus !== undefined && (
-                <span className={clsx("font-bold", disabled ? "text-gray-500" : "text-white")}>
+                <span className={clsx("font-bold", disabled ? "text-gray-500" : !hasTextColorOverride && "text-white")}>
                     {bonus >= 0 ? `+${bonus}` : bonus}
                 </span>
             )}

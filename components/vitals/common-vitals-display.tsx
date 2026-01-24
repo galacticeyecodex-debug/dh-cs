@@ -24,7 +24,8 @@
 import React, { useMemo, useCallback } from 'react';
 import { useCharacterStore, Character, CharacterInventoryItem } from '@/store/character-store';
 import { AppIcons } from '@/lib/icon-utils';
-import { getClassBaseStat, getSystemModifiers } from '@/lib/utils';
+import { getClassBaseStat } from '@/lib/utils';
+import { getStatModifiers } from '@/lib/modifier-aggregator';
 import VitalCard from '@/components/vitals/vital-card';
 
 // Define a type for the component props
@@ -37,7 +38,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
 
   // Helper to calculate totals and combine modifiers (memoized)
   const getStatDetails = useCallback((stat: string, base: number) => {
-    const systemMods = getSystemModifiers(character, stat);
+    const systemMods = getStatModifiers(character, stat);
     const userMods = character.modifiers?.[stat] || [];
     const allMods = [...systemMods, ...userMods];
     const uniqueMods = Array.from(new Map(allMods.map(mod => [mod.id, mod])).values()); // Deduplicate by ID

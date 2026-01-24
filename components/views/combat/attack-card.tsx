@@ -256,14 +256,6 @@ const AttackCard = React.memo(function AttackCard({
                     </div>
                 </div>
 
-                {/* Damage Display - only show if we have damage */}
-                {hasDamage && (
-                    <div className="text-right">
-                        <div className={clsx('text-xl font-bold', getValueColor(damageModifier !== 0))}>
-                            {calculatedDamage}
-                        </div>
-                    </div>
-                )}
             </div>
 
             {/* Collapsible Description Section */}
@@ -324,9 +316,9 @@ const AttackCard = React.memo(function AttackCard({
                 {/* Damage Button - only show if we have damage */}
                 {hasDamage && onDamageRoll && (
                     <RollButton
-                        label={`Damage (${calculatedDamage})`}
+                        label={`Damage ${calculatedDamage}`}
                         onClick={onDamageRoll}
-                        bonus={damageModifier !== 0 ? damageModifier : undefined}
+                        bonus={undefined} // Integrated into the label string
                         variant="damage"
                         disabled={isUsed || !canRoll}
                         className={clsx(

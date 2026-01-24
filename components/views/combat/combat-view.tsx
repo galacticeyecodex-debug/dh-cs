@@ -19,7 +19,9 @@ import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { Shield, Swords, Crosshair, Eye, EyeOff, Wand2, Moon, Dna } from 'lucide-react';
 import { dataService } from '@/lib/data-service';
 
-import { parseDamageRoll, calculateWeaponDamage, getSystemModifiers, calculateAttackModifier, calculateDamageModifier } from '@/lib/utils';
+import { parseDamageRoll, calculateWeaponDamage } from '@/lib/utils';
+import { calculateDamageBonus, calculateAttackBonus } from '@/lib/roll-utils';
+import { getStatModifiers, initModifierAggregator } from '@/lib/modifier-aggregator';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import SectionHeader from '@/components/shared/section-header';
@@ -51,7 +53,10 @@ export default function CombatView() {
 
   // Memoize enhanced abilities based on playtest setting
   const enhancedAbilities = useMemo(() => {
-    return getAllAbilities(includePlaytest);
+    const abilities = getAllAbilities(includePlaytest);
+    // Initialize global aggregator with current abilities
+    initModifierAggregator(abilities);
+    return abilities;
   }, [includePlaytest]);
 
   // Fetch transformation data from library
@@ -200,13 +205,13 @@ export default function CombatView() {
     const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
 
     // Get modifiers for the base trait
-    const systemTraitMods = getSystemModifiers(character, traitKey, cardStates);
+    const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
     const userTraitMods = character.modifiers?.[traitKey] || [];
     const allTraitMods = [...systemTraitMods, ...userTraitMods];
     const totalTraitValue = baseTraitValue + allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
 
     // Get specific spellcast modifiers
-    const systemSpellcastMods = getSystemModifiers(character, 'spellcast', cardStates);
+    const systemSpellcastMods = getStatModifiers(character, 'spellcast', cardStates);
     const userSpellcastMods = character.modifiers?.['spellcast'] || [];
     const allSpellcastMods = [...systemSpellcastMods, ...userSpellcastMods];
 
@@ -238,9 +243,7 @@ export default function CombatView() {
 
   // Calculate Proficiency with Modifiers
   const baseProficiency = character.proficiency || 1;
-  const systemProfMods = getSystemModifiers(character, 'proficiency', cardStates);
-  const userProfMods = character.modifiers?.['proficiency'] || [];
-  const allProfMods = [...systemProfMods, ...userProfMods];
+  const allProfMods = getStatModifiers(character, 'proficiency', cardStates);
 
   const totalProficiency = Math.max(1, baseProficiency + allProfMods.reduce((acc, mod) => acc + mod.value, 0));
   const isProficiencyModified = totalProficiency !== baseProficiency;
@@ -331,7 +334,7 @@ export default function CombatView() {
                   const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
 
                   // Get modifiers for this trait
-                  const systemTraitMods = getSystemModifiers(character, traitKey, cardStates);
+                  const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
                   const userTraitMods = character.modifiers?.[traitKey] || [];
                   const allTraitMods = [...systemTraitMods, ...userTraitMods];
 
@@ -340,11 +343,11 @@ export default function CombatView() {
                   const totalTraitValue = baseTraitValue + traitModifierSum;
 
                   // Calculate attack and damage modifiers from equipment
-                  const attackModifier = calculateAttackModifier(character, cardStates, enhancedAbilities);
-                  const damageModifier = calculateDamageModifier(character, cardStates, enhancedAbilities);
+                  const attackModifier = calculateAttackBonus(character, cardStates, enhancedAbilities);
+                  const damageModifier = calculateDamageBonus(character, cardStates);
                   const totalAttackBonus = totalTraitValue + attackModifier;
 
-                  const calculatedDamage = calculateWeaponDamage(baseDamage, totalProficiency);
+                  const calculatedDamage = calculateWeaponDamage(baseDamage, totalProficiency, damageModifier);
                   const costs = libData?.costs;
 
                   return (
@@ -363,8 +366,7 @@ export default function CombatView() {
                       onAttackRoll={() => prepareRoll(`${weapon.name} Attack`, totalAttackBonus)}
                       onDamageRoll={() => {
                         const { dice, modifier } = parseDamageRoll(calculatedDamage);
-                        const totalDamageBonus = modifier + damageModifier;
-                        prepareRoll(`${weapon.name} Damage`, totalDamageBonus, dice);
+                        prepareRoll(`${weapon.name} Damage`, modifier, dice);
                       }}
                       onManageModifiers={() => setActiveWeaponId(weapon.id)}
                       costs={costs}
@@ -380,9 +382,9 @@ export default function CombatView() {
               {/* Companion Attack */}
               {character.ranger_companion && (() => {
                 const companion = character.ranger_companion;
-                const companionAttackMod = calculateAttackModifier(character, cardStates, enhancedAbilities);
-                const companionDamageMod = calculateDamageModifier(character, cardStates, enhancedAbilities);
-                const calculatedDamage = calculateWeaponDamage(companion.damage_die, totalProficiency);
+                const companionAttackMod = calculateAttackBonus(character, cardStates, enhancedAbilities);
+                const companionDamageMod = calculateDamageBonus(character, cardStates);
+                const calculatedDamage = calculateWeaponDamage(companion.damage_die, totalProficiency, companionDamageMod);
 
                 return (
                   <AttackCard
@@ -399,8 +401,7 @@ export default function CombatView() {
                     onAttackRoll={() => prepareRoll(`${companion.name} Attack`, companionAttackMod)}
                     onDamageRoll={() => {
                       const { dice, modifier } = parseDamageRoll(calculatedDamage);
-                      const totalDamageBonus = modifier + companionDamageMod;
-                      prepareRoll(`${companion.name} Damage`, totalDamageBonus, dice);
+                      prepareRoll(`${companion.name} Damage`, modifier, dice);
                     }}
                     borderVariant="companion"
                     icon={<span className="text-lg">🐾</span>}
@@ -431,17 +432,17 @@ export default function CombatView() {
                     const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
 
                     // Get modifiers for this trait
-                    const systemTraitMods = getSystemModifiers(character, traitKey, cardStates);
+                    const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
                     const userTraitMods = character.modifiers?.[traitKey] || [];
                     const allTraitMods = [...systemTraitMods, ...userTraitMods];
                     const traitModifierSum = allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
                     const totalTraitValue = baseTraitValue + traitModifierSum;
 
-                    const attackModifier = calculateAttackModifier(character, cardStates, enhancedAbilities);
-                    const damageModifier = calculateDamageModifier(character, cardStates, enhancedAbilities);
+                    const attackModifier = calculateAttackBonus(character, cardStates, enhancedAbilities);
+                    const damageModifier = calculateDamageBonus(character, cardStates);
                     const totalAttackBonus = totalTraitValue + attackModifier;
 
-                    const calculatedDamage = calculateWeaponDamage(attack.damage, totalProficiency);
+                    const calculatedDamage = calculateWeaponDamage(attack.damage, totalProficiency, damageModifier);
 
                     return (
                       <AttackCard
@@ -460,8 +461,7 @@ export default function CombatView() {
                         onAttackRoll={() => prepareRoll(`${feature.name} Attack`, totalAttackBonus)}
                         onDamageRoll={() => {
                           const { dice, modifier } = parseDamageRoll(calculatedDamage);
-                          const totalDamageBonus = modifier + damageModifier;
-                          prepareRoll(`${feature.name} Damage`, totalDamageBonus, dice);
+                          prepareRoll(`${feature.name} Damage`, modifier, dice);
                         }}
                         onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (feature.costs?.stress || 0))}
                         onSpendHope={() => character && updateHope(character.hope - (feature.costs?.hope || 0))}
@@ -490,19 +490,19 @@ export default function CombatView() {
               const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
 
               // Get modifiers for this trait
-              const systemTraitMods = getSystemModifiers(character, traitKey, cardStates);
+              const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
               const userTraitMods = character.modifiers?.[traitKey] || [];
               const allTraitMods = [...systemTraitMods, ...userTraitMods];
               const traitModifierSum = allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
               const totalTraitValue = baseTraitValue + traitModifierSum;
 
-              const attackModifier = calculateAttackModifier(character, cardStates, enhancedAbilities);
-              const damageModifier = calculateDamageModifier(character, cardStates, enhancedAbilities);
+              const attackModifier = calculateAttackBonus(character, cardStates, enhancedAbilities);
+              const damageModifier = calculateDamageBonus(character, cardStates);
               const totalAttackBonus = totalTraitValue + attackModifier;
 
               // Calculate damage with proficiency
               const baseDamage = attack?.damage;
-              const calculatedDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
+              const calculatedDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency, damageModifier) : undefined;
 
               // Color mapping for badges
               const sourceColors = {
@@ -533,8 +533,7 @@ export default function CombatView() {
                   onAttackRoll={showAttackButton ? () => prepareRoll(`${feature.name} (${trait})`, totalAttackBonus) : undefined}
                   onDamageRoll={baseDamage ? () => {
                     const { dice, modifier } = parseDamageRoll(calculatedDamage!);
-                    const totalDamageBonus = modifier + damageModifier;
-                    prepareRoll(`${feature.name} Damage`, totalDamageBonus, dice);
+                    prepareRoll(`${feature.name} Damage`, modifier, dice);
                   } : undefined}
                   onManageModifiers={() => setActiveWeaponId(`heritage-${feature.source}-${feature.name}`)}
                   borderVariant={feature.sourceType}
@@ -600,13 +599,13 @@ export default function CombatView() {
               let traitModSum = 0;
               if (spellcastTraitName) {
                 const tKey = spellcastTraitName.toLowerCase();
-                const tSystem = getSystemModifiers(character, tKey, cardStates);
+                const tSystem = getStatModifiers(character, tKey, cardStates);
                 const tUser = character.modifiers?.[tKey] || [];
                 traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
               }
 
               const spellcastBase = rawTraitValue + traitModSum;
-              const spellcastMods = getSystemModifiers(character, 'spellcast', cardStates);
+              const spellcastMods = getStatModifiers(character, 'spellcast', cardStates);
               const userSpellcastMods = character.modifiers?.['spellcast'] || [];
               const totalSpellcast = spellcastBase + [...spellcastMods, ...userSpellcastMods].reduce((acc, mod) => acc + mod.value, 0);
 
@@ -621,7 +620,7 @@ export default function CombatView() {
                   rollLabel = 'Spellcast';
                 } else {
                   const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-                  const systemTraitMods = getSystemModifiers(character, traitKey, cardStates);
+                  const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
                   const userTraitMods = character.modifiers?.[traitKey] || [];
                   rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
                   rollLabel = enhancement.roll.trait;
@@ -633,16 +632,21 @@ export default function CombatView() {
                   rollLabel = 'Spellcast';
                 } else {
                   const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-                  const systemTraitMods = getSystemModifiers(character, traitKey, cardStates);
+                  const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
                   const userTraitMods = character.modifiers?.[traitKey] || [];
                   rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
                   rollLabel = enhancement.attack.trait;
                 }
               }
 
+              // Calculate unified attack and damage modifiers for abilities
+              const attackModifier = calculateAttackBonus(character, cardStates, enhancedAbilities);
+              const damageModifier = calculateDamageBonus(character, cardStates);
+              const finalAttackBonus = rollBonus + attackModifier;
+
               // Calculate damage
               const baseDamage = enhancement.attack?.damage;
-              const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
+              const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency, damageModifier) : undefined;
 
               // Check if ability is used
               const cardState = cardStates?.[ability.name];
@@ -680,9 +684,9 @@ export default function CombatView() {
                   range={enhancement.attack?.range || ''}
                   baseDamage={baseDamage}
                   calculatedDamage={finalDamage}
-                  totalAttackBonus={rollBonus}
-                  attackModifier={0}
-                  damageModifier={0}
+                  totalAttackBonus={finalAttackBonus}
+                  attackModifier={attackModifier}
+                  damageModifier={damageModifier}
                   proficiency={totalProficiency}
                   onAttackRoll={handleAttackRoll}
                   onDamageRoll={handleDamageRoll}
@@ -722,7 +726,7 @@ export default function CombatView() {
           onClose={() => setShowProficiencyModifiers(false)}
           statLabel="proficiency"
           baseValue={baseProficiency}
-          currentModifiers={userProfMods}
+          currentModifiers={allProfMods}
           onUpdateModifiers={(mods) => updateModifiers('proficiency', mods)}
         />
 
@@ -799,33 +803,31 @@ export default function CombatView() {
 
           // Calculate Base Trait Value
           const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-          const systemTraitMods = getSystemModifiers(character, traitKey, cardStates);
+          const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
           const userTraitMods = character.modifiers?.[traitKey] || [];
           const allTraitMods = [...systemTraitMods, ...userTraitMods];
           const traitModifierSum = allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
           const totalTraitValue = baseTraitValue + traitModifierSum;
 
           // Attack Modifiers
-          const systemAttackMods = getSystemModifiers(character, 'attack', cardStates, enhancedAbilities);
-          const userAttackMods = character.modifiers?.['attack'] || [];
+          const allAttackMods = getStatModifiers(character, 'attack', cardStates);
 
           // Damage Modifiers
-          const systemDamageMods = getSystemModifiers(character, 'damage', cardStates, enhancedAbilities);
-          const userDamageMods = character.modifiers?.['damage'] || [];
+          const allDamageMods = getStatModifiers(character, 'damage', cardStates);
 
           const weaponTabs = [
             {
               id: 'attack',
               label: 'Attack',
               baseValue: totalTraitValue,
-              currentModifiers: [...systemAttackMods, ...userAttackMods],
+              currentModifiers: allAttackMods,
               onUpdateModifiers: (mods: any[]) => updateModifiers('attack', mods)
             },
             {
               id: 'damage',
               label: 'Damage',
               baseValue: 0,
-              currentModifiers: [...systemDamageMods, ...userDamageMods],
+              currentModifiers: allDamageMods,
               onUpdateModifiers: (mods: any[]) => updateModifiers('damage', mods)
             }
           ];
@@ -864,33 +866,31 @@ export default function CombatView() {
               let traitModSum = 0;
               if (spellcastTraitName) {
                 const tKey = spellcastTraitName.toLowerCase();
-                const tSystem = getSystemModifiers(character, tKey, cardStates);
+                const tSystem = getStatModifiers(character, tKey, cardStates);
                 const tUser = character.modifiers?.[tKey] || [];
                 traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
               }
 
               const spellcastBase = rawTraitValue + traitModSum;
-              const spellcastMods = getSystemModifiers(character, 'spellcast', cardStates);
-              const userSpellcastMods = character.modifiers?.['spellcast'] || [];
+              const allSpellcastMods = getStatModifiers(character, 'spellcast', cardStates);
 
               tabs.push({
                 id: 'spellcast',
                 label: 'Spellcast',
                 baseValue: spellcastBase,
-                currentModifiers: [...spellcastMods, ...userSpellcastMods],
+                currentModifiers: allSpellcastMods,
                 onUpdateModifiers: (mods: any[]) => updateModifiers('spellcast', mods)
               });
             } else {
               const traitKey = rollTrait.toLowerCase();
               const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-              const systemTraitMods = getSystemModifiers(character, traitKey, cardStates);
-              const userTraitMods = character.modifiers?.[traitKey] || [];
+              const allTraitMods = getStatModifiers(character, traitKey, cardStates);
 
               tabs.push({
                 id: traitKey,
                 label: rollTrait,
                 baseValue: baseTraitValue,
-                currentModifiers: [...systemTraitMods, ...userTraitMods],
+                currentModifiers: allTraitMods,
                 onUpdateModifiers: (mods: any[]) => updateModifiers(traitKey, mods)
               });
             }
@@ -898,7 +898,7 @@ export default function CombatView() {
 
           // 2. Damage Tab
           if (abilityEnhancement.attack?.damage) {
-            const systemDamageMods = getSystemModifiers(character, 'damage', cardStates);
+            const systemDamageMods = getStatModifiers(character, 'damage', cardStates);
             const userDamageMods = character.modifiers?.['damage'] || [];
 
             tabs.push({

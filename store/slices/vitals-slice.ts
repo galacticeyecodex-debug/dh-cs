@@ -14,12 +14,15 @@ import { withOptimisticUpdate } from '@/lib/state-helpers';
 import { Experience, RangerCompanion, SeraphPrayerDice, BardRallyDice, GuardianUnstoppable, WizardStrangePatterns, DruidBeastform, RangerFocus, WarriorSlayerDice, SorcererElement, DruidElementalIncarnation } from '@/types/character';
 import { CharacterStore } from '@/types/store';
 
+// Modifier source types align with ModifierSourceType from modifier-aggregator
+type ModifierSourceType = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
+
 export interface VitalsSlice {
   updateVitals: (type: 'hit_points_current' | 'stress_current' | 'armor_slots', value: number) => Promise<void>;
   updateGold: (denomination: 'handfuls' | 'bags' | 'chests', value: number) => Promise<void>;
   updateHope: (value: number) => Promise<void>;
   updateEvasion: (value: number) => Promise<void>;
-  updateModifiers: (stat: string, modifiers: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[]) => Promise<void>;
+  updateModifiers: (stat: string, modifiers: { id: string; name: string; value: number; source: ModifierSourceType; type?: string }[]) => Promise<void>;
   updateExperiences: (experiences: Experience[]) => Promise<void>;
   updateCompanion: (companion: RangerCompanion) => Promise<void>;
   updatePrayerDice: (prayerDice: SeraphPrayerDice) => Promise<void>;

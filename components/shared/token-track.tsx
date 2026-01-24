@@ -18,7 +18,7 @@ import { Minus, Plus, RotateCcw } from 'lucide-react';
 import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
 import type { CardTokenTrackProps } from '@/types/cards';
-import { getSystemModifiers } from '@/lib/utils';
+import { getStatModifiers } from '@/lib/modifier-aggregator';
 
 export default function CardTokenTrack({
   cardName,
@@ -76,7 +76,7 @@ export default function CardTokenTrack({
 
       if (typeof finalStat === 'number') {
         // Calculate total stat: Base + System Mods + User Mods
-        const systemMods = getSystemModifiers(character, lowerSource, cardStates);
+        const systemMods = getStatModifiers(character, lowerSource, cardStates);
         const userMods = character.modifiers?.[lowerSource] || [];
         const totalMods = [...systemMods, ...userMods].reduce((acc, mod) => acc + mod.value, 0);
 

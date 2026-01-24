@@ -34,15 +34,14 @@ import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { uploadCharacterImage } from '@/lib/storage-service';
 import { MAX_IMAGE_FILE_SIZE, MAX_IMAGE_FILE_SIZE_MB } from '@/lib/image-utils';
-import { getSystemModifiers } from '@/lib/utils';
+import { getStatModifiers, initModifierAggregator, getAllActiveModifiers } from '@/lib/modifier-aggregator';
 import Image from 'next/image';
 import PlaymatCard from './playmat-card';
 import type { EnhancedAbilityCard } from '@/types/cards';
+import { getAllAbilities, srdAncestries, srdCommunities } from '@/lib/content-loaders';
 import { getAttack, getRoll, getModifiers, isModifierActive } from '@/lib/enhancement-utils';
 import useContentAccess from '@/hooks/useContentAccess';
 import { useLibraryItems, LibraryPresets } from '@/hooks/useLibraryItems';
-
-import { getAllAbilities, srdAncestries, srdCommunities } from '@/lib/content-loaders';
 
 export default function PlaymatView() {
   const { character, cardStates, moveCard, addCardToCollection, removeCard, updateCardImage, updateCardImagePosition, updateModifiers, user } = useCharacterStore();
@@ -88,7 +87,10 @@ export default function PlaymatView() {
     const ancestryFeats = (srdAncestries as any[]).flatMap(a => a.feats || []);
     const communityFeats = (srdCommunities as any[]).flatMap(c => c.feats || []);
 
-    return [...abilities, ...ancestryFeats, ...communityFeats];
+    const all = [...abilities, ...ancestryFeats, ...communityFeats];
+    // Initialize global aggregator
+    initModifierAggregator(all);
+    return all;
   }, [includePlaytest]);
 
   // Use centralized library hook instead of duplicated fetch logic
@@ -253,75 +255,8 @@ export default function PlaymatView() {
           <div className="space-y-6">
             {/* Active Modifiers Summary */}
             {loadoutCards.length > 0 && character && (() => {
-              // CRITICAL: Calculate total trait values (base + modifiers) for dynamic formulas
-              // This ensures cards like "Untouchable" (half Agility) use the correct total
-              const traitsWithTotals: any = { ...character.stats };
-              const traitNames = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
-
-              for (const trait of traitNames) {
-                const baseStat = character.stats?.[trait as keyof typeof character.stats] || 0;
-                const userMods = (character.modifiers?.[trait] || []) as any[];
-                const userTotal = userMods.reduce((sum: number, mod: any) => sum + (mod.value || 0), 0);
-                traitsWithTotals[trait] = baseStat + userTotal;
-              }
-
-              // Create temporary character with calculated total stats for formula evaluation
-              const charForParsing = { ...character, stats: traitsWithTotals };
-
-              // Collect all active modifiers from loadout cards
-              const allModifiers: PassiveModifier[] = [];
-              loadoutCards.forEach(card => {
-                const cardName = card.library_item?.name || '';
-                const isCardActive = cardStates?.[cardName]?.is_active ?? false;
-
-                // FIRST: Check for enhanced JSON modifiers with proper condition evaluation
-                const enhancedData = enhancedAbilities.find(a => a.name === cardName);
-                if (enhancedData) {
-                  const jsonModifiers = getModifiers(enhancedData);
-                  if (jsonModifiers.length > 0) {
-                    let addedFromJson = false;
-                    jsonModifiers.forEach((mod, index) => {
-                      // For when_active conditions, check per-modifier activation state
-                      let active: boolean;
-                      if (mod.condition?.type === 'when_active' || mod.condition?.type === 'cost_activated') {
-                        // Per-modifier activation state: use modifierKey pattern matching the UI
-                        const modifierKey = `${mod.stat}-${index}`;
-                        active = cardStates?.[cardName]?.active_modifiers?.[modifierKey] ?? false;
-                      } else {
-                        // For other condition types, use the generic isModifierActive helper
-                        active = isModifierActive(mod, isCardActive, charForParsing);
-                      }
-
-                      if (active) {
-                        // Calculate the actual value - for dynamic formulas, evaluate them
-                        const calculatedValue = mod.formula
-                          ? calculateDynamicValue(mod.formula, charForParsing)
-                          : mod.value;
-
-                        allModifiers.push({
-                          stat: mod.stat,
-                          value: calculatedValue,
-                          formula: mod.formula,
-                          condition: mod.condition as ModifierCondition,
-                          isActive: true,
-                          source: mod.source || cardName
-                        });
-                        addedFromJson = true;
-                      }
-                    });
-                    // Only skip text parsing if we added at least one modifier from JSON
-                    // This ensures cards with all inactive conditions (like when_active) 
-                    // don't get fallback modifiers from text parsing
-                    if (addedFromJson || jsonModifiers.length > 0) {
-                      return; // Skip text parsing - JSON is authoritative for this card
-                    }
-                  }
-                }
-
-                // FALLBACK: Text parsing for cards without JSON modifiers
-                const mods = parseCardPassiveModifiers(card, charForParsing, isCardActive);
-                allModifiers.push(...mods.filter(m => m.isActive));
-              });
+              // Use the unified modifier aggregator to get all active modifiers
+              const allModifiers = getAllActiveModifiers(character, cardStates);
 
               // Group modifiers by stat
               const modifiersByStat = allModifiers.reduce((acc, mod) => {
@@ -483,33 +418,31 @@ export default function PlaymatView() {
               let traitModSum = 0;
               if (spellcastTraitName) {
                 const tKey = spellcastTraitName.toLowerCase();
-                const tSystem = getSystemModifiers(character, tKey);
+                const tSystem = getStatModifiers(character, tKey);
                 const tUser = character.modifiers?.[tKey] || [];
                 traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
               }
 
               const spellcastBase = rawTraitValue + traitModSum;
-              const spellcastMods = getSystemModifiers(character, 'spellcast');
-              const userSpellcastMods = character.modifiers?.['spellcast'] || [];
+              const allSpellcastMods = getStatModifiers(character, 'spellcast');
 
               tabs.push({
                 id: 'spellcast',
                 label: 'Spellcast',
                 baseValue: spellcastBase,
-                currentModifiers: [...spellcastMods, ...userSpellcastMods],
+                currentModifiers: allSpellcastMods,
                 onUpdateModifiers: (mods: any[]) => updateModifiers('spellcast', mods)
               });
             } else {
               const traitKey = rollTrait.toLowerCase();
               const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-              const systemTraitMods = getSystemModifiers(character, traitKey);
-              const userTraitMods = character.modifiers?.[traitKey] || [];
+              const allTraitMods = getStatModifiers(character, traitKey);
 
               tabs.push({
                 id: traitKey,
                 label: rollTrait,
                 baseValue: baseTraitValue,
-                currentModifiers: [...systemTraitMods, ...userTraitMods],
+                currentModifiers: allTraitMods,
                 onUpdateModifiers: (mods: any[]) => updateModifiers(traitKey, mods)
               });
             }
@@ -517,14 +450,13 @@ export default function PlaymatView() {
 
           // 2. Damage Tab
           if (attack?.damage) {
-            const systemDamageMods = getSystemModifiers(character, 'damage');
-            const userDamageMods = character.modifiers?.['damage'] || [];
+            const allDamageMods = getStatModifiers(character, 'damage');
 
             tabs.push({
               id: 'damage',
               label: 'Damage',
               baseValue: 0,
-              currentModifiers: [...systemDamageMods, ...userDamageMods],
+              currentModifiers: allDamageMods,
               onUpdateModifiers: (mods: any[]) => updateModifiers('damage', mods)
             });
           }

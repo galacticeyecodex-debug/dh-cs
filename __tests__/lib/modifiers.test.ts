@@ -1,39 +1,40 @@
 /**
  * MODIFIERS TESTS
  * ----------------------------------------------------------------------------
- * This test suite verifies the functionality of the `getSystemModifiers` utility.
- * 
+ * This test suite verifies the functionality of the `getStatModifiers` utility
+ * (unified modifier aggregator).
+ *
  * FUNCTIONALITY TESTED:
  * - Inventory Filtering: Modifiers should only be applied if the item is equipped (not in backpack).
  * - Structured Data Support: Verifies extraction of explicit modifier objects (target, value) from JSON data.
- * - Legacy Parsing: Tests the fallback regex logic that parses natural language strings (e.g., "+1 to Strength") 
+ * - Legacy Parsing: Tests the fallback regex logic that parses natural language strings (e.g., "+1 to Strength")
  *   from `feat_text` or `feature.text` when structured data is missing.
  * - Aggregation: Checks that multiple modifiers from different items stack correctly for a given stat.
  * - Edge Cases: Validates handling of negative values, case-insensitivity, and malformed inputs.
  */
 
 import { describe, it, expect } from 'vitest';
-import { getSystemModifiers } from '@/lib/utils';
+import { getStatModifiers } from '@/lib/modifier-aggregator';
 
 // ============================================================================
 // SYSTEM MODIFIERS EXTRACTION TESTS
 // ============================================================================
 
-describe('getSystemModifiers', () => {
+describe('getStatModifiers', () => {
   it('should return empty array for null character', () => {
-    const mods = getSystemModifiers(null, 'armor');
+    const mods = getStatModifiers(null, 'armor');
     expect(mods).toEqual([]);
   });
 
   it('should return empty array for character with no inventory', () => {
     const character = { character_inventory: undefined };
-    const mods = getSystemModifiers(character, 'armor');
+    const mods = getStatModifiers(character, 'armor');
     expect(mods).toEqual([]);
   });
 
   it('should return empty array for character with empty inventory', () => {
     const character = { character_inventory: [] };
-    const mods = getSystemModifiers(character, 'armor');
+    const mods = getStatModifiers(character, 'armor');
     expect(mods).toEqual([]);
   });
 
@@ -52,7 +53,7 @@ describe('getSystemModifiers', () => {
         },
       ],
     };
-    const mods = getSystemModifiers(character, 'armor');
+    const mods = getStatModifiers(character, 'armor');
     expect(mods).toEqual([]);
   });
 
@@ -76,11 +77,11 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const strengthMods = getSystemModifiers(character, 'strength');
+      const strengthMods = getStatModifiers(character, 'strength');
       expect(strengthMods).toHaveLength(1);
       expect(strengthMods[0].value).toBe(2);
       expect(strengthMods[0].name).toBe('Magic Sword');
-      expect(strengthMods[0].source).toBe('system');
+      expect(strengthMods[0].source).toBe('equipment'); // Now correctly reports specific source
     });
 
     it('should extract modifiers from equipped secondary weapon', () => {
@@ -101,7 +102,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const armorMods = getSystemModifiers(character, 'armor');
+      const armorMods = getStatModifiers(character, 'armor');
       expect(armorMods).toHaveLength(1);
       expect(armorMods[0].value).toBe(1);
     });
@@ -125,7 +126,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const armorMods = getSystemModifiers(character, 'armor');
+      const armorMods = getStatModifiers(character, 'armor');
       expect(armorMods).toHaveLength(1);
       expect(armorMods[0].value).toBe(3);
     });
@@ -160,7 +161,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const strengthMods = getSystemModifiers(character, 'strength');
+      const strengthMods = getStatModifiers(character, 'strength');
       expect(strengthMods).toHaveLength(2);
       expect(strengthMods[0].value).toBe(2);
       expect(strengthMods[1].value).toBe(1);
@@ -185,7 +186,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const strengthMods = getSystemModifiers(character, 'strength');
+      const strengthMods = getStatModifiers(character, 'strength');
       expect(strengthMods).toHaveLength(1);
       expect(strengthMods[0].target).toBeUndefined(); // The object doesn't have target field in response
     });
@@ -206,7 +207,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'armor');
+      const mods = getStatModifiers(character, 'armor');
       expect(mods).toEqual([]);
     });
 
@@ -229,7 +230,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'strength');
+      const mods = getStatModifiers(character, 'strength');
       expect(mods).toHaveLength(2);
       expect(mods[0].id).not.toBe(mods[1].id);
     });
@@ -252,7 +253,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'strength');
+      const mods = getStatModifiers(character, 'strength');
       expect(mods).toHaveLength(1);
       expect(mods[0].value).toBe(2);
       expect(mods[0].name).toBe('Blessed Sword');
@@ -274,7 +275,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'evasion');
+      const mods = getStatModifiers(character, 'evasion');
       expect(mods).toHaveLength(1);
       expect(mods[0].value).toBe(-1);
     });
@@ -295,7 +296,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'agility');
+      const mods = getStatModifiers(character, 'agility');
       expect(mods).toHaveLength(1);
       expect(mods[0].value).toBe(1);
     });
@@ -316,7 +317,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'hit_points');
+      const mods = getStatModifiers(character, 'hit_points');
       expect(mods).toHaveLength(1);
       expect(mods[0].value).toBe(2);
     });
@@ -337,7 +338,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'strength');
+      const mods = getStatModifiers(character, 'strength');
       expect(mods).toHaveLength(1);
       expect(mods[0].value).toBe(3);
     });
@@ -359,7 +360,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'armor');
+      const mods = getStatModifiers(character, 'armor');
       expect(mods).toHaveLength(1);
       expect(mods[0].value).toBe(1);
     });
@@ -382,7 +383,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'evasion');
+      const mods = getStatModifiers(character, 'evasion');
       expect(mods).toHaveLength(1);
       expect(mods[0].value).toBe(2);
     });
@@ -406,11 +407,11 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const strengthMods = getSystemModifiers(character, 'strength');
+      const strengthMods = getStatModifiers(character, 'strength');
       expect(strengthMods).toHaveLength(1);
       expect(strengthMods[0].value).toBe(1);
 
-      const agilityMods = getSystemModifiers(character, 'agility');
+      const agilityMods = getStatModifiers(character, 'agility');
       expect(agilityMods).toHaveLength(1);
     });
   });
@@ -428,7 +429,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'armor');
+      const mods = getStatModifiers(character, 'armor');
       expect(mods).toEqual([]);
     });
 
@@ -443,7 +444,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'armor');
+      const mods = getStatModifiers(character, 'armor');
       expect(mods).toEqual([]);
     });
 
@@ -465,7 +466,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'strength');
+      const mods = getStatModifiers(character, 'strength');
       expect(mods[0].value).toBe(999);
     });
 
@@ -487,7 +488,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'strength');
+      const mods = getStatModifiers(character, 'strength');
       expect(mods[0].value).toBe(-3);
     });
 
@@ -509,7 +510,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const mods = getSystemModifiers(character, 'strength');
+      const mods = getStatModifiers(character, 'strength');
       // The function directly uses the value, so it will be 'invalid'
       expect(mods[0].value).toBe('invalid');
     });
@@ -532,7 +533,7 @@ describe('getSystemModifiers', () => {
         ],
       };
 
-      const evasionMods = getSystemModifiers(character, 'evasion');
+      const evasionMods = getStatModifiers(character, 'evasion');
       expect(evasionMods).toEqual([]);
     });
   });

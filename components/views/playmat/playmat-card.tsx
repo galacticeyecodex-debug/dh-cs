@@ -30,7 +30,8 @@ import { RollButton } from '@/components/shared/roll-button';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { EnhancedAbilityCard } from '@/types/cards';
-import { getSystemModifiers, calculateWeaponDamage, parseDamageRoll } from '@/lib/utils';
+import { calculateWeaponDamage, parseDamageRoll } from '@/lib/utils';
+import { getStatModifiers } from '@/lib/modifier-aggregator';
 import {
   getEnhancement,
   getAttack,
@@ -106,7 +107,7 @@ export default function PlaymatCard({
   if (character && hasAttackOrRoll && enhancedData && enhancement) {
     // 1. Calculate Proficiency
     const baseProf = character.proficiency || 1;
-    const systemProfMods = getSystemModifiers(character, 'proficiency', cardStates);
+    const systemProfMods = getStatModifiers(character, 'proficiency', cardStates);
     const userProfMods = character.modifiers?.['proficiency'] || [];
     totalProficiency = Math.max(1, baseProf + [...systemProfMods, ...userProfMods].reduce((acc, mod) => acc + mod.value, 0));
 
@@ -124,20 +125,20 @@ export default function PlaymatCard({
         let traitModSum = 0;
         if (spellcastTraitName) {
           const tKey = spellcastTraitName.toLowerCase();
-          const tSystem = getSystemModifiers(character, tKey, cardStates);
+          const tSystem = getStatModifiers(character, tKey, cardStates);
           const tUser = character.modifiers?.[tKey] || [];
           traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
         }
 
         const spellcastBase = rawTraitValue + traitModSum;
-        const spellcastMods = getSystemModifiers(character, 'spellcast', cardStates);
+        const spellcastMods = getStatModifiers(character, 'spellcast', cardStates);
         const userSpellcastMods = character.modifiers?.['spellcast'] || [];
         rollBonus = spellcastBase + [...spellcastMods, ...userSpellcastMods].reduce((acc, mod) => acc + mod.value, 0);
         rollLabel = 'Spellcast';
       } else {
         const traitKey = rollTrait.toLowerCase();
         const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-        const systemTraitMods = getSystemModifiers(character, traitKey, cardStates);
+        const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
         const userTraitMods = character.modifiers?.[traitKey] || [];
         rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
         rollLabel = rollTrait;

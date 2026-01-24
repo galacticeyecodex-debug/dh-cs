@@ -12,16 +12,12 @@
 import { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
 import { Character, CharacterCard, CharacterInventoryItem, LibraryItem, HomebrewItem, Experience } from '@/types/character';
-import { getSystemModifiers, calculateBaseEvasion } from '@/lib/utils';
+import { calculateBaseEvasion } from '@/lib/utils';
+import { getStatModifiers } from '@/lib/modifier-aggregator';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
 import { CharacterStore } from '@/types/store';
 import ModifierService from '@/lib/modifier-service';
 import { Modifier } from '@/types/modifiers';
-import enhancedAbilitiesDataRaw from '@/content/public/srd/json/abilities_enhanced.json';
-import { WithEnhancement } from '@/lib/enhancement-utils';
-
-// Cast the JSON import to the correct type
-const enhancedAbilitiesData = enhancedAbilitiesDataRaw as unknown as Array<WithEnhancement & { name: string }>;
 
 // Helper to convert legacy/simple modifiers to strict Modifier objects
 const convertToModifier = (legacyMod: any, target: string): Modifier => ({
@@ -31,13 +27,13 @@ const convertToModifier = (legacyMod: any, target: string): Modifier => ({
   value: legacyMod.value,
   operator: 'add', // Default to additive for legacy modifiers
   description: legacyMod.name || 'Modifier',
-  condition: legacyMod.condition // Pass through if exists (rare in legacy)
+  condition: typeof legacyMod.condition === 'string' ? legacyMod.condition : undefined
 });
 
 export interface CharacterSlice {
   character: Character | null;
   isLoading: boolean;
-  
+
   setCharacter: (char: Character | null) => void;
   fetchCharacter: (userId: string, characterId?: string) => Promise<void>;
   switchCharacter: (characterId: string) => Promise<void>;
@@ -218,16 +214,16 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
 
     const inventory = character.character_inventory || [];
     const equippedArmor = inventory.find((i: CharacterInventoryItem) => i.location === 'equipped_armor');
-    
+
     // 1. Calculate Base Armor Score & Thresholds
     let baseArmorScore = 0;
-    let baseMajor = 0; 
+    let baseMajor = 0;
     let baseSevere = 0;
-    
+
     // Determine base values from equipped armor
     if (equippedArmor?.library_item?.data) {
       const armorData = equippedArmor.library_item.data;
-      
+
       if (armorData.base_score) {
         baseArmorScore = parseInt(armorData.base_score) || 0;
       }
@@ -245,7 +241,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     const tempChar = { ...character, character_inventory: inventory };
 
     // --- ARMOR SCORE CALCULATION ---
-    const armorSystemMods = getSystemModifiers(tempChar, 'armor', cardStates, enhancedAbilitiesData).map((m: any) => convertToModifier(m, 'armor'));
+    const armorSystemMods = getStatModifiers(tempChar, 'armor', cardStates).map((m: any) => convertToModifier(m, 'armor'));
     const armorUserMods = (character.modifiers?.['armor'] || []).map(m => convertToModifier(m, 'armor'));
     const allArmorMods = [...armorSystemMods, ...armorUserMods];
 
@@ -255,7 +251,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     // SRD says: "If your Armor Score is ever 13 or higher, reduce it to 12."
     // I will let the service do its math, and if I want to strictly enforce 12, I should have updated the service constant.
     // For now, I will use Math.min as before to be safe.
-    
+
     let newArmorScore = ModifierService.applyModifiers(baseArmorScore, allArmorMods, character, 'armor');
     newArmorScore = Math.min(newArmorScore, 12); // Hard cap per SRD
 
@@ -264,31 +260,31 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     let minorThreshold = 1;
     let majorThreshold = (baseMajor || 0) + character.level;
     let severeThreshold = (baseSevere || 0) + character.level;
-    
+
     // If unarmored (and no base set), baseMajor was 0, so just level. Correct.
     // But wait, unarmored thresholds are: Minor 1, Major = Level, Severe = Level * 2?
     // SRD: "If you are not wearing armor... Minor is 1, Major is equal to your Level, Severe is double your Level."
     if (!equippedArmor) {
-        severeThreshold = character.level * 2;
+      severeThreshold = character.level * 2;
     }
 
     // Apply modifiers to thresholds
 
     // 1. Generic 'damage_thresholds' (applies to Major and Severe)
-    const threshSystemMods = getSystemModifiers(tempChar, 'damage_thresholds', cardStates, enhancedAbilitiesData).map((m: any) => convertToModifier(m, 'damage_thresholds'));
+    const threshSystemMods = getStatModifiers(tempChar, 'damage_thresholds', cardStates).map((m: any) => convertToModifier(m, 'damage_thresholds'));
     const threshUserMods = (character.modifiers?.['damage_thresholds'] || []).map(m => convertToModifier(m, 'damage_thresholds'));
     const genericBonus = ModifierService.applyModifiers(0, [...threshSystemMods, ...threshUserMods], character, 'damage_thresholds');
 
     // 2. Specific Modifiers
-    const minorSystemMods = getSystemModifiers(tempChar, 'damage_threshold_minor', cardStates, enhancedAbilitiesData).map((m: any) => convertToModifier(m, 'damage_threshold_minor'));
+    const minorSystemMods = getStatModifiers(tempChar, 'damage_threshold_minor', cardStates).map((m: any) => convertToModifier(m, 'damage_threshold_minor'));
     const minorUserMods = (character.modifiers?.['damage_threshold_minor'] || []).map(m => convertToModifier(m, 'damage_threshold_minor'));
     const minorBonus = ModifierService.applyModifiers(0, [...minorSystemMods, ...minorUserMods], character, 'damage_threshold_minor');
 
-    const majorSystemMods = getSystemModifiers(tempChar, 'damage_threshold_major', cardStates, enhancedAbilitiesData).map((m: any) => convertToModifier(m, 'damage_threshold_major'));
+    const majorSystemMods = getStatModifiers(tempChar, 'damage_threshold_major', cardStates).map((m: any) => convertToModifier(m, 'damage_threshold_major'));
     const majorUserMods = (character.modifiers?.['damage_threshold_major'] || []).map(m => convertToModifier(m, 'damage_threshold_major'));
     const majorBonus = ModifierService.applyModifiers(0, [...majorSystemMods, ...majorUserMods], character, 'damage_threshold_major');
 
-    const severeSystemMods = getSystemModifiers(tempChar, 'damage_threshold_severe', cardStates, enhancedAbilitiesData).map((m: any) => convertToModifier(m, 'damage_threshold_severe'));
+    const severeSystemMods = getStatModifiers(tempChar, 'damage_threshold_severe', cardStates).map((m: any) => convertToModifier(m, 'damage_threshold_severe'));
     const severeUserMods = (character.modifiers?.['damage_threshold_severe'] || []).map(m => convertToModifier(m, 'damage_threshold_severe'));
     const severeBonus = ModifierService.applyModifiers(0, [...severeSystemMods, ...severeUserMods], character, 'damage_threshold_severe');
 
@@ -301,7 +297,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     // --- HP MAX CALCULATION ---
     const classBaseHP = parseInt(character.class_data?.data?.starting_hp) || 6;
 
-    const hpSystemMods = getSystemModifiers(tempChar, 'hit_points', cardStates, enhancedAbilitiesData).map((m: any) => convertToModifier(m, 'hp'));
+    const hpSystemMods = getStatModifiers(tempChar, 'hit_points', cardStates).map((m: any) => convertToModifier(m, 'hp'));
     const hpUserMods = (character.modifiers?.['hit_points'] || []).map(m => convertToModifier(m, 'hp'));
 
     const newHPMax = ModifierService.applyModifiers(classBaseHP, [...hpSystemMods, ...hpUserMods], character, 'hp');
@@ -309,7 +305,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
 
     // --- STRESS MAX CALCULATION ---
     const baseStress = 6;
-    const stressSystemMods = getSystemModifiers(tempChar, 'stress', cardStates, enhancedAbilitiesData).map((m: any) => convertToModifier(m, 'stress'));
+    const stressSystemMods = getStatModifiers(tempChar, 'stress', cardStates).map((m: any) => convertToModifier(m, 'stress'));
     const stressUserMods = (character.modifiers?.['stress'] || []).map(m => convertToModifier(m, 'stress'));
 
     const newStressMax = ModifierService.applyModifiers(baseStress, [...stressSystemMods, ...stressUserMods], character, 'stress');
@@ -323,7 +319,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
 
     for (const trait of traitNames) {
       const baseStat = character.stats?.[trait as keyof typeof character.stats] || 0;
-      const systemMods = getSystemModifiers(tempChar, trait, cardStates, enhancedAbilitiesData).map((m: any) => convertToModifier(m, trait));
+      const systemMods = getStatModifiers(tempChar, trait, cardStates).map((m: any) => convertToModifier(m, trait));
       const userMods = (character.modifiers?.[trait] || []).map((m: any) => convertToModifier(m, trait));
       const totalStat = ModifierService.applyModifiers(baseStat, [...systemMods, ...userMods], character, trait);
       traitsWithTotals[trait] = totalStat;
@@ -341,7 +337,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     // OR: Reconstruct fully with Service.
 
     const classBaseEvasion = parseInt(character.class_data?.data?.starting_evasion) || 10;
-    const evSystemMods = getSystemModifiers(tempCharWithTotals, 'evasion', cardStates, enhancedAbilitiesData).map((m: any) => convertToModifier(m, 'evasion'));
+    const evSystemMods = getStatModifiers(tempCharWithTotals, 'evasion', cardStates).map((m: any) => convertToModifier(m, 'evasion'));
     const evUserMods = (character.modifiers?.['evasion'] || []).map(m => convertToModifier(m, 'evasion'));
 
     const newEvasion = ModifierService.applyModifiers(classBaseEvasion, [...evSystemMods, ...evUserMods], character, 'evasion');

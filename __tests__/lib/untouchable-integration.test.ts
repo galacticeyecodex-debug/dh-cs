@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { getSystemModifiers } from '@/lib/utils';
+import { getStatModifiers } from '@/lib/modifier-aggregator';
 import type { Character, CharacterCard } from '@/types/character';
 
 // Helper to create mock character with Untouchable card
@@ -78,7 +78,7 @@ describe('Untouchable Integration - Dynamic Formula with Agility Modifiers', () 
   describe('Base Agility only', () => {
     it('should calculate Evasion bonus from base Agility = 4 → +2', () => {
       const character = createCharacterWithUntouchable(4);
-      const evasionMods = getSystemModifiers(character, 'evasion', {});
+      const evasionMods = getStatModifiers(character, 'evasion', {});
 
       expect(evasionMods).toHaveLength(1);
       expect(evasionMods[0].value).toBe(2); // floor(4 / 2) = 2
@@ -87,7 +87,7 @@ describe('Untouchable Integration - Dynamic Formula with Agility Modifiers', () 
 
     it('should calculate Evasion bonus from base Agility = 3 → +1', () => {
       const character = createCharacterWithUntouchable(3);
-      const evasionMods = getSystemModifiers(character, 'evasion', {});
+      const evasionMods = getStatModifiers(character, 'evasion', {});
 
       expect(evasionMods).toHaveLength(1);
       expect(evasionMods[0].value).toBe(1); // floor(3 / 2) = 1
@@ -95,7 +95,7 @@ describe('Untouchable Integration - Dynamic Formula with Agility Modifiers', () 
 
     it('should calculate Evasion bonus from base Agility = 0 → +0', () => {
       const character = createCharacterWithUntouchable(0);
-      const evasionMods = getSystemModifiers(character, 'evasion', {});
+      const evasionMods = getStatModifiers(character, 'evasion', {});
 
       expect(evasionMods).toHaveLength(1);
       expect(evasionMods[0].value).toBe(0); // floor(0 / 2) = 0
@@ -108,12 +108,14 @@ describe('Untouchable Integration - Dynamic Formula with Agility Modifiers', () 
         { name: 'Blessing', value: 2 }
       ]);
 
-      // First verify Agility modifiers are applied
-      const agilityMods = getSystemModifiers(character, 'agility', {});
-      expect(agilityMods).toHaveLength(0); // System mods only (user mods checked separately)
+      // First verify Agility modifiers are applied (user mods now included in unified aggregator)
+      const agilityMods = getStatModifiers(character, 'agility', {});
+      expect(agilityMods).toHaveLength(1); // User mod: Blessing +2
+      expect(agilityMods[0].value).toBe(2);
+      expect(agilityMods[0].source).toBe('user');
 
       // Now check Evasion - should use total Agility (base 2 + user mod 2 = 4)
-      const evasionMods = getSystemModifiers(character, 'evasion', {});
+      const evasionMods = getStatModifiers(character, 'evasion', {});
 
       expect(evasionMods).toHaveLength(1);
       // CRITICAL: Should be floor(4 / 2) = 2, NOT floor(2 / 2) = 1
@@ -126,7 +128,7 @@ describe('Untouchable Integration - Dynamic Formula with Agility Modifiers', () 
         { name: 'Enhancement', value: 1 }
       ]);
 
-      const evasionMods = getSystemModifiers(character, 'evasion', {});
+      const evasionMods = getStatModifiers(character, 'evasion', {});
 
       expect(evasionMods).toHaveLength(1);
       // base 3 would give +1, but total 4 should give +2
@@ -138,7 +140,7 @@ describe('Untouchable Integration - Dynamic Formula with Agility Modifiers', () 
         { name: 'Curse', value: -2 }
       ]);
 
-      const evasionMods = getSystemModifiers(character, 'evasion', {});
+      const evasionMods = getStatModifiers(character, 'evasion', {});
 
       expect(evasionMods).toHaveLength(1);
       // base 4 would give +2, but total 2 should give +1
@@ -151,7 +153,7 @@ describe('Untouchable Integration - Dynamic Formula with Agility Modifiers', () 
         { name: 'Magic Item', value: 1 }
       ]);
 
-      const evasionMods = getSystemModifiers(character, 'evasion', {});
+      const evasionMods = getStatModifiers(character, 'evasion', {});
 
       expect(evasionMods).toHaveLength(1);
       // base 1 would give +0, but total 4 (1+2+1) should give +2
@@ -163,7 +165,7 @@ describe('Untouchable Integration - Dynamic Formula with Agility Modifiers', () 
         { name: 'Epic Bonus', value: 2 }
       ]);
 
-      const evasionMods = getSystemModifiers(character, 'evasion', {});
+      const evasionMods = getStatModifiers(character, 'evasion', {});
 
       expect(evasionMods).toHaveLength(1);
       expect(evasionMods[0].value).toBe(4); // floor(8 / 2) = 4
@@ -176,7 +178,7 @@ describe('Untouchable Integration - Dynamic Formula with Agility Modifiers', () 
         { name: 'Bonus', value: 2 }
       ]);
 
-      const evasionMods = getSystemModifiers(character, 'evasion', {});
+      const evasionMods = getStatModifiers(character, 'evasion', {});
 
       expect(evasionMods).toHaveLength(1);
       expect(evasionMods[0].value).toBe(2); // floor(5 / 2) = 2, not 2.5 or 3
@@ -187,7 +189,7 @@ describe('Untouchable Integration - Dynamic Formula with Agility Modifiers', () 
         { name: 'Heavy Curse', value: -1 }
       ]);
 
-      const evasionMods = getSystemModifiers(character, 'evasion', {});
+      const evasionMods = getStatModifiers(character, 'evasion', {});
 
       expect(evasionMods).toHaveLength(1);
       // floor(-3 / 2) = -2, but Evasion bonuses can't be negative from Untouchable

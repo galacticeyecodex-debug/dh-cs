@@ -148,9 +148,9 @@ export function calculateMaxHP(
 ): number {
   let maxHP = classBaseHP;
 
-  // System modifiers
-  const hpSystemMods = systemMods.filter(mod => mod.source === 'system');
-  maxHP += hpSystemMods.reduce((acc, mod) => acc + mod.value, 0);
+  // System modifiers (includes equipment, domain_card, ancestry, community, class, subclass - everything non-user)
+  const nonUserMods = systemMods.filter(mod => mod.source !== 'user');
+  maxHP += nonUserMods.reduce((acc, mod) => acc + mod.value, 0);
 
   // Manual modifiers
   maxHP += userMods.reduce((acc, mod) => acc + mod.value, 0);

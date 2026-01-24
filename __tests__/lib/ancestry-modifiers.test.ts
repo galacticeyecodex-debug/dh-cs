@@ -1,6 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
-import { calculateBaseEvasion, getSystemModifiers } from '../../lib/utils';
+import { calculateBaseEvasion } from '../../lib/utils';
+import { getStatModifiers } from '../../lib/modifier-aggregator';
 import type { Character } from '../../types/character';
 
 const createTestCharacter = (overrides?: Partial<Character>): Character => ({
@@ -55,8 +56,8 @@ describe('Ancestry Modifier Integration', () => {
             ]
         });
 
-        // Test implementation via getSystemModifiers directly
-        const mods = getSystemModifiers(character, 'evasion');
+        // Test implementation via getStatModifiers directly
+        const mods = getStatModifiers(character, 'evasion');
         expect(mods).toHaveLength(1);
         expect(mods[0].value).toBe(1);
         expect(mods[0].source).toBe('ancestry');
@@ -85,9 +86,9 @@ describe('Ancestry Modifier Integration', () => {
         expect(evasion).toBe(11);
     });
 
-    it('should handle duplicate bonuses correctly (prefer structured?)', () => {
-        // Current implementation allows both, duplicates might occur if both exist.
-        // The implementation adds both currently. This test documents current behavior.
+    it('should prefer structured bonuses over text parsing (no duplication)', () => {
+        // FIXED: When both text and stat_bonuses exist, prefer structured data only
+        // This prevents the duplication bug (Issue #75)
         const character = createTestCharacter({
             ancestry: 'Goat',
             ancestry_features: [
@@ -102,9 +103,12 @@ describe('Ancestry Modifier Integration', () => {
         });
 
         const evasion = calculateBaseEvasion(character);
-        // Base 10 + 1 (text) + 1 (structured) = 12
-        // Ideally we shouldn't have both in data source, but parser handles both.
-        expect(evasion).toBe(12);
+        // Base 10 + 1 (structured only, text NOT parsed when structured exists) = 11
+        expect(evasion).toBe(11);
+
+        // Also verify only one modifier is returned
+        const mods = getStatModifiers(character, 'evasion');
+        expect(mods.filter(m => m.source === 'ancestry')).toHaveLength(1);
     });
 
     it('should ignore irrelevant features', () => {

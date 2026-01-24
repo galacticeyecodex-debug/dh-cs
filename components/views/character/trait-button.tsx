@@ -31,12 +31,15 @@ import clsx from 'clsx';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import { getValueColor } from '@/lib/styles';
 
+// Modifier source types align with ModifierSourceType from modifier-aggregator
+type ModifierSourceTypeLocal = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
+
 interface StatButtonProps {
   label: string;
   value: number;
   baseValue?: number;
-  modifiers?: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[];
-  onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[]) => void;
+  modifiers?: { id: string; name: string; value: number; source: ModifierSourceTypeLocal; type?: string }[];
+  onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: ModifierSourceTypeLocal; type?: string }[]) => void;
   hideModifierButton?: boolean;
   isSpellcast?: boolean;
 }

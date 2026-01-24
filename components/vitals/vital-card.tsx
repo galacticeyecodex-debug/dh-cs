@@ -27,6 +27,9 @@ import clsx from 'clsx';
 import ModifierSheet, { ModifierTab } from '@/components/shared/modifier-sheet';
 import { getValueColor, getPanelBorder, PANEL } from '@/lib/styles';
 
+// Modifier source types align with ModifierSourceType from modifier-aggregator
+type ModifierSourceType = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
+
 // Props interface for VitalCard
 interface VitalCardProps {
   label: string;
@@ -45,8 +48,8 @@ interface VitalCardProps {
   variant?: 'square' | 'rectangle';
   className?: string;
   trackType?: 'fill-up-good' | 'fill-up-bad' | 'mark-bad';
-  modifiers?: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[];
-  onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[]) => void;
+  modifiers?: { id: string; name: string; value: number; source: ModifierSourceType; type?: string }[];
+  onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: ModifierSourceType; type?: string }[]) => void;
   strokeColor?: string;
   subStats?: ModifierTab[];
 }
