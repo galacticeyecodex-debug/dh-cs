@@ -26,7 +26,7 @@
 
 import React, { useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Dices } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import { getValueColor } from '@/lib/styles';
@@ -38,9 +38,10 @@ interface StatButtonProps {
   modifiers?: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[];
   onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: 'user' | 'system' | 'domain_card'; type?: 'equipment' | 'domain_card' }[]) => void;
   hideModifierButton?: boolean;
+  isSpellcast?: boolean;
 }
 
-const StatButton = React.memo(function StatButton({ label, value, baseValue, modifiers, onUpdateModifiers, hideModifierButton }: StatButtonProps) {
+const StatButton = React.memo(function StatButton({ label, value, baseValue, modifiers, onUpdateModifiers, hideModifierButton, isSpellcast }: StatButtonProps) {
   const { prepareRoll } = useCharacterStore();
   const [showModifierSheet, setShowModifierSheet] = useState(false);
 
@@ -80,10 +81,13 @@ const StatButton = React.memo(function StatButton({ label, value, baseValue, mod
             className="absolute top-1 right-1 text-gray-500 group-hover:text-gray-400 transition-colors pointer-events-none"
             aria-hidden="true"
           >
-            <Dices size={12} />
+            <AppIcons.combat.roll size={12} />
           </div>
 
-          <span className="capitalize font-medium text-gray-300 group-hover:text-white text-sm sm:text-base">{label}</span>
+          <span className="capitalize font-medium text-gray-300 group-hover:text-white text-sm sm:text-base flex items-center gap-1.5">
+            {label}
+            {isSpellcast && <AppIcons.combat.spellcast size={14} className="text-purple-400 shrink-0" />}
+          </span>
         </button>
 
         {/* Value Display (Right/Number) */}
@@ -123,6 +127,9 @@ const StatButton = React.memo(function StatButton({ label, value, baseValue, mod
 
   // Check callback reference
   if (prevProps.onUpdateModifiers !== nextProps.onUpdateModifiers) return false;
+
+  // Check isSpellcast
+  if (prevProps.isSpellcast !== nextProps.isSpellcast) return false;
 
   // All props are equal, skip re-render
   return true;

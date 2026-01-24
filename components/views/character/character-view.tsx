@@ -509,6 +509,8 @@ export default function CharacterView() {
                   <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     {Object.entries(character.stats).map(([key, value]) => {
                       const { total, allMods } = getStatDetails(key, value);
+                      const spellcastTrait = (character.spellcast_trait || character.subclass_data?.data?.spellcast_trait || 'Instinct').toLowerCase();
+                      const isSpellcast = key.toLowerCase() === spellcastTrait;
                       const isMarked = character.marked_traits_jsonb?.[key] || false;
 
                       const toggleMark = () => {
@@ -530,6 +532,7 @@ export default function CharacterView() {
                             modifiers={allMods}
                             onUpdateModifiers={(mods) => updateModifiers(key, mods)}
                             hideModifierButton={true}
+                            isSpellcast={isSpellcast}
                           />
                           <button
                             onClick={toggleMark}
