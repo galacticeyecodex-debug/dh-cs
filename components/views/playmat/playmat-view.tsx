@@ -80,8 +80,19 @@ export default function PlaymatView() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Memoize enhanced abilities based on playtest setting
+  // Also include ancestry and community features as they can appear on the playmat
   const enhancedAbilities = useMemo(() => {
-    return getAllAbilities(includePlaytest);
+    const abilities = getAllAbilities(includePlaytest);
+
+    // Use require from content-loaders to get the raw data arrays
+    // We need to cast them as any[] because strict types might not match exactly 
+    // without circular dependency issues or complex imports
+    const { srdAncestries, srdCommunities } = require('@/lib/content-loaders');
+
+    const ancestryFeats = (srdAncestries as any[]).flatMap(a => a.feats || []);
+    const communityFeats = (srdCommunities as any[]).flatMap(c => c.feats || []);
+
+    return [...abilities, ...ancestryFeats, ...communityFeats];
   }, [includePlaytest]);
 
   // Use centralized library hook instead of duplicated fetch logic

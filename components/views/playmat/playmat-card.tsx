@@ -25,7 +25,8 @@ import FrequencyCheckbox from '@/components/shared/frequency-checkbox';
 import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
 import { DomainCostsRow } from '@/components/shared/ability-costs-row';
 import ModifierActivationRow from '@/components/views/playmat/modifier-activation-row';
-import { AttackCard } from '@/components/views/combat';
+import { AppIcons } from '@/lib/icon-utils';
+import { RollButton } from '@/components/shared/roll-button';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
 import { EnhancedAbilityCard } from '@/types/cards';
@@ -91,22 +92,26 @@ export default function PlaymatCard({
   const actionType = enhancedData ? getActionType(enhancedData) : 'passive';
   const hasTokens = enhancedData ? checkHasTokens(enhancedData) : false;
 
-  // --- Attack / Roll Calculation Logic (Similar to CombatView) ---
+  // --- Attack / Roll Calculation Logic ---
   const hasAttackOrRoll = !!(attack || roll);
 
-  let attackCardNode = null;
+  // Initialize calculation variables
+  let totalProficiency = 1;
+  let rollBonus = 0;
+  let rollLabel = '';
+  let finalDamage: string | undefined = undefined;
+  let baseDamage: string | undefined = undefined;
+  let showAttackButton = false;
 
   if (character && hasAttackOrRoll && enhancedData && enhancement) {
     // 1. Calculate Proficiency
-    const baseProficiency = character.proficiency || 1;
+    const baseProf = character.proficiency || 1;
     const systemProfMods = getSystemModifiers(character, 'proficiency', cardStates);
     const userProfMods = character.modifiers?.['proficiency'] || [];
-    const totalProficiency = Math.max(1, baseProficiency + [...systemProfMods, ...userProfMods].reduce((acc, mod) => acc + mod.value, 0));
+    totalProficiency = Math.max(1, baseProf + [...systemProfMods, ...userProfMods].reduce((acc, mod) => acc + mod.value, 0));
 
     // 2. Calculate Spellcast/Trait Bonus
     const rollTrait = roll?.trait || attack?.trait;
-    let rollBonus = 0;
-    let rollLabel = '';
 
     if (rollTrait) {
       if (rollTrait.toLowerCase() === 'spellcast') {
@@ -140,47 +145,12 @@ export default function PlaymatCard({
     }
 
     // 3. Calculate Damage
-    const baseDamage = attack?.damage;
-    const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
+    baseDamage = attack?.damage;
+    finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
 
-    // 4. Determine if Attack button should be shown based on combat_category
-    // damage_bonus and passive_triggered features don't need Attack buttons
+    // 4. Determine if Attack button should be shown
     const combatCategory = attack?.combat_category || 'passive_triggered';
-    const showAttackButton = roll || combatCategory === 'standalone_attack' || combatCategory === 'roll_only';
-
-    // 5. Render AttackCard (Mini Version)
-    attackCardNode = (
-      <div className="mt-2">
-        <AttackCard
-          id={`playmat-${card.id}`}
-          name={enhancedData.name}
-          trait={rollLabel || 'Roll'}
-          range={attack?.range || ''}
-          baseDamage={baseDamage}
-          calculatedDamage={finalDamage}
-          totalAttackBonus={rollBonus}
-          attackModifier={0}
-          damageModifier={0}
-          proficiency={totalProficiency}
-          onAttackRoll={showAttackButton ? () => prepareRoll(`${enhancedData.name} ${rollLabel}`, rollBonus) : undefined}
-          onDamageRoll={finalDamage ? () => {
-            const { dice, modifier } = parseDamageRoll(finalDamage);
-            prepareRoll(`${enhancedData.name} Damage`, modifier, dice);
-          } : undefined}
-          additionalDamage={attack?.additional_damage}
-          onAdditionalDamageRoll={(damage, label) => {
-            // For additional damage, we typically assume it's dice-heavy, but might have modifier
-            // Using parseDamageRoll should work for "2d6" or "1d8+2"
-            // Note: It doesn't include proficiency usually for extra damage, so we use it raw.
-            const { dice, modifier } = parseDamageRoll(damage);
-            prepareRoll(`${enhancedData.name} ${label}`, modifier, dice);
-          }}
-          borderVariant={enhancement?.timing === 'reaction' ? 'reaction' : 'spell'}
-          rollLabel={combatCategory === 'roll_only' ? 'Roll' : (rollLabel || 'Attack')}
-          roll={roll || undefined}
-        />
-      </div>
-    );
+    showAttackButton = !!(roll || combatCategory === 'standalone_attack' || combatCategory === 'roll_only');
   }
 
   // --- Mechanics Tray Logic ---
@@ -454,8 +424,55 @@ export default function PlaymatCard({
             />
           )}
 
-          {/* Embedded Attack Card */}
-          {attackCardNode}
+          {/* Attack & Damage Buttons (Simplified Layout) */}
+          {hasAttackOrRoll && character && (
+            <div className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5">
+              {/* Roll / Attack Button */}
+              {showAttackButton && (
+                <RollButton
+                  label={rollLabel || 'Attack'}
+                  onClick={() => {
+                    if (enhancedData) {
+                      prepareRoll(`${enhancedData.name} ${rollLabel}`, rollBonus);
+                    }
+                  }}
+                  bonus={rollBonus}
+                  variant="primary"
+                />
+              )}
+
+              {/* Damage Button */}
+              {finalDamage && (
+                <RollButton
+                  label={`Damage (${finalDamage})`}
+                  onClick={() => {
+                    if (enhancedData && finalDamage) {
+                      const { dice, modifier } = parseDamageRoll(finalDamage);
+                      prepareRoll(`${enhancedData.name} Damage`, modifier, dice);
+                    }
+                  }}
+                  variant="damage"
+                  icon={AppIcons.combat.damage}
+                />
+              )}
+
+              {/* Additional Damage Buttons */}
+              {attack?.additional_damage?.map((extra, idx) => (
+                <RollButton
+                  key={idx}
+                  label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
+                  onClick={() => {
+                    if (enhancedData) {
+                      const { dice, modifier } = parseDamageRoll(extra.damage);
+                      prepareRoll(`${enhancedData.name} ${extra.label || 'Extra'}`, modifier, dice);
+                    }
+                  }}
+                  variant="damage"
+                  className="opacity-90"
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
