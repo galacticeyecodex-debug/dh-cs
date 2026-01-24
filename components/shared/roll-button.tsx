@@ -58,10 +58,10 @@ export function RollButton({
             )}
         >
             <div
-                className="absolute top-0.5 right-0.5 text-gray-600 transition-colors pointer-events-none opacity-0 sm:opacity-100"
+                className="absolute top-0.5 right-0.5 text-gray-600 transition-colors pointer-events-none"
                 aria-hidden="true"
             >
-                <AppIcons.combat.roll size={8} />
+                <AppIcons.combat.roll size={10} />
             </div>
 
             <Icon size={14} className={clsx(disabled ? "text-gray-500" : activeIconColor)} />

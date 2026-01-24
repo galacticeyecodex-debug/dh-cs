@@ -47,6 +47,7 @@ export default function CombatView() {
   const [activeAbilityId, setActiveAbilityId] = useState<string | null>(null);
   const [transformationCard, setTransformationCard] = useState<any>(null);
   const [showFeatures, setShowFeatures] = useState(true);
+  const [showSpellcastModifiers, setShowSpellcastModifiers] = useState(false);
 
   // Memoize enhanced abilities based on playtest setting
   const enhancedAbilities = useMemo(() => {
@@ -193,6 +194,40 @@ export default function CombatView() {
 
   const totalProficiency = Math.max(1, baseProficiency + allProfMods.reduce((acc, mod) => acc + mod.value, 0));
   const isProficiencyModified = totalProficiency !== baseProficiency;
+
+  // Calculate Spellcast Trait and Bonus
+  const spellcastDetails = useMemo(() => {
+    const traitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait || 'Instinct';
+    const traitKey = traitName.toLowerCase();
+    const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+
+    // Get modifiers for the base trait
+    const systemTraitMods = getSystemModifiers(character, traitKey, cardStates);
+    const userTraitMods = character.modifiers?.[traitKey] || [];
+    const allTraitMods = [...systemTraitMods, ...userTraitMods];
+    const totalTraitValue = baseTraitValue + allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
+
+    // Get specific spellcast modifiers
+    const systemSpellcastMods = getSystemModifiers(character, 'spellcast', cardStates);
+    const userSpellcastMods = character.modifiers?.['spellcast'] || [];
+    const allSpellcastMods = [...systemSpellcastMods, ...userSpellcastMods];
+
+    const totalSpellcastBonus = totalTraitValue + allSpellcastMods.reduce((acc, mod) => acc + mod.value, 0);
+    const isSpellcastModified = totalSpellcastBonus !== baseTraitValue;
+
+    return {
+      traitName,
+      traitKey,
+      baseTraitValue,
+      totalTraitValue,
+      allTraitMods,
+      allSpellcastMods,
+      totalSpellcastBonus,
+      isSpellcastModified,
+      userSpellcastMods,
+      userTraitMods
+    };
+  }, [character, cardStates]);
 
   return (
     <ErrorBoundary>
@@ -519,6 +554,23 @@ export default function CombatView() {
               onToggle={() => setShowSpells(!showSpells)}
             />
 
+            {showSpells && (
+              <div className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 border border-white/5 mb-3">
+                <span className="text-sm font-medium text-gray-300">Spellcast ({spellcastDetails.traitName})</span>
+                <button
+                  onClick={() => setShowSpellcastModifiers(true)}
+                  className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-bold transition-colors ${spellcastDetails.isSpellcastModified
+                    ? 'bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20'
+                    : 'bg-white/10 border border-white/10 text-white hover:bg-white/20'
+                    }`}
+                  aria-label={`Adjust spellcast (currently ${spellcastDetails.totalSpellcastBonus})`}
+                >
+                  <Wand2 size={12} />
+                  {spellcastDetails.totalSpellcastBonus >= 0 ? `+${spellcastDetails.totalSpellcastBonus}` : spellcastDetails.totalSpellcastBonus}
+                </button>
+              </div>
+            )}
+
             {showSpells && combatAbilities.map((ability) => {
               const enhancement = getEnhancement(ability);
               if (!enhancement) return null;
@@ -656,6 +708,32 @@ export default function CombatView() {
           baseValue={baseProficiency}
           currentModifiers={userProfMods}
           onUpdateModifiers={(mods) => updateModifiers('proficiency', mods)}
+        />
+
+        {/* Spellcast Modifier Sheet */}
+        <ModifierSheet
+          isOpen={showSpellcastModifiers}
+          onClose={() => setShowSpellcastModifiers(false)}
+          statLabel="Spellcast"
+          baseValue={spellcastDetails.baseTraitValue}
+          currentModifiers={[]}
+          onUpdateModifiers={() => { }}
+          tabs={[
+            {
+              id: spellcastDetails.traitKey,
+              label: spellcastDetails.traitName,
+              baseValue: spellcastDetails.baseTraitValue,
+              currentModifiers: spellcastDetails.userTraitMods,
+              onUpdateModifiers: (mods: any[]) => updateModifiers(spellcastDetails.traitKey, mods)
+            },
+            {
+              id: 'spellcast',
+              label: 'Spellcast Bonus',
+              baseValue: 0,
+              currentModifiers: spellcastDetails.userSpellcastMods,
+              onUpdateModifiers: (mods: any[]) => updateModifiers('spellcast', mods)
+            }
+          ]}
         />
 
         {/* Weapon/Attack Modifier Sheet */}

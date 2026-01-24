@@ -20,6 +20,7 @@ import Image from 'next/image';
 import { getSystemModifiers } from '@/lib/utils';
 import { calculateRollBonus } from '@/lib/roll-utils';
 import StatButton from '@/components/views/character/trait-button';
+import { RollButton } from '@/components/shared/roll-button';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
 import ExperienceSheet from './experience-manager';
@@ -657,22 +658,11 @@ export default function CharacterView() {
                                         />
                                       )}
                                       {hasRoll && (
-                                        <button
+                                        <RollButton
+                                          label={rollLabel}
                                           onClick={() => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus)}
-                                          className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors bg-white/5 border-white/10 hover:bg-white/10"
-                                        >
-                                          <div className="absolute top-0.5 right-0.5 text-gray-500" aria-hidden="true">
-                                            <AppIcons.combat.roll size={10} />
-                                          </div>
-                                          {rollLabel.includes('Spellcast') ? (
-                                            <AppIcons.combat.spellcast size={12} className="text-purple-400" />
-                                          ) : rollLabel.includes('Attack') ? (
-                                            <AppIcons.combat.attack size={12} className="text-dagger-gold" />
-                                          ) : (
-                                            <AppIcons.combat.activation size={12} />
-                                          )}
-                                          <span>{rollLabel} ({rollBonus >= 0 ? `+${rollBonus}` : rollBonus})</span>
-                                        </button>
+                                          bonus={rollBonus}
+                                        />
                                       )}
                                     </div>
                                   </div>
@@ -768,22 +758,11 @@ export default function CharacterView() {
                                         />
                                       )}
                                       {hasRoll && (
-                                        <button
+                                        <RollButton
+                                          label={rollLabel}
                                           onClick={() => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus)}
-                                          className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors bg-white/5 border-white/10 hover:bg-white/10"
-                                        >
-                                          <div className="absolute top-0.5 right-0.5 text-gray-500" aria-hidden="true">
-                                            <AppIcons.combat.roll size={10} />
-                                          </div>
-                                          {rollLabel.includes('Spellcast') ? (
-                                            <AppIcons.combat.spellcast size={12} className="text-purple-400" />
-                                          ) : rollLabel.includes('Attack') ? (
-                                            <AppIcons.combat.attack size={12} className="text-dagger-gold" />
-                                          ) : (
-                                            <AppIcons.combat.activation size={12} />
-                                          )}
-                                          <span>{rollLabel} ({rollBonus >= 0 ? `+${rollBonus}` : rollBonus})</span>
-                                        </button>
+                                          bonus={rollBonus}
+                                        />
                                       )}
                                     </div>
                                   </div>
@@ -1057,22 +1036,11 @@ export default function CharacterView() {
                                     />
                                   )}
                                   {hasRoll && (
-                                    <button
+                                    <RollButton
+                                      label={rollLabel}
                                       onClick={() => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus)}
-                                      className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors bg-white/5 border-white/10 hover:bg-white/10"
-                                    >
-                                      <div className="absolute top-0.5 right-0.5 text-gray-500" aria-hidden="true">
-                                        <AppIcons.combat.roll size={10} />
-                                      </div>
-                                      {rollLabel.includes('Spellcast') ? (
-                                        <AppIcons.combat.spellcast size={12} className="text-purple-400" />
-                                      ) : rollLabel.includes('Attack') ? (
-                                        <AppIcons.combat.attack size={12} className="text-dagger-gold" />
-                                      ) : (
-                                        <AppIcons.combat.activation size={12} />
-                                      )}
-                                      <span>{rollLabel} ({rollBonus >= 0 ? `+${rollBonus}` : rollBonus})</span>
-                                    </button>
+                                      bonus={rollBonus}
+                                    />
                                   )}
                                 </div>
                               </div>
