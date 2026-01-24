@@ -23,7 +23,7 @@ export default function SectionHeader({
 }: SectionHeaderProps) {
     return (
         <div className={cn("flex items-center justify-between", className)}>
-            <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
+            <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2 scroll-mt-14">
                 {title}
             </h3>
             <div className="flex items-center gap-2">

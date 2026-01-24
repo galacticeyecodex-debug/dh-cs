@@ -37,9 +37,10 @@ import UnstoppableCard from './class-features/guardian-unstoppable-card';
 import StrangePatternsCard from './class-features/wizard-strange-patterns-card';
 import BeastformCard from './class-features/druid-beastform-card';
 import RangerFocusCard from './class-features/ranger-focus-card';
+import SlayerDiceCard from './class-features/warrior-slayer-dice-card';
 import { AppIcons, getIconByName } from '@/lib/icon-utils';
 import clsx from 'clsx';
-import { uploadCharacterImage } from '@/lib/storage-service';
+import { uploadCharacterImage, uploadCharacterAvatar } from '@/lib/storage-service';
 import { MAX_IMAGE_FILE_SIZE, MAX_IMAGE_FILE_SIZE_MB } from '@/lib/image-utils';
 import { toast } from 'sonner';
 import { dataService } from '@/lib/data-service';
@@ -54,7 +55,7 @@ import type { EnhancedAncestry, EnhancedCommunity } from '@/types/cards';
 
 export default function CharacterView() {
   const router = useRouter();
-  const { character, user, cardStates, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice, updateBardRallyDice, updateGuardianUnstoppable, updateWizardStrangePatterns, updateDruidBeastform, updateRangerFocus, prepareRoll } = useCharacterStore();
+  const { character, user, cardStates, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice, updateBardRallyDice, updateGuardianUnstoppable, updateWizardStrangePatterns, updateDruidBeastform, updateRangerFocus, updateWarriorSlayerDice, prepareRoll } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
@@ -87,6 +88,8 @@ export default function CharacterView() {
   const [showSubclassLore, setShowSubclassLore] = useState(false);
   const [showMulticlassLore, setShowMulticlassLore] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [savingField, setSavingField] = useState<string>('');
   const [savedField, setSavedField] = useState<string>('');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -135,6 +138,27 @@ export default function CharacterView() {
       return (community.feats || []).find((f: any) => f.name === featureName) || null;
     };
   }, []);
+
+  // Scroll to a specific section by header text
+  const scrollToSection = (title: string) => {
+    const doScroll = () => {
+      const headers = document.querySelectorAll('h3, h4');
+      for (const header of Array.from(headers)) {
+        if (header.textContent?.toLowerCase().includes(title.toLowerCase())) {
+          header.scrollIntoView({ behavior: 'smooth' });
+          break;
+        }
+      }
+    };
+
+    if (activeTab !== 'stats') {
+      setActiveTab('stats');
+      // Wait for tab transition and render
+      setTimeout(doScroll, 100);
+    } else {
+      doScroll();
+    }
+  };
 
   // Memoize trait tabs for centralized ModifierSheet
   const traitTabs = useMemo(() => {
@@ -275,6 +299,74 @@ export default function CharacterView() {
     fetchLibraryData();
   }, [character?.ancestry, character?.ancestry_features, character?.community, character?.transformation, includePlaytest]);
 
+  const handleUploadBanner = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0] || !character || !user) return;
+
+    const file = e.target.files[0];
+
+    if (file.size > MAX_IMAGE_FILE_SIZE) {
+      toast.error(`File size must be less than ${MAX_IMAGE_FILE_SIZE_MB}`);
+      if (bannerInputRef.current) bannerInputRef.current.value = '';
+      return;
+    }
+
+    setIsUploading(true);
+    const { url, error } = await uploadCharacterImage(user.id, file, character.id);
+
+    if (url) {
+      await updateBackgroundImage(url);
+      // Also add it to our gallery so it's not lost
+      const currentGallery = character.gallery_images || [];
+      if (!currentGallery.includes(url)) {
+        await updateGallery([...currentGallery, url]);
+      }
+      toast.success('Banner updated successfully');
+    } else {
+      toast.error(error || 'Failed to upload banner.');
+    }
+
+    setIsUploading(true); // Small delay feel
+    setTimeout(() => setIsUploading(false), 500);
+
+    if (bannerInputRef.current) {
+      bannerInputRef.current.value = '';
+    }
+  };
+
+  const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0] || !character || !user) return;
+
+    const file = e.target.files[0];
+
+    if (file.size > MAX_IMAGE_FILE_SIZE) {
+      toast.error(`File size must be less than ${MAX_IMAGE_FILE_SIZE_MB}`);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+      return;
+    }
+
+    setIsUploading(true);
+    const { url, error } = await uploadCharacterAvatar(user.id, file, character.id);
+
+    if (url) {
+      await updateImage(url);
+      // Also add it to our gallery so it's not lost
+      const currentGallery = character.gallery_images || [];
+      if (!currentGallery.includes(url)) {
+        await updateGallery([...currentGallery, url]);
+      }
+      toast.success('Portrait updated successfully');
+    } else {
+      toast.error(error || 'Failed to upload portrait.');
+    }
+
+    setIsUploading(true);
+    setTimeout(() => setIsUploading(false), 500);
+
+    if (avatarInputRef.current) {
+      avatarInputRef.current.value = '';
+    }
+  };
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !character || !user) return;
 
@@ -351,97 +443,164 @@ export default function CharacterView() {
                 src={character.image_url}
                 alt="Background"
                 fill
-                className="object-cover blur-md scale-110"
+                className="object-cover"
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black" />
             )}
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-dagger-dark via-dagger-dark/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-dagger-dark/40 via-transparent to-transparent hidden md:block" />
 
           {/* Top Right Controls */}
           <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+            <input
+              type="file"
+              ref={bannerInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleUploadBanner}
+            />
+            <button
+              onClick={() => bannerInputRef.current?.click()}
+              className="bg-black/40 hover:bg-black/60 text-gray-400 hover:text-dagger-gold transition-colors p-2 rounded-full border border-white/10 shadow-lg"
+              aria-label="Edit banner artwork"
+              title="Edit Banner Artwork"
+              disabled={isUploading}
+            >
+              <AppIcons.ui.image size={16} />
+            </button>
             <button
               onClick={() => setIsManageOpen(true)}
-              className="bg-black/40 hover:bg-black/60 text-white backdrop-blur-md px-4 py-2 rounded-full transition-all flex items-center gap-2 border border-white/10 shadow-lg"
+              className="bg-black/40 hover:bg-black/60 text-gray-400 hover:text-dagger-gold transition-colors p-2 rounded-full border border-white/10 shadow-lg"
               aria-label="Manage character settings"
+              title="Manage Character"
             >
               <AppIcons.ui.settings size={16} />
-              <span className="text-sm font-bold hidden sm:inline">Manage</span>
             </button>
           </div>
 
           {/* Profile Avatar & Basic Info */}
-          <div className="absolute bottom-0 left-0 w-full p-4 md:p-6 flex items-end gap-4 md:gap-6">
-            {/* Avatar */}
-            <div className="w-24 h-24 md:w-32 md:h-32 bg-gray-800 rounded-2xl rotate-3 p-1 border-4 border-dagger-gold shadow-2xl flex-shrink-0 relative group cursor-pointer hover:rotate-0 transition-transform duration-300 overflow-hidden">
-              <div className="w-full h-full rounded-xl overflow-hidden relative">
-                {character.image_url ? (
-                  <Image
-                    src={character.image_url}
-                    alt={character.name || "Character Avatar"}
-                    width={128}
-                    height={128}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-3xl md:text-4xl font-bold bg-dagger-gold text-black">
-                    {character.name?.[0] || '?'}
-                  </div>
-                )}
-              </div>
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <AppIcons.ui.camera size={24} className="text-white" />
-              </div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleUpload}
-              />
-              {/* Hidden Overlay Button for clicking the avatar to upload */}
-              <div
-                className="absolute inset-0 z-20"
-                onClick={() => fileInputRef.current?.click()}
-              />
-            </div>
-
-            {/* Info Block */}
-            <div className="mb-1 flex-1 min-w-0">
-              <h1 className="text-3xl md:text-5xl font-serif font-bold text-white drop-shadow-lg leading-tight truncate">
-                {character.name}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-y-2 gap-x-4 mt-2">
-                {/* Level & Class Badge */}
-                <div className="flex items-center gap-2 text-dagger-gold font-bold text-sm md:text-lg uppercase tracking-wider drop-shadow-md bg-black/30 px-2 md:px-3 py-1 rounded-lg border border-dagger-gold/20 backdrop-blur-sm">
-                  <span>Lvl {character.level}</span>
-                  <span className="w-1 h-3 md:h-4 bg-dagger-gold/50 rounded-full" />
-                  <span>{character.class_id}</span>
-                </div>
-
-                {/* Heritage Info */}
-                <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-200 font-medium drop-shadow-md hidden sm:flex">
-                  {character.ancestry && (
-                    <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm">
-                      <AppIcons.campaign.player size={14} className="text-gray-400" />
-                      {character.ancestry}
-                    </div>
-                  )}
-                  {character.community && (
-                    <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded-md backdrop-blur-sm">
-                      <AppIcons.campaign.player size={14} className="text-gray-400" />
-                      {character.community}
-                    </div>
-                  )}
-                  {character.transformation && (
-                    <div className="flex items-center gap-1.5 bg-purple-500/20 px-2 py-1 rounded-md backdrop-blur-sm border border-purple-500/30">
-                      <AppIcons.vitals.hope size={14} className="text-purple-400" />
-                      {character.transformation}
+          <div className="absolute bottom-0 left-0 w-full p-6 md:p-10 flex flex-col justify-end">
+            <div className="flex items-center gap-4 md:gap-6">
+              {/* Portrait Avatar Container */}
+              <div className="w-[120px] h-[120px] bg-gray-800 rounded-3xl rotate-2 p-1.5 border-4 border-dagger-gold shadow-2xl flex-shrink-0 relative group transition-transform duration-300 overflow-hidden">
+                <div className="w-full h-full rounded-2xl overflow-hidden relative">
+                  {character.image_url ? (
+                    <Image
+                      src={character.image_url}
+                      alt={character.name || "Character Avatar"}
+                      width={120}
+                      height={120}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-dagger-gold text-black">
+                      {character.name?.[0] || '?'}
                     </div>
                   )}
                 </div>
+
+                {/* Artwork Edit Button (Art Icon style) */}
+                <div className="absolute top-2 right-2 z-10">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      avatarInputRef.current?.click();
+                    }}
+                    className="p-1 rounded-lg bg-black/60 text-gray-400 hover:text-dagger-gold border border-white/10 backdrop-blur-sm transition-all shadow-lg"
+                    aria-label="Edit character portrait"
+                    title="Edit Portrait"
+                    disabled={isUploading}
+                  >
+                    <AppIcons.ui.image size={12} />
+                  </button>
+                </div>
+
+                <input
+                  type="file"
+                  ref={avatarInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleUploadAvatar}
+                />
+              </div>
+
+              {/* Character Info - Compact Single Row */}
+              <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
+                {(() => {
+                  const tier = Math.ceil(character.level / 5);
+                  const subclassName = character.subclass_data?.name || character.subclass_id || null;
+
+                  return (
+                    <>
+                      {/* Compact Core Stats Badge */}
+                      <div className="flex items-center gap-1.5 text-dagger-gold font-bold text-xs md:text-sm uppercase bg-black/50 px-2 py-1 rounded border border-dagger-gold/30 backdrop-blur-md">
+                        <span>Lvl {character.level}</span>
+                        <span className="text-dagger-gold/40">•</span>
+                        <span className="text-dagger-gold/80">T{tier}</span>
+                      </div>
+
+                      {/* Class - Clickable */}
+                      <button
+                        onClick={() => scrollToSection('Class Features')}
+                        className="text-dagger-gold font-bold text-xs md:text-sm uppercase bg-black/40 hover:bg-dagger-gold/10 px-2 py-1 rounded border border-dagger-gold/30 backdrop-blur-md transition-all hover:border-dagger-gold/50 cursor-pointer"
+                        title={`View ${character.class_id} features`}
+                      >
+                        {character.class_id}
+                      </button>
+
+                      {/* Subclass - Clickable */}
+                      {subclassName && (
+                        <button
+                          onClick={() => scrollToSection('Subclass Features')}
+                          className="text-dagger-gold font-medium text-xs md:text-sm bg-black/40 hover:bg-dagger-gold/10 px-2 py-1 rounded border border-dagger-gold/30 backdrop-blur-md transition-all hover:border-dagger-gold/50 cursor-pointer truncate max-w-[100px] md:max-w-[140px]"
+                          title={`View ${subclassName} features`}
+                        >
+                          {subclassName}
+                        </button>
+                      )}
+
+                      {/* Divider */}
+                      {(character.ancestry || character.community || character.transformation) && (
+                        <span className="text-white/20">|</span>
+                      )}
+
+                      {/* Ancestry - Clickable */}
+                      {character.ancestry && (
+                        <button
+                          onClick={() => scrollToSection('Ancestry')}
+                          className="text-gray-200 text-xs md:text-sm bg-black/30 hover:bg-emerald-900/30 px-2 py-1 rounded border border-white/10 hover:border-emerald-500/40 backdrop-blur-md transition-all cursor-pointer"
+                          title="View Ancestry"
+                        >
+                          {character.ancestry}
+                        </button>
+                      )}
+
+                      {/* Community - Clickable */}
+                      {character.community && (
+                        <button
+                          onClick={() => scrollToSection('Community')}
+                          className="text-gray-200 text-xs md:text-sm bg-black/30 hover:bg-blue-900/30 px-2 py-1 rounded border border-white/10 hover:border-blue-500/40 backdrop-blur-md transition-all cursor-pointer"
+                          title="View Community"
+                        >
+                          {character.community}
+                        </button>
+                      )}
+
+                      {/* Transformation - Clickable */}
+                      {character.transformation && (
+                        <button
+                          onClick={() => scrollToSection('Transformation')}
+                          className="text-purple-200 text-xs md:text-sm bg-purple-900/30 hover:bg-purple-800/40 px-2 py-1 rounded border border-purple-500/30 hover:border-purple-400/50 backdrop-blur-md transition-all cursor-pointer"
+                          title="View Transformation"
+                        >
+                          {character.transformation}
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
@@ -650,6 +809,7 @@ export default function CharacterView() {
                                       {hasCosts && (
                                         <DomainCostsRow
                                           cardName={cardName}
+                                          displayName={feature.name}
                                           costs={enhancement.costs}
                                           className="flex flex-wrap gap-2"
                                         />
@@ -750,6 +910,7 @@ export default function CharacterView() {
                                       {hasCosts && (
                                         <DomainCostsRow
                                           cardName={cardName}
+                                          displayName={feature.name}
                                           costs={enhancement.costs}
                                           className="flex flex-wrap gap-2"
                                         />
@@ -1028,6 +1189,7 @@ export default function CharacterView() {
                                   {hasCosts && (
                                     <DomainCostsRow
                                       cardName={cardName}
+                                      displayName={feature.name}
                                       costs={enhancement.costs}
                                       className="flex flex-wrap gap-2"
                                     />
@@ -1107,6 +1269,30 @@ export default function CharacterView() {
                   )}
                 </div>
               )}
+
+              {/* Warrior Slayer Dice Section */}
+              {character.class_id?.toLowerCase() === 'warrior' &&
+                character.subclass_data?.name?.toLowerCase() === 'call of the slayer' &&
+                character.subclass_progression?.foundation_obtained && (
+                  <div className="space-y-2">
+                    {(() => {
+                      // Find the Slayer feature to get its description
+                      const slayerFeature = character.subclass_data?.data?.foundation_features?.find(
+                        (f: any) => f.name === 'Slayer'
+                      );
+                      const proficiency = character.proficiency || 1;
+
+                      return (
+                        <SlayerDiceCard
+                          slayerDice={character.warrior_slayer_dice}
+                          proficiency={proficiency}
+                          description={slayerFeature?.text || ''}
+                          onUpdateSlayerDice={updateWarriorSlayerDice}
+                        />
+                      );
+                    })()}
+                  </div>
+                )}
 
               {/* Beastbond Ranger Companion Section */}
               {character.class_id?.toLowerCase() === 'ranger' &&

@@ -6,6 +6,7 @@ import { X, User } from 'lucide-react';
 import { useCharacterStore } from '@/store/character-store';
 import { dataService } from '@/lib/data-service';
 import { Character } from '@/types/character';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface AssignCharacterModalProps {
     isOpen: boolean;
@@ -122,11 +123,21 @@ export default function AssignCharacterModal({ isOpen, onClose, campaignId }: As
                                             onChange={() => setSelectedCharacterId(char.id)}
                                             className="sr-only"
                                         />
-                                        <div className="flex-1">
-                                            <p className="font-medium text-white">{char.name}</p>
-                                            <p className="text-gray-400 text-sm">
-                                                Level {char.level} {char.class_id || 'Adventurer'}
-                                            </p>
+                                        <div className="flex-1 flex items-center gap-3 min-w-0">
+                                            {char.image_url && (
+                                                <Avatar className="h-10 w-10 border border-white/10 flex-shrink-0">
+                                                    <AvatarImage src={char.image_url} alt={char.name} className="object-cover" />
+                                                    <AvatarFallback className="bg-dagger-panel-hover text-dagger-gold text-[10px]">
+                                                        {char.name.substring(0, 2).toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                            )}
+                                            <div className="min-w-0">
+                                                <p className="font-medium text-white truncate">{char.name}</p>
+                                                <p className="text-gray-400 text-sm truncate">
+                                                    Level {char.level} {char.class_id || 'Adventurer'}
+                                                </p>
+                                            </div>
                                         </div>
                                         {selectedCharacterId === char.id && (
                                             <div className="w-5 h-5 rounded-full bg-dagger-gold flex items-center justify-center">

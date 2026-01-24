@@ -6,6 +6,8 @@ import { CardCosts } from '@/types/cards';
 
 interface DomainCostsRowProps {
   cardName: string;
+  /** Human-readable display name for the ability (used in notifications) */
+  displayName?: string;
   costs?: CardCosts;
   // Controlled mode props
   isActiveOverride?: boolean;
@@ -17,6 +19,7 @@ interface DomainCostsRowProps {
 
 export function DomainCostsRow({
   cardName,
+  displayName,
   costs,
   isActiveOverride,
   onActivate,
@@ -33,6 +36,7 @@ export function DomainCostsRow({
       {costs.stress && (
         <DomainAbilityButton
           cardName={cardName}
+          displayName={displayName}
           costType="stress"
           costValue={costs.stress}
           disabled={disabled}
@@ -44,6 +48,7 @@ export function DomainCostsRow({
       {costs.hope && (
         <DomainAbilityButton
           cardName={cardName}
+          displayName={displayName}
           costType="hope"
           costValue={costs.hope}
           disabled={disabled}

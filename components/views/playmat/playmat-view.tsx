@@ -42,7 +42,7 @@ import { getAttack, getRoll, getModifiers, isModifierActive } from '@/lib/enhanc
 import useContentAccess from '@/hooks/useContentAccess';
 import { useLibraryItems, LibraryPresets } from '@/hooks/useLibraryItems';
 
-import { getAllAbilities } from '@/lib/content-loaders';
+import { getAllAbilities, srdAncestries, srdCommunities } from '@/lib/content-loaders';
 
 export default function PlaymatView() {
   const { character, cardStates, moveCard, addCardToCollection, removeCard, updateCardImage, updateCardImagePosition, updateModifiers, user } = useCharacterStore();
@@ -84,11 +84,7 @@ export default function PlaymatView() {
   const enhancedAbilities = useMemo(() => {
     const abilities = getAllAbilities(includePlaytest);
 
-    // Use require from content-loaders to get the raw data arrays
-    // We need to cast them as any[] because strict types might not match exactly 
-    // without circular dependency issues or complex imports
-    const { srdAncestries, srdCommunities } = require('@/lib/content-loaders');
-
+    // Get ancestry and community features from static imports
     const ancestryFeats = (srdAncestries as any[]).flatMap(a => a.feats || []);
     const communityFeats = (srdCommunities as any[]).flatMap(c => c.feats || []);
 

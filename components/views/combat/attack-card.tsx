@@ -285,6 +285,7 @@ const AttackCard = React.memo(function AttackCard({
                 <div className="px-4 py-2 border-t border-white/5 bg-black/20 flex flex-wrap gap-2 items-center justify-between">
                     <DomainCostsRow
                         cardName={name}
+                        displayName={name}
                         costs={costs}
                         isActiveOverride={isCostPaid}
                         onActivate={() => {

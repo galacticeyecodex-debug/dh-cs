@@ -22,6 +22,7 @@ import { useCharacterStore } from '@/store/character-store';
 import { AppIcons } from '@/lib/icon-utils';
 import UserMenu from './user-menu';
 import DiceOverlay from '../dice/dice-overlay';
+import HeaderMenuButton from './header-menu-button';
 import clsx from 'clsx';
 
 interface Breadcrumb {
@@ -137,25 +138,15 @@ export default function PageLayout({
                     {/* Title with optional context switcher */}
                     {showContextSwitcher ? (
                         <div className="relative" ref={contextMenuRef}>
-                            <button
+                            <HeaderMenuButton
+                                isOpen={isContextMenuOpen}
                                 onClick={() => setIsContextMenuOpen(!isContextMenuOpen)}
-                                className={clsx(
-                                    'flex items-center gap-2 text-lg font-serif font-bold transition-colors',
-                                    isContextMenuOpen ? 'text-white' : 'text-dagger-gold hover:text-white'
-                                )}
-                                aria-label="Context menu"
-                                aria-expanded={isContextMenuOpen}
-                                aria-haspopup="true"
-                            >
-                                <span className="truncate">{title}</span>
-                                <AppIcons.ui.expand
-                                    size={18}
-                                    className={clsx(
-                                        'text-gray-400 transition-transform duration-200 flex-shrink-0',
-                                        isContextMenuOpen && 'rotate-180'
-                                    )}
-                                />
-                            </button>
+                                avatarUrl={character?.image_url}
+                                avatarAlt={title}
+                                avatarFallback={title[0]?.toUpperCase() || '?'}
+                                label={title}
+                                ariaLabel="Character and campaign context switcher"
+                            />
 
                             {/* Context Dropdown Menu */}
                             {isContextMenuOpen && (
@@ -241,9 +232,15 @@ export default function PageLayout({
                             )}
                         </div>
                     ) : (
-                        <h1 className="text-lg font-serif font-bold text-dagger-gold truncate">
-                            {title}
-                        </h1>
+                        <HeaderMenuButton
+                            isOpen={false}
+                            onClick={() => { }}
+                            avatarUrl={character?.image_url}
+                            avatarAlt={title}
+                            avatarFallback={title[0]?.toUpperCase() || '?'}
+                            label={title}
+                            ariaLabel={title}
+                        />
                     )}
                 </div>
 

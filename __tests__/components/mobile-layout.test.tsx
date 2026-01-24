@@ -96,7 +96,7 @@ describe('MobileLayout', () => {
                 </MobileLayout>
             );
 
-            const contextButton = screen.getByRole('button', { name: /context menu/i });
+            const contextButton = screen.getByRole('button', { name: /character menu/i });
             expect(contextButton).toBeInTheDocument();
         });
 
@@ -107,7 +107,7 @@ describe('MobileLayout', () => {
                 </MobileLayout>
             );
 
-            const contextButton = screen.getByRole('button', { name: /context menu/i });
+            const contextButton = screen.getByRole('button', { name: /character menu/i });
             fireEvent.click(contextButton);
 
             // The dropdown menu should now be visible with Characters option
@@ -123,7 +123,7 @@ describe('MobileLayout', () => {
             );
 
             // Open context menu
-            const contextButton = screen.getByRole('button', { name: /context menu/i });
+            const contextButton = screen.getByRole('button', { name: /character menu/i });
             fireEvent.click(contextButton);
 
             // Click on Characters menu item
