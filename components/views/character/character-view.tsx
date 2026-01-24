@@ -664,7 +664,13 @@ export default function CharacterView() {
                                           <div className="absolute top-0.5 right-0.5 text-gray-500" aria-hidden="true">
                                             <AppIcons.combat.roll size={10} />
                                           </div>
-                                          <AppIcons.combat.activation size={12} />
+                                          {rollLabel.includes('Spellcast') ? (
+                                            <AppIcons.combat.spellcast size={12} className="text-purple-400" />
+                                          ) : rollLabel.includes('Attack') ? (
+                                            <AppIcons.combat.attack size={12} className="text-dagger-gold" />
+                                          ) : (
+                                            <AppIcons.combat.activation size={12} />
+                                          )}
                                           <span>{rollLabel} ({rollBonus >= 0 ? `+${rollBonus}` : rollBonus})</span>
                                         </button>
                                       )}
@@ -769,7 +775,13 @@ export default function CharacterView() {
                                           <div className="absolute top-0.5 right-0.5 text-gray-500" aria-hidden="true">
                                             <AppIcons.combat.roll size={10} />
                                           </div>
-                                          <AppIcons.combat.activation size={12} />
+                                          {rollLabel.includes('Spellcast') ? (
+                                            <AppIcons.combat.spellcast size={12} className="text-purple-400" />
+                                          ) : rollLabel.includes('Attack') ? (
+                                            <AppIcons.combat.attack size={12} className="text-dagger-gold" />
+                                          ) : (
+                                            <AppIcons.combat.activation size={12} />
+                                          )}
                                           <span>{rollLabel} ({rollBonus >= 0 ? `+${rollBonus}` : rollBonus})</span>
                                         </button>
                                       )}
@@ -1052,7 +1064,13 @@ export default function CharacterView() {
                                       <div className="absolute top-0.5 right-0.5 text-gray-500" aria-hidden="true">
                                         <AppIcons.combat.roll size={10} />
                                       </div>
-                                      <AppIcons.combat.activation size={12} />
+                                      {rollLabel.includes('Spellcast') ? (
+                                        <AppIcons.combat.spellcast size={12} className="text-purple-400" />
+                                      ) : rollLabel.includes('Attack') ? (
+                                        <AppIcons.combat.attack size={12} className="text-dagger-gold" />
+                                      ) : (
+                                        <AppIcons.combat.activation size={12} />
+                                      )}
                                       <span>{rollLabel} ({rollBonus >= 0 ? `+${rollBonus}` : rollBonus})</span>
                                     </button>
                                   )}
