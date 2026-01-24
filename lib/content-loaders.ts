@@ -12,9 +12,11 @@ import type { EnhancedAbilityCard } from '@/types/cards';
 import srdAbilities from '@/content/public/srd/json/abilities_enhanced.json';
 import srdAncestries from '@/content/public/srd/json/ancestries_enhanced.json';
 import srdCommunities from '@/content/public/srd/json/communities_enhanced.json';
+import srdClasses from '@/content/public/srd/json/classes_enhanced.json';
+import srdSubclasses from '@/content/public/srd/json/subclasses_enhanced.json';
 
 // Re-export public content
-export { srdAbilities, srdAncestries, srdCommunities };
+export { srdAbilities, srdAncestries, srdCommunities, srdClasses, srdSubclasses };
 
 /**
  * Playtest abilities - loaded dynamically since the folder may not exist.

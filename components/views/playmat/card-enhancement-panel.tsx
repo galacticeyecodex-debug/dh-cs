@@ -22,10 +22,10 @@
 import React from 'react';
 import { Target, Zap, MapPin, Skull } from 'lucide-react';
 import clsx from 'clsx';
-import { DomainAbilityButton } from './domain-ability-button';
-import { DomainCostsRow } from './domain-costs-row';
-import FrequencyCheckbox from '@/components/views/playmat/frequency-checkbox';
-import CardTokenTrack from '@/components/views/playmat/card-token-track';
+import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
+import { DomainCostsRow } from '@/components/shared/ability-costs-row';
+import FrequencyCheckbox from '@/components/shared/frequency-checkbox';
+import CardTokenTrack from '@/components/shared/token-track';
 import ModifierActivationRow from '@/components/views/playmat/modifier-activation-row';
 import { useCharacterStore } from '@/store/character-store';
 import { getSystemModifiers, parseDamageRoll, calculateWeaponDamage } from '@/lib/utils';
