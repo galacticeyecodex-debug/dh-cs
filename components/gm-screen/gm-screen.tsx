@@ -23,7 +23,7 @@ import { AdversaryBrowser } from './adversary-browser';
 import { EnvironmentBrowser } from './environment-browser';
 import { CountdownTracker } from './countdown-tracker';
 import { CountdownCreatorModal } from './countdown-creator-modal';
-import { ActivityFeed, RollNotification } from '@/components/activity';
+import { ActivityFeed, BroadcastNotification } from '@/components/activity';
 import { realtimeManager } from '@/lib/realtime';
 import { CampaignActivity } from '@/types/activity';
 import { AppIcons } from '@/lib/icon-utils';
@@ -61,10 +61,10 @@ export function GmScreen({ campaignId }: GmScreenProps) {
     const [showCountdownCreator, setShowCountdownCreator] = useState(false);
     const [sidebarTab, setSidebarTab] = useState<'activity' | 'adversaries' | 'environments' | 'countdowns'>('activity');
 
-    // Roll notification state for GM Screen
-    const [currentRollNotification, setCurrentRollNotification] = useState<CampaignActivity | null>(null);
-    const dismissRollNotification = useCallback(() => {
-        setCurrentRollNotification(null);
+    // Broadcast notification state for GM Screen
+    const [currentBroadcastNotification, setCurrentBroadcastNotification] = useState<CampaignActivity | null>(null);
+    const dismissBroadcastNotification = useCallback(() => {
+        setCurrentBroadcastNotification(null);
     }, []);
 
     // Sync auth user to store when loaded
@@ -74,10 +74,10 @@ export function GmScreen({ campaignId }: GmScreenProps) {
         }
     }, [authLoading, authUser, setUser]);
 
-    // Listen for roll notifications from the realtime manager
+    // Listen for broadcast notifications from the realtime manager
     useEffect(() => {
-        const unsubscribe = realtimeManager.onRollNotification((activity) => {
-            setCurrentRollNotification(activity);
+        const unsubscribe = realtimeManager.onBroadcastActivity((activity) => {
+            setCurrentBroadcastNotification(activity);
         });
 
         return unsubscribe;
@@ -303,10 +303,10 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                 }}
             />
 
-            {/* Roll notification pop-ups for campaign members */}
-            <RollNotification
-                activity={currentRollNotification}
-                onDismiss={dismissRollNotification}
+            {/* Broadcast notification pop-ups for campaign members */}
+            <BroadcastNotification
+                activity={currentBroadcastNotification}
+                onDismiss={dismissBroadcastNotification}
             />
         </PageLayout>
     );

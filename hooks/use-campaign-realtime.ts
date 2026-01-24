@@ -22,10 +22,10 @@ import { CampaignActivity } from '@/types/activity';
 import { CampaignWithMembers } from '@/types/campaign';
 
 interface UseCampaignRealtimeReturn {
-    /** The current roll notification to display, if any */
-    currentRollNotification: CampaignActivity | null;
-    /** Dismiss the current roll notification */
-    dismissRollNotification: () => void;
+    /** The current broadcast notification to display, if any */
+    currentBroadcastNotification: CampaignActivity | null;
+    /** Dismiss the current broadcast notification */
+    dismissBroadcastNotification: () => void;
     /** Whether realtime is currently subscribed */
     isSubscribed: boolean;
     /** The active campaign, if any */
@@ -33,7 +33,7 @@ interface UseCampaignRealtimeReturn {
 }
 
 export function useCampaignRealtime(): UseCampaignRealtimeReturn {
-    const [currentRollNotification, setCurrentRollNotification] = useState<CampaignActivity | null>(null);
+    const [currentBroadcastNotification, setCurrentBroadcastNotification] = useState<CampaignActivity | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const initializingRef = useRef(false);
     const lastCharacterIdRef = useRef<string | null>(null);
@@ -50,14 +50,14 @@ export function useCampaignRealtime(): UseCampaignRealtimeReturn {
     } = useCharacterStore();
 
     // Dismiss the current notification
-    const dismissRollNotification = useCallback(() => {
-        setCurrentRollNotification(null);
+    const dismissBroadcastNotification = useCallback(() => {
+        setCurrentBroadcastNotification(null);
     }, []);
 
-    // Listen for roll notifications from the realtime manager
+    // Listen for broadcast notifications from the realtime manager
     useEffect(() => {
-        const unsubscribe = realtimeManager.onRollNotification((activity) => {
-            setCurrentRollNotification(activity);
+        const unsubscribe = realtimeManager.onBroadcastActivity((activity) => {
+            setCurrentBroadcastNotification(activity);
         });
 
         return unsubscribe;
@@ -130,8 +130,8 @@ export function useCampaignRealtime(): UseCampaignRealtimeReturn {
     ]);
 
     return {
-        currentRollNotification,
-        dismissRollNotification,
+        currentBroadcastNotification,
+        dismissBroadcastNotification,
         isSubscribed: realtimeSubscribed,
         activeCampaign,
     };

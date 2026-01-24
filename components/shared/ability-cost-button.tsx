@@ -45,7 +45,9 @@ export function DomainAbilityButton({
     updateHope,
     updateVitals,
     toggleCardActive,
-    vitalIcons
+    vitalIcons,
+    logActivity,
+    activeCampaign
   } = useCharacterStore();
 
   // Resolve dynamic icons based on user preferences
@@ -106,7 +108,24 @@ export function DomainAbilityButton({
       if (costValue > 0) {
         if (character.hope < costValue) return;
         updateHope(character.hope - costValue);
-        toast.success(`Spent ${costValue} Hope`);
+
+        // Broadcast activity if in a campaign
+        if (activeCampaign) {
+          logActivity({
+            campaign_id: activeCampaign.id,
+            user_id: character.user_id,
+            character_id: character.id,
+            character_name: character.name,
+            activity_type: 'card_used',
+            data: {
+              card_id: cardName,
+              card_name: cardName,
+              card_type: 'ability',
+              cost_paid: { hope: costValue }
+            },
+            is_private: false
+          });
+        }
       }
       // Call callback if provided (for custom behavior)
       if (onActivate) onActivate();
@@ -116,7 +135,24 @@ export function DomainAbilityButton({
         const currentStress = character.vitals.stress_current;
         if (currentStress + costValue > character.vitals.stress_max) return;
         updateVitals('stress_current', currentStress + costValue);
-        toast.success(`Marked ${costValue} Stress`);
+
+        // Broadcast activity if in a campaign
+        if (activeCampaign) {
+          logActivity({
+            campaign_id: activeCampaign.id,
+            user_id: character.user_id,
+            character_id: character.id,
+            character_name: character.name,
+            activity_type: 'card_used',
+            data: {
+              card_id: cardName,
+              card_name: cardName,
+              card_type: 'ability',
+              cost_paid: { stress: costValue }
+            },
+            is_private: false
+          });
+        }
       }
       // Call callback if provided (for custom behavior)
       if (onActivate) onActivate();
