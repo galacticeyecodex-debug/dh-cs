@@ -86,7 +86,7 @@ const StatButton = React.memo(function StatButton({ label, value, baseValue, mod
 
           <span className="capitalize font-medium text-gray-300 group-hover:text-white text-sm sm:text-base flex items-center gap-1.5">
             {label}
-            {isSpellcast && <AppIcons.combat.spellcast size={14} className="text-purple-400 shrink-0" />}
+            {isSpellcast && <AppIcons.combat.spellcast size={14} className="shrink-0" />}
           </span>
         </button>
 
