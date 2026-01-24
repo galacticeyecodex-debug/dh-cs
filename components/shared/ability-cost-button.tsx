@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
 import { CardCosts } from '@/types/cards';
 import { AppIcons, getIconByName } from '@/lib/icon-utils';
+import { toast } from 'sonner';
 
 interface DomainAbilityButtonProps {
   cardName: string;
@@ -105,6 +106,7 @@ export function DomainAbilityButton({
       if (costValue > 0) {
         if (character.hope < costValue) return;
         updateHope(character.hope - costValue);
+        toast.success(`Spent ${costValue} Hope`);
       }
       // Call callback if provided (for custom behavior)
       if (onActivate) onActivate();
@@ -114,6 +116,7 @@ export function DomainAbilityButton({
         const currentStress = character.vitals.stress_current;
         if (currentStress + costValue > character.vitals.stress_max) return;
         updateVitals('stress_current', currentStress + costValue);
+        toast.success(`Marked ${costValue} Stress`);
       }
       // Call callback if provided (for custom behavior)
       if (onActivate) onActivate();
