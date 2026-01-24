@@ -161,7 +161,7 @@ export function DomainCard({
 
       {/* Content section - positioned right at image border */}
       <div
-        className="absolute flex flex-col items-center gap-1 bg-white w-full"
+        className="absolute flex flex-col items-center gap-0.5 bg-white w-full"
         style={{
           top: customImageUrl ? (isThumbnail ? '140px' : '230px') : (isThumbnail ? '125px' : '180px'),
           bottom: 0,
@@ -177,7 +177,6 @@ export function DomainCard({
           className="font-eveleth font-bold text-center w-full z-20 uppercase"
           style={{
             fontSize: `${16 * fontSize}px`,
-            paddingTop: `${2 * fontSize}px`,
             paddingLeft: `${16 * fontSize}px`,
             paddingRight: `${16 * fontSize}px`,
           }}
@@ -187,7 +186,7 @@ export function DomainCard({
 
         {/* Description */}
         <div
-          className="w-full z-20 leading-tight px-4 text-pretty overflow-hidden flex-1"
+          className="w-full z-20 leading-none px-4 text-pretty overflow-hidden flex-1"
           style={{
             fontSize: `${descriptionBaseSize * fontSize}px`,
           }}

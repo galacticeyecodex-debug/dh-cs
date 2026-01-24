@@ -75,7 +75,7 @@ export default function InviteCodeDisplay({ campaign }: InviteCodeDisplayProps) 
                         Invite Link
                     </label>
                     <div className="flex items-center gap-2">
-                        <div className="flex-1 px-3 py-2 bg-black/30 border border-white/10 rounded-lg">
+                        <div className="flex-1 min-w-0 px-3 py-2 bg-black/30 border border-white/10 rounded-lg">
                             <p className="text-sm text-gray-300 truncate font-mono">
                                 {inviteLink}
                             </p>

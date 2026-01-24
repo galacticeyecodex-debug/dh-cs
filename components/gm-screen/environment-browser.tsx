@@ -15,6 +15,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Map, ChevronDown, ChevronUp, Target, Users } from 'lucide-react';
 import { Environment } from '@/types/adversary';
+import { MarkdownText } from '@/components/shared/markdown-text';
 import clsx from 'clsx';
 
 // Import environment data
@@ -152,7 +153,9 @@ function EnvironmentCard({ environment, isExpanded, onToggle }: EnvironmentCardP
                             {environment.type}
                         </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{environment.description}</p>
+                    <MarkdownText className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        {environment.description}
+                    </MarkdownText>
                 </div>
                 {isExpanded ? (
                     <ChevronUp size={18} className="text-gray-500 flex-shrink-0 mt-1" />
@@ -176,7 +179,9 @@ function EnvironmentCard({ environment, isExpanded, onToggle }: EnvironmentCardP
                     {/* Impulses */}
                     <div className="text-xs">
                         <span className="text-gray-500">Impulses: </span>
-                        <span className="text-gray-300">{environment.impulses}</span>
+                        <MarkdownText className="text-gray-300 inline-block align-top">
+                            {environment.impulses}
+                        </MarkdownText>
                     </div>
 
                     {/* Potential Adversaries */}
@@ -186,7 +191,9 @@ function EnvironmentCard({ environment, isExpanded, onToggle }: EnvironmentCardP
                                 <Users size={12} />
                                 <span>Potential Adversaries:</span>
                             </div>
-                            <p className="text-gray-300 pl-4">{environment.potential_adversaries}</p>
+                            <MarkdownText className="text-gray-300 pl-4">
+                                {environment.potential_adversaries}
+                            </MarkdownText>
                         </div>
                     )}
 
@@ -197,7 +204,9 @@ function EnvironmentCard({ environment, isExpanded, onToggle }: EnvironmentCardP
                             {environment.feats.map((feat, idx) => (
                                 <div key={idx} className="bg-black/20 rounded-lg p-2">
                                     <p className="text-xs font-bold text-green-300 mb-1">{feat.name}</p>
-                                    <p className="text-xs text-gray-400 leading-relaxed">{feat.text}</p>
+                                    <MarkdownText className="text-xs text-gray-400 leading-relaxed">
+                                        {feat.text}
+                                    </MarkdownText>
                                 </div>
                             ))}
                         </div>
