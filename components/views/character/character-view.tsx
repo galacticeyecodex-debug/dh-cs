@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
 import Image from 'next/image';
 import { getSystemModifiers } from '@/lib/utils';
+import { calculateRollBonus } from '@/lib/roll-utils';
 import StatButton from '@/components/views/character/trait-button';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
@@ -47,12 +48,12 @@ import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
 import { DomainCostsRow } from '@/components/shared/ability-costs-row';
 import FrequencyCheckbox from '@/components/shared/frequency-checkbox';
 import useContentAccess from '@/hooks/useContentAccess';
-import { srdAncestries, srdCommunities, srdClasses } from '@/lib/content-loaders';
+import { srdAncestries, srdCommunities, getAllClasses } from '@/lib/content-loaders';
 import type { EnhancedAncestry, EnhancedCommunity } from '@/types/cards';
 
 export default function CharacterView() {
   const router = useRouter();
-  const { character, user, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice, updateBardRallyDice, updateGuardianUnstoppable, updateWizardStrangePatterns, updateDruidBeastform, updateRangerFocus, prepareRoll } = useCharacterStore();
+  const { character, user, cardStates, updateModifiers, updateExperiences, updateLore, updateGallery, updateImage, updateBackgroundImage, levelUpCharacter, updateCharacterDetails, updateMarkedTraits, updateCompanion, updatePrayerDice, updateBardRallyDice, updateGuardianUnstoppable, updateWizardStrangePatterns, updateDruidBeastform, updateRangerFocus, prepareRoll } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const [isExperienceSheetOpen, setIsExperienceSheetOpen] = useState(false);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
@@ -96,11 +97,12 @@ export default function CharacterView() {
   const HopeIcon = getIconByName(vitalIcons.hope, AppIcons.vitals.hope);
 
   // Look up enhanced class data (has costs info for features)
+  // Uses getAllClasses to include playtest classes
   const enhancedClassData = useMemo(() => {
     if (!character?.class_data?.name) return null;
-    const enhancedClasses = (srdClasses || []) as any[];
-    return enhancedClasses.find(c => c.name === character.class_data?.name) || null;
-  }, [character?.class_data?.name]);
+    const allClasses = getAllClasses(includePlaytest);
+    return allClasses.find(c => c.name === character.class_data?.name) || null;
+  }, [character?.class_data?.name, includePlaytest]);
 
   // Look up enhanced Hope Feature from class data (has costs info)
   const enhancedHopeFeature = useMemo(() => {
@@ -617,14 +619,10 @@ export default function CharacterView() {
                             const hasRoll = enhancement?.roll?.trait;
                             const cardName = `ancestry-${ancestryCard.name}-${feature.name}`;
 
-                            // Calculate roll bonus for trait rolls
-                            let rollBonus = 0;
-                            let rollLabel = '';
-                            if (hasRoll) {
-                              const rollTrait = enhancement.roll.trait;
-                              rollBonus = character.stats[rollTrait.toLowerCase() as keyof typeof character.stats] || 0;
-                              rollLabel = `${rollTrait}${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}`;
-                            }
+                            // Calculate roll bonus with proper modifier support
+                            const rollResult = hasRoll ? calculateRollBonus(character, enhancement.roll.trait, cardStates) : null;
+                            const rollBonus = rollResult?.bonus ?? 0;
+                            const rollLabel = hasRoll ? `${rollResult?.label}${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}` : '';
 
                             return (
                               <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
@@ -661,7 +659,7 @@ export default function CharacterView() {
                                       {hasRoll && (
                                         <button
                                           onClick={() => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus)}
-                                          className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors bg-white/5 border-white/10 hover:bg-white/10 text-cyan-400"
+                                          className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors bg-white/5 border-white/10 hover:bg-white/10"
                                         >
                                           <div className="absolute top-0.5 right-0.5 text-gray-500" aria-hidden="true">
                                             <AppIcons.combat.roll size={10} />
@@ -726,14 +724,10 @@ export default function CharacterView() {
                             const hasRoll = enhancement?.roll?.trait;
                             const cardName = `community-${communityCard.name}-${feature.name}`;
 
-                            // Calculate roll bonus for trait rolls
-                            let rollBonus = 0;
-                            let rollLabel = '';
-                            if (hasRoll) {
-                              const rollTrait = enhancement.roll.trait;
-                              rollBonus = character.stats[rollTrait.toLowerCase() as keyof typeof character.stats] || 0;
-                              rollLabel = `${rollTrait}${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}`;
-                            }
+                            // Calculate roll bonus with proper modifier support
+                            const rollResult = hasRoll ? calculateRollBonus(character, enhancement.roll.trait, cardStates) : null;
+                            const rollBonus = rollResult?.bonus ?? 0;
+                            const rollLabel = hasRoll ? `${rollResult?.label}${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}` : '';
 
                             return (
                               <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
@@ -770,7 +764,7 @@ export default function CharacterView() {
                                       {hasRoll && (
                                         <button
                                           onClick={() => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus)}
-                                          className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors bg-white/5 border-white/10 hover:bg-white/10 text-cyan-400"
+                                          className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors bg-white/5 border-white/10 hover:bg-white/10"
                                         >
                                           <div className="absolute top-0.5 right-0.5 text-gray-500" aria-hidden="true">
                                             <AppIcons.combat.roll size={10} />
@@ -1013,22 +1007,10 @@ export default function CharacterView() {
                         const hasRoll = enhancement?.roll?.trait;
                         const cardName = `class-feature-${character.class_data!.name}-${feature.name}`;
 
-                        // Calculate roll bonus for Spellcast or trait rolls
-                        let rollBonus = 0;
-                        let rollLabel = '';
-                        if (hasRoll) {
-                          const rollTrait = enhancement.roll.trait;
-                          if (rollTrait.toLowerCase() === 'spellcast') {
-                            const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
-                            rollBonus = spellcastTraitName
-                              ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0)
-                              : (character.spellcast || 0);
-                            rollLabel = `Spellcast${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}`;
-                          } else {
-                            rollBonus = character.stats[rollTrait.toLowerCase() as keyof typeof character.stats] || 0;
-                            rollLabel = `${rollTrait}${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}`;
-                          }
-                        }
+                        // Calculate roll bonus with proper modifier support (handles Spellcast derivation)
+                        const rollResult = hasRoll ? calculateRollBonus(character, enhancement.roll.trait, cardStates) : null;
+                        const rollBonus = rollResult?.bonus ?? 0;
+                        const rollLabel = hasRoll ? `${rollResult?.label}${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}` : '';
 
                         return (
                           <div key={idx} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
@@ -1065,7 +1047,7 @@ export default function CharacterView() {
                                   {hasRoll && (
                                     <button
                                       onClick={() => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus)}
-                                      className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors bg-white/5 border-white/10 hover:bg-white/10 text-cyan-400"
+                                      className="relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors bg-white/5 border-white/10 hover:bg-white/10"
                                     >
                                       <div className="absolute top-0.5 right-0.5 text-gray-500" aria-hidden="true">
                                         <AppIcons.combat.roll size={10} />

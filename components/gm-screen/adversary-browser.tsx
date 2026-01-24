@@ -15,6 +15,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { AppIcons } from '@/lib/icon-utils';
 import { Adversary } from '@/types/adversary';
+import { MarkdownText } from '@/components/shared/markdown-text';
 import clsx from 'clsx';
 
 // Import adversary data
@@ -152,7 +153,9 @@ function AdversaryCard({ adversary, isExpanded, onToggle, compact }: AdversaryCa
                             {adversary.type}
                         </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{adversary.description}</p>
+                    <MarkdownText className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        {adversary.description}
+                    </MarkdownText>
                 </div>
                 {isExpanded ? (
                     <AppIcons.ui.collapse size={18} className="text-gray-500 flex-shrink-0 mt-1" />
@@ -192,26 +195,32 @@ function AdversaryCard({ adversary, isExpanded, onToggle, compact }: AdversaryCa
                     <div className="bg-black/20 rounded-lg p-3">
                         <div className="flex items-center gap-2 mb-2">
                             <AppIcons.combat.attack size={14} className="text-orange-400" />
-                            <span className="text-sm font-bold text-white">{adversary.attack}</span>
+                            <MarkdownText className="text-sm font-bold text-white inline-block">
+                                {adversary.attack}
+                            </MarkdownText>
                             <span className="text-xs text-gray-500">({adversary.range})</span>
                         </div>
                         <div className="flex items-center gap-4 text-xs">
-                            <span className="text-gray-400">Attack: <span className="text-white font-bold">{adversary.atk}</span></span>
-                            <span className="text-gray-400">Damage: <span className="text-orange-300 font-bold">{adversary.damage}</span></span>
+                            <span className="text-gray-400">Attack: <MarkdownText className="text-white font-bold inline-block">{adversary.atk}</MarkdownText></span>
+                            <span className="text-gray-400">Damage: <MarkdownText className="text-orange-300 font-bold inline-block">{adversary.damage}</MarkdownText></span>
                         </div>
                     </div>
 
                     {/* Motives */}
                     <div className="text-xs">
                         <span className="text-gray-500">Motives & Tactics: </span>
-                        <span className="text-gray-300">{adversary.motives_and_tactics}</span>
+                        <MarkdownText className="text-gray-300 inline-block align-top">
+                            {adversary.motives_and_tactics}
+                        </MarkdownText>
                     </div>
 
                     {/* Experience */}
                     {adversary.experience && (
                         <div className="text-xs">
                             <span className="text-gray-500">Experience: </span>
-                            <span className="text-gray-300">{adversary.experience}</span>
+                            <MarkdownText className="text-gray-300 inline-block align-top">
+                                {adversary.experience}
+                            </MarkdownText>
                         </div>
                     )}
 
@@ -222,7 +231,9 @@ function AdversaryCard({ adversary, isExpanded, onToggle, compact }: AdversaryCa
                             {adversary.feats.map((feat, idx) => (
                                 <div key={idx} className="bg-black/20 rounded-lg p-2">
                                     <p className="text-xs font-bold text-orange-300 mb-1">{feat.name}</p>
-                                    <p className="text-xs text-gray-400 leading-relaxed">{feat.text}</p>
+                                    <MarkdownText className="text-xs text-gray-400 leading-relaxed">
+                                        {feat.text}
+                                    </MarkdownText>
                                 </div>
                             ))}
                         </div>
