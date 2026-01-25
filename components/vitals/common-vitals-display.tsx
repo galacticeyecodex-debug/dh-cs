@@ -38,12 +38,11 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
 
   // Helper to calculate totals and combine modifiers (memoized)
   const getStatDetails = useCallback((stat: string, base: number) => {
-    const systemMods = getStatModifiers(character, stat);
-    const userMods = character.modifiers?.[stat] || [];
-    const allMods = [...systemMods, ...userMods];
-    const uniqueMods = Array.from(new Map(allMods.map(mod => [mod.id, mod])).values()); // Deduplicate by ID
-    const total = base + uniqueMods.reduce((acc, mod) => acc + mod.value, 0);
-    return { total, allMods: uniqueMods };
+    // CRITICAL FIX: getStatModifiers() ALREADY includes user modifiers via getUserModifiers()
+    // Do NOT manually add character.modifiers[stat] again or they'll be duplicated
+    const allMods = getStatModifiers(character, stat);
+    const total = base + allMods.reduce((acc, mod) => acc + mod.value, 0);
+    return { total, allMods };
   }, [character]);
 
   // --- EVASION --- (memoized)
