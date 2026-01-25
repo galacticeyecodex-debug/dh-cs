@@ -57,7 +57,7 @@ export function calculateBaseTraitTotals(character: Character): Record<string, n
     totals[trait] = baseStat + userTotal;
   }
 
-  return totals;
+  return totals as Record<string, number>;
 }
 
 /**
@@ -91,7 +91,7 @@ export function isTrait(stat: string): boolean {
 export function createCharacterForFormulaEvaluation(
   character: Character,
   statsToUse: Record<string, number>
-): Character & { stats: Record<string, number> } {
+): any {
   return {
     ...character,
     stats: statsToUse,
