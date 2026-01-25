@@ -106,12 +106,19 @@ export default function ModifierSheet({
       value: pendingValue,
       source: 'user'
     };
-    activeTab.onUpdateModifiers([...activeTab.currentModifiers, newMod]);
+    // CRITICAL FIX: Only spread USER modifiers, not system modifiers
+    // currentModifiers includes equipment, ancestry, domain cards, etc.
+    // We should only save user-editable modifiers back to the database
+    const userModsOnly = activeTab.currentModifiers.filter(m => m.source === 'user');
+    activeTab.onUpdateModifiers([...userModsOnly, newMod]);
     setPendingValue(0); // Reset after apply
   };
 
   const handleDelete = (id: string) => {
-    activeTab.onUpdateModifiers(activeTab.currentModifiers.filter(m => m.id !== id));
+    // CRITICAL FIX: Only operate on USER modifiers when deleting
+    // System modifiers should not be deleted from the user modifiers list
+    const userModsOnly = activeTab.currentModifiers.filter(m => m.source === 'user');
+    activeTab.onUpdateModifiers(userModsOnly.filter(m => m.id !== id));
   };
 
   const startEdit = (mod: Modifier) => {
@@ -121,7 +128,9 @@ export default function ModifierSheet({
 
   const saveEdit = () => {
     if (!editingId) return;
-    const updated = activeTab.currentModifiers.map(m =>
+    // CRITICAL FIX: Only save to user modifiers, not all modifiers
+    const userModsOnly = activeTab.currentModifiers.filter(m => m.source === 'user');
+    const updated = userModsOnly.map(m =>
       m.id === editingId ? { ...m, name: editName } : m
     );
     activeTab.onUpdateModifiers(updated);
