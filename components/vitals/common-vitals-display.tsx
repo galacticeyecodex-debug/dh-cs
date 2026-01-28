@@ -206,7 +206,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
 
 
   return (
-    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-3">
+    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-2">
       {/* Evasion */}
       <VitalCard
         label="Evasion"
