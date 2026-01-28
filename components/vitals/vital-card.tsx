@@ -118,7 +118,7 @@ const VitalCard = React.memo(function VitalCard({
     }
 
     return (
-      <div className="flex flex-wrap justify-center gap-1 sm:gap-1.5 my-1.5 sm:my-2 px-1 sm:px-2">
+      <div className="flex flex-wrap justify-center gap-1 px-1">
         {icons}
       </div>
     );
@@ -217,49 +217,66 @@ const VitalCard = React.memo(function VitalCard({
           )}
         </div>
 
-        {/* Display: Track or Number */}
-        {trackType && max && max > 0 ? (
-          renderTrack()
-        ) : (
-          <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center">
-            <span className={isModified && !trackType ? getValueColor(true) : ""}>{current}</span>
-            {max !== undefined && <span className="text-xs text-gray-500 font-sans font-normal">/{max}</span>}
+        {/* Main Content Row: Left Button | Track/Value | Right Button */}
+        <div className="flex items-center w-full gap-1 flex-1">
+          {/* Left Button (Clear/Spend/Decrease) */}
+          {!isReadOnly && max && max > 0 && (
+            <button
+              type="button"
+              onClick={trackType === 'mark-bad' ? onIncrement : onDecrement}
+              aria-label={
+                trackType === 'mark-bad' ? `Clear ${label}` :
+                  trackType === 'fill-up-bad' ? `Clear ${label}` :
+                    trackType === 'fill-up-good' ? `Spend ${label}` :
+                      `Decrease ${label}`
+              }
+              className="h-full min-h-[32px] px-2 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[9px] font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors"
+            >
+              {trackType === 'mark-bad' ? 'Clear' :
+                trackType === 'fill-up-bad' ? 'Clear' :
+                  trackType === 'fill-up-good' ? 'Spend' :
+                    '-'}
+            </button>
+          )}
+
+          {/* Center: Track or Value */}
+          <div className="flex-1 flex flex-col items-center justify-center min-h-[32px]">
+            {trackType && max && max > 0 ? (
+              renderTrack()
+            ) : (
+              <div className="text-2xl font-serif font-bold leading-none my-1 flex flex-col items-center">
+                <span className={isModified && !trackType ? getValueColor(true) : ""}>{current}</span>
+                {max !== undefined && <span className="text-xs text-gray-500 font-sans font-normal">/{max}</span>}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Right Button (Mark/Gain/Increase) */}
+          {!isReadOnly && max && max > 0 && (
+            <button
+              type="button"
+              onClick={trackType === 'mark-bad' ? onDecrement : onIncrement}
+              aria-label={
+                trackType === 'mark-bad' ? `Mark ${label}` :
+                  trackType === 'fill-up-bad' ? `Mark ${label}` :
+                    trackType === 'fill-up-good' ? `Gain ${label}` :
+                      `Increase ${label}`
+              }
+              className="h-full min-h-[32px] px-2 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[9px] font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors"
+            >
+              {trackType === 'mark-bad' ? 'Mark' :
+                trackType === 'fill-up-bad' ? 'Mark' :
+                  trackType === 'fill-up-good' ? 'Gain' :
+                    '+'}
+            </button>
+          )}
+        </div>
 
         {thresholds && (
           <div className="w-full px-1 text-[9px] uppercase tracking-wider text-gray-500 flex justify-between">
             <span>Min: {thresholds.minor}</span>
             <span>Maj: {thresholds.major}</span>
             <span>Sev: {thresholds.severe}</span>
-          </div>
-        )}
-
-        {!isReadOnly && max && max > 0 && (
-          <div className="flex w-full gap-1 mt-1">
-            {/* ... Buttons ... */}
-            {/* ... Buttons ... */}
-            {trackType === 'mark-bad' ? (
-              <>
-                <button type="button" onClick={onIncrement} aria-label={`Clear ${label}`} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Clear</button>
-                <button type="button" onClick={onDecrement} aria-label={`Mark ${label}`} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Mark</button>
-              </>
-            ) : trackType === 'fill-up-bad' ? (
-              <>
-                <button type="button" onClick={onDecrement} aria-label={`Clear ${label}`} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Clear</button>
-                <button type="button" onClick={onIncrement} aria-label={`Mark ${label}`} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Mark</button>
-              </>
-            ) : trackType === 'fill-up-good' ? (
-              <>
-                <button type="button" onClick={onDecrement} aria-label={`Spend ${label}`} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Spend</button>
-                <button type="button" onClick={onIncrement} aria-label={`Gain ${label}`} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-[10px] font-bold uppercase tracking-wider">Gain</button>
-              </>
-            ) : (
-              <>
-                <button type="button" onClick={onDecrement} aria-label={`Decrease ${label}`} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-base font-bold">-</button>
-                <button type="button" onClick={onIncrement} aria-label={`Increase ${label}`} className="flex-1 h-7 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-base font-bold">+</button>
-              </>
-            )}
           </div>
         )}
       </div>
