@@ -272,7 +272,7 @@ const AttackCard = React.memo(function AttackCard({
             )}
 
             {/* Token Track */}
-            {tokenTrack && (
+            {tokenTrack && !enhancedData && (
                 <div className="px-4 pb-2">
                     {tokenTrack}
                 </div>
