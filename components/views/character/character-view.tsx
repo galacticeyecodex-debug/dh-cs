@@ -24,6 +24,7 @@ import { RollButton } from '@/components/shared/roll-button';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
 import ExperienceSheet from './experience-manager';
+import ExperienceCard from './experience-card';
 import LevelUpModal from './level-up/level-up-modal';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import ManageCharacterModal from './manage-character-modal';
@@ -642,7 +643,7 @@ export default function CharacterView() {
                 />
                 {showTraits && (
                   <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div className="grid grid-cols-2 gap-2">
                       {Object.entries(character.stats).map(([key, value]) => {
                         const { total, allMods } = getStatDetails(key, value);
                         const spellcastTrait = (character.spellcast_trait || character.subclass_data?.data?.spellcast_trait || 'Instinct').toLowerCase();
@@ -698,27 +699,26 @@ export default function CharacterView() {
                   manageLabel="Manage"
                 />
 
-                {showExperiences && (<div className="space-y-2">
-                  {character.experiences && character.experiences.length > 0 ? (
-                    character.experiences.map((exp, index) => (
-                      <div key={index} className="flex bg-white/5 border border-white/5 rounded-lg overflow-hidden">
-                        <div className="flex-1 p-3 flex items-center justify-start text-left">
-                          <span className="capitalize font-medium text-gray-300">{exp.name}</span>
-                        </div>
-                        <div className="p-3 min-w-[3rem] flex items-center justify-center font-bold text-xl border-l border-white/5 text-white">
-                          {exp.value >= 0 ? `+${exp.value}` : exp.value}
-                        </div>
+                {showExperiences && (
+                  <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-2">
+                    {character.experiences && character.experiences.length > 0 ? (
+                      character.experiences.map((exp, index) => (
+                        <ExperienceCard
+                          key={index}
+                          name={exp.name}
+                          value={exp.value}
+                          isNested={true}
+                        />
+                      ))
+                    ) : (
+                      <div
+                        onClick={() => setIsExperienceSheetOpen(true)}
+                        className="text-gray-500 text-sm italic p-4 border border-dashed border-white/10 rounded-lg text-center cursor-pointer hover:bg-white/5"
+                      >
+                        No experiences recorded. Tap to add.
                       </div>
-                    ))
-                  ) : (
-                    <div
-                      onClick={() => setIsExperienceSheetOpen(true)}
-                      className="text-gray-500 text-sm italic p-4 border border-dashed border-white/10 rounded-lg text-center cursor-pointer hover:bg-white/5"
-                    >
-                      No experiences recorded. Tap to add.
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
                 )}
               </div>
 
