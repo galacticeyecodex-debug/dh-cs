@@ -95,7 +95,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
     <div className="flex flex-col h-[100dvh] bg-dagger-dark text-white overflow-hidden">
       {/* Header with context switcher */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-dagger-panel min-w-0">
-        <div className="relative min-w-0 flex-shrink-0" ref={contextMenuRef}>
+        <div className="relative min-w-0 flex-1" ref={contextMenuRef}>
           <HeaderMenuButton
             isOpen={isContextMenuOpen}
             onClick={() => setIsContextMenuOpen(!isContextMenuOpen)}

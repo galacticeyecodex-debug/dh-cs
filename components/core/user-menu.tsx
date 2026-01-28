@@ -89,7 +89,7 @@ export default function UserMenu({ onNavigateToTab }: UserMenuProps) {
     const avatarUrl = user.user_metadata?.avatar_url;
 
     return (
-        <div className="relative" ref={menuRef}>
+        <div className="relative shrink-0" ref={menuRef}>
             {/* Trigger Button */}
             <HeaderMenuButton
                 isOpen={isOpen}
