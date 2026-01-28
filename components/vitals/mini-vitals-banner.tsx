@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { getClassBaseStat, cn } from '@/lib/utils';
 import { getStatModifierTotal } from '@/lib/modifier-aggregator';
 import { getIconByName, AppIcons } from '@/lib/icon-utils';
+import { MiniVitalTray, VitalTrackType } from './mini-vital-tray';
 
 export interface VitalEntry {
     label: string;
@@ -15,6 +16,12 @@ export interface VitalEntry {
     bgColor?: string;
     onClick?: () => void;
     subLabel?: string;
+    /** Track type for tray semantics (undefined = read-only, no tray) */
+    vitalType?: VitalTrackType;
+    /** Called when user increments (Mark/Gain) - required if vitalType is set */
+    onIncrement?: () => void;
+    /** Called when user decrements (Clear/Spend) - required if vitalType is set */
+    onDecrement?: () => void;
 }
 
 export interface MiniVitalsBannerProps {
@@ -26,59 +33,101 @@ export interface MiniVitalsBannerProps {
 /**
  * MINI VITALS PANEL (UI Only)
  * A pure presentation component that renders a row of vitals.
+ * When a vital with a vitalType is tapped, opens an expandable tray with Mark/Clear controls.
  */
 export function MiniVitalsPanel({
     vitals,
     bottomOffset = "calc(4rem + env(safe-area-inset-bottom))",
     className
 }: MiniVitalsBannerProps) {
+    const [selectedVitalIndex, setSelectedVitalIndex] = useState<number | null>(null);
+
+    const handleVitalClick = useCallback((index: number, vital: VitalEntry) => {
+        // If vital has vitalType (interactive), open the tray
+        // Otherwise, use the provided onClick handler (for read-only vitals)
+        if (vital.vitalType && vital.onIncrement && vital.onDecrement && vital.max) {
+            setSelectedVitalIndex(index);
+        } else if (vital.onClick) {
+            vital.onClick();
+        }
+    }, []);
+
+    const handleCloseTray = useCallback(() => {
+        setSelectedVitalIndex(null);
+    }, []);
+
+    const selectedVital = selectedVitalIndex !== null ? vitals[selectedVitalIndex] : null;
+
     return (
-        <div
-            className={cn(
-                "fixed left-0 right-0 z-40 bg-dagger-panel backdrop-blur-lg border-t border-white/10 transition-all",
-                className
+        <>
+            {/* Tray (shown when a vital with track is selected) */}
+            {selectedVital && selectedVital.vitalType && selectedVital.max && selectedVital.onIncrement && selectedVital.onDecrement && (
+                <MiniVitalTray
+                    label={selectedVital.label}
+                    current={selectedVital.current}
+                    max={selectedVital.max}
+                    vitalType={selectedVital.vitalType}
+                    icon={selectedVital.icon}
+                    color={selectedVital.color}
+                    onIncrement={selectedVital.onIncrement}
+                    onDecrement={selectedVital.onDecrement}
+                    onClose={handleCloseTray}
+                />
             )}
-            style={{ bottom: bottomOffset }}
-        >
-            <div className="flex items-center justify-around px-2 py-2">
-                {vitals.map((vital) => (
-                    <button
-                        key={vital.label}
-                        onClick={vital.onClick}
-                        disabled={!vital.onClick}
-                        aria-label={`${vital.label}: ${vital.current}${vital.max !== undefined ? ` of ${vital.max}` : ''}`}
-                        className={cn(
-                            "flex flex-col items-center gap-0.5 min-w-[60px] transition-transform",
-                            vital.onClick ? "active:scale-95 cursor-pointer" : "cursor-default"
-                        )}
-                    >
-                        <div className="flex items-center gap-1">
-                            <vital.icon size={12} className={vital.color} />
-                            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tighter">
-                                {vital.label.substring(0, 3)}
-                            </span>
-                        </div>
-                        <div className="flex flex-col items-center gap-0">
-                            <div className="flex items-baseline gap-0.5">
-                                <span className={cn("text-sm font-bold leading-none", vital.color)}>
-                                    {vital.current}
-                                </span>
-                                {vital.max !== undefined && vital.max > 0 && (
-                                    <span className="text-[10px] text-gray-500 leading-none">
-                                        /{vital.max}
-                                    </span>
+
+            {/* Mini vitals bar */}
+            <div
+                className={cn(
+                    "fixed left-0 right-0 z-40 bg-dagger-panel backdrop-blur-lg border-t border-white/10 transition-all",
+                    className
+                )}
+                style={{ bottom: bottomOffset }}
+            >
+                <div className="flex items-center justify-around px-2 py-2">
+                    {vitals.map((vital, index) => {
+                        const isInteractive = vital.vitalType && vital.onIncrement && vital.onDecrement && vital.max;
+                        const hasClickHandler = isInteractive || vital.onClick;
+
+                        return (
+                            <button
+                                key={vital.label}
+                                onClick={() => handleVitalClick(index, vital)}
+                                disabled={!hasClickHandler}
+                                aria-label={`${vital.label}: ${vital.current}${vital.max !== undefined ? ` of ${vital.max}` : ''}${isInteractive ? ' (tap to edit)' : ''}`}
+                                className={cn(
+                                    "flex flex-col items-center gap-0.5 min-w-[60px] transition-transform",
+                                    hasClickHandler ? "active:scale-95 cursor-pointer" : "cursor-default"
                                 )}
-                            </div>
-                            {vital.subLabel && (
-                                <span className="text-[8px] text-gray-500 font-medium uppercase tracking-wider">
-                                    {vital.subLabel}
-                                </span>
-                            )}
-                        </div>
-                    </button>
-                ))}
+                            >
+                                <div className="flex items-center gap-1">
+                                    <vital.icon size={12} className={vital.color} />
+                                    <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tighter">
+                                        {vital.label.substring(0, 3)}
+                                    </span>
+                                </div>
+                                <div className="flex flex-col items-center gap-0">
+                                    <div className="flex items-baseline gap-0.5">
+                                        <span className={cn("text-sm font-bold leading-none", vital.color)}>
+                                            {vital.current}
+                                        </span>
+                                        {vital.max !== undefined && vital.max > 0 && (
+                                            <span className="text-[10px] text-gray-500 leading-none">
+                                                /{vital.max}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {vital.subLabel && (
+                                        <span className="text-[8px] text-gray-500 font-medium uppercase tracking-wider">
+                                            {vital.subLabel}
+                                        </span>
+                                    )}
+                                </div>
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
-        </div>
+        </>
     );
 }
 
@@ -86,9 +135,10 @@ export function MiniVitalsPanel({
  * CHARACTER VITALS BANNER (Smart Component)
  * Connects to the Character Store and provides content for the MiniVitalsPanel.
  * When a character is in an active campaign, also shows the campaign's Fear level.
+ * Provides handlers for Mark/Clear actions on interactive vitals.
  */
 export default function CharacterVitalsBanner() {
-    const { character, cardStates, activeCampaign, vitalIcons: iconPreferences } = useCharacterStore();
+    const { character, cardStates, activeCampaign, vitalIcons: iconPreferences, updateVitals, updateHope } = useCharacterStore();
 
     // --- VITAL CALCULATIONS (must be before any early returns) ---
     // We compute all values in a single useMemo to avoid hook ordering issues
@@ -125,6 +175,55 @@ export default function CharacterVitalsBanner() {
         };
     }, [character, cardStates]);
 
+    // --- VITAL HANDLERS ---
+    // HP: mark-bad semantics - current is capacity remaining
+    // Mark (-1 to current) = take damage, Clear (+1 to current) = heal
+    const handleHpIncrement = useCallback(() => {
+        if (!character) return;
+        updateVitals('hit_points_current', character.vitals.hit_points_current + 1);
+    }, [character, updateVitals]);
+
+    const handleHpDecrement = useCallback(() => {
+        if (!character) return;
+        updateVitals('hit_points_current', character.vitals.hit_points_current - 1);
+    }, [character, updateVitals]);
+
+    // Armor: mark-bad semantics - current is slots remaining
+    // Mark (-1 to current) = use armor, Clear (+1 to current) = repair armor
+    const handleArmorIncrement = useCallback(() => {
+        if (!character) return;
+        updateVitals('armor_slots', character.vitals.armor_slots + 1);
+    }, [character, updateVitals]);
+
+    const handleArmorDecrement = useCallback(() => {
+        if (!character) return;
+        updateVitals('armor_slots', character.vitals.armor_slots - 1);
+    }, [character, updateVitals]);
+
+    // Stress: fill-up-bad semantics - current is amount accumulated
+    // Mark (+1) = gain stress, Clear (-1) = relieve stress
+    const handleStressIncrement = useCallback(() => {
+        if (!character) return;
+        updateVitals('stress_current', character.vitals.stress_current + 1);
+    }, [character, updateVitals]);
+
+    const handleStressDecrement = useCallback(() => {
+        if (!character) return;
+        updateVitals('stress_current', character.vitals.stress_current - 1);
+    }, [character, updateVitals]);
+
+    // Hope: fill-up-good semantics - current is amount accumulated
+    // Gain (+1) = gain hope, Spend (-1) = use hope
+    const handleHopeIncrement = useCallback(() => {
+        if (!character) return;
+        updateHope(character.hope + 1);
+    }, [character, updateHope]);
+
+    const handleHopeDecrement = useCallback(() => {
+        if (!character) return;
+        updateHope(character.hope - 1);
+    }, [character, updateHope]);
+
     // Early return after hooks
     if (!vitalData) return null;
 
@@ -132,47 +231,77 @@ export default function CharacterVitalsBanner() {
     const vitals: VitalEntry[] = [];
 
     // Character vitals
-    vitals.push(
-        {
-            label: 'Evasion',
-            current: vitalData.evasionTotal,
-            icon: getIconByName(iconPreferences.evasion, AppIcons.vitals.evasion),
-            color: 'text-cyan-400',
-            subLabel: 'Score',
-        },
-        {
+    // Evasion: read-only (no vitalType)
+    vitals.push({
+        label: 'Evasion',
+        current: vitalData.evasionTotal,
+        icon: getIconByName(iconPreferences.evasion, AppIcons.vitals.evasion),
+        color: 'text-cyan-400',
+        subLabel: 'Score',
+    });
+
+    // Armor: mark-bad (only interactive if armor exists)
+    if (vitalData.armorMax > 0) {
+        vitals.push({
             label: 'Armor',
             current: vitalData.armor_marked,
             max: vitalData.armorMax,
             icon: getIconByName(iconPreferences.armor, AppIcons.vitals.armor),
             color: 'text-blue-400',
             subLabel: 'Marked',
-        },
-        {
-            label: 'HP',
-            current: vitalData.hp_marked,
-            max: vitalData.hpMax,
-            icon: getIconByName(iconPreferences.hitPoints, AppIcons.vitals.hitPoints),
-            color: 'text-red-400',
-            subLabel: 'Marked',
-        },
-        {
-            label: 'Stress',
-            current: vitalData.stress_current,
-            max: vitalData.stressMax,
-            icon: getIconByName(iconPreferences.stress, AppIcons.vitals.stress),
-            color: 'text-purple-400',
-            subLabel: 'Marked',
-        },
-        {
-            label: 'Hope',
-            current: vitalData.hope_current,
-            max: vitalData.hopeMax,
-            icon: getIconByName(iconPreferences.hope, AppIcons.vitals.hope),
-            color: 'text-dagger-gold',
-            subLabel: 'Gained',
-        }
-    );
+            vitalType: 'mark-bad',
+            onIncrement: handleArmorIncrement,
+            onDecrement: handleArmorDecrement,
+        });
+    } else {
+        vitals.push({
+            label: 'Armor',
+            current: 0,
+            max: 0,
+            icon: getIconByName(iconPreferences.armor, AppIcons.vitals.armor),
+            color: 'text-blue-400',
+            subLabel: 'None',
+        });
+    }
+
+    // HP: mark-bad
+    vitals.push({
+        label: 'HP',
+        current: vitalData.hp_marked,
+        max: vitalData.hpMax,
+        icon: getIconByName(iconPreferences.hitPoints, AppIcons.vitals.hitPoints),
+        color: 'text-red-400',
+        subLabel: 'Marked',
+        vitalType: 'mark-bad',
+        onIncrement: handleHpIncrement,
+        onDecrement: handleHpDecrement,
+    });
+
+    // Stress: fill-up-bad
+    vitals.push({
+        label: 'Stress',
+        current: vitalData.stress_current,
+        max: vitalData.stressMax,
+        icon: getIconByName(iconPreferences.stress, AppIcons.vitals.stress),
+        color: 'text-purple-400',
+        subLabel: 'Marked',
+        vitalType: 'fill-up-bad',
+        onIncrement: handleStressIncrement,
+        onDecrement: handleStressDecrement,
+    });
+
+    // Hope: fill-up-good
+    vitals.push({
+        label: 'Hope',
+        current: vitalData.hope_current,
+        max: vitalData.hopeMax,
+        icon: getIconByName(iconPreferences.hope, AppIcons.vitals.hope),
+        color: 'text-dagger-gold',
+        subLabel: 'Gained',
+        vitalType: 'fill-up-good',
+        onIncrement: handleHopeIncrement,
+        onDecrement: handleHopeDecrement,
+    });
 
     // Add Fear if in an active campaign (read-only for players)
     // SRD: Max Fear is always 12
