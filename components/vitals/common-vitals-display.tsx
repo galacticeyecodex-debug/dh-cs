@@ -206,7 +206,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
 
 
   return (
-    <div className="space-y-3">
+    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-3">
       {/* Evasion */}
       <VitalCard
         label="Evasion"
@@ -219,6 +219,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
         expectedValue={evasionDetails.baseValue}
         modifiers={evasionDetails.allMods}
         onUpdateModifiers={handleUpdateEvasionMods}
+        isNested={true}
       />
 
       {/* Armor */}
@@ -239,6 +240,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
         modifiers={armorDetails.allMods}
         onUpdateModifiers={handleUpdateArmorMods}
         subStats={armorDetails.subStats}
+        isNested={true}
       />
 
       {/* Row 2: Hit Points (Rectangle) */}
@@ -257,6 +259,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
         modifiers={hpDetails.allMods}
         onUpdateModifiers={handleUpdateHPMods}
         expectedValue={hpDetails.baseValue}
+        isNested={true}
       />
 
       {/* Row 3: Stress (Rectangle) */}
@@ -275,6 +278,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
         modifiers={stressDetails.allMods}
         onUpdateModifiers={handleUpdateStressMods}
         expectedValue={stressDetails.baseValue}
+        isNested={true}
       />
 
       {/* Row 4: Hope (Rectangle) */}
@@ -292,6 +296,7 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
         modifiers={hopeDetails.allMods}
         onUpdateModifiers={handleUpdateHopeMods}
         expectedValue={hopeDetails.baseValue}
+        isNested={true}
       />
     </div>
   );

@@ -52,6 +52,8 @@ interface VitalCardProps {
   onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: ModifierSourceType; type?: string }[]) => void;
   strokeColor?: string;
   subStats?: ModifierTab[];
+  isNested?: boolean;
+  isFlat?: boolean;
 }
 
 const VitalCard = React.memo(function VitalCard({
@@ -74,7 +76,9 @@ const VitalCard = React.memo(function VitalCard({
   modifiers,
   onUpdateModifiers,
   strokeColor,
-  subStats
+  subStats,
+  isNested = false,
+  isFlat = false
 }: VitalCardProps) {
   const [showModifierSheet, setShowModifierSheet] = useState(false);
 
@@ -135,8 +139,9 @@ const VitalCard = React.memo(function VitalCard({
       <>
         <div
           className={clsx(
-            PANEL.base,
-            "p-1.5 sm:p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
+            isFlat ? "bg-transparent border-none" : (isNested ? "bg-white/5 border-white/5" : PANEL.base),
+            "p-1.5 sm:p-2 flex flex-col items-center justify-start gap-1 relative transition-all rounded-xl",
+            !isFlat && "border",
             "w-full",
             getPanelBorder({ isModified }),
             className
@@ -187,8 +192,9 @@ const VitalCard = React.memo(function VitalCard({
     <>
       <div
         className={clsx(
-          PANEL.base,
-          "p-1.5 sm:p-2 flex flex-col items-center justify-start gap-1 relative transition-all",
+          isFlat ? "bg-transparent border-none" : (isNested ? "bg-white/5 border-white/5" : PANEL.base),
+          "p-1.5 sm:p-2 flex flex-col items-center justify-start gap-1 relative transition-all rounded-xl",
+          !isFlat && "border",
           "w-full",
           // Critical condition overrides modified border (handled by getPanelBorder)
           // Hide modified border for Evasion specifically
