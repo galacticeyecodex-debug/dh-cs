@@ -54,7 +54,7 @@ export default function HeaderMenuButton({
         <button
             onClick={onClick}
             className={clsx(
-                'flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors',
+                'flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors max-w-xs min-w-0',
                 isOpen ? 'bg-white/10' : 'hover:bg-white/5'
             )}
             aria-label={ariaLabel}

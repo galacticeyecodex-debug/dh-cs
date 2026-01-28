@@ -137,7 +137,7 @@ export default function PageLayout({
 
                     {/* Title with optional context switcher */}
                     {showContextSwitcher ? (
-                        <div className="relative" ref={contextMenuRef}>
+                        <div className="relative min-w-0" ref={contextMenuRef}>
                             <HeaderMenuButton
                                 isOpen={isContextMenuOpen}
                                 onClick={() => setIsContextMenuOpen(!isContextMenuOpen)}
