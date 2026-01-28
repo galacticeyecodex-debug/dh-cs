@@ -25,7 +25,10 @@ import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
 import { DomainCostsRow } from '@/components/shared/ability-costs-row';
 import { RollButton } from '@/components/shared/roll-button';
 
-import { AdditionalDamage } from '@/types/cards';
+import { AdditionalDamage, EnhancedAbilityCard } from '@/types/cards';
+import MechanicsTray from '@/components/shared/mechanics-tray';
+import { getEnhancement } from '@/lib/enhancement-utils';
+import { useCardMechanics } from '@/hooks/useCardMechanics';
 
 export interface AttackCardCosts {
     stress?: number;
@@ -95,6 +98,8 @@ export interface AttackCardProps {
     isUsed?: boolean;
     /** Roll information - used to determine if costs are required for the roll */
     roll?: { requires_cost_for_roll?: boolean };
+    /** Enhanced ability data for domain cards - enables modifier activation rows */
+    enhancedData?: EnhancedAbilityCard;
 }
 
 const AttackCard = React.memo(function AttackCard({
@@ -128,6 +133,7 @@ const AttackCard = React.memo(function AttackCard({
     rollLabel,
     isUsed = false,
     roll,
+    enhancedData,
 }: AttackCardProps) {
     const [isCostPaid, setIsCostPaid] = useState(false);
     const [showDescription, setShowDescription] = useState(false);
@@ -271,6 +277,26 @@ const AttackCard = React.memo(function AttackCard({
                     {tokenTrack}
                 </div>
             )}
+
+            {/* Modifier Activation Rows (from enhanced domain card data) */}
+            {enhancedData && (() => {
+                const enhancement = getEnhancement(enhancedData);
+                if (!enhancement) return null;
+
+                return (
+                    <MechanicsTray
+                        cardName={name}
+                        enhancement={enhancement}
+                        enhancedData={enhancedData}
+                        // Only render modifier rows + duration; roll/damage handled by AttackCard's own action bar
+                        showAttackButton={false}
+                        hasAttackOrRoll={false}
+                        costMode="controlled"
+                        isCostPaid={isCostPaid}
+                        className="px-4 pb-2 space-y-2"
+                    />
+                );
+            })()}
 
             {/* Costs Bar */}
             {needsActivation && (

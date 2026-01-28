@@ -1,6 +1,6 @@
 /**
  * DOMAIN CARD PARSER (NLU Engine)
- * ----------------------------------------------------------------------------
+ * ============================================================================
  * This module is the core NLU (Natural Language Understanding) engine for the
  * Daggerheart Character Sheet. It analyzes raw card text to extract structured
  * gameplay mechanics, enabling interactive features in the application.
@@ -30,43 +30,142 @@
  * player to apply the rules correctly.
  *
  * DOCUMENTATION & REFERENCE:
- *   - Schema Definitions: dh-cs/types/cards.ts
- *   - Integration: dh-cs/scripts/enhance_json.ts
- *   - Test Suite: dh-cs/__tests__/content/abilities-enhanced.test.ts
+ *   - Schema Definitions: types/cards.ts (EnhancedAbilityCard, CardAttack, CardRoll, etc.)
+ *   - Integration: scripts/enhance_json.ts (regenerates all enhanced JSON files)
+ *   - Test Suite: __tests__/content/abilities-enhanced.test.ts
  *
- * CORE FUNCTIONALITY:
- * The parser breaks down card descriptions into semantic components:
+ * COMPLETE PARSED SCHEMA
+ * ============================================================================
  *
- * 1. Activation & Costs (`parseCosts`, `parseActionType`)
- *    - Detects resource costs (Hope, Stress, HP)
- *    - Identifies action types (Attack, Reaction, Utility, Passive)
+ * EnhancedAbilityCard (Top Level)
+ * ├── name: string - Card name
+ * ├── level: string - Card tier/level
+ * ├── domain: string - Domain (Arcana, Blade, Bone, etc.)
+ * ├── type: 'Spell' | 'Ability' - Card type
+ * ├── recall: string - Recall cost
+ * ├── text: string - Full card text
+ * ├── stat_bonuses?: {...} - Permanent character bonuses (exp, HP slots, etc.)
+ * └── enhancement: EnhancementBlock (see below)
  *
- * 2. Combat Mechanics (`enhanceAbilityCard` -> `attack` block)
- *    - Extracts attack traits (Strength, Spellcast, etc.)
- *    - Parses ranges, damage dice, and damage types
- *    - Classifies combat usage (standalone attack vs. damage bonus)
+ * EnhancementBlock (Parsed Metadata)
+ * ├── action_type?: 'attack' - Action classification
+ * ├── timing: 'action' | 'reaction' | 'free' | 'downtime' - When card can be used
+ * ├── frequency: 'at_will' | 'once_per_rest' | 'once_per_long_rest' | 'once_per_session'
+ * ├── costs?: CardCosts - Resource costs
+ * │   ├── stress?: number - Stress cost (mark X Stress)
+ * │   ├── hope?: number - Hope cost (spend X Hope)
+ * │   ├── armor_slots?: number - Armor cost (spend armor slots)
+ * │   ├── hit_points?: number - HP cost (take X damage)
+ * │   └── tokens?: number - Token cost (spend X tokens)
+ * ├── keywords?: string[] - Tag keywords (damage, magic, tokens, stress_cost, etc.)
+ * ├── tokens?: CardTokens - Token pool configuration
+ * │   ├── has_tokens: boolean - Whether card uses tokens
+ * │   ├── max_tokens?: number | null - Fixed count or dynamic based on trait
+ * │   ├── token_source?: string - Trait that determines token count
+ * │   └── token_replenish?: 'rest'|'long_rest'|'session_start'|'session_end'|'manual'
+ * ├── attack?: CardAttack - Combat attack mechanics (see below)
+ * ├── roll?: CardRoll - Roll requirements (see below)
+ * ├── modifiers?: CardModifier[] - Stat bonuses from the card (see below)
+ * ├── threshold_modifiers?: ThresholdModifiers - Damage threshold adjustments
+ * ├── effects?: string[] - Secondary effects
+ * └── duration?: string - Effect duration type
  *
- * 3. Passive Modifiers (`parseCardPassiveModifiers`)
- *    - Parses static bonuses ("+1 to Evasion")
- *    - Handles dynamic formulas ("equal to half your Agility")
- *    - Evaluates conditional activators ("while unarmored")
+ * CardAttack (Combat Mechanics)
+ * ├── trait?: string - Attack trait (Strength, Spellcast, Agility, Instinct, Presence, Knowledge)
+ * ├── range: Range - Attack range (Melee, Very Close, Close, Far, Very Far)
+ * ├── damage?: string - Damage dice notation (d8, 2d6+3, 1d8+1d6, etc.)
+ * ├── damage_type?: 'physical' | 'magic' - Damage type
+ * ├── damage_scaling?: DamageScaling - How dice count scales (per SRD Attacking.md):
+ * │   ├── 'proficiency' - Dice count = Proficiency (weapons, "using your Proficiency")
+ * │   ├── 'spellcast' - Dice count = Spellcast trait ("equal to your Spellcast")
+ * │   ├── 'resource' - Dice count = resource spent (see resource_type)
+ * │   └── 'none' - Fixed dice count (e.g., "2d8+4" never changes)
+ * ├── resource_type?: 'hope' | 'stress' | 'tokens' - For 'resource' scaling
+ * ├── difficulty?: number - Fixed DC for roll (if not contested/opposed)
+ * ├── targets?: TargetType - Target specification
+ * │   ├── 'single' - Single target
+ * │   ├── 'all_in_range' - All targets in range
+ * │   ├── 'allies_in_range' - All allies in range
+ * │   ├── 'adjacent' - Adjacent targets
+ * │   ├── 'self' - The caster
+ * │   └── 'line' - In a line
+ * ├── secondary_effects?: string[] - Additional effects (vulnerable, condition, etc.)
+ * ├── combat_category?: CombatCategory - Determines UI button configuration
+ * │   ├── 'standalone_attack' - Show Attack + Damage buttons
+ * │   ├── 'damage_bonus' - Triggered damage, show Damage button only
+ * │   ├── 'roll_only' - Show Roll button only (no damage)
+ * │   └── 'passive_triggered' - Passive effect, no buttons
+ * ├── additional_damage?: AdditionalDamage[] - Conditional extra damage
+ * │   ├── damage: string - Damage dice
+ * │   ├── damage_type?: string - Type of extra damage
+ * │   ├── condition?: string - When extra damage applies
+ * │   └── label?: string - UI label (e.g., "Extra", "Hope")
+ * └── is_triggered_bonus?: boolean - True if bonus damage triggered by other ability
  *
- * 4. Token Tracking (`parseCardTokens`)
- *    - Identifies token pools ("put 3 tokens on this card")
- *    - Determines replenishment rules (rest, long rest)
+ * CardRoll (Roll Requirements)
+ * ├── type: string - Roll type (e.g., "Spellcast Roll", "Strength Roll")
+ * ├── trait?: string - Trait used for roll
+ * ├── difficulty?: number - Fixed DC (null for contested/opposed rolls)
+ * ├── target_reaction?: boolean - Does target get a reaction roll?
+ * └── requires_cost_for_roll?: boolean - Must cost be paid before rolling?
  *
- * ARCHITECTURE:
- * - `enhanceAbilityCard`: The main entry point. Orchestrates the sub-parsers onto a raw card.
- * - Sub-parsers: Specialized functions (e.g., `parseStressCost`, `parseCardDamage`) that
- *   handle specific mechanics using regex patterns.
- * - `stripMarkdown`: Normalizes text (removes bold/italics) for consistent matching.
+ * CardModifier (Stat Bonuses)
+ * ├── stat: string - Target stat (agility, evasion, damage, proficiency, armor_score, etc.)
+ * ├── value: number - Numeric bonus value
+ * ├── formula?: string - Dynamic formula (half_agility, 3_plus_strength, etc.)
+ * ├── condition?: ModifierCondition - When modifier is active
+ * │   ├── { type: 'always' } - Always active when card in loadout
+ * │   ├── { type: 'when_armored' } - Only when armor equipped
+ * │   ├── { type: 'when_unarmored' } - Only when no armor equipped
+ * │   ├── { type: 'when_active' } - User must click Activate button
+ * │   ├── { type: 'cost_activated' } - [DEPRECATED] use 'when_active'
+ * │   ├── { type: 'loadout_domain_count', domain, minCount } - When loadout has N cards from domain
+ * │   └── { type: 'environment', requirement } - Based on environment
+ * └── source?: string - Card name for debugging
+ *
+ * PARSER FUNCTIONS
+ * ============================================================================
+ * Main Entry Points:
+ * - `enhanceAbilityCard()` - Main parser for domain cards (Spell/Ability)
+ * - `enhanceFeature()` - Parser for features (Ancestry/Community/Class/Subclass)
+ *
+ * Specialized Parsers (called automatically by main entry points):
+ * - `parseActionType()` - Determines action_type (attack, passive, utility, reaction, downtime)
+ * - `parseTiming()` - Determines timing (action, reaction, free, downtime)
+ * - `parseFrequency()` - Determines frequency (at_will, once_per_rest, once_per_long_rest, once_per_session)
+ * - `parseCosts()` - Extracts resource costs (hope, stress, hp, armor_slots, tokens)
+ * - `parseAttack()` - Extracts full attack mechanics (trait, range, damage, targets, difficulty)
+ * - `parseRoll()` - Extracts roll requirements (type, trait, difficulty, target_reaction)
+ * - `parseCardDamage()` - Extracts damage dice notation from text
+ * - `parseCardDamageType()` - Determines damage type (physical, magic)
+ * - `parseUsesProficiency()` - Checks if damage text mentions "using your Proficiency"
+ * - `parseAttackModifier()` - Extracts flat bonuses to attacks
+ * - `parseStaticModifiers()` - Extracts stat bonuses from text (e.g., "+1 Evasion")
+ * - `parseCardPassiveModifiers()` - Evaluates modifier conditions for domain cards
+ * - `hasTokenMechanics()` - Detects if card uses tokens
+ * - `parseMaxTokens()` - Determines maximum token pool size
+ * - `parseTokenSource()` - Determines trait that determines token count
+ * - `extractKeywords()` - Generates keyword tags (damage, magic, tokens, stress_cost, etc.)
+ * - `parseCardRange()` - Extracts attack range (Melee, Very Close, Close, Far, Very Far)
+ * - `parseCombatCategory()` - Classifies attack type (standalone_attack, damage_bonus, roll_only, passive_triggered)
+ * - `parseTargetType()` - Determines target specification (single, all_in_range, etc.)
+ * - `parseDuration()` - Determines effect duration (scene, session, long_rest, until_triggered, etc.)
+ * - `parseRollTrait()` - Extracts trait used for roll
+ * - `parseRollDifficulty()` - Extracts DC from roll requirement
+ * - `parseStatBonuses()` - Extracts character bonuses (hit_point_slots, stress_slots, experience, etc.)
+ * - `parseMaxTokens()` - Determines token pool size
+ * - `parseTokenSource()` - Determines which trait determines token count
  *
  * EXTENDING THE PARSER:
- * When adding new mechanics (e.g., Environment effects):
- * 1. Define the schema in `types/cards.ts`.
- * 2. Create a new sub-parser function here (e.g., `parseEnvironmentEffect`).
- * 3. Add the parser call to `enhanceAbilityCard`.
- * 4. Add test cases in `__tests__/content/abilities-enhanced.test.ts`.
+ * When adding new mechanics (e.g., new stat type, new condition type):
+ * 1. Define the schema in `types/cards.ts` (add to EnhancementBlock or appropriate interface)
+ * 2. Create a new sub-parser function here (e.g., `parseNewMechanic()`)
+ * 3. Call the parser in `enhanceAbilityCard()` or `enhanceFeature()` at appropriate location
+ * 4. Add regex patterns for the new mechanic
+ * 5. Add test cases in `__tests__/content/abilities-enhanced.test.ts` and NLU test files
+ * 6. Document the new field in this comment block (in alphabetical order within its section)
+ * 7. Run `npm run enhance-json` to regenerate all enhanced JSON files
+ * 8. Verify pre-generated JSON includes the new field with correct values
  */
 
 
@@ -79,6 +178,7 @@ import type {
   CardModifier,
   CardRoll,
   CombatCategory,
+  DamageScaling,
   DamageType,
   EnhancedAbilityCard,
   EnhancedFeature,
@@ -2095,6 +2195,12 @@ export function enhanceAbilityCard(card: {
 
   // Add attack/roll info
   if (attack) {
+    // Determine damage scaling mode (proficiency, spellcast, resource, or none)
+    const scalingResult = parseDamageScaling(text, attack.damage);
+    attack.damage_scaling = scalingResult.scaling;
+    if (scalingResult.resource_type) {
+      attack.resource_type = scalingResult.resource_type;
+    }
     enhanced.enhancement.attack = attack;
   }
 
@@ -2217,6 +2323,12 @@ export function enhanceFeature(feature: {
 
   // Add attack info if applicable
   if (attack) {
+    // Determine damage scaling mode (proficiency, spellcast, resource, or none)
+    const scalingResult = parseDamageScaling(text, attack.damage);
+    attack.damage_scaling = scalingResult.scaling;
+    if (scalingResult.resource_type) {
+      attack.resource_type = scalingResult.resource_type;
+    }
     enhanced.attack = attack;
   }
 
@@ -2286,7 +2398,9 @@ export interface CombatAbility {
   range?: string;          // Melee, Close, Far, Very Far
   damage?: string;         // Dice notation (e.g., "d8+2", "1d20+3")
   damageType?: 'magic' | 'physical' | 'special';
-  usesProficiency?: boolean; // Whether damage scales with proficiency
+  usesProficiency?: boolean; // Whether damage scales with proficiency (deprecated, use damageScaling)
+  damageScaling?: DamageScaling; // How dice count scales (proficiency, spellcast, resource, or none)
+  resourceType?: 'hope' | 'stress' | 'tokens'; // For 'resource' scaling
   costs?: {
     hope?: number;
     stress?: number;
@@ -2298,10 +2412,75 @@ export interface CombatAbility {
 }
 
 /**
- * Check if damage uses proficiency scaling
+ * Determine how damage dice count should scale.
+ *
+ * DAGGERHEART DAMAGE SCALING RULES (per SRD Attacking.md):
+ *
+ * 1. FIXED NOTATION (e.g., "1d8", "2d6", "4d20+5")
+ *    → ALWAYS returns 'none' - explicit dice count never scales
+ *
+ * 2. VARIABLE NOTATION (e.g., "d8", "d10+2") - check text for scaling trait:
+ *    - "using your Proficiency" → 'proficiency'
+ *    - "equal to your Spellcast" → 'spellcast'
+ *    - "equal to [Hope/Stress/tokens]" → 'resource'
+ *    - No scaling indicator → 'none'
+ *
+ * @param text - The full card text
+ * @param damage - The damage notation (e.g., "d8", "1d8+2", "3d10")
+ * @returns DamageScaling enum value
  */
-export function parseUsesProficiency(text: string): boolean {
-  return /using (?:your )?proficiency(?: die)?/i.test(text);
+export function parseDamageScaling(text: string, damage?: string): { scaling: DamageScaling; resource_type?: 'hope' | 'stress' | 'tokens' } {
+  // Rule 1: Fixed notation (e.g., "1d8", "2d6", "3d10") NEVER scales
+  if (damage && /^\d+d\d+/.test(damage)) {
+    return { scaling: 'none' };
+  }
+
+  // Rule 2: Variable notation - check text for scaling indicator
+  // IMPORTANT: Check resource-based scaling FIRST since cards may mention
+  // "Spellcast" for token source but use resources for damage
+  // e.g., "place tokens equal to your Spellcast... roll d10s equal to the tokens you spent"
+
+  // Check for resource-based scaling (tokens spent for damage dice)
+  // Pattern: "roll a number of d10s equal to the tokens" (for damage)
+  if (/(?:roll\s+)?(?:a\s+)?number\s+of\s+\*?\*?d\d+s?\*?\*?\s+equal\s+to\s+(?:the\s+)?tokens/i.test(text) ||
+      /equal\s+to\s+(?:the\s+)?(?:number\s+of\s+)?tokens?\s+(?:you\s+)?spent/i.test(text)) {
+    return { scaling: 'resource', resource_type: 'tokens' };
+  }
+
+  // Check for Hope-based scaling
+  if (/(?:roll\s+)?(?:a\s+)?number\s+of\s+\*?\*?d\d+s?\*?\*?\s+equal\s+to\s+(?:the\s+)?hope/i.test(text) ||
+      /equal\s+to\s+(?:the\s+)?hope\s+spent/i.test(text)) {
+    return { scaling: 'resource', resource_type: 'hope' };
+  }
+
+  // Check for Stress-based scaling
+  if (/(?:roll\s+)?(?:a\s+)?number\s+of\s+\*?\*?d\d+s?\*?\*?\s+equal\s+to\s+(?:the\s+)?stress/i.test(text)) {
+    return { scaling: 'resource', resource_type: 'stress' };
+  }
+
+  // Check for proficiency scaling
+  if (/using\s+(?:your\s+)?proficiency(?:\s+die)?/i.test(text)) {
+    return { scaling: 'proficiency' };
+  }
+
+  // Check for spellcast scaling (dice count = Spellcast trait)
+  // Pattern: "using your Spellcast trait" or "roll a number of d10s equal to your Spellcast trait"
+  if (/using\s+(?:your\s+)?spellcast(?:\s+trait)?/i.test(text) ||
+      /(?:roll\s+)?(?:a\s+)?number\s+of\s+\*?\*?d\d+s?\*?\*?\s+equal\s+to\s+(?:your\s+)?spellcast/i.test(text)) {
+    return { scaling: 'spellcast' };
+  }
+
+  // Default: no scaling
+  return { scaling: 'none' };
+}
+
+/**
+ * @deprecated Use parseDamageScaling() instead
+ * Kept for backwards compatibility during migration
+ */
+export function parseUsesProficiency(text: string, damage?: string): boolean {
+  const result = parseDamageScaling(text, damage);
+  return result.scaling === 'proficiency';
 }
 
 /**
@@ -2427,6 +2606,8 @@ function extractDamage(description: string): {
   damage?: string;
   damageType?: 'magic' | 'physical' | 'special';
   usesProficiency?: boolean;
+  damageScaling?: DamageScaling;
+  resourceType?: 'hope' | 'stress' | 'tokens';
 } {
   // Pattern: "d8+2 magic damage", "1d20+3 damage", or "d8 damage" (no multiplier)
   const damagePattern = /(?:deal(?:s|ing)?|take(?:s)?)\s+(\d*d\d+(?:[+\-]\d+)?)\s+(magic|physical|true)?\s*damage/i;
@@ -2447,13 +2628,16 @@ function extractDamage(description: string): {
     else damageType = 'special';
   }
 
-  // Check if damage uses proficiency (handles both "Proficiency" and "Proficiency Die")
-  const usesProficiency = parseUsesProficiency(description);
+  // Determine damage scaling mode
+  const scalingResult = parseDamageScaling(description, damage);
+  const usesProficiency = scalingResult.scaling === 'proficiency';
 
   return {
     damage,
     damageType,
-    usesProficiency
+    usesProficiency,
+    damageScaling: scalingResult.scaling,
+    resourceType: scalingResult.resource_type
   };
 }
 
@@ -2502,7 +2686,7 @@ export function parseCombatAbility(card: CharacterCard): CombatAbility | null {
   const range = extractRange(description);
 
   // Extract damage
-  const { damage, damageType, usesProficiency } = extractDamage(description);
+  const { damage, damageType, usesProficiency, damageScaling, resourceType } = extractDamage(description);
 
   // Extract costs
   const costs = extractCosts(description);
@@ -2518,7 +2702,9 @@ export function parseCombatAbility(card: CharacterCard): CombatAbility | null {
     range,
     damage,
     damageType,
-    usesProficiency,
+    usesProficiency, // Deprecated, kept for backwards compatibility
+    damageScaling,
+    resourceType,
     costs,
     effects: effects.length > 0 ? effects : undefined,
     description,

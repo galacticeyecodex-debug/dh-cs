@@ -72,6 +72,13 @@ describe('Abilities Schema Validation - Arcana Domain', () => {
         it('should have attack.damage = d10', () => {
             expect(enhanced.enhancement.attack?.damage).toBe('d10');
         });
+
+        it('should have damage_scaling = resource (tokens determine dice count)', () => {
+            // Unleash Chaos deals d10 damage based on tokens spent
+            // The text says "equal to the tokens you spent"
+            expect(enhanced.enhancement.attack?.damage_scaling).toBe('resource');
+            expect(enhanced.enhancement.attack?.resource_type).toBe('tokens');
+        });
     });
 
     describe('Wall Walk', () => {

@@ -20,27 +20,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Box, ArrowRightLeft, Image as ImageIcon, Trash2, Info, Settings, Sliders } from 'lucide-react';
 import clsx from 'clsx';
 import { DomainCard } from '@/components/physical-cards/domain-card';
-import CardTokenTrack from '@/components/shared/token-track';
-import FrequencyCheckbox from '@/components/shared/frequency-checkbox';
-import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
-import { DomainCostsRow } from '@/components/shared/ability-costs-row';
-import ModifierActivationRow from '@/components/views/playmat/modifier-activation-row';
-import { AppIcons } from '@/lib/icon-utils';
-import { RollButton } from '@/components/shared/roll-button';
+import MechanicsTray from '@/components/shared/mechanics-tray';
 import { MarkdownText } from '@/components/shared/markdown-text';
-import { useCharacterStore, CharacterCard } from '@/store/character-store';
+import { type CharacterCard } from '@/store/character-store';
+import { useCardMechanics } from '@/hooks/useCardMechanics';
 import { EnhancedAbilityCard } from '@/types/cards';
-import { calculateWeaponDamage, parseDamageRoll } from '@/lib/utils';
-import { getStatModifiers } from '@/lib/modifier-aggregator';
-import {
-  getEnhancement,
-  getAttack,
-  getRoll,
-  getCosts,
-  getModifiers,
-  getActionType,
-  hasTokens as checkHasTokens
-} from '@/lib/enhancement-utils';
+import { getEnhancement } from '@/lib/enhancement-utils';
 
 interface PlaymatCardProps {
   card: CharacterCard;
@@ -66,7 +51,6 @@ export default function PlaymatCard({
   const [showDescription, setShowDescription] = useState(false);
   const [showManageMenu, setShowManageMenu] = useState(false);
   const manageMenuRef = useRef<HTMLDivElement>(null);
-  const { character, cardStates, prepareRoll, updateHope, updateVitals } = useCharacterStore();
   const libraryItem = card.library_item;
 
   // Close menu when clicking outside
@@ -83,82 +67,13 @@ export default function PlaymatCard({
     }
   }, [showManageMenu]);
 
-  if (!libraryItem) return null;
-
   // --- Enhancement Data Extraction ---
   const enhancement = enhancedData ? getEnhancement(enhancedData) : undefined;
-  const attack = enhancedData ? getAttack(enhancedData) : undefined;
-  const roll = enhancedData ? getRoll(enhancedData) : undefined;
-  const costs = enhancedData ? getCosts(enhancedData) : undefined;
-  const actionType = enhancedData ? getActionType(enhancedData) : 'passive';
-  const hasTokens = enhancedData ? checkHasTokens(enhancedData) : false;
 
-  // --- Attack / Roll Calculation Logic ---
-  const hasAttackOrRoll = !!(attack || roll);
+  // --- Shared Mechanics Calculations ---
+  const mechanics = useCardMechanics(enhancement);
 
-  // Initialize calculation variables
-  let totalProficiency = 1;
-  let rollBonus = 0;
-  let rollLabel = '';
-  let finalDamage: string | undefined = undefined;
-  let baseDamage: string | undefined = undefined;
-  let showAttackButton = false;
-
-  if (character && hasAttackOrRoll && enhancedData && enhancement) {
-    // 1. Calculate Proficiency
-    const baseProf = character.proficiency || 1;
-    const systemProfMods = getStatModifiers(character, 'proficiency', cardStates);
-    const userProfMods = character.modifiers?.['proficiency'] || [];
-    totalProficiency = Math.max(1, baseProf + [...systemProfMods, ...userProfMods].reduce((acc, mod) => acc + mod.value, 0));
-
-    // 2. Calculate Spellcast/Trait Bonus
-    const rollTrait = roll?.trait || attack?.trait;
-
-    if (rollTrait) {
-      if (rollTrait.toLowerCase() === 'spellcast') {
-        const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
-        const rawTraitValue = spellcastTraitName
-          ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0)
-          : (character.spellcast || 0);
-
-        // Add trait modifiers
-        let traitModSum = 0;
-        if (spellcastTraitName) {
-          const tKey = spellcastTraitName.toLowerCase();
-          const tSystem = getStatModifiers(character, tKey, cardStates);
-          const tUser = character.modifiers?.[tKey] || [];
-          traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
-        }
-
-        const spellcastBase = rawTraitValue + traitModSum;
-        const spellcastMods = getStatModifiers(character, 'spellcast', cardStates);
-        const userSpellcastMods = character.modifiers?.['spellcast'] || [];
-        rollBonus = spellcastBase + [...spellcastMods, ...userSpellcastMods].reduce((acc, mod) => acc + mod.value, 0);
-        rollLabel = 'Spellcast';
-      } else {
-        const traitKey = rollTrait.toLowerCase();
-        const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-        const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
-        const userTraitMods = character.modifiers?.[traitKey] || [];
-        rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
-        rollLabel = rollTrait;
-      }
-    }
-
-    // 3. Calculate Damage
-    baseDamage = attack?.damage;
-    finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
-
-    // 4. Determine if Attack button should be shown
-    const combatCategory = attack?.combat_category || 'passive_triggered';
-    showAttackButton = !!(roll || combatCategory === 'standalone_attack' || combatCategory === 'roll_only');
-  }
-
-  // --- Mechanics Tray Logic ---
-  const showTokenTrack = hasTokens;
-  const showFrequency = enhancement?.frequency && enhancement.frequency !== 'at_will';
-  const showDuration = !!enhancement?.duration;
-  const showMechanics = showTokenTrack || showFrequency || hasAttackOrRoll || showDuration;
+  if (!libraryItem) return null;
 
   const isLoadout = card.location === 'loadout';
 
@@ -182,7 +97,7 @@ export default function PlaymatCard({
         }}
         size="thumbnail"
         hasPassiveModifiers={!!(enhancement?.modifiers && enhancement.modifiers.length > 0)}
-        hasCombatAbility={!!hasAttackOrRoll}
+        hasCombatAbility={!!mechanics.hasAttackOrRoll}
       />
 
       {/* Top Right Icon Overlay - positioned over top padding area */}
@@ -326,156 +241,19 @@ export default function PlaymatCard({
       )}
 
       {/* Mechanics Tray */}
-      {showMechanics && (
-        <div
-          className="bg-black/40 border border-white/10 rounded-lg p-2 space-y-2 w-full"
-          onClick={(e) => {
-            // Allow clicking empty space in tray to trigger View (bubble up)
-          }}
-        >
-          {/* Token Track */}
-          {showTokenTrack && enhancement && (
-            <CardTokenTrack
-              cardName={libraryItem.name}
-              maxTokens={enhancement.tokens?.max_tokens ?? null}
-              tokenSource={enhancement.tokens?.token_source}
-            />
-          )}
-
-          {/* Frequency */}
-          {showFrequency && enhancement?.frequency && (
-            <div className="flex justify-center">
-              <FrequencyCheckbox
-                cardName={libraryItem.name}
-                frequency={enhancement.frequency}
-                className="bg-white/5 px-3 py-1.5 w-full justify-center"
-              />
-            </div>
-          )}
-
-          {/* Modifiers with when_active conditions */}
-          {(() => {
-            // Use enhancedData (the full EnhancedAbilityCard) for modifier extraction
-            // libraryItem.data only contains raw data (recall, description), NOT enhancement blocks
-            if (!enhancedData) return null;
-
-            const modifiers = getModifiers(enhancedData);
-            const whenActiveModifiers = modifiers.filter(mod => mod.condition?.type === 'when_active');
-
-            if (whenActiveModifiers.length === 0) return null;
-
-            // Helper to generate condition text
-            const getConditionText = (condition?: any) => {
-              if (!condition) return undefined;
-              switch (condition.type) {
-                case 'when_active':
-                  return 'Activate to apply this bonus';
-                case 'when_armored':
-                  return 'While wearing armor';
-                case 'when_unarmored':
-                  return 'While not wearing armor';
-                case 'loadout_domain_count':
-                  return `With ${condition.minCount}+ ${condition.domain} cards`;
-                default:
-                  return undefined;
-              }
-            };
-
-            return (
-              <div className="space-y-1.5">
-                <h4 className="text-[10px] font-bold uppercase text-purple-400 tracking-wider text-center">
-                  Modifiers
-                </h4>
-                {whenActiveModifiers.map((mod, index) => {
-                  // Create a unique key for this modifier: cardName-stat-index
-                  const modifierKey = `${mod.stat}-${index}`;
-                  return (
-                    <ModifierActivationRow
-                      key={`${libraryItem.name}-${mod.stat}-${index}`}
-                      cardName={libraryItem.name}
-                      modifier={mod}
-                      modifierKey={modifierKey}
-                      conditionText={getConditionText(mod.condition)}
-                      className="text-sm"
-                    />
-                  );
-                })}
-              </div>
-            );
-          })()}
-
-          {/* Persistent Effect / Duration - ONLY for cards without when_active modifiers */}
-          {showDuration && enhancement?.duration && enhancedData && !getModifiers(enhancedData).some(mod => mod.condition?.type === 'when_active') && (
-            <div className="flex justify-center">
-              <DomainAbilityButton
-                cardName={libraryItem.name}
-                costType="duration"
-                label={enhancement.duration === 'scene' ? 'Active (Scene)' : 'Active'}
-                className="w-full justify-center"
-              />
-            </div>
-          )}
-
-          {/* Action Costs - Show for ALL cards with costs (including attack cards) */}
-          {costs && (
-            <DomainCostsRow
-              cardName={libraryItem.name}
-              displayName={libraryItem.name}
-              costs={costs}
-              className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5"
-            />
-          )}
-
-          {/* Attack & Damage Buttons (Simplified Layout) */}
-          {hasAttackOrRoll && character && (
-            <div className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5">
-              {/* Roll / Attack Button */}
-              {showAttackButton && (
-                <RollButton
-                  label={rollLabel || 'Attack'}
-                  onClick={() => {
-                    if (enhancedData) {
-                      prepareRoll(`${enhancedData.name} ${rollLabel}`, rollBonus);
-                    }
-                  }}
-                  bonus={rollBonus}
-                  variant="primary"
-                />
-              )}
-
-              {/* Damage Button */}
-              {finalDamage && (
-                <RollButton
-                  label={`Damage (${finalDamage})`}
-                  onClick={() => {
-                    if (enhancedData && finalDamage) {
-                      const { dice, modifier } = parseDamageRoll(finalDamage);
-                      prepareRoll(`${enhancedData.name} Damage`, modifier, dice);
-                    }
-                  }}
-                  variant="damage"
-                  icon={AppIcons.combat.damage}
-                />
-              )}
-
-              {/* Additional Damage Buttons */}
-              {attack?.additional_damage?.map((extra, idx) => (
-                <RollButton
-                  key={idx}
-                  label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
-                  onClick={() => {
-                    if (enhancedData) {
-                      const { dice, modifier } = parseDamageRoll(extra.damage);
-                      prepareRoll(`${enhancedData.name} ${extra.label || 'Extra'}`, modifier, dice);
-                    }
-                  }}
-                  variant="damage"
-                  className="opacity-90"
-                />
-              ))}
-            </div>
-          )}
-        </div>
+      {enhancement && (
+        <MechanicsTray
+          cardName={libraryItem.name}
+          enhancement={enhancement}
+          enhancedData={enhancedData}
+          showAttackButton={mechanics.showAttackButton}
+          hasAttackOrRoll={mechanics.hasAttackOrRoll}
+          rollBonus={mechanics.rollBonus}
+          rollLabel={mechanics.rollLabel}
+          finalDamage={mechanics.finalDamage}
+          additionalDamage={enhancement.attack?.additional_damage}
+          costMode="uncontrolled"
+        />
       )}
     </div>
   );

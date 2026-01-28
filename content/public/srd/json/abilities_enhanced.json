@@ -59,7 +59,9 @@
         "combat_category": "standalone_attack",
         "damage": "d10",
         "damage_type": "magic",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "resource",
+        "resource_type": "tokens"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -118,7 +120,8 @@
         ],
         "damage": "1d20+3",
         "damage_type": "magic",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -250,7 +253,8 @@
         "combat_category": "standalone_attack",
         "damage": "d8+3",
         "damage_type": "magic",
-        "targets": "all_in_range"
+        "targets": "all_in_range",
+        "damage_scaling": "spellcast"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -286,7 +290,8 @@
         "combat_category": "passive_triggered",
         "damage": "2d8+4",
         "damage_type": "magic",
-        "targets": "all_in_range"
+        "targets": "all_in_range",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -357,7 +362,8 @@
         "combat_category": "damage_bonus",
         "damage": "d12+4",
         "damage_type": "physical",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "proficiency"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -459,7 +465,8 @@
         "trait": "Spellcast",
         "range": "Close",
         "combat_category": "standalone_attack",
-        "difficulty": 14
+        "difficulty": 14,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -497,7 +504,8 @@
         "difficulty": 16,
         "secondary_effects": [
           "vulnerable"
-        ]
+        ],
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -573,7 +581,8 @@
         "combat_category": "standalone_attack",
         "damage": "1d20+2",
         "damage_type": "magic",
-        "targets": "all_in_range"
+        "targets": "all_in_range",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -1146,7 +1155,8 @@
       "attack": {
         "trait": "Agility",
         "range": "Far",
-        "combat_category": "passive_triggered"
+        "combat_category": "passive_triggered",
+        "damage_scaling": "none"
       }
     },
     "enhancement_override": {
@@ -1403,7 +1413,8 @@
       "attack": {
         "trait": "Instinct",
         "range": "Close",
-        "combat_category": "standalone_attack"
+        "combat_category": "standalone_attack",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Instinct Roll",
@@ -1576,7 +1587,8 @@
         "trait": "Agility",
         "range": "Close",
         "combat_category": "standalone_attack",
-        "targets": "all_in_range"
+        "targets": "all_in_range",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Agility Roll",
@@ -1712,7 +1724,8 @@
         "damage": "d10+2",
         "damage_type": "magic",
         "targets": "single",
-        "difficulty": 12
+        "difficulty": 12,
+        "damage_scaling": "proficiency"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -1747,7 +1760,9 @@
         "combat_category": "standalone_attack",
         "damage": "d6",
         "damage_type": "magic",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "resource",
+        "resource_type": "hope"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -1782,7 +1797,8 @@
         "combat_category": "standalone_attack",
         "damage": "2d6",
         "damage_type": "magic",
-        "difficulty": 13
+        "difficulty": 13,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -1813,7 +1829,8 @@
         "range": "Close",
         "combat_category": "roll_only",
         "targets": "self",
-        "difficulty": 14
+        "difficulty": 14,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -1879,7 +1896,8 @@
         "damage": "2d12+4",
         "damage_type": "magic",
         "targets": "all_in_range",
-        "difficulty": 15
+        "difficulty": 15,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -1917,7 +1935,8 @@
         "damage": "4d20+5",
         "damage_type": "magic",
         "targets": "single",
-        "difficulty": 13
+        "difficulty": 13,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -1951,7 +1970,8 @@
         "range": "Close",
         "combat_category": "passive_triggered",
         "damage": "2d10+3",
-        "damage_type": "physical"
+        "damage_type": "physical",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -1985,7 +2005,8 @@
         "combat_category": "standalone_attack",
         "damage": "4d10+3",
         "damage_type": "magic",
-        "difficulty": 15
+        "difficulty": 15,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2072,7 +2093,8 @@
         "trait": "Spellcast",
         "range": "Close",
         "combat_category": "standalone_attack",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "spellcast"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2187,7 +2209,8 @@
         "trait": "Spellcast",
         "range": "Far",
         "combat_category": "standalone_attack",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2241,7 +2264,8 @@
         "difficulty": 15,
         "secondary_effects": [
           "vulnerable"
-        ]
+        ],
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2373,7 +2397,8 @@
         "trait": "Spellcast",
         "range": "Close",
         "combat_category": "standalone_attack",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2429,7 +2454,8 @@
         "trait": "Spellcast",
         "range": "Very Close",
         "combat_category": "standalone_attack",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2457,7 +2483,8 @@
         "trait": "Presence",
         "range": "Far",
         "combat_category": "standalone_attack",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Presence Roll",
@@ -2490,7 +2517,8 @@
         "trait": "Spellcast",
         "range": "Close",
         "combat_category": "standalone_attack",
-        "targets": "all_in_range"
+        "targets": "all_in_range",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2528,7 +2556,8 @@
         "range": "Melee",
         "combat_category": "roll_only",
         "targets": "self",
-        "difficulty": 10
+        "difficulty": 10,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2597,7 +2626,8 @@
         "trait": "Spellcast",
         "range": "Far",
         "combat_category": "standalone_attack",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2628,7 +2658,8 @@
         "trait": "Spellcast",
         "range": "Melee",
         "combat_category": "standalone_attack",
-        "difficulty": 13
+        "difficulty": 13,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2716,7 +2747,8 @@
         "trait": "Spellcast",
         "range": "Close",
         "combat_category": "passive_triggered",
-        "is_triggered_bonus": true
+        "is_triggered_bonus": true,
+        "damage_scaling": "none"
       }
     }
   },
@@ -2780,7 +2812,8 @@
         "trait": "Spellcast",
         "range": "Far",
         "combat_category": "standalone_attack",
-        "targets": "all_in_range"
+        "targets": "all_in_range",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2840,7 +2873,8 @@
       "attack": {
         "trait": "Spellcast",
         "range": "Close",
-        "combat_category": "standalone_attack"
+        "combat_category": "standalone_attack",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2922,7 +2956,8 @@
         "targets": "all_in_range",
         "secondary_effects": [
           "vulnerable"
-        ]
+        ],
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -2985,7 +3020,8 @@
         "combat_category": "standalone_attack",
         "damage": "d6",
         "damage_type": "magic",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "spellcast"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3015,7 +3051,8 @@
         "trait": "Spellcast",
         "range": "Very Close",
         "combat_category": "standalone_attack",
-        "targets": "all_in_range"
+        "targets": "all_in_range",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3116,7 +3153,8 @@
         "trait": "Spellcast",
         "range": "Very Close",
         "combat_category": "standalone_attack",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3149,7 +3187,8 @@
         "trait": "Spellcast",
         "range": "Close",
         "combat_category": "standalone_attack",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3199,7 +3238,8 @@
       "attack": {
         "trait": "Spellcast",
         "range": "Close",
-        "combat_category": "standalone_attack"
+        "combat_category": "standalone_attack",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3400,7 +3440,8 @@
         "trait": "Spellcast",
         "range": "Far",
         "combat_category": "roll_only",
-        "difficulty": 16
+        "difficulty": 16,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3513,7 +3554,8 @@
         "combat_category": "damage_bonus",
         "damage": "1d8+1",
         "damage_type": "physical",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3551,7 +3593,8 @@
         "combat_category": "standalone_attack",
         "damage": "2d8+3",
         "damage_type": "magic",
-        "targets": "all_in_range"
+        "targets": "all_in_range",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3590,7 +3633,8 @@
             "condition": "When you deal damage to an adversary within Melee range of your familiar, you",
             "label": "Extra"
           }
-        ]
+        ],
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3623,7 +3667,8 @@
         "combat_category": "damage_bonus",
         "damage": "6d4",
         "damage_type": "magic",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3657,7 +3702,8 @@
         "range": "Close",
         "combat_category": "standalone_attack",
         "damage": "d8",
-        "damage_type": "physical"
+        "damage_type": "physical",
+        "damage_scaling": "proficiency"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3695,7 +3741,8 @@
         "damage": "3d6+2",
         "damage_type": "physical",
         "targets": "all_in_range",
-        "difficulty": 13
+        "difficulty": 13,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3786,7 +3833,8 @@
         "trait": "Spellcast",
         "range": "Close",
         "combat_category": "roll_only",
-        "difficulty": 13
+        "difficulty": 13,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3941,7 +3989,8 @@
         "trait": "Spellcast",
         "range": "Far",
         "combat_category": "roll_only",
-        "difficulty": 13
+        "difficulty": 13,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -4137,7 +4186,8 @@
         "targets": "all_in_range",
         "secondary_effects": [
           "vulnerable"
-        ]
+        ],
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -4176,7 +4226,8 @@
         "targets": "single",
         "secondary_effects": [
           "vulnerable"
-        ]
+        ],
+        "damage_scaling": "proficiency"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -4570,7 +4621,8 @@
         "damage": "3d20+3",
         "damage_type": "magic",
         "targets": "all_in_range",
-        "difficulty": 14
+        "difficulty": 14,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -4740,7 +4792,8 @@
         "targets": "single",
         "secondary_effects": [
           "vulnerable"
-        ]
+        ],
+        "damage_scaling": "none"
       }
     }
   },
@@ -4883,7 +4936,8 @@
         "trait": "Presence",
         "range": "Close",
         "combat_category": "standalone_attack",
-        "targets": "single"
+        "targets": "single",
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Presence Roll",
@@ -5087,7 +5141,8 @@
         "combat_category": "standalone_attack",
         "damage": "4d10+8",
         "targets": "all_in_range",
-        "difficulty": 17
+        "difficulty": 17,
+        "damage_scaling": "none"
       },
       "roll": {
         "type": "Strength Roll",

@@ -228,7 +228,8 @@
           "attack": {
             "trait": "Spellcast",
             "range": "Close",
-            "combat_category": "passive_triggered"
+            "combat_category": "passive_triggered",
+            "damage_scaling": "none"
           }
         }
       },
@@ -489,7 +490,8 @@
             "trait": "Spellcast",
             "range": "Close",
             "combat_category": "passive_triggered",
-            "damage_type": "magic"
+            "damage_type": "magic",
+            "damage_scaling": "none"
           }
         }
       }
@@ -1175,7 +1177,8 @@
             "range": "Melee",
             "combat_category": "passive_triggered",
             "damage": "1d10",
-            "damage_type": "magic"
+            "damage_type": "magic",
+            "damage_scaling": "none"
           },
           "duration": "rest"
         }
@@ -1465,7 +1468,8 @@
             "trait": "Spellcast",
             "range": "Close",
             "combat_category": "passive_triggered",
-            "is_triggered_bonus": true
+            "is_triggered_bonus": true,
+            "damage_scaling": "none"
           }
         }
       }

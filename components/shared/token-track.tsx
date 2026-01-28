@@ -76,9 +76,8 @@ export default function CardTokenTrack({
 
       if (typeof finalStat === 'number') {
         // Calculate total stat: Base + System Mods + User Mods
-        const systemMods = getStatModifiers(character, lowerSource, cardStates);
-        const userMods = character.modifiers?.[lowerSource] || [];
-        const totalMods = [...systemMods, ...userMods].reduce((acc, mod) => acc + mod.value, 0);
+        const allMods = getStatModifiers(character, lowerSource, cardStates);
+        const totalMods = allMods.reduce((acc, mod) => acc + mod.value, 0);
 
         // Standard Daggerheart rule: Minimum 1 token for stat-based tracks (e.g. Flight)
         // unless trait specifically resolves to <= 0 and card doesn't say "minimum 1"

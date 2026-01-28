@@ -1,0 +1,269 @@
+/**
+ * MECHANICS TRAY
+ * ----------------------------------------------------------------------------
+ * Unified renderer for card mechanics sections shared between PlaymatCard and
+ * AttackCard (combat view). Renders token tracks, frequency checkboxes,
+ * modifier activation rows, duration toggles, cost buttons, and roll/damage
+ * buttons in a consistent layout.
+ *
+ * Supports two cost modes:
+ * - 'uncontrolled': Costs are independent buttons (Playmat style)
+ * - 'controlled': Costs gate roll buttons via parent state (Combat style)
+ */
+
+'use client';
+
+import React from 'react';
+import CardTokenTrack from '@/components/shared/token-track';
+import FrequencyCheckbox from '@/components/shared/frequency-checkbox';
+import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
+import { DomainCostsRow } from '@/components/shared/ability-costs-row';
+import ModifierActivationRow from '@/components/shared/modifier-activation-row';
+import { RollButton } from '@/components/shared/roll-button';
+import { AppIcons } from '@/lib/icon-utils';
+import { parseDamageRoll } from '@/lib/utils';
+import { getModifiers } from '@/lib/enhancement-utils';
+import type { EnhancedAbilityCard, EnhancementBlock, CardCosts } from '@/types/cards';
+import { useCharacterStore } from '@/store/character-store';
+
+/** Helper to generate condition text from a modifier condition */
+function getConditionText(condition?: { type: string; domain?: string; minCount?: number }): string | undefined {
+  if (!condition) return undefined;
+  switch (condition.type) {
+    case 'when_active':
+      return 'Activate to apply this bonus';
+    case 'when_armored':
+      return 'While wearing armor';
+    case 'when_unarmored':
+      return 'While not wearing armor';
+    case 'loadout_domain_count':
+      return `With ${condition.minCount}+ ${condition.domain} cards`;
+    case 'always':
+      return 'Always active';
+    default:
+      return undefined;
+  }
+}
+
+export interface MechanicsTrayProps {
+  /** The card name used for state keys (token track, frequency, costs) */
+  cardName: string;
+  /** The enhancement block for this card */
+  enhancement: EnhancementBlock;
+  /** The full enhanced ability card data (needed for modifier extraction) */
+  enhancedData?: EnhancedAbilityCard;
+
+  // --- Roll/Damage values (from useCardMechanics) ---
+  /** Whether to show the attack/roll button */
+  showAttackButton?: boolean;
+  /** Whether there is any attack or roll on this card */
+  hasAttackOrRoll?: boolean;
+  /** Roll bonus value */
+  rollBonus?: number;
+  /** Roll label (e.g., "Spellcast", "Agility") */
+  rollLabel?: string;
+  /** Scaled damage string */
+  finalDamage?: string;
+  /** Callback when roll button is clicked */
+  onRoll?: () => void;
+  /** Callback when damage button is clicked */
+  onDamageRoll?: () => void;
+
+  // --- Additional damage ---
+  additionalDamage?: Array<{ damage: string; label?: string }>;
+  onAdditionalDamageRoll?: (damage: string, label: string) => void;
+
+  // --- Cost mode ---
+  /** 'uncontrolled': costs are independent buttons. 'controlled': costs gate rolls via isCostPaid. */
+  costMode?: 'uncontrolled' | 'controlled';
+  /** For controlled mode: whether cost has been paid */
+  isCostPaid?: boolean;
+  /** For controlled mode: callback when cost is activated */
+  onCostActivate?: () => void;
+  /** For controlled mode: callback when cost is deactivated */
+  onCostDeactivate?: () => void;
+  /** For controlled mode: whether cost buttons are disabled */
+  costDisabled?: boolean;
+
+  /** Additional CSS class */
+  className?: string;
+}
+
+export default function MechanicsTray({
+  cardName,
+  enhancement,
+  enhancedData,
+  showAttackButton = false,
+  hasAttackOrRoll = false,
+  rollBonus = 0,
+  rollLabel = '',
+  finalDamage,
+  onRoll,
+  onDamageRoll,
+  additionalDamage,
+  onAdditionalDamageRoll,
+  costMode = 'uncontrolled',
+  isCostPaid = false,
+  onCostActivate,
+  onCostDeactivate,
+  costDisabled = false,
+  className,
+}: MechanicsTrayProps) {
+  const { prepareRoll } = useCharacterStore();
+
+  const costs = enhancement.costs;
+  const showTokenTrack = enhancement.tokens?.has_tokens;
+  const showFrequency = enhancement.frequency && enhancement.frequency !== 'at_will';
+  const showDuration = !!enhancement.duration;
+
+  // Extract when_active modifiers
+  const modifiers = enhancedData ? getModifiers(enhancedData) : [];
+  const whenActiveModifiers = modifiers.filter(mod => mod.condition?.type === 'when_active');
+  const hasWhenActiveModifiers = whenActiveModifiers.length > 0;
+
+  // Determine if anything should render
+  const hasCosts = !!(costs?.stress || costs?.hope);
+  const showMechanics = showTokenTrack || showFrequency || hasAttackOrRoll || showDuration || hasWhenActiveModifiers || hasCosts;
+
+  if (!showMechanics) return null;
+
+  // For controlled mode, costs gate rolls
+  const needsActivation = costMode === 'controlled' && hasCosts;
+  const canRoll = !needsActivation || isCostPaid;
+
+  // Default roll handler
+  const handleRoll = onRoll || (rollLabel ? () => {
+    prepareRoll(`${cardName} ${rollLabel}`, rollBonus);
+  } : undefined);
+
+  // Default damage handler
+  const handleDamageRoll = onDamageRoll || (finalDamage ? () => {
+    const { dice, modifier } = parseDamageRoll(finalDamage);
+    prepareRoll(`${cardName} Damage`, modifier, dice);
+  } : undefined);
+
+  return (
+    <div className={className || "bg-black/40 border border-white/10 rounded-lg p-2 space-y-2 w-full"}>
+      {/* Token Track */}
+      {showTokenTrack && (
+        <CardTokenTrack
+          cardName={cardName}
+          maxTokens={enhancement.tokens?.max_tokens ?? null}
+          tokenSource={enhancement.tokens?.token_source}
+        />
+      )}
+
+      {/* Frequency */}
+      {showFrequency && enhancement.frequency && (
+        <div className="flex justify-center">
+          <FrequencyCheckbox
+            cardName={cardName}
+            frequency={enhancement.frequency}
+            className="bg-white/5 px-3 py-1.5 w-full justify-center"
+          />
+        </div>
+      )}
+
+      {/* Modifier Activation Rows */}
+      {hasWhenActiveModifiers && (
+        <div className="space-y-1.5">
+          <h4 className="text-[10px] font-bold uppercase text-purple-400 tracking-wider text-center">
+            Modifiers
+          </h4>
+          {whenActiveModifiers.map((mod, index) => {
+            const modifierKey = `${mod.stat}-${index}`;
+            return (
+              <ModifierActivationRow
+                key={`${cardName}-${mod.stat}-${index}`}
+                cardName={cardName}
+                modifier={mod}
+                modifierKey={modifierKey}
+                conditionText={getConditionText(mod.condition)}
+                className="text-sm"
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Duration toggle - only for cards WITHOUT when_active modifiers */}
+      {showDuration && enhancement.duration && !hasWhenActiveModifiers && (
+        <div className="flex justify-center">
+          <DomainAbilityButton
+            cardName={cardName}
+            costType="duration"
+            label={enhancement.duration === 'scene' ? 'Active (Scene)' : 'Active'}
+            className="w-full justify-center"
+          />
+        </div>
+      )}
+
+      {/* Costs - uncontrolled mode (Playmat style) */}
+      {costMode === 'uncontrolled' && costs && (
+        <DomainCostsRow
+          cardName={cardName}
+          displayName={cardName}
+          costs={costs}
+          className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5"
+        />
+      )}
+
+      {/* Costs - controlled mode (Combat style: costs gate rolls) */}
+      {costMode === 'controlled' && needsActivation && (
+        <DomainCostsRow
+          cardName={cardName}
+          displayName={cardName}
+          costs={costs as CardCosts}
+          isActiveOverride={isCostPaid}
+          onActivate={onCostActivate}
+          onDeactivate={onCostDeactivate}
+          disabled={costDisabled}
+          className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5"
+        />
+      )}
+
+      {/* Roll & Damage Buttons */}
+      {hasAttackOrRoll && (
+        <div className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5">
+          {showAttackButton && handleRoll && (
+            <RollButton
+              label={rollLabel || 'Attack'}
+              onClick={handleRoll}
+              bonus={rollBonus}
+              disabled={!canRoll}
+              variant="primary"
+            />
+          )}
+
+          {finalDamage && handleDamageRoll && (
+            <RollButton
+              label={`Damage (${finalDamage})`}
+              onClick={handleDamageRoll}
+              disabled={!canRoll}
+              variant="damage"
+              icon={AppIcons.combat.damage}
+            />
+          )}
+
+          {additionalDamage?.map((extra, idx) => (
+            <RollButton
+              key={idx}
+              label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
+              onClick={() => {
+                if (onAdditionalDamageRoll) {
+                  onAdditionalDamageRoll(extra.damage, extra.label || 'Extra');
+                } else {
+                  const { dice, modifier } = parseDamageRoll(extra.damage);
+                  prepareRoll(`${cardName} ${extra.label || 'Extra'}`, modifier, dice);
+                }
+              }}
+              disabled={!canRoll}
+              variant="damage"
+              className="opacity-90"
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
