@@ -11,20 +11,23 @@
  * - Full-width tray positioned above the mini-vitals bar
  * - Icon track visualization matching VitalCard semantics
  * - Clear/Mark (or Spend/Gain for Hope) buttons
- * - Backdrop for dismissal, Escape key support
- * - Respects prefers-reduced-motion
+ * - Spring animation matching modifier-sheet behavior
+ * - Escape key support for dismissal
  *
  * SRD Reference: content/public/srd/markdown/contents/Tracking_Resources.md
  * "Hit Points and Armor are marked (reduced), Stress fills up (accumulated)."
  */
 
 import React, { useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { AppIcons } from '@/lib/icon-utils';
 
 export type VitalTrackType = 'mark-bad' | 'fill-up-bad' | 'fill-up-good';
 
 export interface MiniVitalTrayProps {
+  /** Whether the tray is open */
+  isOpen: boolean;
   /** Display label for the vital (e.g., "Hit Points") */
   label: string;
   /** Current value of the vital */
@@ -49,6 +52,7 @@ export interface MiniVitalTrayProps {
  * MiniVitalTray renders a full-width expandable tray with icon track and controls.
  */
 export function MiniVitalTray({
+  isOpen,
   label,
   current,
   max,
@@ -63,6 +67,7 @@ export function MiniVitalTray({
 
   // Close on Escape key
   useEffect(() => {
+    if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
@@ -70,12 +75,14 @@ export function MiniVitalTray({
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [isOpen, onClose]);
 
   // Focus management - focus tray when opened
   useEffect(() => {
-    trayRef.current?.focus();
-  }, []);
+    if (isOpen) {
+      trayRef.current?.focus();
+    }
+  }, [isOpen]);
 
   // Render the icon track - matches VitalCard logic
   const renderTrack = useCallback(() => {
@@ -140,26 +147,21 @@ export function MiniVitalTray({
   };
 
   return (
-    <>
-      {/* Backdrop for dismissal */}
-      <div
-        className="fixed inset-0 z-40 bg-black/40"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Tray */}
-      <div
-        ref={trayRef}
-        role="dialog"
-        aria-label={`${label} controls`}
-        tabIndex={-1}
-        className={clsx(
-          'fixed left-0 right-0 z-50 bg-dagger-panel border-t border-white/10',
-          'motion-safe:animate-slide-up motion-reduce:animate-none'
-        )}
-        style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom) + 3rem)' }}
-      >
+    <AnimatePresence>
+      {isOpen && (
+        /* Tray - no backdrop, just the rising tray */
+        <motion.div
+          ref={trayRef}
+          role="dialog"
+          aria-label={`${label} controls`}
+          tabIndex={-1}
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="fixed left-0 right-0 z-50 bg-dagger-panel border-t border-white/10 rounded-t-xl shadow-lg"
+          style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom) + 3rem)' }}
+        >
         {/* Close button and title */}
         <div className="flex items-center justify-between px-3 pt-2 pb-1">
           <button
@@ -204,8 +206,9 @@ export function MiniVitalTray({
             {rightButtonLabel}
           </button>
         </div>
-      </div>
-    </>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

@@ -57,23 +57,23 @@ export function MiniVitalsPanel({
     }, []);
 
     const selectedVital = selectedVitalIndex !== null ? vitals[selectedVitalIndex] : null;
+    const isValidTrayVital = selectedVital && selectedVital.vitalType && selectedVital.max && selectedVital.onIncrement && selectedVital.onDecrement;
 
     return (
         <>
-            {/* Tray (shown when a vital with track is selected) */}
-            {selectedVital && selectedVital.vitalType && selectedVital.max && selectedVital.onIncrement && selectedVital.onDecrement && (
-                <MiniVitalTray
-                    label={selectedVital.label}
-                    current={selectedVital.current}
-                    max={selectedVital.max}
-                    vitalType={selectedVital.vitalType}
-                    icon={selectedVital.icon}
-                    color={selectedVital.color}
-                    onIncrement={selectedVital.onIncrement}
-                    onDecrement={selectedVital.onDecrement}
-                    onClose={handleCloseTray}
-                />
-            )}
+            {/* Tray (animated open/close via isOpen prop) */}
+            <MiniVitalTray
+                isOpen={!!isValidTrayVital}
+                label={selectedVital?.label ?? ''}
+                current={selectedVital?.current ?? 0}
+                max={selectedVital?.max ?? 0}
+                vitalType={selectedVital?.vitalType ?? 'mark-bad'}
+                icon={selectedVital?.icon ?? (() => null)}
+                color={selectedVital?.color ?? ''}
+                onIncrement={selectedVital?.onIncrement ?? (() => {})}
+                onDecrement={selectedVital?.onDecrement ?? (() => {})}
+                onClose={handleCloseTray}
+            />
 
             {/* Mini vitals bar */}
             <div
