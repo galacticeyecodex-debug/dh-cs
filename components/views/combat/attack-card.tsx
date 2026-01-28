@@ -300,7 +300,7 @@ const AttackCard = React.memo(function AttackCard({
 
             {/* Costs Bar */}
             {needsActivation && (
-                <div className="px-4 py-2 border-t border-white/5 bg-black/20 flex flex-wrap gap-2 items-center justify-between">
+                <div className="px-4 py-2 border-t border-white/5 bg-black/20 flex flex-wrap gap-2 items-center justify-center">
                     <DomainCostsRow
                         cardName={name}
                         displayName={name}
@@ -314,65 +314,67 @@ const AttackCard = React.memo(function AttackCard({
                         }}
                         onDeactivate={() => setIsCostPaid(false)}
                         disabled={isCostPaid || isUsed}
-                        className="flex flex-wrap gap-2"
+                        className="flex flex-wrap gap-2 justify-center"
                     />
                 </div>
             )}
 
-            {/* Action Bar */}
-            <div className="bg-black/40 p-2 flex flex-wrap gap-2 items-center">
-                {/* Custom Actions (Smart Buttons) */}
-                {customActions}
+            {/* Action Bar - only show if there are actions to perform */}
+            {(customActions || onAttackRoll || (hasDamage && onDamageRoll) || (additionalDamage && additionalDamage.length > 0) || frequency) && (
+                <div className="bg-black/40 p-2 flex flex-wrap gap-2 items-center">
+                    {/* Custom Actions (Smart Buttons) */}
+                    {customActions}
 
-                {/* Attack Button */}
-                {onAttackRoll && (
-                    <RollButton
-                        label={finalRollLabel}
-                        onClick={onAttackRoll}
-                        bonus={totalAttackBonus}
-                        disabled={isUsed || !canRoll}
-                        className={clsx(
-                            'flex-1 py-2',
-                            attackModifier !== 0 && 'text-dagger-gold',
-                            !isCostPaid && needsActivation && 'border border-dashed border-white/20'
-                        )}
-                    />
-                )}
+                    {/* Attack Button */}
+                    {onAttackRoll && (
+                        <RollButton
+                            label={finalRollLabel}
+                            onClick={onAttackRoll}
+                            bonus={totalAttackBonus}
+                            disabled={isUsed || !canRoll}
+                            className={clsx(
+                                'flex-1 py-2',
+                                attackModifier !== 0 && 'text-dagger-gold',
+                                !isCostPaid && needsActivation && 'border border-dashed border-white/20'
+                            )}
+                        />
+                    )}
 
-                {/* Damage Button - only show if we have damage */}
-                {hasDamage && onDamageRoll && (
-                    <RollButton
-                        label={`Damage ${calculatedDamage}`}
-                        onClick={onDamageRoll}
-                        bonus={undefined} // Integrated into the label string
-                        variant="damage"
-                        disabled={isUsed || !canRoll}
-                        className={clsx(
-                            'flex-1 py-2',
-                            damageModifier !== 0 && 'text-dagger-gold',
-                            !isCostPaid && needsActivation && 'border border-dashed border-white/20'
-                        )}
-                    />
-                )}
+                    {/* Damage Button - only show if we have damage */}
+                    {hasDamage && onDamageRoll && (
+                        <RollButton
+                            label={`Damage ${calculatedDamage}`}
+                            onClick={onDamageRoll}
+                            bonus={undefined} // Integrated into the label string
+                            variant="damage"
+                            disabled={isUsed || !canRoll}
+                            className={clsx(
+                                'flex-1 py-2',
+                                damageModifier !== 0 && 'text-dagger-gold',
+                                !isCostPaid && needsActivation && 'border border-dashed border-white/20'
+                            )}
+                        />
+                    )}
 
-                {/* Additional Damage Buttons */}
-                {additionalDamage?.map((extra, idx) => (
-                    <RollButton
-                        key={idx}
-                        label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra');
-                        }}
-                        variant="damage"
-                        disabled={isUsed || !canRoll}
-                        className="opacity-90 py-2 px-3 text-xs"
-                    />
-                ))}
+                    {/* Additional Damage Buttons */}
+                    {additionalDamage?.map((extra, idx) => (
+                        <RollButton
+                            key={idx}
+                            label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra');
+                            }}
+                            variant="damage"
+                            disabled={isUsed || !canRoll}
+                            className="opacity-90 py-2 px-3 text-xs"
+                        />
+                    ))}
 
-                {/* Frequency Checkbox */}
-                {frequency}
-            </div>
+                    {/* Frequency Checkbox */}
+                    {frequency}
+                </div>
+            )}
         </div>
     );
 });
