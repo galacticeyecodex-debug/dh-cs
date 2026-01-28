@@ -56,7 +56,7 @@ describe('Combat Spell Parser', () => {
           range: 'Melee',
           damage: '1d20+3',
           damageType: 'magic',
-          usesProficiency: false,
+          damageScaling: 'none', // Fixed notation (1d20+3) never scales
           recallCost: 1
         });
         expect(ability?.effects).toContain('On Fire');
@@ -78,7 +78,7 @@ describe('Combat Spell Parser', () => {
           range: 'Far',
           damage: 'd8+2',
           damageType: 'magic',
-          usesProficiency: true
+          damageScaling: 'proficiency' // "using your Proficiency" with variable notation
         });
         expect(ability?.costs).toEqual({ hope: 1 });
         expect(ability?.effects).toContain('Vulnerable');
@@ -459,7 +459,7 @@ describe('Missing Pattern Fixes (Issue #40)', () => {
     expect(ability).not.toBeNull();
     expect(ability?.damage).toBe('d8');
     expect(ability?.damageType).toBe('physical');
-    expect(ability?.usesProficiency).toBe(true);
+    expect(ability?.damageScaling).toBe('proficiency');
   });
 
   it('should parse damage with single die (d6, d10, d12)', () => {
@@ -473,26 +473,74 @@ describe('Missing Pattern Fixes (Issue #40)', () => {
     expect(parseCombatAbility(card3)?.damage).toBe('d12');
   });
 
-  it('should detect "using your Proficiency Die"', () => {
+  it('should NOT scale fixed dice notation even with "using your Proficiency Die"', () => {
+    // CRITICAL: "12d4" has explicit dice count → NO proficiency scaling
+    // "using your Proficiency" with fixed notation means something else (not auto-scaling)
     const card = createMockCard(
-      'Telekinesis',
+      'Corrosive Projectile',
       'Deal 12d4 physical damage to the target using your Proficiency Die.'
     );
 
     const ability = parseCombatAbility(card);
     expect(ability).not.toBeNull();
-    expect(ability?.usesProficiency).toBe(true);
+    expect(ability?.damageScaling).toBe('none'); // Fixed notation never scales
     expect(ability?.damage).toBe('12d4');
   });
 
-  it('should detect both "Proficiency" and "Proficiency Die"', () => {
+  it('should detect proficiency scaling with VARIABLE notation', () => {
+    // Variable notation (no leading number) + "using your Proficiency" → scales
+    const card1 = createMockCard('Spell1', 'Deal d8 damage using your Proficiency.');
+    expect(parseCombatAbility(card1)?.damageScaling).toBe('proficiency');
+
+    const card2 = createMockCard('Spell2', 'Deal d8 damage using your Proficiency Die.');
+    expect(parseCombatAbility(card2)?.damageScaling).toBe('proficiency');
+
+    const card3 = createMockCard('Spell3', 'Deal d8+2 damage using Proficiency Die.');
+    expect(parseCombatAbility(card3)?.damageScaling).toBe('proficiency');
+  });
+
+  it('should NOT scale fixed notation even with proficiency text', () => {
+    // Fixed notation (e.g., "3d8") NEVER scales, even with proficiency text
+    // This matches SRD patterns like "4d20+5 magic damage using your Proficiency"
     const card1 = createMockCard('Spell1', 'Deal 3d8 damage using your Proficiency.');
-    expect(parseCombatAbility(card1)?.usesProficiency).toBe(true);
+    expect(parseCombatAbility(card1)?.damageScaling).toBe('none');
 
-    const card2 = createMockCard('Spell2', 'Deal 3d8 damage using your Proficiency Die.');
-    expect(parseCombatAbility(card2)?.usesProficiency).toBe(true);
+    const card2 = createMockCard('Spell2', 'Deal 1d8+2 damage using your Proficiency Die.');
+    expect(parseCombatAbility(card2)?.damageScaling).toBe('none');
 
-    const card3 = createMockCard('Spell3', 'Deal 3d8 damage using Proficiency Die.');
-    expect(parseCombatAbility(card3)?.usesProficiency).toBe(true);
+    const card3 = createMockCard('Spell3', 'Deal 4d20+5 magic damage using your Proficiency.');
+    expect(parseCombatAbility(card3)?.damageScaling).toBe('none');
+  });
+
+  it('should detect spellcast scaling', () => {
+    // Matches pattern: "Roll a number of d10s equal to your Spellcast trait"
+    const card = createMockCard(
+      'Midnight Spirit',
+      'Make a Spellcast Roll against a target. On a success, roll a number of d10s equal to your Spellcast trait. Deal d10 magic damage.'
+    );
+    const ability = parseCombatAbility(card);
+    expect(ability?.damageScaling).toBe('spellcast');
+  });
+
+  it('should detect resource-based scaling (tokens)', () => {
+    // Matches pattern: "roll a number of d10s equal to the tokens"
+    const card = createMockCard(
+      'Unleash Chaos',
+      'Make a Spellcast Roll. On a success, roll a number of d10s equal to the tokens you spent and deal d10 magic damage.'
+    );
+    const ability = parseCombatAbility(card);
+    expect(ability?.damageScaling).toBe('resource');
+    expect(ability?.resourceType).toBe('tokens');
+  });
+
+  it('should detect resource-based scaling (hope)', () => {
+    // Matches pattern: "Roll a number of d6s equal to the Hope spent"
+    const card = createMockCard(
+      'Arcane Barrage',
+      'Spend any number of Hope. Roll a number of d6s equal to the Hope spent and deal d6 magic damage.'
+    );
+    const ability = parseCombatAbility(card);
+    expect(ability?.damageScaling).toBe('resource');
+    expect(ability?.resourceType).toBe('hope');
   });
 });

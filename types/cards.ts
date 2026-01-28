@@ -41,6 +41,17 @@ export type Range = 'Melee' | 'Very Close' | 'Close' | 'Far' | 'Very Far';
 export type TokenReplenish = 'rest' | 'long_rest' | 'session_start' | 'session_end' | 'manual';
 
 /**
+ * Damage scaling modes for Daggerheart
+ *
+ * Per SRD "Attacking.md":
+ * - 'proficiency': Dice count = Proficiency (weapons, "using your Proficiency" with variable notation)
+ * - 'spellcast': Dice count = Spellcast trait ("equal to your Spellcast trait")
+ * - 'resource': Dice count = resource spent (tokens, Hope, Stress)
+ * - 'none': Fixed dice count (e.g., "2d8+4" never changes)
+ */
+export type DamageScaling = 'proficiency' | 'spellcast' | 'resource' | 'none';
+
+/**
  * Structured costs for using an ability
  */
 export interface CardCosts {
@@ -60,6 +71,8 @@ export interface CardAttack {
   targets?: TargetType;
   damage?: string;
   damage_type?: DamageType;
+  damage_scaling?: DamageScaling; // How dice count scales (proficiency, spellcast, resource, or none)
+  resource_type?: 'hope' | 'stress' | 'tokens'; // For 'resource' scaling, what resource determines dice count
   difficulty?: number; // Fixed DC if applicable
   secondary_effects?: string[];
   combat_category?: CombatCategory; // Determines which buttons to show
@@ -161,7 +174,6 @@ export interface EnhancementBlock {
   tokens?: CardTokens;
   attack?: CardAttack | null;
   roll?: CardRoll | null;
-  uses_proficiency?: boolean;
   effects?: string[];
   modifiers?: CardModifier[];
   threshold_modifiers?: ThresholdModifiers;

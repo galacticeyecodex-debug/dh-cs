@@ -13,7 +13,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { calculateWeaponDamage } from '@/lib/utils';
+import { calculateWeaponDamage, getScalingValue } from '@/lib/utils';
 import { calculateAttackBonus, calculateDamageBonus } from '@/lib/roll-utils';
 
 describe('calculateWeaponDamage', () => {
@@ -35,15 +35,61 @@ describe('calculateWeaponDamage', () => {
   });
 
   it('handles mixed dice types', () => {
-    // This is a rare case in Daggerheart but good for robustness
-    // "d8+d6" -> "2d8+2d6"
     expect(calculateWeaponDamage('d8+d6', 2)).toBe('2d8+2d6');
   });
 
   it('handles empty or invalid input', () => {
     expect(calculateWeaponDamage('', 2)).toBe('');
-    // If no dice found, returns original string
     expect(calculateWeaponDamage('5', 2)).toBe('5');
+  });
+
+  describe('scalingValue parameter', () => {
+    it('scales damage when scalingValue is a number', () => {
+      expect(calculateWeaponDamage('d8', 3, 0)).toBe('3d8');
+      expect(calculateWeaponDamage('1d10', 2, 0)).toBe('2d10');
+      expect(calculateWeaponDamage('2d6+3', 3, 0)).toBe('6d6+3');
+    });
+
+    it('does NOT scale damage when scalingValue is false', () => {
+      expect(calculateWeaponDamage('d8', false, 0)).toBe('1d8');
+      expect(calculateWeaponDamage('1d10', false, 0)).toBe('1d10');
+      expect(calculateWeaponDamage('2d6+3', false, 0)).toBe('2d6+3');
+    });
+
+    it('scales by spellcast value (e.g., 4)', () => {
+      expect(calculateWeaponDamage('d10', 4)).toBe('4d10');
+      expect(calculateWeaponDamage('d6+2', 5)).toBe('5d6+2');
+    });
+
+    it('preserves modifiers when scalingValue is false', () => {
+      expect(calculateWeaponDamage('d8+2', false, 0)).toBe('1d8+2');
+      expect(calculateWeaponDamage('1d10-1', false, 0)).toBe('1d10-1');
+    });
+
+    it('applies bonus even when scalingValue is false', () => {
+      expect(calculateWeaponDamage('d8', false, 2)).toBe('1d8+2');
+      expect(calculateWeaponDamage('d10+1', false, 3)).toBe('1d10+4');
+    });
+  });
+});
+
+describe('getScalingValue', () => {
+  it('returns proficiency for proficiency scaling', () => {
+    expect(getScalingValue('proficiency', 3, 4)).toBe(3);
+  });
+
+  it('returns spellcast value for spellcast scaling', () => {
+    expect(getScalingValue('spellcast', 3, 4)).toBe(4);
+  });
+
+  it('clamps spellcast to minimum of 1', () => {
+    expect(getScalingValue('spellcast', 3, 0)).toBe(1);
+    expect(getScalingValue('spellcast', 3, -1)).toBe(1);
+  });
+
+  it('returns false for no scaling', () => {
+    expect(getScalingValue('none', 3, 4)).toBe(false);
+    expect(getScalingValue(undefined, 3, 4)).toBe(false);
   });
 });
 
@@ -52,6 +98,46 @@ describe('calculateWeaponDamage', () => {
 // ============================================================================
 
 describe('calculateAttackBonus', () => {
+  // Helper character with a +1 attack modifier from equipped weapon
+  const characterWithAttackMod = {
+    character_inventory: [
+      {
+        id: 'weapon1',
+        name: 'Magic Sword',
+        location: 'equipped_primary',
+        library_item: {
+          data: {
+            modifiers: [
+              { id: 'mod1', type: 'combat', target: 'attack', value: 1, operator: 'add' },
+            ],
+          },
+        },
+      },
+    ],
+    modifiers: {},
+  };
+
+  describe('with rollContext', () => {
+    it('should apply attack modifiers to weapon rolls', () => {
+      expect(calculateAttackBonus(characterWithAttackMod, {}, [],
+        { rollType: 'weapon' })).toBe(1);
+    });
+
+    it('should apply attack modifiers to spellcast attacks', () => {
+      expect(calculateAttackBonus(characterWithAttackMod, {}, [],
+        { rollType: 'spellcast', actionType: 'attack' })).toBe(1);
+    });
+
+    it('should NOT apply attack modifiers to non-attack spellcast', () => {
+      expect(calculateAttackBonus(characterWithAttackMod, {}, [],
+        { rollType: 'spellcast' })).toBe(0);
+    });
+
+    it('should return full bonus when no rollContext (backward compat)', () => {
+      expect(calculateAttackBonus(characterWithAttackMod)).toBe(1);
+    });
+  });
+
   it('should return 0 for null character', () => {
     expect(calculateAttackBonus(null)).toBe(0);
   });

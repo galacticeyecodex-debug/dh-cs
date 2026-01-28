@@ -26,10 +26,10 @@ import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
 import { DomainCostsRow } from '@/components/shared/ability-costs-row';
 import FrequencyCheckbox from '@/components/shared/frequency-checkbox';
 import CardTokenTrack from '@/components/shared/token-track';
-import ModifierActivationRow from '@/components/views/playmat/modifier-activation-row';
+import ModifierActivationRow from '@/components/shared/modifier-activation-row';
 import { useCharacterStore } from '@/store/character-store';
-import { parseDamageRoll, calculateWeaponDamage } from '@/lib/utils';
-import { getStatModifiers } from '@/lib/modifier-aggregator';
+import { parseDamageRoll } from '@/lib/utils';
+import { useCardMechanics } from '@/hooks/useCardMechanics';
 import { getActionTypeLabel, getFrequencyLabel } from '@/lib/card-parser';
 import { getEnhancement, getModifiers } from '@/lib/enhancement-utils';
 import type { EnhancedAbilityCard } from '@/types/cards';
@@ -45,11 +45,13 @@ export default function CardEnhancementPanel({
 }: CardEnhancementPanelProps) {
   const { character, prepareRoll } = useCharacterStore();
 
-  if (!character) return null;
-
   // Get the effective enhancement (override if present, else standard)
   const enhancement = getEnhancement(card);
-  // Fallback if enhancement is missing (shouldn't happen for valid cards)
+
+  // Use shared hook for calculations - must be called before any early returns
+  const mechanics = useCardMechanics(enhancement);
+
+  if (!character) return null;
   if (!enhancement) return null;
 
   // Check if there's anything to show
@@ -59,73 +61,12 @@ export default function CardEnhancementPanel({
   const hasActionInfo = !!enhancement.action_type;
   const hasRange = enhancement.attack?.range;
   const hasTargets = enhancement.attack?.targets;
-  const hasRoll = enhancement.roll || enhancement.attack;
-  const hasDamage = enhancement.attack?.damage;
   const hasDuration = !!enhancement.duration;
 
   // If nothing to enhance, don't render
-  if (!hasCosts && !hasTokens && !hasFrequency && !hasActionInfo && !hasRange && !hasRoll && !hasDuration) {
+  if (!hasCosts && !hasTokens && !hasFrequency && !hasActionInfo && !hasRange && !mechanics.hasAttackOrRoll && !hasDuration) {
     return null;
   }
-
-  // Get total proficiency
-  const baseProficiency = character.proficiency || 1;
-  const systemProfMods = getStatModifiers(character, 'proficiency');
-  const userProfMods = character.modifiers?.['proficiency'] || [];
-  const totalProficiency = Math.max(1, baseProficiency + [...systemProfMods, ...userProfMods].reduce((acc, mod) => acc + mod.value, 0));
-
-  // Calculate spellcast modifier
-  const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
-  const rawTraitValue = spellcastTraitName
-    ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0)
-    : (character.spellcast || 0);
-
-  let traitModSum = 0;
-  if (spellcastTraitName) {
-    const tKey = spellcastTraitName.toLowerCase();
-    const tSystem = getStatModifiers(character, tKey);
-    const tUser = character.modifiers?.[tKey] || [];
-    traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
-  }
-
-  const spellcastBase = rawTraitValue + traitModSum;
-  const spellcastMods = getStatModifiers(character, 'spellcast');
-  const userSpellcastMods = character.modifiers?.['spellcast'] || [];
-  const totalSpellcast = spellcastBase + [...spellcastMods, ...userSpellcastMods].reduce((acc, mod) => acc + mod.value, 0);
-
-  // Determine roll trait and bonus
-  let rollBonus = 0;
-  let rollLabel = '';
-
-  if (enhancement.roll?.trait) {
-    const traitKey = enhancement.roll.trait.toLowerCase();
-    if (traitKey === 'spellcast') {
-      rollBonus = totalSpellcast;
-      rollLabel = 'Spellcast';
-    } else {
-      const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-      const systemTraitMods = getStatModifiers(character, traitKey);
-      const userTraitMods = character.modifiers?.[traitKey] || [];
-      rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
-      rollLabel = enhancement.roll.trait;
-    }
-  } else if (enhancement.attack?.trait) {
-    const traitKey = enhancement.attack.trait.toLowerCase();
-    if (traitKey === 'spellcast') {
-      rollBonus = totalSpellcast;
-      rollLabel = 'Spellcast';
-    } else {
-      const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-      const systemTraitMods = getStatModifiers(character, traitKey);
-      const userTraitMods = character.modifiers?.[traitKey] || [];
-      rollBonus = baseTraitValue + [...systemTraitMods, ...userTraitMods].reduce((acc, mod) => acc + mod.value, 0);
-      rollLabel = enhancement.attack.trait;
-    }
-  }
-
-  // Calculate damage
-  const baseDamage = enhancement.attack?.damage;
-  const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, totalProficiency) : undefined;
 
   // Target type labels
   const targetLabel = enhancement.attack?.targets === 'all_in_range'
@@ -178,11 +119,11 @@ export default function CardEnhancementPanel({
       )}
 
       {/* Damage indicator */}
-      {finalDamage && (
+      {mechanics.finalDamage && (
         <div className="flex items-center gap-2 text-xs">
           <span className="flex items-center gap-1 px-2 py-1 bg-red-900/30 text-red-400 border border-red-500/30 rounded font-medium">
             <Skull size={12} />
-            {finalDamage} {enhancement.attack?.damage_type || 'damage'}
+            {mechanics.finalDamage} {enhancement.attack?.damage_type || 'damage'}
           </span>
         </div>
       )}
@@ -203,7 +144,7 @@ export default function CardEnhancementPanel({
         if (modifiers.length === 0) return null;
 
         // Helper to generate condition text
-        const getConditionText = (condition?: any) => {
+        const getConditionText = (condition?: { type: string; domain?: string; minCount?: number }) => {
           if (!condition) return undefined;
           switch (condition.type) {
             case 'when_active':
@@ -309,21 +250,21 @@ export default function CardEnhancementPanel({
         )}
 
         {/* Roll button */}
-        {rollLabel && (
+        {mechanics.rollLabel && (
           <button
-            onClick={() => prepareRoll(`${card.name} ${rollLabel} Roll`, rollBonus)}
+            onClick={() => prepareRoll(`${card.name} ${mechanics.rollLabel} Roll`, mechanics.rollBonus)}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/30 rounded text-sm font-medium text-purple-300 transition-colors"
           >
             <Zap size={14} className="text-yellow-400" />
-            Roll {rollLabel} ({rollBonus >= 0 ? `+${rollBonus}` : rollBonus})
+            Roll {mechanics.rollLabel} ({mechanics.rollBonus >= 0 ? `+${mechanics.rollBonus}` : mechanics.rollBonus})
           </button>
         )}
 
         {/* Damage button */}
-        {finalDamage && (
+        {mechanics.finalDamage && (
           <button
             onClick={() => {
-              const { dice, modifier } = parseDamageRoll(finalDamage);
+              const { dice, modifier } = parseDamageRoll(mechanics.finalDamage!);
               prepareRoll(`${card.name} Damage`, modifier, dice);
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-red-900/20 hover:bg-red-900/40 border border-red-500/30 rounded text-sm font-medium text-red-300 transition-colors"

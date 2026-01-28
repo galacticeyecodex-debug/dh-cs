@@ -24,6 +24,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { X, RotateCcw, Plus, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import { toast } from 'sonner';
+import { parseDiceNotation } from '@/lib/dice';
 
 type DiceRole = 'hope' | 'fear' | 'plus' | 'minus' | 'damage';
 
@@ -48,18 +49,31 @@ export default function DiceOverlay() {
   const diceBoxClassRef = useRef<any>(null);
   const [moduleLoaded, setModuleLoaded] = useState(false);
 
+  const isDamageMode = !!activeRoll?.dice;
+
   // Reset state when overlay opens
   useEffect(() => {
     if (isDiceOverlayOpen) {
       setTempModifier(0);
       setSelectedExpIndices([]);
       setHasRolled(false);
-      // Default Pool: 1 Hope (d12), 1 Fear (d12)
-      setDicePool([
-        { id: 'default-hope', sides: 12, role: 'hope' },
-        { id: 'default-fear', sides: 12, role: 'fear' }
-      ]);
+      if (activeRoll?.dice) {
+        // Parse damage notation into builder pool
+        const parsed = parseDiceNotation(activeRoll.dice, activeRoll.diceColor || '#ef4444');
+        setDicePool(parsed.diceConfig.map((d, i) => ({
+          id: `dmg-${i}`,
+          sides: d.sides,
+          role: 'damage' as DiceRole
+        })));
+      } else {
+        // Default Pool: 1 Hope (d12), 1 Fear (d12)
+        setDicePool([
+          { id: 'default-hope', sides: 12, role: 'hope' },
+          { id: 'default-fear', sides: 12, role: 'fear' }
+        ]);
+      }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDiceOverlayOpen]);
 
   // Calculate Experience Modifiers
@@ -86,7 +100,8 @@ export default function DiceOverlay() {
 
   // Builder Handlers
   const addDie = (sides: number) => {
-    setDicePool(prev => [...prev, { id: crypto.randomUUID(), sides, role: 'plus' }]);
+    const defaultRole: DiceRole = isDamageMode ? 'damage' : 'plus';
+    setDicePool(prev => [...prev, { id: crypto.randomUUID(), sides, role: defaultRole }]);
   };
 
   const removeDie = (id: string) => {
@@ -94,9 +109,11 @@ export default function DiceOverlay() {
   };
 
   const cycleRole = (id: string) => {
+    const roles: DiceRole[] = isDamageMode
+      ? ['damage', 'plus', 'minus']
+      : ['plus', 'minus', 'hope', 'fear'];
     setDicePool(prev => prev.map(d => {
       if (d.id !== id) return d;
-      const roles: DiceRole[] = ['plus', 'minus', 'hope', 'fear'];
       const idx = roles.indexOf(d.role);
       return { ...d, role: roles[(idx + 1) % roles.length] };
     }));
@@ -201,44 +218,44 @@ export default function DiceOverlay() {
 
     boxInstanceRef.current.clear();
 
-    // Case 1: Custom Dice Roll (Damage)
+    // Case 1: Damage Roll (uses builder pool)
     if (activeRoll?.dice) {
-      setLastRollResult({ hope: 0, fear: 0, total: 0, modifier: totalModifier, type: 'Damage' });
+      // Parse the original notation for any static modifier (e.g., +3 in "2d8+3")
+      const parsed = parseDiceNotation(activeRoll.dice, activeRoll.diceColor || '#ef4444');
+      const stringModifier = parsed.stringModifier;
+
+      setLastRollResult({ hope: 0, fear: 0, total: 0, modifier: totalModifier + stringModifier, type: 'Damage' });
       try {
-        const cleanDice = activeRoll.dice.replace(/(phy|mag|physical|magic)/gi, '').replace(/\s/g, '');
-        const diceParts = cleanDice.split('+');
-        const diceConfig: { sides: number, themeColor: string }[] = [];
-        let stringModifier = 0;
-        for (const part of diceParts) {
-          const diceMatch = part.match(/^(\d+)?d(\d+)$/i);
-          if (diceMatch) {
-            const count = diceMatch[1] ? parseInt(diceMatch[1]) : 1;
-            const sides = parseInt(diceMatch[2]);
-            const color = activeRoll.diceColor || '#ef4444'; // Default red for damage, can be customized
-            for (let i = 0; i < count; i++) {
-              diceConfig.push({ sides, themeColor: color });
-            }
-          } else {
-            const num = parseInt(part);
-            if (!isNaN(num)) stringModifier += num;
-          }
-        }
-        if (diceConfig.length === 0) {
+        if (dicePool.length === 0) {
           if (stringModifier > 0) {
             setLastRollResult({ hope: 0, fear: 0, total: stringModifier + totalModifier, modifier: totalModifier + stringModifier, type: 'Damage' });
             return;
           }
           return;
         }
+
+        const themeColor = activeRoll.diceColor || '#ef4444';
+        const diceConfig = dicePool.map(d => ({
+          sides: d.sides,
+          themeColor: d.role === 'damage' ? themeColor : d.role === 'plus' ? '#ffffff' : '#000000'
+        }));
+
         const result = await boxInstanceRef.current.roll(diceConfig);
-        let diceTotal = 0;
+        let damageTotal = 0;
+        let plusTotal = 0;
+        let minusTotal = 0;
         const individualDieResults: { role: DiceRole, value: number, sides: number }[] = [];
 
         if (Array.isArray(result)) {
           result.forEach((die: any, index: number) => {
-            diceTotal += die.value;
-            const sides = diceConfig[index]?.sides || 0;
-            individualDieResults.push({ role: 'damage', value: die.value, sides });
+            const poolDie = dicePool[index];
+            individualDieResults.push({ role: poolDie.role, value: die.value, sides: poolDie.sides });
+            if (poolDie.role === 'damage' || poolDie.role === 'plus') {
+              damageTotal += die.value;
+              if (poolDie.role === 'plus') plusTotal += die.value;
+            } else if (poolDie.role === 'minus') {
+              minusTotal += die.value;
+            }
           });
         }
 
@@ -246,22 +263,16 @@ export default function DiceOverlay() {
         const damageRollResult = {
           hope: 0,
           fear: 0,
-          total: diceTotal + finalTotalModifier,
+          total: damageTotal - minusTotal + finalTotalModifier,
           modifier: finalTotalModifier,
           type: 'Damage' as const,
           dice: individualDieResults
         };
         setLastRollResult(damageRollResult);
 
-        // Log to activity feed if in a campaign (respect privacy for GM hidden rolls)
+        // Log to activity feed if in a campaign
         if (activeCampaign && user) {
           const isPrivateRoll = activeRoll?.isPrivate || false;
-          console.log('[DiceOverlay] Logging DAMAGE roll to activity feed:', {
-            campaignId: activeCampaign.id,
-            userId: user.id,
-            characterName: character?.name,
-            total: damageRollResult.total,
-          });
           logActivity({
             campaign_id: activeCampaign.id,
             user_id: user.id,
@@ -277,11 +288,6 @@ export default function DiceOverlay() {
               is_gm_roll: activeRoll?.isGmRoll || false,
             },
             is_private: isPrivateRoll,
-          });
-        } else {
-          console.log('[DiceOverlay] NOT logging DAMAGE roll - missing campaign or user:', {
-            hasActiveCampaign: !!activeCampaign,
-            hasUser: !!user,
           });
         }
       } catch (e) { console.error("Custom roll failed", e); }
@@ -460,90 +466,67 @@ export default function DiceOverlay() {
                     <button onClick={() => setTempModifier(m => m + 1)} className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20" data-testid="modifier-increase" aria-label="Increase modifier">+</button>
                   </div>
 
-                  {/* PLAN C: DICE BUILDER UI */}
-                  {!activeRoll?.dice && (
-                    <div className="flex flex-col gap-2 mt-2 w-full max-w-md">
+                  {/* DICE BUILDER UI */}
+                  <div className="flex flex-col gap-2 mt-2 w-full max-w-md">
 
-                      {/* Pool Display */}
-                      <div className="flex flex-wrap justify-center gap-2 bg-black/75 p-2 rounded-xl border border-white/10 min-h-[4rem]" data-testid="dice-pool">
-                        {dicePool.map((die) => (
-                          <div key={die.id} className="relative group" data-testid={`die-chip-${die.id}`}>
-                            <button
-                              onClick={() => cycleRole(die.id)}
-                              className={clsx(
-                                "flex flex-col items-center justify-center w-12 h-12 rounded-lg transition-colors border",
-                                die.role === 'hope' ? "bg-dagger-gold/20 border-dagger-gold" :
-                                  die.role === 'fear' ? "bg-purple-900/40 border-purple-500" :
-                                    die.role === 'plus' ? "bg-white/20 border-white" :
-                                      die.role === 'minus' ? "bg-gray-800/40 border-gray-400" :
-                                        "bg-green-900/40 border-green-500"
-                              )}
-                              data-testid={`die-button-${die.role}-d${die.sides}`}
-                              data-die-role={die.role}
-                              data-die-sides={die.sides}
-                              aria-label={`Cycle role for d${die.sides} (currently ${die.role})`}
-                            >
-                              <span className={clsx("text-[8px] font-bold uppercase",
-                                die.role === 'hope' ? "text-dagger-gold" :
-                                  die.role === 'fear' ? "text-purple-400" :
-                                    die.role === 'plus' ? "text-white" :
-                                      die.role === 'minus' ? "text-gray-300" :
-                                        "text-green-400"
-                              )}>{die.role}</span>
-                              <span className="text-lg font-black text-white">d{die.sides}</span>
-                            </button>
-                            <button
-                              onClick={() => removeDie(die.id)}
-                              className="absolute -top-3 -right-3 bg-red-500/50 text-white rounded-full p-1 shadow-md opacity-50 group-hover:opacity-100 transition-opacity"
-                              data-testid={`die-remove-${die.id}`}
-                              aria-label={`Remove ${die.role} d${die.sides}`}
-                            >
-                              <X size={12} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Dice Picker */}
-                      <div className="flex justify-center gap-2 bg-black/75 p-2 rounded-xl border border-white/10" data-testid="dice-picker">
-                        {[4, 6, 8, 10, 12, 20].map(sides => (
+                    {/* Pool Display */}
+                    <div className="flex flex-wrap justify-center gap-2 bg-black/75 p-2 rounded-xl border border-white/10 min-h-[4rem]" data-testid="dice-pool">
+                      {dicePool.map((die) => (
+                        <div key={die.id} className="relative group" data-testid={`die-chip-${die.id}`}>
                           <button
-                            key={sides}
-                            onClick={() => addDie(sides)}
-                            className="w-10 h-10 flex flex-col items-center justify-center bg-white/5 hover:bg-white/15 rounded border border-white/5 hover:border-white/20 transition-all"
-                            data-testid={`add-d${sides}`}
-                            aria-label={`Add d${sides}`}
+                            onClick={() => cycleRole(die.id)}
+                            className={clsx(
+                              "flex flex-col items-center justify-center w-12 h-12 rounded-lg transition-colors border",
+                              die.role === 'hope' ? "bg-dagger-gold/20 border-dagger-gold" :
+                                die.role === 'fear' ? "bg-purple-900/40 border-purple-500" :
+                                  die.role === 'plus' ? "bg-white/20 border-white" :
+                                    die.role === 'minus' ? "bg-gray-800/40 border-gray-400" :
+                                      die.role === 'damage' ? "bg-red-900/40 border-red-500" :
+                                        "bg-green-900/40 border-green-500"
+                            )}
+                            data-testid={`die-button-${die.role}-d${die.sides}`}
+                            data-die-role={die.role}
+                            data-die-sides={die.sides}
+                            aria-label={`Cycle role for d${die.sides} (currently ${die.role})`}
                           >
-                            <span className="text-xs font-bold text-gray-400">d{sides}</span>
-                            <Plus size={12} className="text-white" />
+                            <span className={clsx("text-[8px] font-bold uppercase",
+                              die.role === 'hope' ? "text-dagger-gold" :
+                                die.role === 'fear' ? "text-purple-400" :
+                                  die.role === 'plus' ? "text-white" :
+                                    die.role === 'minus' ? "text-gray-300" :
+                                      die.role === 'damage' ? "text-red-400" :
+                                        "text-green-400"
+                            )}>{die.role}</span>
+                            <span className="text-lg font-black text-white">d{die.sides}</span>
                           </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Custom Dice Preview */}
-                  {activeRoll?.dice && (
-                    <div className="flex flex-col gap-2 mt-2 w-full max-w-md">
-                      <div
-                        className="flex flex-wrap justify-center gap-2 bg-black/75 p-3 rounded-xl border"
-                        style={{ borderColor: `${activeRoll.diceColor || '#ef4444'}50` }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="flex flex-col items-center justify-center w-14 h-14 rounded-lg border"
-                            style={{
-                              backgroundColor: `${activeRoll.diceColor || '#ef4444'}20`,
-                              borderColor: `${activeRoll.diceColor || '#ef4444'}50`
-                            }}
+                          <button
+                            onClick={() => removeDie(die.id)}
+                            className="absolute -top-3 -right-3 bg-red-500/50 text-white rounded-full p-1 shadow-md opacity-50 group-hover:opacity-100 transition-opacity"
+                            data-testid={`die-remove-${die.id}`}
+                            aria-label={`Remove ${die.role} d${die.sides}`}
                           >
-                            <span className="text-xl font-black text-white">{activeRoll.dice}</span>
-                          </div>
-                          <span className="text-sm text-gray-400">Tap ROLL to roll dice</span>
+                            <X size={12} />
+                          </button>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                  )}
+
+                    {/* Dice Picker */}
+                    <div className="flex justify-center gap-2 bg-black/75 p-2 rounded-xl border border-white/10" data-testid="dice-picker">
+                      {[4, 6, 8, 10, 12, 20].map(sides => (
+                        <button
+                          key={sides}
+                          onClick={() => addDie(sides)}
+                          className="w-10 h-10 flex flex-col items-center justify-center bg-white/5 hover:bg-white/15 rounded border border-white/5 hover:border-white/20 transition-all"
+                          data-testid={`add-d${sides}`}
+                          aria-label={`Add d${sides}`}
+                        >
+                          <span className="text-xs font-bold text-gray-400">d{sides}</span>
+                          <Plus size={12} className="text-white" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
                   {/* Experiences & Hope Section */}
                   {experiences.length > 0 && !activeRoll?.dice && (

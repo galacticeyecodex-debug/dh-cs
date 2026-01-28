@@ -11,6 +11,7 @@ import {
   calculateTier,
   getBareBonesBonuses,
   parseCombatCategory,
+  parseUsesProficiency,
   type PassiveModifier,
   type ModifierCondition
 } from '@/lib/card-parser';
@@ -541,6 +542,46 @@ describe('parseCombatCategory', () => {
       // This tests when both patterns could match - damage_bonus should take precedence
       const text = 'When you succeed on an attack against an enemy, add 2d6 to your damage roll.';
       expect(parseCombatCategory(text)).toBe('damage_bonus');
+    });
+  });
+
+  // ===========================================================================
+  // parseUsesProficiency Tests
+  // ===========================================================================
+  describe('parseUsesProficiency', () => {
+    it('should return true when text contains "using your Proficiency"', () => {
+      const text = 'Deal damage using your Proficiency as the die count.';
+      expect(parseUsesProficiency(text)).toBe(true);
+    });
+
+    it('should return true when text contains "using Proficiency"', () => {
+      const text = 'Roll damage using Proficiency.';
+      expect(parseUsesProficiency(text)).toBe(true);
+    });
+
+    it('should return true when text contains "using your Proficiency Die"', () => {
+      const text = 'Make an attack using your Proficiency Die.';
+      expect(parseUsesProficiency(text)).toBe(true);
+    });
+
+    it('should return false when text does NOT mention proficiency scaling', () => {
+      // Unleash Chaos - deals d10 magic damage but does NOT scale by proficiency
+      const text = 'roll a number of d10s equal to the tokens you spent and deal that much magic damage';
+      expect(parseUsesProficiency(text)).toBe(false);
+    });
+
+    it('should return false for standard damage with no proficiency mention', () => {
+      const text = 'Deal 2d6 physical damage to the target.';
+      expect(parseUsesProficiency(text)).toBe(false);
+    });
+
+    it('should be case-insensitive', () => {
+      const text = 'Deal damage USING YOUR PROFICIENCY die.';
+      expect(parseUsesProficiency(text)).toBe(true);
+    });
+
+    it('should return false for empty text', () => {
+      expect(parseUsesProficiency('')).toBe(false);
     });
   });
 });

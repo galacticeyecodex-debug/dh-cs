@@ -318,7 +318,28 @@ export function calculateBaseEvasion(character: any, cardStates: Record<string, 
   return base + modBonus;
 }
 
-export function calculateWeaponDamage(baseDamage: string, proficiency: number, bonus: number = 0): string {
+/**
+ * Calculate weapon/ability damage with optional scaling.
+ *
+ * SRD Reference: content/public/srd/markdown/contents/Attacking.md
+ * "Roll damage dice equal to your proficiency score."
+ *
+ * @param baseDamage - The base damage notation (e.g., "d8", "2d6+3")
+ * @param scalingValue - The multiplier for dice count, or `false` for no scaling.
+ *                       Pass proficiency for proficiency-scaled damage, spellcast
+ *                       trait value for spellcast-scaled damage, or `false` for
+ *                       abilities with no scaling.
+ * @param bonus - Additional flat damage bonus (default: 0)
+ *
+ * Examples:
+ * - scalingValue=3:     "d8" -> "3d8"
+ * - scalingValue=false: "d8" -> "1d8" (no scaling)
+ */
+export function calculateWeaponDamage(
+  baseDamage: string,
+  scalingValue: number | false,
+  bonus: number = 0,
+): string {
   if (!baseDamage) return '';
 
   // Parse using existing helper
@@ -336,7 +357,9 @@ export function calculateWeaponDamage(baseDamage: string, proficiency: number, b
     if (match) {
       const count = parseInt(match[1] || '1');
       const sides = match[2];
-      return `${count * proficiency}d${sides}`;
+      // Only scale if scalingValue is a number
+      const finalCount = scalingValue !== false ? count * scalingValue : count;
+      return `${finalCount}d${sides}`;
     }
     return group;
   });
@@ -348,4 +371,27 @@ export function calculateWeaponDamage(baseDamage: string, proficiency: number, b
   }
 
   return newDiceString;
+}
+
+/**
+ * Resolve damage_scaling enum to a numeric scaling value or false.
+ *
+ * @param damageScaling - The scaling type from the card parser ('proficiency', 'spellcast', 'none', etc.)
+ * @param proficiency - The character's total proficiency value
+ * @param spellcastValue - The character's total spellcast trait value (base + mods)
+ * @returns A numeric multiplier or false for no scaling
+ */
+export function getScalingValue(
+  damageScaling: string | undefined,
+  proficiency: number,
+  spellcastValue: number
+): number | false {
+  switch (damageScaling) {
+    case 'proficiency':
+      return proficiency;
+    case 'spellcast':
+      return Math.max(1, spellcastValue);
+    default:
+      return false;
+  }
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import UserMenu from '@/components/core/user-menu';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef, useCallback } from 'react';
@@ -205,10 +206,11 @@ export default function CharacterSelectPage() {
                     {/* Background Image Overlay */}
                     {char.image_url && (
                       <div className="absolute inset-0 z-0">
-                        <img
+                        <Image
                           src={char.image_url}
                           alt={char.name}
-                          className="w-full h-full object-cover opacity-40 transition-opacity duration-500 group-hover:opacity-60"
+                          fill
+                          className="object-cover opacity-40 transition-opacity duration-500 group-hover:opacity-60"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-dagger-panel via-dagger-panel/60 to-transparent" />
                       </div>

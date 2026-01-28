@@ -409,6 +409,96 @@ describe('DiceOverlay Component', () => {
     });
   });
 
+  describe('Damage Mode', () => {
+    it('should initialize pool from dice notation for damage rolls', async () => {
+      (useCharacterStore as MockedUseCharacterStore).mockImplementation(() => ({
+        ...defaultStoreState,
+        activeRoll: { label: 'Longsword', dice: '2d8+3', modifier: 0 },
+      }));
+
+      render(<DiceOverlay />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('dice-pool')).toBeInTheDocument();
+      });
+
+      const dicePool = screen.getByTestId('dice-pool');
+      // 2d8 should produce 2 damage dice
+      const damageChips = within(dicePool).getAllByTestId(/die-button-damage-d8/);
+      expect(damageChips).toHaveLength(2);
+    });
+
+    it('should show dice builder (pool + picker) for damage rolls', async () => {
+      (useCharacterStore as MockedUseCharacterStore).mockImplementation(() => ({
+        ...defaultStoreState,
+        activeRoll: { label: 'Fireball', dice: '3d6', modifier: 0 },
+      }));
+
+      render(<DiceOverlay />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('dice-pool')).toBeInTheDocument();
+        expect(screen.getByTestId('dice-picker')).toBeInTheDocument();
+      });
+    });
+
+    it('should add dice with damage role in damage mode', async () => {
+      (useCharacterStore as MockedUseCharacterStore).mockImplementation(() => ({
+        ...defaultStoreState,
+        activeRoll: { label: 'Attack', dice: '1d8', modifier: 0 },
+      }));
+
+      render(<DiceOverlay />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('dice-picker')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('add-d6'));
+
+      const dicePool = screen.getByTestId('dice-pool');
+      await waitFor(() => {
+        expect(within(dicePool).getByTestId(/die-button-damage-d6/)).toBeInTheDocument();
+      });
+    });
+
+    it('should cycle damage -> plus -> minus in damage mode', async () => {
+      (useCharacterStore as MockedUseCharacterStore).mockImplementation(() => ({
+        ...defaultStoreState,
+        activeRoll: { label: 'Attack', dice: '1d8', modifier: 0 },
+      }));
+
+      render(<DiceOverlay />);
+
+      const dicePool = await waitFor(() => screen.getByTestId('dice-pool'));
+
+      // Start as damage
+      let dieButton = await waitFor(() => within(dicePool).getByTestId(/die-button-damage-d8/));
+      fireEvent.click(dieButton);
+
+      // Should cycle to plus
+      await waitFor(() => {
+        expect(within(dicePool).getByTestId(/die-button-plus-d8/)).toBeInTheDocument();
+      });
+
+      // Cycle to minus
+      dieButton = within(dicePool).getByTestId(/die-button-plus-d8/);
+      fireEvent.click(dieButton);
+
+      await waitFor(() => {
+        expect(within(dicePool).getByTestId(/die-button-minus-d8/)).toBeInTheDocument();
+      });
+
+      // Cycle back to damage
+      dieButton = within(dicePool).getByTestId(/die-button-minus-d8/);
+      fireEvent.click(dieButton);
+
+      await waitFor(() => {
+        expect(within(dicePool).getByTestId(/die-button-damage-d8/)).toBeInTheDocument();
+      });
+    });
+  });
+
   // NOTE: Full roll integration tests are skipped in unit tests because DiceBox
   // requires real Web Workers and OffscreenCanvas. These are covered by E2E tests.
   // The tests below verify that the component correctly prepares roll configurations.

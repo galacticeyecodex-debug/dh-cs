@@ -26,6 +26,11 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         it('should have attack.damage_type = magic', () => {
             expect(enhanced.enhancement.attack?.damage_type).toBe('magic');
         });
+
+        it('should have damage_scaling = proficiency', () => {
+            // Bolt Beacon explicitly says "using your Proficiency" so it should scale
+            expect(enhanced.enhancement.attack?.damage_scaling).toBe('proficiency');
+        });
     });
 
     describe('Mending Touch', () => {

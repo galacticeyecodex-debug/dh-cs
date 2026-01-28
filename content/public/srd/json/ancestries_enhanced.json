@@ -66,7 +66,8 @@
             "combat_category": "passive_triggered",
             "damage": "d8",
             "damage_type": "magic",
-            "targets": "single"
+            "targets": "single",
+            "damage_scaling": "proficiency"
           },
           "roll": {
             "type": "Instinct Roll",
@@ -268,7 +269,8 @@
             "is_triggered_bonus": true,
             "damage": "1d12",
             "damage_type": "physical",
-            "targets": "all_in_range"
+            "targets": "all_in_range",
+            "damage_scaling": "none"
           },
           "roll": {
             "type": "Agility Roll",
@@ -580,7 +582,8 @@
             "targets": "single",
             "secondary_effects": [
               "vulnerable"
-            ]
+            ],
+            "damage_scaling": "none"
           },
           "roll": {
             "type": "Agility Roll",
@@ -665,7 +668,8 @@
             "range": "Close",
             "combat_category": "passive_triggered",
             "damage": "d12",
-            "damage_type": "physical"
+            "damage_type": "physical",
+            "damage_scaling": "proficiency"
           },
           "roll": {
             "type": "Finesse Roll",

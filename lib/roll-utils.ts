@@ -179,16 +179,32 @@ export function calculateDamageBonus(
 /**
  * Calculate the complete attack bonus for a character.
  * Uses the unified modifier aggregator to collect all attack-specific modifiers.
- * 
+ *
+ * SRD Reference: content/public/srd/markdown/contents/Attacking.md
+ * "An attack roll is an action roll intended to inflict harm. The trait
+ * that applies to an attack roll is specified by the weapon or spell."
+ *
+ * Attack modifiers only apply to cards that make attack rolls:
+ * - Weapon attacks: ALWAYS apply (weapons inherently make attack rolls)
+ * - Spellcast with action_type 'attack': Apply (spell makes an attack roll)
+ * - Spellcast without action_type 'attack': Do NOT apply (not an attack roll)
+ *
+ * When no rollContext is provided, returns full attack bonus (backward compat).
+ *
  * @param character - The character making the roll
  * @param cardStates - Optional card states for conditional modifier logic
  * @param _enhancedAbilities - Deprecated: Now uses cached enhanced abilities from modifier-aggregator
+ * @param rollContext - Optional context to filter modifiers by roll type
  * @returns The total attack bonus from all sources
  */
 export function calculateAttackBonus(
     character: Character | null,
     cardStates?: Record<string, CardState> | Record<string, any>,
-    _enhancedAbilities?: Array<WithEnhancement & { name: string }>
+    _enhancedAbilities?: Array<WithEnhancement & { name: string }>,
+    rollContext?: {
+        rollType: 'weapon' | 'spellcast';
+        actionType?: 'attack';
+    }
 ): number {
     if (!character) return 0;
     // Cast cardStates to CardStates for type compatibility
@@ -196,5 +212,18 @@ export function calculateAttackBonus(
 
     // getStatModifiers already includes ALL sources: equipment, domain cards, user, etc.
     const allMods = getStatModifiers(character, 'attack', cardStatesObj);
-    return allMods.reduce((acc, mod) => acc + mod.value, 0);
+    const total = allMods.reduce((acc, mod) => acc + mod.value, 0);
+
+    // No context provided — backward compat, return full bonus
+    if (!rollContext) return total;
+
+    // Weapon rolls always get attack modifiers
+    if (rollContext.rollType === 'weapon') return total;
+
+    // Spellcast rolls only get attack modifiers if this is an attack action
+    if (rollContext.rollType === 'spellcast') {
+        return rollContext.actionType === 'attack' ? total : 0;
+    }
+
+    return 0;
 }
