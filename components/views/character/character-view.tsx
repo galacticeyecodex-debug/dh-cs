@@ -979,16 +979,6 @@ export default function CharacterView() {
                 </div>
               )}
 
-              {/* Advancement History Section */}
-              {character.advancement_history_jsonb && Object.keys(character.advancement_history_jsonb).length > 0 && (
-                <div className="space-y-2">
-                  <AdvancementHistory
-                    advancementHistory={character.advancement_history_jsonb}
-                    experiences={character.experiences}
-                    domainCards={domainCards}
-                  />
-                </div>
-              )}
 
               {/* Class Features Section */}
               {character.class_data && (
@@ -1506,6 +1496,17 @@ export default function CharacterView() {
                     )}
                   </div>
                 )}
+
+              {/* Advancement History Section */}
+              {character.advancement_history_jsonb && Object.keys(character.advancement_history_jsonb).length > 0 && (
+                <div className="space-y-2">
+                  <AdvancementHistory
+                    advancementHistory={character.advancement_history_jsonb}
+                    experiences={character.experiences}
+                    domainCards={domainCards}
+                  />
+                </div>
+              )}
             </div>
           )}
 
