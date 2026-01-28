@@ -46,11 +46,14 @@ export default function CardTokenTrack({
         character.subclass_data?.data?.spellcast_trait
       )?.toLowerCase();
 
-      // If we have a spellcast trait, use that stat
+      // If we have a spellcast trait, use that stat with modifiers
       if (spellcastTrait && character.stats) {
         const stat = character.stats[spellcastTrait as keyof typeof character.stats];
         if (typeof stat === 'number') {
-          calculatedMax = stat;
+          // Apply modifiers to the spellcast trait (which is derived from the underlying stat)
+          const allMods = getStatModifiers(character, spellcastTrait, cardStates);
+          const totalMods = allMods.reduce((acc, mod) => acc + mod.value, 0);
+          calculatedMax = Math.max(1, stat + totalMods);
         }
       } else if (character.spellcast) {
         // Fallback to raw spellcast value if no trait mapped (e.g. fixed value)
