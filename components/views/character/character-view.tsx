@@ -24,6 +24,7 @@ import { RollButton } from '@/components/shared/roll-button';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
 import ExperienceSheet from './experience-manager';
+import ExperienceCard from './experience-card';
 import LevelUpModal from './level-up/level-up-modal';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import ManageCharacterModal from './manage-character-modal';
@@ -641,46 +642,49 @@ export default function CharacterView() {
                   manageLabel="Manage"
                 />
                 {showTraits && (
-                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                    {Object.entries(character.stats).map(([key, value]) => {
-                      const { total, allMods } = getStatDetails(key, value);
-                      const spellcastTrait = (character.spellcast_trait || character.subclass_data?.data?.spellcast_trait || 'Instinct').toLowerCase();
-                      const isSpellcast = key.toLowerCase() === spellcastTrait;
-                      const isMarked = character.marked_traits_jsonb?.[key] || false;
+                  <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(character.stats).map(([key, value]) => {
+                        const { total, allMods } = getStatDetails(key, value);
+                        const spellcastTrait = (character.spellcast_trait || character.subclass_data?.data?.spellcast_trait || 'Instinct').toLowerCase();
+                        const isSpellcast = key.toLowerCase() === spellcastTrait;
+                        const isMarked = character.marked_traits_jsonb?.[key] || false;
 
-                      const toggleMark = () => {
-                        const newMarked = { ...(character.marked_traits_jsonb || {}) };
-                        if (isMarked) {
-                          delete newMarked[key];
-                        } else {
-                          newMarked[key] = true;
-                        }
-                        updateMarkedTraits(newMarked);
-                      };
+                        const toggleMark = () => {
+                          const newMarked = { ...(character.marked_traits_jsonb || {}) };
+                          if (isMarked) {
+                            delete newMarked[key];
+                          } else {
+                            newMarked[key] = true;
+                          }
+                          updateMarkedTraits(newMarked);
+                        };
 
-                      return (
-                        <div key={key} className="relative">
-                          <StatButton
-                            label={key}
-                            value={total}
-                            baseValue={value}
-                            modifiers={allMods}
-                            onUpdateModifiers={(mods) => updateModifiers(key, mods)}
-                            hideModifierButton={true}
-                            isSpellcast={isSpellcast}
-                          />
-                          <button
-                            onClick={toggleMark}
-                            className={`absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full transition-all border border-gray-500 ${isMarked
-                              ? 'bg-dagger-gold'
-                              : 'bg-transparent hover:bg-white/10'
-                              }`}
-                            aria-label={isMarked ? `Unmark ${key} trait` : `Mark ${key} trait`}
-                            title={isMarked ? 'Trait is marked (cannot be increased until tier clear)' : 'Mark trait as used'}
-                          />
-                        </div>
-                      );
-                    })}
+                        return (
+                          <div key={key} className="relative">
+                            <StatButton
+                              label={key}
+                              value={total}
+                              baseValue={value}
+                              modifiers={allMods}
+                              onUpdateModifiers={(mods) => updateModifiers(key, mods)}
+                              hideModifierButton={true}
+                              isSpellcast={isSpellcast}
+                              isNested={true}
+                            />
+                            <button
+                              onClick={toggleMark}
+                              className={`absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full transition-all border border-gray-500 ${isMarked
+                                ? 'bg-dagger-gold'
+                                : 'bg-[#2d2d2d] hover:bg-[#3d3d3d]'
+                                }`}
+                              aria-label={isMarked ? `Unmark ${key} trait` : `Mark ${key} trait`}
+                              title={isMarked ? 'Trait is marked (cannot be increased until tier clear)' : 'Mark trait as used'}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -695,27 +699,26 @@ export default function CharacterView() {
                   manageLabel="Manage"
                 />
 
-                {showExperiences && (<div className="space-y-2">
-                  {character.experiences && character.experiences.length > 0 ? (
-                    character.experiences.map((exp, index) => (
-                      <div key={index} className="flex bg-white/5 border border-white/5 rounded-lg overflow-hidden">
-                        <div className="flex-1 p-3 flex items-center justify-start text-left">
-                          <span className="capitalize font-medium text-gray-300">{exp.name}</span>
-                        </div>
-                        <div className="p-3 min-w-[3rem] flex items-center justify-center font-bold text-xl border-l border-white/5 text-white">
-                          {exp.value >= 0 ? `+${exp.value}` : exp.value}
-                        </div>
+                {showExperiences && (
+                  <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-2">
+                    {character.experiences && character.experiences.length > 0 ? (
+                      character.experiences.map((exp, index) => (
+                        <ExperienceCard
+                          key={index}
+                          name={exp.name}
+                          value={exp.value}
+                          isNested={true}
+                        />
+                      ))
+                    ) : (
+                      <div
+                        onClick={() => setIsExperienceSheetOpen(true)}
+                        className="text-gray-500 text-sm italic p-4 border border-dashed border-white/10 rounded-lg text-center cursor-pointer hover:bg-white/5"
+                      >
+                        No experiences recorded. Tap to add.
                       </div>
-                    ))
-                  ) : (
-                    <div
-                      onClick={() => setIsExperienceSheetOpen(true)}
-                      className="text-gray-500 text-sm italic p-4 border border-dashed border-white/10 rounded-lg text-center cursor-pointer hover:bg-white/5"
-                    >
-                      No experiences recorded. Tap to add.
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
                 )}
               </div>
 

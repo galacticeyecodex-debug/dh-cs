@@ -42,9 +42,11 @@ interface StatButtonProps {
   onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: ModifierSourceTypeLocal; type?: string }[]) => void;
   hideModifierButton?: boolean;
   isSpellcast?: boolean;
+  isFlat?: boolean;
+  isNested?: boolean;
 }
 
-const StatButton = React.memo(function StatButton({ label, value, baseValue, modifiers, onUpdateModifiers, hideModifierButton, isSpellcast }: StatButtonProps) {
+const StatButton = React.memo(function StatButton({ label, value, baseValue, modifiers, onUpdateModifiers, hideModifierButton, isSpellcast, isFlat, isNested }: StatButtonProps) {
   const { prepareRoll } = useCharacterStore();
   const [showModifierSheet, setShowModifierSheet] = useState(false);
 
@@ -54,7 +56,12 @@ const StatButton = React.memo(function StatButton({ label, value, baseValue, mod
 
   return (
     <>
-      <div className="relative flex bg-white/5 border border-white/5 rounded-lg overflow-hidden transition-colors group hover:border-white/20">
+      <div className={clsx(
+        "relative flex rounded-lg overflow-hidden transition-colors group",
+        isFlat ? "bg-transparent" : (isNested ? "bg-white/5 border-white/5" : "bg-white/5 border-white/5"),
+        !isFlat && "border",
+        "hover:border-white/20"
+      )}>
         {/* Gear button for modifiers - top right corner of entire card */}
         {onUpdateModifiers && !hideModifierButton && (
           <button
@@ -133,6 +140,12 @@ const StatButton = React.memo(function StatButton({ label, value, baseValue, mod
 
   // Check isSpellcast
   if (prevProps.isSpellcast !== nextProps.isSpellcast) return false;
+
+  // Check isFlat
+  if (prevProps.isFlat !== nextProps.isFlat) return false;
+
+  // Check isNested
+  if (prevProps.isNested !== nextProps.isNested) return false;
 
   // All props are equal, skip re-render
   return true;
