@@ -641,46 +641,49 @@ export default function CharacterView() {
                   manageLabel="Manage"
                 />
                 {showTraits && (
-                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                    {Object.entries(character.stats).map(([key, value]) => {
-                      const { total, allMods } = getStatDetails(key, value);
-                      const spellcastTrait = (character.spellcast_trait || character.subclass_data?.data?.spellcast_trait || 'Instinct').toLowerCase();
-                      const isSpellcast = key.toLowerCase() === spellcastTrait;
-                      const isMarked = character.marked_traits_jsonb?.[key] || false;
+                  <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                      {Object.entries(character.stats).map(([key, value]) => {
+                        const { total, allMods } = getStatDetails(key, value);
+                        const spellcastTrait = (character.spellcast_trait || character.subclass_data?.data?.spellcast_trait || 'Instinct').toLowerCase();
+                        const isSpellcast = key.toLowerCase() === spellcastTrait;
+                        const isMarked = character.marked_traits_jsonb?.[key] || false;
 
-                      const toggleMark = () => {
-                        const newMarked = { ...(character.marked_traits_jsonb || {}) };
-                        if (isMarked) {
-                          delete newMarked[key];
-                        } else {
-                          newMarked[key] = true;
-                        }
-                        updateMarkedTraits(newMarked);
-                      };
+                        const toggleMark = () => {
+                          const newMarked = { ...(character.marked_traits_jsonb || {}) };
+                          if (isMarked) {
+                            delete newMarked[key];
+                          } else {
+                            newMarked[key] = true;
+                          }
+                          updateMarkedTraits(newMarked);
+                        };
 
-                      return (
-                        <div key={key} className="relative">
-                          <StatButton
-                            label={key}
-                            value={total}
-                            baseValue={value}
-                            modifiers={allMods}
-                            onUpdateModifiers={(mods) => updateModifiers(key, mods)}
-                            hideModifierButton={true}
-                            isSpellcast={isSpellcast}
-                          />
-                          <button
-                            onClick={toggleMark}
-                            className={`absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full transition-all border border-gray-500 ${isMarked
-                              ? 'bg-dagger-gold'
-                              : 'bg-transparent hover:bg-white/10'
-                              }`}
-                            aria-label={isMarked ? `Unmark ${key} trait` : `Mark ${key} trait`}
-                            title={isMarked ? 'Trait is marked (cannot be increased until tier clear)' : 'Mark trait as used'}
-                          />
-                        </div>
-                      );
-                    })}
+                        return (
+                          <div key={key} className="relative">
+                            <StatButton
+                              label={key}
+                              value={total}
+                              baseValue={value}
+                              modifiers={allMods}
+                              onUpdateModifiers={(mods) => updateModifiers(key, mods)}
+                              hideModifierButton={true}
+                              isSpellcast={isSpellcast}
+                              isNested={true}
+                            />
+                            <button
+                              onClick={toggleMark}
+                              className={`absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full transition-all border border-gray-500 ${isMarked
+                                ? 'bg-dagger-gold'
+                                : 'bg-[#2d2d2d] hover:bg-[#3d3d3d]'
+                                }`}
+                              aria-label={isMarked ? `Unmark ${key} trait` : `Mark ${key} trait`}
+                              title={isMarked ? 'Trait is marked (cannot be increased until tier clear)' : 'Mark trait as used'}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
