@@ -109,7 +109,7 @@ describe('CharacterVitalsBanner', () => {
 
         // HP: Max 10 (mocked), Current 7.
         // Marked = 10 - 7 = 3.
-        const hpButton = screen.getByRole('button', { name: /HP/i });
+        const hpButton = screen.getByRole('button', { name: /Hit Points/i });
         expect(hpButton).toHaveTextContent('3');
         expect(hpButton).toHaveTextContent('/10');
     });

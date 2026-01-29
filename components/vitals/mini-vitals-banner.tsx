@@ -4,7 +4,7 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { getClassBaseStat, cn } from '@/lib/utils';
 import { getStatModifierTotal } from '@/lib/modifier-aggregator';
-import { getIconByName, AppIcons } from '@/lib/icon-utils';
+import { getIconByName, AppIcons, VitalId } from '@/lib/icon-utils';
 import { MiniVitalTray, VitalTrackType } from './mini-vital-tray';
 
 export interface VitalEntry {
@@ -12,15 +12,17 @@ export interface VitalEntry {
     current: number;
     max?: number;
     icon: React.ElementType;
+    /** Vital ID for icon preference lookup */
+    vitalId?: VitalId;
     color: string;
     bgColor?: string;
     onClick?: () => void;
     subLabel?: string;
     /** Track type for tray semantics (undefined = read-only, no tray) */
-    vitalType?: VitalTrackType;
-    /** Called when user increments (Mark/Gain) - required if vitalType is set */
+    trackType?: VitalTrackType;
+    /** Called when user increments (Mark/Gain) - required if trackType is set */
     onIncrement?: () => void;
-    /** Called when user decrements (Clear/Spend) - required if vitalType is set */
+    /** Called when user decrements (Clear/Spend) - required if trackType is set */
     onDecrement?: () => void;
 }
 
@@ -33,7 +35,7 @@ export interface MiniVitalsBannerProps {
 /**
  * MINI VITALS PANEL (UI Only)
  * A pure presentation component that renders a row of vitals.
- * When a vital with a vitalType is tapped, opens an expandable tray with Mark/Clear controls.
+ * When a vital with a trackType is tapped, opens an expandable tray with Mark/Clear controls.
  */
 export function MiniVitalsPanel({
     vitals,
@@ -43,9 +45,9 @@ export function MiniVitalsPanel({
     const [selectedVitalIndex, setSelectedVitalIndex] = useState<number | null>(null);
 
     const handleVitalClick = useCallback((index: number, vital: VitalEntry) => {
-        // If vital has vitalType (interactive), open the tray
+        // If vital has trackType (interactive), open the tray
         // Otherwise, use the provided onClick handler (for read-only vitals)
-        if (vital.vitalType && vital.onIncrement && vital.onDecrement && vital.max) {
+        if (vital.trackType && vital.onIncrement && vital.onDecrement && vital.max) {
             setSelectedVitalIndex(index);
         } else if (vital.onClick) {
             vital.onClick();
@@ -57,7 +59,7 @@ export function MiniVitalsPanel({
     }, []);
 
     const selectedVital = selectedVitalIndex !== null ? vitals[selectedVitalIndex] : null;
-    const isValidTrayVital = selectedVital && selectedVital.vitalType && selectedVital.max && selectedVital.onIncrement && selectedVital.onDecrement;
+    const isValidTrayVital = selectedVital && selectedVital.trackType && selectedVital.max && selectedVital.onIncrement && selectedVital.onDecrement;
 
     return (
         <>
@@ -67,8 +69,9 @@ export function MiniVitalsPanel({
                 label={selectedVital?.label ?? ''}
                 current={selectedVital?.current ?? 0}
                 max={selectedVital?.max ?? 0}
-                vitalType={selectedVital?.vitalType ?? 'mark-bad'}
+                trackType={selectedVital?.trackType ?? 'mark-bad'}
                 icon={selectedVital?.icon ?? (() => null)}
+                vitalId={selectedVital?.vitalId}
                 color={selectedVital?.color ?? ''}
                 onIncrement={selectedVital?.onIncrement ?? (() => {})}
                 onDecrement={selectedVital?.onDecrement ?? (() => {})}
@@ -85,7 +88,7 @@ export function MiniVitalsPanel({
             >
                 <div className="flex items-center justify-around px-2 py-2">
                     {vitals.map((vital, index) => {
-                        const isInteractive = vital.vitalType && vital.onIncrement && vital.onDecrement && vital.max;
+                        const isInteractive = vital.trackType && vital.onIncrement && vital.onDecrement && vital.max;
                         const hasClickHandler = isInteractive || vital.onClick;
 
                         return (
@@ -231,11 +234,12 @@ export default function CharacterVitalsBanner() {
     const vitals: VitalEntry[] = [];
 
     // Character vitals
-    // Evasion: read-only (no vitalType)
+    // Evasion: read-only (no trackType)
     vitals.push({
         label: 'Evasion',
         current: vitalData.evasionTotal,
         icon: getIconByName(iconPreferences.evasion, AppIcons.vitals.evasion),
+        vitalId: 'evasion',
         color: 'text-cyan-400',
         subLabel: 'Score',
     });
@@ -247,9 +251,10 @@ export default function CharacterVitalsBanner() {
             current: vitalData.armor_marked,
             max: vitalData.armorMax,
             icon: getIconByName(iconPreferences.armor, AppIcons.vitals.armor),
+            vitalId: 'armor',
             color: 'text-blue-400',
             subLabel: 'Marked',
-            vitalType: 'mark-bad',
+            trackType: 'mark-bad',
             onIncrement: handleArmorIncrement,
             onDecrement: handleArmorDecrement,
         });
@@ -259,6 +264,7 @@ export default function CharacterVitalsBanner() {
             current: 0,
             max: 0,
             icon: getIconByName(iconPreferences.armor, AppIcons.vitals.armor),
+            vitalId: 'armor',
             color: 'text-blue-400',
             subLabel: 'None',
         });
@@ -266,13 +272,14 @@ export default function CharacterVitalsBanner() {
 
     // HP: mark-bad
     vitals.push({
-        label: 'HP',
+        label: 'Hit Points',
         current: vitalData.hp_marked,
         max: vitalData.hpMax,
         icon: getIconByName(iconPreferences.hitPoints, AppIcons.vitals.hitPoints),
+        vitalId: 'hitPoints',
         color: 'text-red-400',
         subLabel: 'Marked',
-        vitalType: 'mark-bad',
+        trackType: 'mark-bad',
         onIncrement: handleHpIncrement,
         onDecrement: handleHpDecrement,
     });
@@ -283,9 +290,10 @@ export default function CharacterVitalsBanner() {
         current: vitalData.stress_current,
         max: vitalData.stressMax,
         icon: getIconByName(iconPreferences.stress, AppIcons.vitals.stress),
+        vitalId: 'stress',
         color: 'text-purple-400',
         subLabel: 'Marked',
-        vitalType: 'fill-up-bad',
+        trackType: 'fill-up-bad',
         onIncrement: handleStressIncrement,
         onDecrement: handleStressDecrement,
     });
@@ -296,9 +304,10 @@ export default function CharacterVitalsBanner() {
         current: vitalData.hope_current,
         max: vitalData.hopeMax,
         icon: getIconByName(iconPreferences.hope, AppIcons.vitals.hope),
+        vitalId: 'hope',
         color: 'text-dagger-gold',
         subLabel: 'Gained',
-        vitalType: 'fill-up-good',
+        trackType: 'fill-up-good',
         onIncrement: handleHopeIncrement,
         onDecrement: handleHopeDecrement,
     });
@@ -312,6 +321,7 @@ export default function CharacterVitalsBanner() {
             current: activeCampaign.fear_current,
             max: 12, // SRD: Max Fear is always 12
             icon: getIconByName(iconPreferences.fear, AppIcons.vitals.fear),
+            vitalId: 'fear',
             color: isHighFear ? 'text-red-400' : 'text-purple-400',
             subLabel: 'Gained',
         });
