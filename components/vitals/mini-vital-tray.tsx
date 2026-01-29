@@ -89,22 +89,34 @@ export function MiniVitalTray({
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed left-0 right-0 z-50 bg-dagger-panel border-t border-white/10 rounded-t-xl shadow-lg px-3 py-2"
+          className="fixed left-0 right-0 z-50 bg-dagger-panel border-t border-white/10 rounded-t-xl shadow-lg"
           style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom) + 3rem)' }}
         >
-          <VitalCard
-            label={label}
-            current={current}
-            max={max}
-            color={color}
-            strokeColor={strokeColor}
-            icon={icon}
-            vitalId={vitalId}
-            trackType={trackType}
-            onIncrement={onIncrement}
-            onDecrement={onDecrement}
-            isFlat={true}
-          />
+          {/* Handle - tap to close (matches modifier-sheet pattern) */}
+          <button
+            onClick={onClose}
+            className="flex justify-center w-full py-2"
+            aria-label="Close tray"
+          >
+            <div className="w-12 h-1.5 bg-white/20 rounded-full" />
+          </button>
+
+          {/* VitalCard content */}
+          <div className="px-3 pb-2">
+            <VitalCard
+              label={label}
+              current={current}
+              max={max}
+              color={color}
+              strokeColor={strokeColor}
+              icon={icon}
+              vitalId={vitalId}
+              trackType={trackType}
+              onIncrement={onIncrement}
+              onDecrement={onDecrement}
+              isFlat={true}
+            />
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
