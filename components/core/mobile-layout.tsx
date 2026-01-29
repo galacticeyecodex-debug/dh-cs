@@ -207,7 +207,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
       </button>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 pb-safe pt-2 px-6 z-40 backdrop-blur-lg">
+      <nav className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 pb-safe pt-2 px-6 z-50 backdrop-blur-lg">
         <div className="flex justify-between items-center h-16">
           <NavButton
             active={activeTab === 'character'}
