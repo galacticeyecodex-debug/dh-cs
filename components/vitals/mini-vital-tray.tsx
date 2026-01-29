@@ -38,8 +38,10 @@ export interface MiniVitalTrayProps {
   icon: React.ElementType;
   /** Vital ID for icon preference lookup */
   vitalId?: VitalId;
-  /** Tailwind color class (e.g., "text-red-400") */
+  /** Primary color class (e.g., "text-red-400") */
   color: string;
+  /** Stroke color class for filled icons (e.g., "stroke-red-900") */
+  strokeColor?: string;
   /** Called when user wants to increment */
   onIncrement: () => void;
   /** Called when user wants to decrement */
@@ -60,6 +62,7 @@ export function MiniVitalTray({
   icon,
   vitalId,
   color,
+  strokeColor,
   onIncrement,
   onDecrement,
   onClose,
@@ -94,6 +97,7 @@ export function MiniVitalTray({
             current={current}
             max={max}
             color={color}
+            strokeColor={strokeColor}
             icon={icon}
             vitalId={vitalId}
             trackType={trackType}

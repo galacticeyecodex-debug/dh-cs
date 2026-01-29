@@ -17,7 +17,10 @@ export interface VitalEntry {
     icon: React.ElementType;
     /** Vital ID for icon preference lookup */
     vitalId?: VitalId;
+    /** Primary color class (e.g., "text-red-400") */
     color: string;
+    /** Stroke color class for filled icons (e.g., "stroke-red-900") */
+    strokeColor?: string;
     bgColor?: string;
     onClick?: () => void;
     subLabel?: string;
@@ -76,6 +79,7 @@ export function MiniVitalsPanel({
                 icon={selectedVital?.icon ?? (() => null)}
                 vitalId={selectedVital?.vitalId}
                 color={selectedVital?.color ?? ''}
+                strokeColor={selectedVital?.strokeColor}
                 onIncrement={selectedVital?.onIncrement ?? (() => {})}
                 onDecrement={selectedVital?.onDecrement ?? (() => {})}
                 onClose={handleCloseTray}
@@ -252,15 +256,17 @@ export default function CharacterVitalsBanner() {
     });
 
     // Armor: mark-bad (only interactive if armor exists)
+    // Colors match common-vitals-display.tsx
     if (vitalData.armorMax > 0) {
         vitals.push({
             label: 'Armor',
             current: vitalData.armor_marked,
-            rawCurrent: vitalData.armor_slots, // Raw value for VitalCard tray
+            rawCurrent: vitalData.armor_slots,
             max: vitalData.armorMax,
             icon: getIconByName(iconPreferences.armor, AppIcons.vitals.armor),
             vitalId: 'armor',
             color: 'text-blue-400',
+            strokeColor: 'stroke-blue-900',
             subLabel: 'Marked',
             trackType: 'mark-bad',
             onIncrement: handleArmorIncrement,
@@ -282,11 +288,12 @@ export default function CharacterVitalsBanner() {
     vitals.push({
         label: 'Hit Points',
         current: vitalData.hp_marked,
-        rawCurrent: vitalData.hp_current, // Raw value for VitalCard tray
+        rawCurrent: vitalData.hp_current,
         max: vitalData.hpMax,
         icon: getIconByName(iconPreferences.hitPoints, AppIcons.vitals.hitPoints),
         vitalId: 'hitPoints',
         color: 'text-red-400',
+        strokeColor: 'stroke-red-900',
         subLabel: 'Marked',
         trackType: 'mark-bad',
         onIncrement: handleHpIncrement,
@@ -301,6 +308,7 @@ export default function CharacterVitalsBanner() {
         icon: getIconByName(iconPreferences.stress, AppIcons.vitals.stress),
         vitalId: 'stress',
         color: 'text-purple-400',
+        strokeColor: 'stroke-purple-900',
         subLabel: 'Marked',
         trackType: 'fill-up-bad',
         onIncrement: handleStressIncrement,
@@ -315,6 +323,7 @@ export default function CharacterVitalsBanner() {
         icon: getIconByName(iconPreferences.hope, AppIcons.vitals.hope),
         vitalId: 'hope',
         color: 'text-dagger-gold',
+        strokeColor: 'stroke-amber-900',
         subLabel: 'Gained',
         trackType: 'fill-up-good',
         onIncrement: handleHopeIncrement,
