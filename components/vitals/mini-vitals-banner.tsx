@@ -9,7 +9,10 @@ import { MiniVitalTray, VitalTrackType } from './mini-vital-tray';
 
 export interface VitalEntry {
     label: string;
+    /** Display value for mini-vital bar (may be "marked" count for mark-bad vitals) */
     current: number;
+    /** Raw value for VitalCard tray (actual armor_slots/hit_points_current) */
+    rawCurrent?: number;
     max?: number;
     icon: React.ElementType;
     /** Vital ID for icon preference lookup */
@@ -67,7 +70,7 @@ export function MiniVitalsPanel({
             <MiniVitalTray
                 isOpen={!!isValidTrayVital}
                 label={selectedVital?.label ?? ''}
-                current={selectedVital?.current ?? 0}
+                current={selectedVital?.rawCurrent ?? selectedVital?.current ?? 0}
                 max={selectedVital?.max ?? 0}
                 trackType={selectedVital?.trackType ?? 'mark-bad'}
                 icon={selectedVital?.icon ?? (() => null)}
@@ -171,10 +174,14 @@ export default function CharacterVitalsBanner() {
             hopeMax,
             evasionTotal,
             armorMax,
+            // Display values (for mini-vital bar)
             hp_marked: hpMax - character.vitals.hit_points_current,
             stress_current: character.vitals.stress_current,
             hope_current: character.hope,
             armor_marked: armorMax - character.vitals.armor_slots,
+            // Raw values (for VitalCard tray - matching common-vitals-display.tsx)
+            hp_current: character.vitals.hit_points_current,
+            armor_slots: character.vitals.armor_slots,
         };
     }, [character, cardStates]);
 
@@ -249,6 +256,7 @@ export default function CharacterVitalsBanner() {
         vitals.push({
             label: 'Armor',
             current: vitalData.armor_marked,
+            rawCurrent: vitalData.armor_slots, // Raw value for VitalCard tray
             max: vitalData.armorMax,
             icon: getIconByName(iconPreferences.armor, AppIcons.vitals.armor),
             vitalId: 'armor',
@@ -274,6 +282,7 @@ export default function CharacterVitalsBanner() {
     vitals.push({
         label: 'Hit Points',
         current: vitalData.hp_marked,
+        rawCurrent: vitalData.hp_current, // Raw value for VitalCard tray
         max: vitalData.hpMax,
         icon: getIconByName(iconPreferences.hitPoints, AppIcons.vitals.hitPoints),
         vitalId: 'hitPoints',
