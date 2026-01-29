@@ -89,7 +89,7 @@ export function MiniVitalTray({
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed left-0 right-0 z-30 bg-dagger-panel border-t border-white/10 rounded-t-xl shadow-lg"
+          className="fixed left-0 right-0 z-40 bg-dagger-panel border-t border-white/10 rounded-t-xl shadow-lg"
           style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom) + 3rem)' }}
         >
           {/* Handle - tap to close (matches modifier-sheet pattern) */}
