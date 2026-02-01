@@ -18,6 +18,7 @@ import { X, Plus, Trash2, Check, Pencil, Shield, ShieldOff, Users, AlertCircle }
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCharacterStore } from '@/store/character-store';
+import SRDInfoButton from './srd-info-button';
 
 // Modifier source types align with ModifierSourceType from modifier-aggregator
 type ModifierSourceType = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
@@ -183,7 +184,7 @@ export default function ModifierSheet({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 z-60 backdrop-blur-sm"
           />
 
           {/* Sheet */}
@@ -192,7 +193,7 @@ export default function ModifierSheet({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 z-60 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col"
           >
             {/* Handle */}
             <div className="flex justify-center p-3" onClick={onClose}>
@@ -221,7 +222,10 @@ export default function ModifierSheet({
 
             {/* Header / Total */}
             <div className="px-6 pb-4 pt-4 border-b border-white/10 text-center">
-              <div className="text-sm text-gray-400 uppercase tracking-wider font-bold">{activeTab.label}</div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-sm text-gray-400 uppercase tracking-wider font-bold">{activeTab.label}</div>
+                <SRDInfoButton ruleKey="equipment.general" size={12} title={activeTab.label} />
+              </div>
               <div className="text-6xl font-serif font-black text-white flex items-center justify-center gap-2">
                 {total}
                 {total !== activeTab.baseValue && (

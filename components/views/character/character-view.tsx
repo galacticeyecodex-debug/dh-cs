@@ -20,7 +20,7 @@ import Image from 'next/image';
 import { getStatModifiers } from '@/lib/modifier-aggregator';
 import { calculateRollBonus } from '@/lib/roll-utils';
 import StatButton from '@/components/views/character/trait-button';
-import { RollButton } from '@/components/shared/roll-button';
+
 import { MarkdownText } from '@/components/shared/markdown-text';
 import CommonVitalsDisplay from '@/components/vitals/common-vitals-display';
 import ExperienceSheet from './experience-manager';
@@ -32,6 +32,7 @@ import SectionHeader from '@/components/shared/section-header';
 import AdvancementHistory from './level-up/advancement-history';
 import SubclassFeatureCard from './subclass-features/subclass-feature-card';
 import CompanionSheet from './subclass-features/beastbound-companion-sheet';
+import AttackCard from '@/components/views/combat/attack-card';
 import PrayerDiceCard from './class-features/seraph-prayer-dice-card';
 import RallyDiceCard from './class-features/bard-rally-card';
 import UnstoppableCard from './class-features/guardian-unstoppable-card';
@@ -46,10 +47,12 @@ import { MAX_IMAGE_FILE_SIZE, MAX_IMAGE_FILE_SIZE_MB } from '@/lib/image-utils';
 import { toast } from 'sonner';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/core/error-boundary';
-import CardTokenTrack from '@/components/shared/token-track';
 import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
-import { DomainCostsRow } from '@/components/shared/ability-costs-row';
-import FrequencyCheckbox from '@/components/shared/frequency-checkbox';
+import ViewHeader from '@/components/shared/view-header';
+import SRDInfoButton from '@/components/shared/srd-info-button';
+import { User } from 'lucide-react';
+
+import MechanicsTray from '@/components/shared/mechanics-tray';
 import useContentAccess from '@/hooks/useContentAccess';
 import { srdAncestries, srdCommunities, getAllClasses } from '@/lib/content-loaders';
 import type { EnhancedAncestry, EnhancedCommunity } from '@/types/cards';
@@ -84,16 +87,17 @@ export default function CharacterView() {
   const [showAncestryLore, setShowAncestryLore] = useState(false);
   const [showCommunityLore, setShowCommunityLore] = useState(false);
   const [showTransformation, setShowTransformation] = useState(true);
-  const [showTransformationLore, setShowTransformationLore] = useState(false);
+  const [showTransformationLore, setShowTransformationLore] = useState(true);
   const [showClassLore, setShowClassLore] = useState(false);
   const [showSubclassLore, setShowSubclassLore] = useState(false);
-  const [showMulticlassLore, setShowMulticlassLore] = useState(false);
+  const [showMulticlassLore, setShowMulticlassLore] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [savingField, setSavingField] = useState<string>('');
   const [savedField, setSavedField] = useState<string>('');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [showViewHeader, setShowViewHeader] = useState(false); // Toggle for ViewHeader display
 
   // Resolve dynamic icons for vitals
   const { vitalIcons } = useCharacterStore();
@@ -421,6 +425,17 @@ export default function CharacterView() {
   return (
     <ErrorBoundary>
       <div className="pb-24">
+        {/* Header - Optional (controlled by showViewHeader state) */}
+        {showViewHeader && (
+          <div className="p-4">
+            <ViewHeader
+              icon={User}
+              title="Character"
+              subtitle="Manage your character's stats, lore, and art"
+            />
+          </div>
+        )}
+
         {/* Social Profile Header */}
         <div className="relative w-full h-48 md:h-64 bg-gray-900 overflow-hidden group/header">
           {/* Banner Background */}
@@ -635,7 +650,7 @@ export default function CharacterView() {
               {/* Stats Grid */}
               <div className="space-y-2">
                 <SectionHeader
-                  title="Traits"
+                  title={<>Traits <SRDInfoButton ruleKey="traits.general" title="Traits" /></>}
                   isVisible={showTraits}
                   onToggle={() => setShowTraits(!showTraits)}
                   onManage={() => setIsTraitModifierSheetOpen(true)}
@@ -692,7 +707,7 @@ export default function CharacterView() {
               {/* Experiences Section */}
               <div className="space-y-2">
                 <SectionHeader
-                  title="Experiences"
+                  title={<>Experiences <SRDInfoButton ruleKey="character.experiences" title="Experiences" /></>}
                   isVisible={showExperiences}
                   onToggle={() => setShowExperiences(!showExperiences)}
                   onManage={() => setIsExperienceSheetOpen(true)}
@@ -726,16 +741,16 @@ export default function CharacterView() {
               {character.ancestry && (
                 <div className="space-y-2">
                   <SectionHeader
-                    title="Ancestry"
+                    title={<>Ancestry <SRDInfoButton ruleKey="character.ancestry" title="Ancestry" /></>}
                     isVisible={showAncestry}
                     onToggle={() => setShowAncestry(!showAncestry)}
                   />
 
                   {showAncestry && (
-                    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-3">
                       {ancestryCard ? (
                         <>
-                          <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center justify-between">
                             <h4 className="font-serif font-bold text-white">{ancestryCard.name}</h4>
                             <button
                               onClick={() => setShowAncestryLore(!showAncestryLore)}
@@ -747,19 +762,16 @@ export default function CharacterView() {
                             </button>
                           </div>
                           {showAncestryLore && (
-                            <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                            <p className="text-sm text-gray-300 whitespace-pre-wrap p-3 bg-white/5 rounded-lg border border-white/5">
                               {ancestryCard.description}
                             </p>
                           )}
                           {ancestryCard.features?.map((feature: any, i: number) => {
                             // Always look up enhancement from enhanced JSON (character.ancestry_features may not have it)
                             const enhancedFeature = getEnhancedAncestryFeature(ancestryCard.name, feature.name);
+                            const enhancedData = enhancedFeature;
                             const enhancement = enhancedFeature?.enhancement || feature.enhancement;
-                            const hasCosts = enhancement?.costs?.stress || enhancement?.costs?.hope;
-                            const hasTokens = enhancement?.tokens?.has_tokens;
-                            const hasFrequency = enhancement?.frequency && enhancement.frequency !== 'at_will';
                             const hasRoll = enhancement?.roll?.trait;
-                            const cardName = `ancestry-${ancestryCard.name}-${feature.name}`;
 
                             // Calculate roll bonus with proper modifier support
                             const rollResult = hasRoll ? calculateRollBonus(character, enhancement.roll.trait, cardStates) : null;
@@ -767,49 +779,18 @@ export default function CharacterView() {
                             const rollLabel = hasRoll ? `${rollResult?.label}${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}` : '';
 
                             return (
-                              <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
-                                <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
-                                  {feature.name}
-                                </div>
-                                <div className="text-sm text-gray-300 leading-relaxed">
-                                  <MarkdownText>{feature.text}</MarkdownText>
-                                </div>
-                                {/* Interactive elements for ancestry features */}
-                                {(hasCosts || hasTokens || hasFrequency || hasRoll) && (
-                                  <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
-                                    {hasTokens && (
-                                      <CardTokenTrack
-                                        cardName={cardName}
-                                        maxTokens={enhancement.tokens.max_tokens ?? null}
-                                        tokenSource={enhancement.tokens.token_source}
-                                      />
-                                    )}
-                                    <div className="flex flex-wrap gap-2 items-center">
-                                      {hasCosts && (
-                                        <DomainCostsRow
-                                          cardName={cardName}
-                                          displayName={feature.name}
-                                          costs={enhancement.costs}
-                                          className="flex flex-wrap gap-2"
-                                        />
-                                      )}
-                                      {hasFrequency && (
-                                        <FrequencyCheckbox
-                                          cardName={cardName}
-                                          frequency={enhancement.frequency}
-                                        />
-                                      )}
-                                      {hasRoll && (
-                                        <RollButton
-                                          label={rollLabel}
-                                          onClick={() => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus)}
-                                          bonus={rollBonus}
-                                        />
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
+                              <AttackCard
+                                key={i}
+                                id={`ancestry-${ancestryCard.name}-${feature.name}`}
+                                name={feature.name}
+                                description={feature.text}
+                                enhancedData={enhancedData}
+                                context="character"
+                                variant="feature"
+                                borderVariant="ancestry"
+                                totalAttackBonus={rollBonus}
+                                onAttackRoll={hasRoll ? () => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus) : undefined}
+                              />
                             );
                           })}
                         </>
@@ -827,16 +808,16 @@ export default function CharacterView() {
               {character.community && (
                 <div className="space-y-2">
                   <SectionHeader
-                    title="Community"
+                    title={<>Community <SRDInfoButton ruleKey="character.community" title="Community" /></>}
                     isVisible={showCommunity}
                     onToggle={() => setShowCommunity(!showCommunity)}
                   />
 
                   {showCommunity && (
-                    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-3">
                       {communityCard ? (
                         <>
-                          <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center justify-between">
                             <h4 className="font-serif font-bold text-white">{communityCard.name}</h4>
                             <button
                               onClick={() => setShowCommunityLore(!showCommunityLore)}
@@ -848,19 +829,16 @@ export default function CharacterView() {
                             </button>
                           </div>
                           {showCommunityLore && (
-                            <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                            <p className="text-sm text-gray-300 whitespace-pre-wrap p-3 bg-white/5 rounded-lg border border-white/5">
                               {communityCard.description}
                             </p>
                           )}
                           {communityCard.features?.map((feature: any, i: number) => {
                             // Always look up enhancement from enhanced JSON for safety
                             const enhancedFeature = getEnhancedCommunityFeature(communityCard.name, feature.name);
+                            const enhancedData = enhancedFeature;
                             const enhancement = enhancedFeature?.enhancement || feature.enhancement;
-                            const hasCosts = enhancement?.costs?.stress || enhancement?.costs?.hope;
-                            const hasTokens = enhancement?.tokens?.has_tokens;
-                            const hasFrequency = enhancement?.frequency && enhancement.frequency !== 'at_will';
                             const hasRoll = enhancement?.roll?.trait;
-                            const cardName = `community-${communityCard.name}-${feature.name}`;
 
                             // Calculate roll bonus with proper modifier support
                             const rollResult = hasRoll ? calculateRollBonus(character, enhancement.roll.trait, cardStates) : null;
@@ -868,49 +846,18 @@ export default function CharacterView() {
                             const rollLabel = hasRoll ? `${rollResult?.label}${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}` : '';
 
                             return (
-                              <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
-                                <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
-                                  {feature.name}
-                                </div>
-                                <div className="text-sm text-gray-300 leading-relaxed">
-                                  <MarkdownText>{feature.text}</MarkdownText>
-                                </div>
-                                {/* Interactive elements for community features */}
-                                {(hasCosts || hasTokens || hasFrequency || hasRoll) && (
-                                  <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
-                                    {hasTokens && (
-                                      <CardTokenTrack
-                                        cardName={cardName}
-                                        maxTokens={enhancement.tokens.max_tokens ?? null}
-                                        tokenSource={enhancement.tokens.token_source}
-                                      />
-                                    )}
-                                    <div className="flex flex-wrap gap-2 items-center">
-                                      {hasCosts && (
-                                        <DomainCostsRow
-                                          cardName={cardName}
-                                          displayName={feature.name}
-                                          costs={enhancement.costs}
-                                          className="flex flex-wrap gap-2"
-                                        />
-                                      )}
-                                      {hasFrequency && (
-                                        <FrequencyCheckbox
-                                          cardName={cardName}
-                                          frequency={enhancement.frequency}
-                                        />
-                                      )}
-                                      {hasRoll && (
-                                        <RollButton
-                                          label={rollLabel}
-                                          onClick={() => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus)}
-                                          bonus={rollBonus}
-                                        />
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
+                              <AttackCard
+                                key={i}
+                                id={`community-${communityCard.name}-${feature.name}`}
+                                name={feature.name}
+                                description={feature.text}
+                                enhancedData={enhancedData}
+                                context="character"
+                                variant="feature"
+                                borderVariant="community"
+                                totalAttackBonus={rollBonus}
+                                onAttackRoll={hasRoll ? () => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus) : undefined}
+                              />
                             );
                           })}
                         </>
@@ -934,10 +881,10 @@ export default function CharacterView() {
                   />
 
                   {showTransformation && (
-                    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-3">
                       {transformationCard ? (
                         <>
-                          <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center justify-between">
                             <h4 className="font-serif font-bold text-white">{transformationCard.name}</h4>
                             <button
                               onClick={() => setShowTransformationLore(!showTransformationLore)}
@@ -949,24 +896,20 @@ export default function CharacterView() {
                             </button>
                           </div>
                           {showTransformationLore && (
-                            <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                            <p className="text-sm text-gray-300 whitespace-pre-wrap p-3 bg-white/5 rounded-lg border border-white/5">
                               {transformationCard.description}
                             </p>
                           )}
                           {transformationCard.features?.map((feature: any, i: number) => (
-                            <div key={i} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
-                              <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
-                                {feature.name}
-                              </div>
-                              <div className="text-sm text-gray-300 leading-relaxed">
-                                <MarkdownText>{feature.text}</MarkdownText>
-                              </div>
-                              {feature.has_tokens && (
-                                <div className="mt-2 text-xs text-dagger-gold">
-                                  Max tokens: {feature.max_tokens}
-                                </div>
-                              )}
-                            </div>
+                            <AttackCard
+                              key={i}
+                              id={`transformation-${transformationCard.name}-${feature.name}`}
+                              name={feature.name}
+                              description={feature.text}
+                              context="character"
+                              variant="feature"
+                              borderVariant="class"
+                            />
                           ))}
                         </>
                       ) : (
@@ -984,15 +927,15 @@ export default function CharacterView() {
               {character.class_data && (
                 <div className="space-y-2">
                   <SectionHeader
-                    title={<><AppIcons.ui.info size={14} /> Class Features</>}
+                    title={<>Class Features <SRDInfoButton ruleKey="character.class" title="Class Features" /></>}
                     isVisible={showClassFeatures}
                     onToggle={() => setShowClassFeatures(!showClassFeatures)}
                   />
 
                   {showClassFeatures && (
-                    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                    <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-3">
                       {/* Class Header with Lore Toggle */}
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between">
                         <h4 className="font-serif font-bold text-white">{character.class_data.name}</h4>
                         <button
                           onClick={() => setShowClassLore(!showClassLore)}
@@ -1006,14 +949,14 @@ export default function CharacterView() {
 
                       {/* Collapsible Class Description */}
                       {showClassLore && character.class_data.data.description && (
-                        <p className="text-sm text-gray-300 whitespace-pre-wrap mb-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                        <p className="text-sm text-gray-300 whitespace-pre-wrap p-3 bg-white/5 rounded-lg border border-white/5">
                           {character.class_data.data.description}
                         </p>
                       )}
 
                       {/* Hope Feature - use enhanced data for costs */}
                       {(enhancedHopeFeature || character.class_data.data.hope_feature) && (
-                        <div className="mt-2 bg-white/5 rounded p-3 border border-white/5">
+                        <div className="bg-white/5 rounded p-3 border border-white/5">
                           <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1 flex items-center gap-1">
                             <HopeIcon size={12} />
                             {enhancedHopeFeature?.name || character.class_data.data.hope_feature?.name}
@@ -1039,68 +982,63 @@ export default function CharacterView() {
                         // Special handling for Bard Rally
                         if (feature.name === 'Rally') {
                           return (
-                            <div key={idx} className="mt-2">
-                              <RallyDiceCard
-                                rallyDice={character.bard_rally_dice}
-                                characterLevel={character.level}
-                                description={feature.text}
-                                onUpdateRallyDice={updateBardRallyDice}
-                              />
-                            </div>
+                            <RallyDiceCard
+                              key={idx}
+                              rallyDice={character.bard_rally_dice}
+                              characterLevel={character.level}
+                              description={feature.text}
+                              onUpdateRallyDice={updateBardRallyDice}
+                            />
                           );
                         }
 
                         // Special handling for Guardian Unstoppable
                         if (feature.name === 'Unstoppable') {
                           return (
-                            <div key={idx} className="mt-2">
-                              <UnstoppableCard
-                                unstoppable={character.guardian_unstoppable}
-                                characterLevel={character.level}
-                                description={feature.text}
-                                onUpdateUnstoppable={updateGuardianUnstoppable}
-                              />
-                            </div>
+                            <UnstoppableCard
+                              key={idx}
+                              unstoppable={character.guardian_unstoppable}
+                              characterLevel={character.level}
+                              description={feature.text}
+                              onUpdateUnstoppable={updateGuardianUnstoppable}
+                            />
                           );
                         }
 
                         // Special handling for Wizard Strange Patterns
                         if (feature.name === 'Strange Patterns') {
                           return (
-                            <div key={idx} className="mt-2">
-                              <StrangePatternsCard
-                                strangePatterns={character.wizard_strange_patterns}
-                                description={feature.text}
-                                onUpdateStrangePatterns={updateWizardStrangePatterns}
-                              />
-                            </div>
+                            <StrangePatternsCard
+                              key={idx}
+                              strangePatterns={character.wizard_strange_patterns}
+                              description={feature.text}
+                              onUpdateStrangePatterns={updateWizardStrangePatterns}
+                            />
                           );
                         }
 
                         // Special handling for Druid Beastform
                         if (feature.name === 'Beastform') {
                           return (
-                            <div key={idx} className="mt-2">
-                              <BeastformCard
-                                beastform={character.druid_beastform}
-                                characterLevel={character.level}
-                                onUpdateBeastform={updateDruidBeastform}
-                              />
-                            </div>
+                            <BeastformCard
+                              key={idx}
+                              beastform={character.druid_beastform}
+                              characterLevel={character.level}
+                              onUpdateBeastform={updateDruidBeastform}
+                            />
                           );
                         }
 
                         // Special handling for Ranger Focus
                         // Verify name matches SRD (Smart quote or regular quote)
-                        if (feature.name === 'Ranger’s Focus' || feature.name === "Ranger's Focus") {
+                        if (feature.name === "Ranger's Focus" || feature.name === "Ranger's Focus") {
                           return (
-                            <div key={idx} className="mt-2">
-                              <RangerFocusCard
-                                rangerFocus={character.ranger_focus}
-                                description={feature.text}
-                                onUpdateRangerFocus={updateRangerFocus}
-                              />
-                            </div>
+                            <RangerFocusCard
+                              key={idx}
+                              rangerFocus={character.ranger_focus}
+                              description={feature.text}
+                              onUpdateRangerFocus={updateRangerFocus}
+                            />
                           );
                         }
 
@@ -1110,26 +1048,22 @@ export default function CharacterView() {
                           const spellcastValue = character.stats[traitName as keyof typeof character.stats] || 0;
 
                           return (
-                            <div key={idx} className="mt-2">
-                              <PrayerDiceCard
-                                prayerDice={character.seraph_prayer_dice}
-                                spellcastValue={spellcastValue}
-                                hasDevout={character.subclass_data?.name?.toLowerCase() === 'divine wielder' && character.subclass_progression?.specialization_obtained === true}
-                                description={feature.text}
-                                onUpdatePrayerDice={updatePrayerDice}
-                              />
-                            </div>
+                            <PrayerDiceCard
+                              key={idx}
+                              prayerDice={character.seraph_prayer_dice}
+                              spellcastValue={spellcastValue}
+                              hasDevout={character.subclass_data?.name?.toLowerCase() === 'divine wielder' && character.subclass_progression?.specialization_obtained === true}
+                              description={feature.text}
+                              onUpdatePrayerDice={updatePrayerDice}
+                            />
                           );
                         }
 
                         // Standard class feature display - look up enhanced data for interactive elements
                         const enhancedFeat = enhancedClassFeats.find((f: any) => f.name === feature.name);
+                        const enhancedData = enhancedFeat;
                         const enhancement = enhancedFeat?.enhancement;
-                        const hasCosts = enhancement?.costs?.stress || enhancement?.costs?.hope;
-                        const hasTokens = enhancement?.tokens?.has_tokens;
-                        const hasFrequency = enhancement?.frequency && enhancement.frequency !== 'at_will';
                         const hasRoll = enhancement?.roll?.trait;
-                        const cardName = `class-feature-${character.class_data!.name}-${feature.name}`;
 
                         // Calculate roll bonus with proper modifier support (handles Spellcast derivation)
                         const rollResult = hasRoll ? calculateRollBonus(character, enhancement.roll.trait, cardStates) : null;
@@ -1137,49 +1071,18 @@ export default function CharacterView() {
                         const rollLabel = hasRoll ? `${rollResult?.label}${enhancement.roll.difficulty ? ` (${enhancement.roll.difficulty})` : ''}` : '';
 
                         return (
-                          <div key={idx} className="mt-2 bg-white/5 rounded p-3 border border-white/5">
-                            <div className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-1">
-                              {feature.name}
-                            </div>
-                            <div className="text-sm text-gray-300 leading-relaxed">
-                              <MarkdownText>{feature.text}</MarkdownText>
-                            </div>
-                            {/* Interactive elements for class features */}
-                            {(hasCosts || hasTokens || hasFrequency || hasRoll) && (
-                              <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
-                                {hasTokens && (
-                                  <CardTokenTrack
-                                    cardName={cardName}
-                                    maxTokens={enhancement.tokens.max_tokens ?? null}
-                                    tokenSource={enhancement.tokens.token_source}
-                                  />
-                                )}
-                                <div className="flex flex-wrap gap-2 items-center">
-                                  {hasCosts && (
-                                    <DomainCostsRow
-                                      cardName={cardName}
-                                      displayName={feature.name}
-                                      costs={enhancement.costs}
-                                      className="flex flex-wrap gap-2"
-                                    />
-                                  )}
-                                  {hasFrequency && (
-                                    <FrequencyCheckbox
-                                      cardName={cardName}
-                                      frequency={enhancement.frequency}
-                                    />
-                                  )}
-                                  {hasRoll && (
-                                    <RollButton
-                                      label={rollLabel}
-                                      onClick={() => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus)}
-                                      bonus={rollBonus}
-                                    />
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                          <AttackCard
+                            key={idx}
+                            id={`class-feature-${character.class_data!.name}-${feature.name}`}
+                            name={feature.name}
+                            description={feature.text}
+                            enhancedData={enhancedData}
+                            context="character"
+                            variant="feature"
+                            borderVariant="class"
+                            totalAttackBonus={rollBonus}
+                            onAttackRoll={hasRoll ? () => prepareRoll(`${feature.name} ${rollLabel}`, rollBonus) : undefined}
+                          />
                         );
                       })}
                     </div>
@@ -1191,7 +1094,7 @@ export default function CharacterView() {
               {(character.subclass_progression || character.multiclass_progression) && (
                 <div className="space-y-2">
                   <SectionHeader
-                    title={<><AppIcons.vitals.hope size={14} /> Subclass Features</>}
+                    title={<>Subclass Features <SRDInfoButton ruleKey="character.subclass" title="Subclass Features" /></>}
                     isVisible={showSubclassFeatures}
                     onToggle={() => setShowSubclassFeatures(!showSubclassFeatures)}
                   />

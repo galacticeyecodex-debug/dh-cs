@@ -28,6 +28,7 @@ import { MarkdownText } from '@/components/shared/markdown-text';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import ViewHeader from '@/components/shared/view-header';
 import ModifierSheet from '@/components/shared/modifier-sheet';
+import SRDInfoButton from '@/components/shared/srd-info-button';
 import ConfirmDialog from '@/components/shared/confirm-dialog';
 import { parseCardPassiveModifiers, parseCombatAbility, calculateDynamicValue, type PassiveModifier, type ModifierCondition, type CombatAbility } from '@/lib/card-parser';
 import { toast } from 'react-hot-toast';
@@ -160,27 +161,30 @@ export default function PlaymatView() {
         <div className="sticky top-0 z-20 bg-dagger-dark/95 backdrop-blur border-b border-white/10 -mx-4 px-4 py-2 shadow-sm">
           {/* Top row: Loadout/Vault toggle + Add Card button */}
           <div className="flex justify-between items-center gap-2">
-            <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
-              <button
-                onClick={() => setViewMode('loadout')}
-                className={clsx(
-                  "px-3 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                  viewMode === 'loadout' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
-                )}
-                aria-label="Show loadout cards"
-              >
-                <ScrollText size={14} /> Loadout
-              </button>
-              <button
-                onClick={() => setViewMode('vault')}
-                className={clsx(
-                  "px-3 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                  viewMode === 'vault' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
-                )}
-                aria-label="Show vault cards"
-              >
-                <Archive size={14} /> Vault
-              </button>
+            <div className="flex items-center gap-2">
+              <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
+                <button
+                  onClick={() => setViewMode('loadout')}
+                  className={clsx(
+                    "px-3 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
+                    viewMode === 'loadout' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
+                  )}
+                  aria-label="Show loadout cards"
+                >
+                  <ScrollText size={14} /> Loadout
+                </button>
+                <button
+                  onClick={() => setViewMode('vault')}
+                  className={clsx(
+                    "px-3 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
+                    viewMode === 'vault' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
+                  )}
+                  aria-label="Show vault cards"
+                >
+                  <Archive size={14} /> Vault
+                </button>
+              </div>
+              <SRDInfoButton ruleKey="domains.loadoutVault" title="Loadout & Vault" />
             </div>
 
             <button
@@ -639,15 +643,18 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
               </div>
 
               {/* Top Right: Recall Cost */}
-              <div
-                className="relative w-10 h-10 rounded-full flex items-center justify-center text-white font-eveleth font-bold text-lg shadow-md border-2"
-                style={{
-                  backgroundColor: theme.secondary,
-                  borderColor: theme.accent
-                }}
-              >
-                {recallCost}
-                <Zap size={14} className="absolute bottom-1 right-1 text-yellow-400" />
+              <div className="flex items-center gap-1">
+                <div
+                  className="relative w-10 h-10 rounded-full flex items-center justify-center text-white font-eveleth font-bold text-lg shadow-md border-2"
+                  style={{
+                    backgroundColor: theme.secondary,
+                    borderColor: theme.accent
+                  }}
+                >
+                  {recallCost}
+                  <Zap size={14} className="absolute bottom-1 right-1 text-yellow-400" />
+                </div>
+                <SRDInfoButton ruleKey="domains.recallCost" title="Recall Cost" />
               </div>
             </div>
 

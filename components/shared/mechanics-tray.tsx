@@ -14,6 +14,7 @@
 'use client';
 
 import React from 'react';
+import clsx from 'clsx';
 import CardTokenTrack from '@/components/shared/token-track';
 import FrequencyCheckbox from '@/components/shared/frequency-checkbox';
 import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
@@ -87,6 +88,12 @@ export interface MechanicsTrayProps {
 
   /** Additional CSS class */
   className?: string;
+  /** Visual variant: 'default' has border/bg, 'nested' is transparent */
+  variant?: 'default' | 'nested';
+  /** Whether to render costs (default true). Set false if parent handles costs. */
+  showCosts?: boolean;
+  /** Whether to render frequency (default true). Set false if parent handles frequency. */
+  showFrequency?: boolean;
 }
 
 export default function MechanicsTray({
@@ -108,12 +115,23 @@ export default function MechanicsTray({
   onCostDeactivate,
   costDisabled = false,
   className,
+  variant = 'default',
+  showCosts = true,
+  showFrequency = true,
 }: MechanicsTrayProps) {
   const { prepareRoll } = useCharacterStore();
 
   const costs = enhancement.costs;
-  const showTokenTrack = enhancement.tokens?.has_tokens;
-  const showFrequency = enhancement.frequency && enhancement.frequency !== 'at_will';
+  const tokens = enhancement.tokens;
+
+  // Only show token track if we have valid data (max > 0 or source)
+  // This prevents "ghost" tracks from creating empty dividers
+  const showTokenTrack = !!tokens?.has_tokens && (
+    ((tokens.max_tokens ?? 0) > 0) ||
+    !!tokens.token_source
+  );
+
+  const shouldShowFrequency = showFrequency && enhancement.frequency && enhancement.frequency !== 'at_will';
   const showDuration = !!enhancement.duration;
 
   // Extract when_active modifiers
@@ -122,8 +140,8 @@ export default function MechanicsTray({
   const hasWhenActiveModifiers = whenActiveModifiers.length > 0;
 
   // Determine if anything should render
-  const hasCosts = !!(costs?.stress || costs?.hope);
-  const showMechanics = showTokenTrack || showFrequency || hasAttackOrRoll || showDuration || hasWhenActiveModifiers || hasCosts;
+  const hasCosts = showCosts && !!(costs?.stress || costs?.hope);
+  const showMechanics = showTokenTrack || shouldShowFrequency || hasAttackOrRoll || showDuration || hasWhenActiveModifiers || hasCosts;
 
   if (!showMechanics) return null;
 
@@ -142,32 +160,41 @@ export default function MechanicsTray({
     prepareRoll(`${cardName} Damage`, modifier, dice);
   } : undefined);
 
+  const paddingX = variant === 'default' ? 'px-4' : 'px-0';
+
+  // Determine if there are management actions (Costs, Duration, Frequency)
+  const hasManagementActions = (showDuration && enhancement.duration && !hasWhenActiveModifiers) ||
+    (costMode === 'uncontrolled' && costs && showCosts) ||
+    (costMode === 'controlled' && needsActivation && showCosts) ||
+    (shouldShowFrequency && enhancement.frequency);
+
   return (
-    <div className={className || "bg-black/40 border border-white/10 rounded-lg p-2 space-y-2 w-full"}>
+    <div
+      className={className || clsx(
+        "space-y-2 w-full",
+        variant === 'default' && "bg-black/40 border border-white/10 rounded-lg"
+      )}
+      aria-label={`mechanics-tray-${cardName}`}
+      data-card-name={cardName}
+    >
       {/* Token Track */}
       {showTokenTrack && (
-        <CardTokenTrack
-          cardName={cardName}
-          maxTokens={enhancement.tokens?.max_tokens ?? null}
-          tokenSource={enhancement.tokens?.token_source}
-        />
-      )}
-
-      {/* Frequency */}
-      {showFrequency && enhancement.frequency && (
-        <div className="flex justify-center">
-          <FrequencyCheckbox
+        <div className={paddingX} aria-label="token-track-container">
+          <CardTokenTrack
             cardName={cardName}
-            frequency={enhancement.frequency}
-            className="bg-white/5 px-3 py-1.5 w-full justify-center"
+            maxTokens={tokens?.max_tokens ?? null}
+            tokenSource={tokens?.token_source}
           />
         </div>
       )}
 
       {/* Modifier Activation Rows */}
       {hasWhenActiveModifiers && (
-        <div className="space-y-1.5">
-          <h4 className="text-[10px] font-bold uppercase text-purple-400 tracking-wider text-center">
+        <div
+          className={clsx("space-y-1.5", paddingX)}
+          aria-label="modifiers-container"
+        >
+          <h4 className="text-[10px] font-bold uppercase text-purple-400 tracking-wider text-left">
             Modifiers
           </h4>
           {whenActiveModifiers.map((mod, index) => {
@@ -186,45 +213,73 @@ export default function MechanicsTray({
         </div>
       )}
 
-      {/* Duration toggle - only for cards WITHOUT when_active modifiers */}
-      {showDuration && enhancement.duration && !hasWhenActiveModifiers && (
-        <div className="flex justify-center">
-          <DomainAbilityButton
-            cardName={cardName}
-            costType="duration"
-            label={enhancement.duration === 'scene' ? 'Active (Scene)' : 'Active'}
-            className="w-full justify-center"
-          />
+      {/* 2) Management Row: Spend costs + Activate + Duration + Frequency */}
+      {hasManagementActions && (
+        <div
+          className={clsx(
+            "flex flex-wrap gap-2 items-center justify-start",
+            (showTokenTrack || hasWhenActiveModifiers) && "pt-3 border-t border-white/10 mt-2",
+            paddingX
+          )}
+          aria-label="management-row"
+          data-border-trigger={showTokenTrack ? 'tokens' : hasWhenActiveModifiers ? 'modifiers' : 'none'}
+        >
+          {/* Costs - uncontrolled mode */}
+          {costMode === 'uncontrolled' && costs && showCosts && (
+            <DomainCostsRow
+              cardName={cardName}
+              displayName={cardName}
+              costs={costs}
+              className="flex flex-wrap gap-2 items-center"
+            />
+          )}
+
+          {/* Costs - controlled mode */}
+          {costMode === 'controlled' && needsActivation && showCosts && (
+            <DomainCostsRow
+              cardName={cardName}
+              displayName={cardName}
+              costs={costs as CardCosts}
+              isActiveOverride={isCostPaid}
+              onActivate={onCostActivate}
+              onDeactivate={onCostDeactivate}
+              disabled={costDisabled}
+              className="flex flex-wrap gap-2 items-center"
+            />
+          )}
+
+          {/* Duration toggle */}
+          {showDuration && enhancement.duration && !hasWhenActiveModifiers && (
+            <DomainAbilityButton
+              cardName={cardName}
+              costType="duration"
+              className="justify-start focus:ring-0"
+            />
+          )}
+
+          {/* Frequency */}
+          {shouldShowFrequency && enhancement.frequency && (
+            <FrequencyCheckbox
+              cardName={cardName}
+              frequency={enhancement.frequency}
+              className="bg-white/5 py-1.5 justify-start"
+            />
+          )}
         </div>
       )}
 
-      {/* Costs - uncontrolled mode (Playmat style) */}
-      {costMode === 'uncontrolled' && costs && (
-        <DomainCostsRow
-          cardName={cardName}
-          displayName={cardName}
-          costs={costs}
-          className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5"
-        />
-      )}
-
-      {/* Costs - controlled mode (Combat style: costs gate rolls) */}
-      {costMode === 'controlled' && needsActivation && (
-        <DomainCostsRow
-          cardName={cardName}
-          displayName={cardName}
-          costs={costs as CardCosts}
-          isActiveOverride={isCostPaid}
-          onActivate={onCostActivate}
-          onDeactivate={onCostDeactivate}
-          disabled={costDisabled}
-          className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5"
-        />
-      )}
-
-      {/* Roll & Damage Buttons */}
+      {/* 3) Rolls Row: Attack/Spellcast + Damage rolls */}
       {hasAttackOrRoll && (
-        <div className="flex flex-wrap gap-2 justify-center pt-1 border-t border-white/5">
+        <div
+          className={clsx(
+            "flex flex-wrap gap-2 items-center justify-start",
+            // Add border if there were items above (Tokens, Modifiers, or Management)
+            (showTokenTrack || hasWhenActiveModifiers || hasManagementActions) && "pt-3 border-t border-white/10 mt-2",
+            // If no items above, no border needed (though unlikely in this flow)
+            paddingX
+          )}
+          aria-label="rolls-row"
+        >
           {showAttackButton && handleRoll && (
             <RollButton
               label={rollLabel || 'Attack'}

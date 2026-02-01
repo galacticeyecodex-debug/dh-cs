@@ -72,7 +72,7 @@ A class is a role-based archetype that determines a PC’s:
 
 There are 9 classes in the Daggerheart core materials: Bard, Druid, Guardian, Ranger, Rogue, Seraph, Sorcerer, Warrior, and Wizard.
 
-## SUBCLASSES
+# SUBCLASSES
 
 Each class is divided into two **subclasses**, each of which further defines and highlights one aspect of its class archetype. Your chosen subclass grants the following:
 
