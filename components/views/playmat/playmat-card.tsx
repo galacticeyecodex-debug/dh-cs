@@ -109,26 +109,6 @@ export default function PlaymatCard({
               {isLoadout ? "Vault" : "Loadout"}
             </button>
 
-            {/* Info Toggle */}
-            {libraryItem.data?.description && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDescription(!showDescription);
-                }}
-                className={clsx(
-                  "p-1 rounded transition-colors backdrop-blur-sm",
-                  showDescription
-                    ? "bg-dagger-gold/30 text-dagger-gold border border-dagger-gold/50"
-                    : "text-white/70 hover:text-white hover:bg-white/10"
-                )}
-                aria-label={`${showDescription ? 'Hide' : 'Show'} ${libraryItem.name} description`}
-                title={showDescription ? "Hide description" : "Show description"}
-              >
-                <AppIcons.ui.info size={12} />
-              </button>
-            )}
-
             {/* Art Button */}
             {onEditArt && (
               <button
