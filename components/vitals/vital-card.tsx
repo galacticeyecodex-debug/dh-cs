@@ -25,6 +25,7 @@ import { useCharacterStore } from '@/store/character-store';
 import { getIconByName, VitalId, AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import ModifierSheet, { ModifierTab } from '@/components/shared/modifier-sheet';
+import SRDInfoButton from '@/components/shared/srd-info-button';
 import { getValueColor, getPanelBorder, PANEL } from '@/lib/styles';
 
 // Modifier source types align with ModifierSourceType from modifier-aggregator
@@ -85,6 +86,16 @@ const VitalCard = React.memo(function VitalCard({
   // Resolve icon: Prop > dynamic from store > Heart fallback
   const iconPreference = useCharacterStore(state => vitalId ? state.vitalIcons[vitalId] : null);
   const Icon = PassedIcon || (vitalId && iconPreference ? getIconByName(iconPreference) : AppIcons.vitals.hitPoints);
+
+  // Determine SRD rule key based on vital type
+  const srdRuleKeyMap: Record<string, string> = {
+    'Hit Points': 'vitals.hitPoints',
+    'Stress': 'vitals.stress',
+    'Hope': 'vitals.hope',
+    'Armor': 'equipment.armor',
+    'Evasion': 'vitals.evasion',
+  };
+  const srdRuleKey = srdRuleKeyMap[label];
 
   const isReadOnly = onIncrement === undefined || onDecrement === undefined;
   const isUnarmored = label === 'Armor' && (!max || max === 0);
@@ -209,18 +220,21 @@ const VitalCard = React.memo(function VitalCard({
             <Icon size={12} />
             {label}
           </div>
-          {onUpdateModifiers && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowModifierSheet(true);
-              }}
-              className="absolute right-0 text-gray-500 hover:text-gray-300 transition-colors"
-              aria-label={`Manage ${label} modifiers`}
-            >
-              <AppIcons.ui.settings size={12} />
-            </button>
-          )}
+          <div className="absolute right-0 flex items-center gap-0.5">
+            {srdRuleKey && <SRDInfoButton ruleKey={srdRuleKey} size={12} title={label} />}
+            {onUpdateModifiers && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowModifierSheet(true);
+                }}
+                className="p-0.5 text-gray-500 hover:text-gray-300 transition-colors rounded hover:bg-white/10"
+                aria-label={`Manage ${label} modifiers`}
+              >
+                <AppIcons.ui.settings size={12} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Main Content Row: Left Button | Track/Value | Right Button */}

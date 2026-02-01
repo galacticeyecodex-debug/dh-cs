@@ -51,10 +51,11 @@ export function MiniVitalsPanel({
     const [selectedVitalIndex, setSelectedVitalIndex] = useState<number | null>(null);
 
     const handleVitalClick = useCallback((index: number, vital: VitalEntry) => {
-        // If vital has trackType (interactive), open the tray
+        // If vital has trackType (interactive), toggle the tray
         // Otherwise, use the provided onClick handler (for read-only vitals)
         if (vital.trackType && vital.onIncrement && vital.onDecrement && vital.max) {
-            setSelectedVitalIndex(index);
+            // Toggle: close if already open, open if closed
+            setSelectedVitalIndex(prev => prev === index ? null : index);
         } else if (vital.onClick) {
             vital.onClick();
         }

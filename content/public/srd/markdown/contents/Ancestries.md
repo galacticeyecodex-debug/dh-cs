@@ -14,27 +14,6 @@ Each ancestry grants two **ancestry features.** While some features specify the 
 
 If you’d like to make a character who combines more than one ancestry, see “Mixed Ancestry.”
 
-**The 18 Ancestries are:**
-
-- [Clank](../ancestries/Clank.md)
-- [Drakona](../ancestries/Drakona.md)
-- [Dwarf](../ancestries/Dwarf.md)
-- [Elf](../ancestries/Elf.md)
-- [Faerie](../ancestries/Faerie.md)
-- [Faun](../ancestries/Faun.md)
-- [Firbolg](../ancestries/Firbolg.md)
-- [Fungril](../ancestries/Fungril.md)
-- [Galapa](../ancestries/Galapa.md)
-- [Giant](../ancestries/Giant.md)
-- [Goblin](../ancestries/Goblin.md)
-- [Halfling](../ancestries/Halfling.md)
-- [Human](../ancestries/Human.md)
-- [Infernis](../ancestries/Infernis.md)
-- [Katari](../ancestries/Katari.md)
-- [Orc](../ancestries/Orc.md)
-- [Ribbet](../ancestries/Ribbet.md)
-- [Simiah](../ancestries/Simiah.md)
-
 ## MIXED ANCESTRY
 
 Families within the world of Daggerheart are as unique as the peoples and cultures that inhabit it. Anyone’s appearance and abilities can be shaped by blood, magic, proximity, or a variety of other factors.

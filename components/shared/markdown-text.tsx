@@ -19,6 +19,11 @@ export function MarkdownText({ children, className }: MarkdownTextProps) {
       <ReactMarkdown
         remarkPlugins={[remarkBreaks]}
         components={{
+          // Headers: Style with proper hierarchy
+          h2: ({ children }) => <h2 className="text-lg font-bold text-dagger-gold mt-4 mb-2 first:mt-0">{children}</h2>,
+          h3: ({ children }) => <h3 className="text-base font-bold text-white mt-3 mb-1.5 first:mt-0">{children}</h3>,
+          h4: ({ children }) => <h4 className="text-sm font-bold text-gray-300 mt-2 mb-1 first:mt-0">{children}</h4>,
+
           // Paragraphs: allow them to inherit color/size, add spacing
           p: ({ children }) => <p className="mb-2 last:mb-0 leading-snug">{children}</p>,
 

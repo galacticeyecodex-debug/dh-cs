@@ -28,6 +28,7 @@ import SectionHeader from '@/components/shared/section-header';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import useContentAccess from '@/hooks/useContentAccess';
 import ViewHeader from '@/components/shared/view-header';
+import SRDInfoButton from '@/components/shared/srd-info-button';
 
 import { AttackCard, FrequencyCheckbox, CardTokenTrack } from './';
 import { hasCombatRelevance, enhanceFeature } from '@/lib/card-parser';
@@ -262,43 +263,50 @@ export default function CombatView() {
         {armor && (
           <div className="space-y-2">
             <SectionHeader
-              title={<><Shield size={14} /> Active Armor</>}
+              title={<><Shield size={14} /> Active Armor <SRDInfoButton ruleKey="equipment.armor" title="Active Armor" /></>}
               isVisible={showArmor}
               onToggle={() => setShowArmor(!showArmor)}
             />
             {showArmor && (
-              <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
-                <h4 className="font-serif font-bold text-white mb-1">{armor.name}</h4>
-                {armor.library_item?.data && (
-                  <div className="text-xs text-gray-400 mt-1">
-                    {armor.library_item.data.feature?.name && (
-                      <div className="italic">
-                        <span className="font-bold not-italic text-gray-300">{armor.library_item.data.feature.name}:</span>{' '}
-                        <div className="inline-block align-top">
-                          <MarkdownText>{armor.library_item.data.feature.text}</MarkdownText>
+              <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-3">
+                {/* Armor Item Card - nested design matching weapons */}
+                <div className="bg-white/5 rounded border border-white/5 p-3">
+                  <h4 className="text-xs font-bold text-dagger-gold uppercase tracking-wider mb-2">{armor.name}</h4>
+                  {armor.library_item?.data && (
+                    <div className="text-xs text-gray-300 space-y-2">
+                      {armor.library_item.data.feature?.name && (
+                        <div>
+                          <span className="font-bold text-dagger-gold">{armor.library_item.data.feature.name}</span>
+                          <div className="text-gray-300 leading-relaxed mt-1">
+                            <MarkdownText>{armor.library_item.data.feature.text}</MarkdownText>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    <p className="mt-1">Score: {armor.library_item.data.base_score}, Thresholds: {armor.library_item.data.base_thresholds}</p>
-                  </div>
-                )}
+                      )}
+                      <p className="text-gray-400">Score: {armor.library_item.data.base_score}, Thresholds: {armor.library_item.data.base_thresholds}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
         )}
 
         {/* Weapons List */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <SectionHeader
-            title={<><Swords size={14} /> Active Weapons</>}
+            title={<><Swords size={14} /> Active Weapons <SRDInfoButton ruleKey="combat.attacking" title="Active Weapons" /></>}
             isVisible={showWeapons}
             onToggle={() => setShowWeapons(!showWeapons)}
           />
 
           {showWeapons && (
-            <>
-              <div className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 border border-white/5">
-                <span className="text-sm font-medium text-gray-300">Proficiency</span>
+            <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-3">
+              {/* Proficiency Info Box */}
+              <div className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 border border-white/10">
+                <span className="text-sm font-medium text-gray-300 flex items-center gap-1">
+                  Proficiency
+                  <SRDInfoButton ruleKey="combat.damageRolls" title="Proficiency" />
+                </span>
                 <button
                   onClick={() => setShowProficiencyModifiers(true)}
                   className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-bold transition-colors ${isProficiencyModified
@@ -362,6 +370,7 @@ export default function CombatView() {
                       costs={costs}
                       onSpendHope={() => character && updateHope(character.hope - (costs?.hope || 0))}
                       onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (costs?.stress || 0))}
+                      variant="feature"
                     />
                   );
                 })
@@ -398,10 +407,11 @@ export default function CombatView() {
                     borderVariant="companion"
                     icon={<span className="text-lg">🐾</span>}
                     badges={[{ label: 'Companion', className: 'text-dagger-gold' }]}
+                    variant="feature"
                   />
                 );
               })()}
-            </>
+            </div>
           )}
         </div>
         {/* Transformation Abilities */}
@@ -414,7 +424,7 @@ export default function CombatView() {
             />
 
             {showTransformation && (
-              <>
+              <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-3">
                 {transformationCard.features
                   ?.filter((feature: any) => feature.type === 'attack' && feature.attack)
                   .map((feature: any, index: number) => {
@@ -461,10 +471,11 @@ export default function CombatView() {
                         onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (feature.costs?.stress || 0))}
                         onSpendHope={() => character && updateHope(character.hope - (feature.costs?.hope || 0))}
                         onManageModifiers={() => setActiveWeaponId(`transformation-${index}`)}
+                        variant="feature"
                       />
                     );
                   })}
-              </>
+              </div>
             )}
           </div>
         )}
@@ -478,83 +489,88 @@ export default function CombatView() {
               onToggle={() => setShowFeatures(!showFeatures)}
             />
 
-            {showFeatures && combatFeatures.map((feature) => {
-              const attack = feature.attack;
-              const trait = attack?.trait || 'Instinct';
-              const traitKey = trait.toLowerCase();
-              const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+            {showFeatures && (
+              <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-3">
+                {combatFeatures.map((feature) => {
+                  const attack = feature.attack;
+                  const trait = attack?.trait || 'Instinct';
+                  const traitKey = trait.toLowerCase();
+                  const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
 
-              // Get modifiers for this trait
-              const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
-              const allTraitMods = systemTraitMods;
-              const traitModifierSum = allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
-              const totalTraitValue = baseTraitValue + traitModifierSum;
+                  // Get modifiers for this trait
+                  const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
+                  const allTraitMods = systemTraitMods;
+                  const traitModifierSum = allTraitMods.reduce((acc, mod) => acc + mod.value, 0);
+                  const totalTraitValue = baseTraitValue + traitModifierSum;
 
-              // Feature may use physical or spellcast trait
-              const featureRollType = (attack?.trait?.toLowerCase() === 'spellcast') ? 'spellcast' as const : 'weapon' as const;
-              const attackModifier = calculateAttackBonus(character, cardStates, enhancedAbilities,
-                { rollType: featureRollType, actionType: feature.action_type as 'attack' | undefined });
-              const damageModifier = calculateDamageBonus(character, cardStates);
-              const totalAttackBonus = totalTraitValue + attackModifier;
+                  // Feature may use physical or spellcast trait
+                  const featureRollType = (attack?.trait?.toLowerCase() === 'spellcast') ? 'spellcast' as const : 'weapon' as const;
+                  const attackModifier = calculateAttackBonus(character, cardStates, enhancedAbilities,
+                    { rollType: featureRollType, actionType: feature.action_type as 'attack' | undefined });
+                  const damageModifier = calculateDamageBonus(character, cardStates);
+                  const totalAttackBonus = totalTraitValue + attackModifier;
 
-              // Calculate damage - scale by proficiency, spellcast, or not at all
-              const baseDamage = attack?.damage;
-              const scalingValue = getScalingValue(attack?.damage_scaling, totalProficiency, spellcastDetails.totalSpellcastBonus);
-              const calculatedDamage = baseDamage ? calculateWeaponDamage(baseDamage, scalingValue, damageModifier) : undefined;
+                  // Calculate damage - scale by proficiency, spellcast, or not at all
+                  const baseDamage = attack?.damage;
+                  const scalingValue = getScalingValue(attack?.damage_scaling, totalProficiency, spellcastDetails.totalSpellcastBonus);
+                  const calculatedDamage = baseDamage ? calculateWeaponDamage(baseDamage, scalingValue, damageModifier) : undefined;
 
-              // Color mapping for badges
-              const sourceColors = {
-                ancestry: 'bg-emerald-500/20 text-emerald-400',
-                community: 'bg-amber-500/20 text-amber-400',
-                class: 'bg-cyan-500/20 text-cyan-400',
-                subclass: 'bg-indigo-500/20 text-indigo-400',
-              };
+                  // Color mapping for badges
+                  const sourceColors = {
+                    ancestry: 'border-emerald-500/20 bg-emerald-500/5 text-emerald-400/80',
+                    community: 'border-amber-500/20 bg-amber-500/5 text-amber-400/80',
+                    class: 'border-cyan-500/20 bg-cyan-500/5 text-cyan-400/80',
+                    subclass: 'border-indigo-500/20 bg-indigo-500/5 text-indigo-400/80',
+                  };
 
-              // Determine if this feature needs an Attack button based on combat_category
-              // damage_bonus and passive_triggered features don't need Attack buttons
-              const combatCategory = attack?.combat_category || 'passive_triggered';
-              const showAttackButton = combatCategory === 'standalone_attack' || combatCategory === 'roll_only';
+                  // Determine if this feature needs an Attack button based on combat_category
+                  // damage_bonus and passive_triggered features don't need Attack buttons
+                  const combatCategory = attack?.combat_category || 'passive_triggered';
+                  const showAttackButton = combatCategory === 'standalone_attack' || combatCategory === 'roll_only';
 
-              return (
-                <AttackCard
-                  key={`${feature.source}-${feature.name}`}
-                  id={`heritage-${feature.source}-${feature.name}`}
-                  name={feature.name}
-                  trait={trait}
-                  range={attack?.range || 'Self'}
-                  baseDamage={baseDamage}
-                  calculatedDamage={calculatedDamage}
-                  totalAttackBonus={totalAttackBonus}
-                  attackModifier={attackModifier}
-                  damageModifier={damageModifier}
-                  proficiency={totalProficiency}
-                  onAttackRoll={showAttackButton ? () => prepareRoll(`${feature.name} (${trait})`, totalAttackBonus) : undefined}
-                  onDamageRoll={baseDamage ? () => {
-                    const { dice, modifier } = parseDamageRoll(calculatedDamage!);
-                    prepareRoll(`${feature.name} Damage`, modifier, dice);
-                  } : undefined}
-                  onManageModifiers={() => setActiveWeaponId(`heritage-${feature.source}-${feature.name}`)}
-                  borderVariant={feature.sourceType}
-                  description={feature.text}
-                  actionType={feature.action_type}
-                  costs={feature.costs}
-                  badges={[{
-                    label: feature.source,
-                    className: sourceColors[feature.sourceType]
-                  }]}
-                  onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (feature.costs?.stress || 0))}
-                  onSpendHope={() => character && updateHope(character.hope - (feature.costs?.hope || 0))}
-                  rollLabel={combatCategory === 'damage_bonus' ? undefined : (combatCategory === 'roll_only' ? 'Roll' : 'Attack')}
-                  tokenTrack={feature.tokens?.has_tokens ? (
-                    <CardTokenTrack
-                      cardName={`heritage-${feature.source}-${feature.name}`}
-                      maxTokens={feature.tokens.max_tokens ?? null}
-                      tokenSource={feature.tokens.token_source}
+                  return (
+                    <AttackCard
+                      key={`${feature.source}-${feature.name}`}
+                      id={`heritage-${feature.source}-${feature.name}`}
+                      name={feature.name}
+                      trait={trait}
+                      range={attack?.range || 'Self'}
+                      baseDamage={baseDamage}
+                      calculatedDamage={calculatedDamage}
+                      totalAttackBonus={totalAttackBonus}
+                      attackModifier={attackModifier}
+                      damageModifier={damageModifier}
+                      proficiency={totalProficiency}
+                      onAttackRoll={showAttackButton ? () => prepareRoll(`${feature.name} (${trait})`, totalAttackBonus) : undefined}
+                      onDamageRoll={baseDamage ? () => {
+                        const { dice, modifier } = parseDamageRoll(calculatedDamage!);
+                        prepareRoll(`${feature.name} Damage`, modifier, dice);
+                      } : undefined}
+                      onManageModifiers={() => setActiveWeaponId(`heritage-${feature.source}-${feature.name}`)}
+                      borderVariant={feature.sourceType}
+                      description={feature.text}
+                      actionType={feature.action_type}
+                      costs={feature.costs}
+                      badges={[{
+                        label: feature.source,
+                        className: sourceColors[feature.sourceType]
+                      }]}
+                      onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (feature.costs?.stress || 0))}
+                      onSpendHope={() => character && updateHope(character.hope - (feature.costs?.hope || 0))}
+                      rollLabel={combatCategory === 'damage_bonus' ? undefined : (combatCategory === 'roll_only' ? 'Roll' : 'Attack')}
+                      tokenTrack={feature.tokens?.has_tokens ? (
+                        <CardTokenTrack
+                          cardName={`heritage-${feature.source}-${feature.name}`}
+                          maxTokens={feature.tokens.max_tokens ?? null}
+                          tokenSource={feature.tokens.token_source}
+                        />
+                      ) : undefined}
+                      variant="feature"
                     />
-                  ) : undefined}
-                />
-              );
-            })}
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -562,162 +578,156 @@ export default function CombatView() {
         {combatAbilities.length > 0 && (
           <div className="space-y-3">
             <SectionHeader
-              title={<><Wand2 size={14} /> Spells & Abilities</>}
+              title={<><Wand2 size={14} /> Spells & Abilities <SRDInfoButton ruleKey="combat.attacking" title="Spells & Abilities" /></>}
               isVisible={showSpells}
               onToggle={() => setShowSpells(!showSpells)}
             />
 
             {showSpells && (
-              <div className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 border border-white/5 mb-3">
-                <span className="text-sm font-medium text-gray-300">Spellcast ({spellcastDetails.traitName})</span>
-                <button
-                  onClick={() => setShowSpellcastModifiers(true)}
-                  className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-bold transition-colors ${spellcastDetails.isSpellcastModified
-                    ? 'bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20'
-                    : 'bg-white/10 border border-white/10 text-white hover:bg-white/20'
-                    }`}
-                  aria-label={`Adjust spellcast (currently ${spellcastDetails.totalSpellcastBonus})`}
-                >
-                  <Wand2 size={12} />
-                  {spellcastDetails.totalSpellcastBonus >= 0 ? `+${spellcastDetails.totalSpellcastBonus}` : spellcastDetails.totalSpellcastBonus}
-                </button>
+              <div className="bg-dagger-panel border border-white/10 rounded-xl p-4 space-y-3">
+                {/* Spellcast Bonus Info Box */}
+                <div className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 border border-white/10">
+                  <span className="text-sm font-medium text-gray-300">Spellcast ({spellcastDetails.traitName})</span>
+                  <button
+                    onClick={() => setShowSpellcastModifiers(true)}
+                    className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-bold transition-colors ${spellcastDetails.isSpellcastModified
+                      ? 'bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20'
+                      : 'bg-white/10 border border-white/10 text-white hover:bg-white/20'
+                      }`}
+                    aria-label={`Adjust spellcast (currently ${spellcastDetails.totalSpellcastBonus})`}
+                  >
+                    <Wand2 size={12} />
+                    {spellcastDetails.totalSpellcastBonus >= 0 ? `+${spellcastDetails.totalSpellcastBonus}` : spellcastDetails.totalSpellcastBonus}
+                  </button>
+                </div>
+
+                {combatAbilities.map((ability) => {
+                  const enhancement = getEnhancement(ability);
+                  if (!enhancement) return null;
+
+                  // ... (rest of the map logic)
+                  const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
+                  const rawTraitValue = spellcastTraitName
+                    ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0)
+                    : (character.spellcast || 0);
+
+                  let traitModSum = 0;
+                  if (spellcastTraitName) {
+                    const tKey = spellcastTraitName.toLowerCase();
+                    const tSystem = getStatModifiers(character, tKey, cardStates);
+                    traitModSum = tSystem.reduce((acc, m) => acc + m.value, 0);
+                  }
+
+                  const spellcastBase = rawTraitValue + traitModSum;
+                  const spellcastMods = getStatModifiers(character, 'spellcast', cardStates);
+                  const totalSpellcast = spellcastBase + spellcastMods.reduce((acc, mod) => acc + mod.value, 0);
+
+                  let rollBonus = 0;
+                  let rollLabel = '';
+
+                  if (enhancement.roll?.trait) {
+                    const traitKey = enhancement.roll.trait.toLowerCase();
+                    if (traitKey === 'spellcast') {
+                      rollBonus = totalSpellcast;
+                      rollLabel = 'Spellcast';
+                    } else {
+                      const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+                      const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
+                      rollBonus = baseTraitValue + systemTraitMods.reduce((acc, mod) => acc + mod.value, 0);
+                      rollLabel = enhancement.roll.trait;
+                    }
+                  } else if (enhancement.attack?.trait) {
+                    const traitKey = enhancement.attack.trait.toLowerCase();
+                    if (traitKey === 'spellcast') {
+                      rollBonus = totalSpellcast;
+                      rollLabel = 'Spellcast';
+                    } else {
+                      const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
+                      const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
+                      rollBonus = baseTraitValue + systemTraitMods.reduce((acc, mod) => acc + mod.value, 0);
+                      rollLabel = enhancement.attack.trait;
+                    }
+                  }
+
+                  const abilityRollType = rollLabel === 'Spellcast' ? 'spellcast' as const : 'weapon' as const;
+                  const attackModifier = calculateAttackBonus(character, cardStates, enhancedAbilities,
+                    { rollType: abilityRollType, actionType: enhancement.action_type as 'attack' | undefined });
+                  const damageModifier = calculateDamageBonus(character, cardStates);
+                  const finalAttackBonus = rollBonus + attackModifier;
+
+                  const baseDamage = enhancement.attack?.damage || (enhancement as any).damage;
+                  const scalingValue = getScalingValue(enhancement.attack?.damage_scaling || (enhancement as any).damage_scaling, totalProficiency, spellcastDetails.totalSpellcastBonus);
+                  const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, scalingValue, damageModifier) : undefined;
+
+                  const cardState = cardStates?.[ability.name];
+                  const isUsed = getIsUsed(cardState, enhancement.frequency);
+
+                  const badges = [];
+                  if (enhancement.roll?.difficulty) {
+                    badges.push({ label: `DC ${enhancement.roll.difficulty}` });
+                  }
+
+                  const borderVariant = enhancement.timing === 'reaction' ? 'reaction' : 'spell';
+                  const combatCategory = enhancement.attack?.combat_category || 'passive_triggered';
+                  const showAttackButton = combatCategory === 'standalone_attack' || combatCategory === 'roll_only';
+
+                  const handleAttackRoll = (rollLabel && showAttackButton) ? () => {
+                    const rollValue = enhancement.action_type === 'attack' ? finalAttackBonus : rollBonus;
+                    prepareRoll(`${ability.name} ${rollLabel} Roll`, rollValue);
+                  } : undefined;
+
+                  const handleDamageRoll = finalDamage ? () => {
+                    const { dice, modifier } = parseDamageRoll(finalDamage);
+                    prepareRoll(`${ability.name} Damage`, modifier, dice);
+                  } : undefined;
+
+                  return (
+                    <AttackCard
+                      key={ability.name}
+                      id={ability.name}
+                      name={ability.name}
+                      enhancedData={ability}
+                      trait={rollLabel || 'No Roll'}
+                      range={enhancement.attack?.range || (enhancement as any).range || ''}
+                      baseDamage={baseDamage}
+                      calculatedDamage={finalDamage}
+                      totalAttackBonus={finalAttackBonus}
+                      attackModifier={attackModifier}
+                      damageModifier={damageModifier}
+                      proficiency={totalProficiency}
+                      onAttackRoll={handleAttackRoll}
+                      onDamageRoll={handleDamageRoll}
+                      onManageModifiers={() => setActiveAbilityId(ability.name)}
+                      damageType={enhancement.attack?.damage_type}
+                      badges={badges}
+                      borderVariant={borderVariant as any}
+                      actionType={enhancement.action_type || (enhancement.timing === 'reaction' ? 'reaction' : undefined)}
+                      rollLabel={combatCategory === 'damage_bonus' ? undefined : (combatCategory === 'roll_only' ? 'Roll' : rollLabel)}
+                      isUsed={isUsed}
+                      description={ability.text}
+                      tokenTrack={enhancement.tokens?.has_tokens ? (
+                        <CardTokenTrack
+                          cardName={ability.name}
+                          maxTokens={enhancement.tokens.max_tokens ?? null}
+                          tokenSource={enhancement.tokens.token_source}
+                        />
+                      ) : undefined}
+                      frequency={enhancement.frequency && enhancement.frequency !== 'at_will' ? (
+                        <FrequencyCheckbox
+                          cardName={ability.name}
+                          frequency={enhancement.frequency}
+                        />
+                      ) : undefined}
+                      costs={enhancement.costs ?? undefined}
+                      onSpendHope={() => character && updateHope(character.hope - (enhancement.costs?.hope || 0))}
+                      onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (enhancement.costs?.stress || 0))}
+                      roll={enhancement.roll ?? undefined}
+                      variant="feature"
+                    />
+                  );
+                })}
               </div>
             )}
-
-            {showSpells && combatAbilities.map((ability) => {
-              const enhancement = getEnhancement(ability);
-              if (!enhancement) return null;
-
-              // Calculate spellcast modifier
-              const spellcastTraitName = character.spellcast_trait || character.subclass_data?.data?.spellcast_trait;
-              const rawTraitValue = spellcastTraitName
-                ? (character.stats[spellcastTraitName.toLowerCase() as keyof typeof character.stats] || 0)
-                : (character.spellcast || 0);
-
-              let traitModSum = 0;
-              if (spellcastTraitName) {
-                const tKey = spellcastTraitName.toLowerCase();
-                const tSystem = getStatModifiers(character, tKey, cardStates);
-                traitModSum = tSystem.reduce((acc, m) => acc + m.value, 0);
-              }
-
-              const spellcastBase = rawTraitValue + traitModSum;
-              const spellcastMods = getStatModifiers(character, 'spellcast', cardStates);
-              const totalSpellcast = spellcastBase + spellcastMods.reduce((acc, mod) => acc + mod.value, 0);
-
-              // Determine roll trait and bonus
-              let rollBonus = 0;
-              let rollLabel = '';
-
-              if (enhancement.roll?.trait) {
-                const traitKey = enhancement.roll.trait.toLowerCase();
-                if (traitKey === 'spellcast') {
-                  rollBonus = totalSpellcast;
-                  rollLabel = 'Spellcast';
-                } else {
-                  const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-                  const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
-                  rollBonus = baseTraitValue + systemTraitMods.reduce((acc, mod) => acc + mod.value, 0);
-                  rollLabel = enhancement.roll.trait;
-                }
-              } else if (enhancement.attack?.trait) {
-                const traitKey = enhancement.attack.trait.toLowerCase();
-                if (traitKey === 'spellcast') {
-                  rollBonus = totalSpellcast;
-                  rollLabel = 'Spellcast';
-                } else {
-                  const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-                  const systemTraitMods = getStatModifiers(character, traitKey, cardStates);
-                  rollBonus = baseTraitValue + systemTraitMods.reduce((acc, mod) => acc + mod.value, 0);
-                  rollLabel = enhancement.attack.trait;
-                }
-              }
-
-              // Spellcast abilities only get attack modifiers if action_type is 'attack'
-              const abilityRollType = rollLabel === 'Spellcast' ? 'spellcast' as const : 'weapon' as const;
-              const attackModifier = calculateAttackBonus(character, cardStates, enhancedAbilities,
-                { rollType: abilityRollType, actionType: enhancement.action_type as 'attack' | undefined });
-              const damageModifier = calculateDamageBonus(character, cardStates);
-              const finalAttackBonus = rollBonus + attackModifier;
-
-              // Calculate damage - scale by proficiency, spellcast, or not at all
-              const baseDamage = enhancement.attack?.damage;
-              const scalingValue = getScalingValue(enhancement.attack?.damage_scaling, totalProficiency, spellcastDetails.totalSpellcastBonus);
-              const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, scalingValue, damageModifier) : undefined;
-
-              // Check if ability is used
-              const cardState = cardStates?.[ability.name];
-              const isUsed = getIsUsed(cardState, enhancement.frequency);
-
-              // Prepare custom badges
-              const badges = [];
-              if (enhancement.roll?.difficulty) {
-                badges.push({ label: `DC ${enhancement.roll.difficulty}` });
-              }
-
-              // Determine border variant
-              const borderVariant = enhancement.timing === 'reaction' ? 'reaction' : 'spell';
-
-              // Determine combat category for button visibility
-              const combatCategory = enhancement.attack?.combat_category || 'passive_triggered';
-              const showAttackButton = combatCategory === 'standalone_attack' || combatCategory === 'roll_only';
-
-              // Prepare callbacks
-              const handleAttackRoll = (rollLabel && showAttackButton) ? () => {
-                // For attacks, include attack modifier in the roll
-                const rollValue = enhancement.action_type === 'attack' ? finalAttackBonus : rollBonus;
-                prepareRoll(`${ability.name} ${rollLabel} Roll`, rollValue);
-              } : undefined;
-
-              const handleDamageRoll = finalDamage ? () => {
-                const { dice, modifier } = parseDamageRoll(finalDamage);
-                prepareRoll(`${ability.name} Damage`, modifier, dice);
-              } : undefined;
-
-              return (
-                <AttackCard
-                  key={ability.name}
-                  id={ability.name}
-                  name={ability.name}
-                  enhancedData={ability}
-                  trait={rollLabel || 'No Roll'}
-                  range={enhancement.attack?.range || ''}
-                  baseDamage={baseDamage}
-                  calculatedDamage={finalDamage}
-                  totalAttackBonus={finalAttackBonus}
-                  attackModifier={attackModifier}
-                  damageModifier={damageModifier}
-                  proficiency={totalProficiency}
-                  onAttackRoll={handleAttackRoll}
-                  onDamageRoll={handleDamageRoll}
-                  onManageModifiers={() => setActiveAbilityId(ability.name)}
-                  damageType={enhancement.attack?.damage_type}
-                  badges={badges}
-                  borderVariant={borderVariant}
-                  actionType={enhancement.action_type || (enhancement.timing === 'reaction' ? 'reaction' : undefined)}
-                  rollLabel={combatCategory === 'damage_bonus' ? undefined : (combatCategory === 'roll_only' ? 'Roll' : rollLabel)}
-                  isUsed={isUsed}
-                  description={ability.text}
-                  tokenTrack={enhancement.tokens?.has_tokens ? (
-                    <CardTokenTrack
-                      cardName={ability.name}
-                      maxTokens={enhancement.tokens.max_tokens ?? null}
-                      tokenSource={enhancement.tokens.token_source}
-                    />
-                  ) : undefined}
-                  frequency={enhancement.frequency && enhancement.frequency !== 'at_will' ? (
-                    <FrequencyCheckbox
-                      cardName={ability.name}
-                      frequency={enhancement.frequency}
-                    />
-                  ) : undefined}
-                  costs={enhancement.costs ?? undefined}
-                  onSpendHope={() => character && updateHope(character.hope - (enhancement.costs?.hope || 0))}
-                  onMarkStress={() => character && updateVitals('stress_current', character.vitals.stress_current + (enhancement.costs?.stress || 0))}
-                  roll={enhancement.roll ?? undefined}
-                />
-              );
-            })}
           </div>
         )}
 
