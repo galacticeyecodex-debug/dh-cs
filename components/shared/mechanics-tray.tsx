@@ -94,6 +94,8 @@ export interface MechanicsTrayProps {
   showCosts?: boolean;
   /** Whether to render frequency (default true). Set false if parent handles frequency. */
   showFrequency?: boolean;
+  /** Whether to show the 'Modifiers' section label (default false) */
+  showModifierLabel?: boolean;
 }
 
 export default function MechanicsTray({
@@ -118,6 +120,7 @@ export default function MechanicsTray({
   variant = 'default',
   showCosts = true,
   showFrequency = true,
+  showModifierLabel = false,
 }: MechanicsTrayProps) {
   const { prepareRoll } = useCharacterStore();
 
@@ -194,9 +197,11 @@ export default function MechanicsTray({
           className={clsx("space-y-1.5", paddingX)}
           aria-label="modifiers-container"
         >
-          <h4 className="text-[10px] font-bold uppercase text-purple-400 tracking-wider text-left">
-            Modifiers
-          </h4>
+          {showModifierLabel && (
+            <h4 className="text-[10px] font-bold uppercase text-purple-400 tracking-wider text-left">
+              Modifiers
+            </h4>
+          )}
           {whenActiveModifiers.map((mod, index) => {
             const modifierKey = `${mod.stat}-${index}`;
             return (
