@@ -95,12 +95,12 @@ export function DomainAbilityButton({
     activeColor = 'bg-purple-900/40 text-purple-300 border-purple-500/50';
   } else if (costType === 'activate' || costType === 'free') {
     // No-cost activation (e.g., Frenzy) - green styling
-    displayLabel = label || 'Activate';
+    displayLabel = label || (isActive ? 'Active' : 'Activate');
     Icon = AppIcons.combat.activation;  // Could use Play or Power icon if desired
     costColor = 'text-emerald-400';
     activeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50';
   } else if (costType === 'duration') {
-    displayLabel = label || 'Active';
+    displayLabel = label || (isActive ? 'Active' : 'Activate');
     Icon = AppIcons.combat.duration;
     costColor = 'text-blue-400';
     activeColor = 'bg-blue-500/20 text-blue-300 border-blue-500/50';

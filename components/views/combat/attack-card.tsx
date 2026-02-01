@@ -3,17 +3,19 @@
 /**
  * ATTACK CARD COMPONENT
  * ----------------------------------------------------------------------------
- * A reusable card component for displaying attack options in combat.
- * Used for: Weapons, Companion Attacks, Transformation Attacks, Heritage Features
+ * A unified card component for displaying game features across all views.
+ * Used for: Combat attacks, Character features, Playmat cards, Spells, Heritage Features
  *
  * FEATURES:
- * - Consistent styling across all attack types
+ * - Consistent styling across all attack/feature types
+ * - Context-aware rendering (combat, character, playmat)
  * - Optional gear button for modifier management
  * - Dice indicators on roll buttons
  * - Support for different border variants (companion gold, heritage colors)
  * - Optional icon and description display
  * - Optional costs (stress/hope) for abilities
  * - Optional action type badges (reaction, action)
+ * - Two rendering variants: 'standalone' for combat/playmat, 'feature' for character
  */
 
 import React, { useState } from 'react';
@@ -27,7 +29,7 @@ import { RollButton } from '@/components/shared/roll-button';
 
 import { AdditionalDamage, EnhancedAbilityCard } from '@/types/cards';
 import MechanicsTray from '@/components/shared/mechanics-tray';
-import { getEnhancement } from '@/lib/enhancement-utils';
+import { getEnhancement, getModifiers } from '@/lib/enhancement-utils';
 import { useCardMechanics } from '@/hooks/useCardMechanics';
 
 export interface AttackCardCosts {
@@ -40,22 +42,22 @@ export interface AttackCardProps {
     id: string;
     /** Display name of the attack */
     name: string;
-    /** The trait used for this attack (e.g., "Strength", "Agility") */
-    trait: string;
-    /** Attack range (e.g., "Melee", "Ranged", "Very Close") */
-    range: string;
+    /** The trait used for this attack (e.g., "Strength", "Agility") - optional for features */
+    trait?: string;
+    /** Attack range (e.g., "Melee", "Ranged", "Very Close") - optional for features */
+    range?: string;
     /** Base damage dice (e.g., "1d8", "2d6") - optional for non-damage abilities */
     baseDamage?: string;
     /** Calculated damage after proficiency multiplier - optional */
     calculatedDamage?: string;
-    /** Total attack bonus (trait + modifiers) */
-    totalAttackBonus: number;
-    /** Attack modifier from equipment/effects (used for gold highlighting) */
-    attackModifier: number;
-    /** Damage modifier from equipment/effects (used for gold highlighting) */
-    damageModifier: number;
-    /** Character's proficiency value */
-    proficiency: number;
+    /** Total attack bonus (trait + modifiers) - default 0 for features */
+    totalAttackBonus?: number;
+    /** Attack modifier from equipment/effects (used for gold highlighting) - default 0 */
+    attackModifier?: number;
+    /** Damage modifier from equipment/effects (used for gold highlighting) - default 0 */
+    damageModifier?: number;
+    /** Character's proficiency value - optional for features */
+    proficiency?: number;
     /** Callback when Attack button is clicked - optional if no attack roll */
     onAttackRoll?: () => void;
     /** Callback when Damage button is clicked - optional if no damage */
@@ -100,6 +102,10 @@ export interface AttackCardProps {
     roll?: { requires_cost_for_roll?: boolean };
     /** Enhanced ability data for domain cards - enables modifier activation rows */
     enhancedData?: EnhancedAbilityCard;
+    /** 'standalone': standard card look. 'feature': compact look for grid/list grouping */
+    variant?: 'standalone' | 'feature';
+    /** Context for styling hierarchy: 'combat' (dark), 'character' (light), 'playmat' (dark) */
+    context?: 'combat' | 'character' | 'playmat';
 }
 
 const AttackCard = React.memo(function AttackCard({
@@ -109,9 +115,9 @@ const AttackCard = React.memo(function AttackCard({
     range,
     baseDamage,
     calculatedDamage,
-    totalAttackBonus,
-    attackModifier,
-    damageModifier,
+    totalAttackBonus = 0,
+    attackModifier = 0,
+    damageModifier = 0,
     proficiency,
     onAttackRoll,
     onDamageRoll,
@@ -134,9 +140,12 @@ const AttackCard = React.memo(function AttackCard({
     isUsed = false,
     roll,
     enhancedData,
+    variant = 'standalone',
+    context = 'combat',
 }: AttackCardProps) {
     const [isCostPaid, setIsCostPaid] = useState(false);
-    const [showDescription, setShowDescription] = useState(false);
+    // In character context, show descriptions by default so players can learn about their abilities
+    const [showDescription, setShowDescription] = useState(context === 'character');
 
     // Determine styles based on variant
     const borderClasses = {
@@ -155,10 +164,10 @@ const AttackCard = React.memo(function AttackCard({
         companion: '',
         ancestry: '',
         community: '',
-        spell: 'bg-purple-900/10',
-        reaction: 'bg-orange-900/10',
-        class: 'bg-cyan-900/5',
-        subclass: 'bg-indigo-900/5',
+        spell: '',
+        reaction: '',
+        class: '',
+        subclass: '',
     };
 
     // Check if we have damage to display
@@ -176,17 +185,59 @@ const AttackCard = React.memo(function AttackCard({
     const needsActivation = hasCosts && (roll?.requires_cost_for_roll === true || !hasRoll);
     const canRoll = !needsActivation || isCostPaid;
 
+    // Check if enhancedData has actionable mechanics (not just metadata like range/keywords)
+    const hasEnhancedMechanics = (() => {
+        if (!enhancedData) return false;
+        const enhancement = getEnhancement(enhancedData);
+        if (!enhancement) return false;
+
+        // Check for tokens
+        const hasTokens = enhancement.tokens?.has_tokens && (
+            ((enhancement.tokens.max_tokens ?? 0) > 0) ||
+            !!enhancement.tokens.token_source
+        );
+        // Check for non-at_will frequency
+        const hasFrequency = enhancement.frequency && enhancement.frequency !== 'at_will';
+        // Check for duration
+        const hasDuration = !!enhancement.duration;
+        // Check for costs
+        const hasEnhancedCosts = !!(enhancement.costs?.stress || enhancement.costs?.hope);
+        // Check for when_active modifiers
+        const modifiers = getModifiers(enhancedData);
+        const hasWhenActiveModifiers = modifiers.some(mod => mod.condition?.type === 'when_active');
+
+        return hasTokens || hasFrequency || hasDuration || hasEnhancedCosts || hasWhenActiveModifiers;
+    })();
+
+    const hasInteractiveContent = !!(tokenTrack || hasEnhancedMechanics || needsActivation || customActions || onAttackRoll || (hasDamage && onDamageRoll) || (additionalDamage && additionalDamage.length > 0) || frequency);
+
+    // Context-specific background styling
+    // For standalone variant: use context-based colors
+    // For feature variant: always use light background (bg-white/5) within darker parent container
+    const contextBgClass = variant === 'feature'
+        ? 'bg-white/5'
+        : {
+            combat: 'bg-dagger-panel',
+            character: 'bg-white/5',
+            playmat: 'bg-dagger-panel',
+        }[context];
+
     return (
         <div
             className={clsx(
-                'bg-dagger-panel border rounded-xl overflow-hidden transition-colors',
-                borderClasses[borderVariant],
-                bgClasses[borderVariant],
+                variant === 'standalone'
+                    ? clsx(contextBgClass, 'border rounded-xl', borderClasses[borderVariant], bgClasses[borderVariant])
+                    : contextBgClass,
+                variant === 'feature' && 'rounded border border-white/5 p-3',
+                'transition-colors overflow-hidden',
                 isUsed && 'opacity-50'
             )}
         >
             {/* Header Section */}
-            <div className="p-4 flex justify-between items-start relative">
+            <div className={clsx(
+                "flex justify-between items-start relative",
+                variant === 'standalone' ? 'p-4' : 'mb-2'
+            )}>
                 {/* Action buttons - top right corner of header */}
                 <div className="absolute top-1 right-1 z-10 flex items-center gap-0.5">
                     {/* Info button - toggle description visibility */}
@@ -226,153 +277,310 @@ const AttackCard = React.memo(function AttackCard({
                     )}
                 </div>
 
-                {/* Name and Badges */}
+                {/* Name and Icon Only (Badges moved below description) */}
                 <div className="flex-1 mr-4">
                     <div className="flex items-center gap-2">
                         {icon}
-                        <h4 className="font-serif font-bold text-white text-lg">{name}</h4>
-                    </div>
-                    <div className="flex flex-wrap gap-2 text-xs text-gray-400 mt-1">
-                        {/* Custom badges first */}
-                        {badges.map((badge, idx) => (
-                            <span
-                                key={idx}
-                                className={clsx('uppercase px-1.5 py-0.5 rounded', badge.className || 'bg-white/10')}
-                            >
-                                {badge.label}
-                            </span>
-                        ))}
-                        {/* Standard trait and range badges */}
-                        <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{trait}</span>
-                        {range && (
-                            <span className="uppercase bg-white/10 px-1.5 py-0.5 rounded">{range}</span>
-                        )}
-                        {damageType && (
-                            <span className="text-gray-400 uppercase">{damageType}</span>
-                        )}
-                        {/* Action type badge */}
-                        {actionType && actionType !== 'passive' && (
-                            <span className={clsx(
-                                'uppercase px-1.5 py-0.5 rounded',
-                                actionType === 'reaction' ? 'bg-orange-900/30 text-orange-400' : 'bg-purple-900/30 text-purple-400'
-                            )}>
-                                {actionType}
-                            </span>
+                        {variant === 'feature' ? (
+                            <h4 className="text-xs font-bold text-dagger-gold uppercase tracking-wider">{name}</h4>
+                        ) : (
+                            <h4 className="font-serif font-bold text-white text-lg">{name}</h4>
                         )}
                     </div>
                 </div>
 
             </div>
 
-            {/* Collapsible Description Section */}
-            {showDescription && description && (
-                <div className="mx-4 mb-2 p-3 bg-white/5 rounded-lg border border-white/5 text-sm text-gray-300">
-                    <MarkdownText>{description}</MarkdownText>
-                </div>
-            )}
-
-            {/* Token Track */}
-            {tokenTrack && !enhancedData && (
-                <div className="px-4 pb-2">
-                    {tokenTrack}
-                </div>
-            )}
-
-            {/* Modifier Activation Rows (from enhanced domain card data) */}
-            {enhancedData && (() => {
-                const enhancement = getEnhancement(enhancedData);
-                if (!enhancement) return null;
-
-                return (
-                    <MechanicsTray
-                        cardName={name}
-                        enhancement={enhancement}
-                        enhancedData={enhancedData}
-                        // Only render modifier rows + duration; roll/damage handled by AttackCard's own action bar
-                        showAttackButton={false}
-                        hasAttackOrRoll={false}
-                        costMode="controlled"
-                        isCostPaid={isCostPaid}
-                        className="px-4 pb-2 space-y-2"
-                    />
-                );
-            })()}
-
-            {/* Costs Bar */}
-            {needsActivation && (
-                <div className="px-4 py-2 border-t border-white/5 bg-black/20 flex flex-wrap gap-2 items-center justify-center">
-                    <DomainCostsRow
-                        cardName={name}
-                        displayName={name}
-                        costs={costs}
-                        isActiveOverride={isCostPaid}
-                        onActivate={() => {
-                            setIsCostPaid(true);
-                            // Call optional callbacks if provided
-                            if (costs?.stress && onMarkStress) onMarkStress();
-                            if (costs?.hope && onSpendHope) onSpendHope();
-                        }}
-                        onDeactivate={() => setIsCostPaid(false)}
-                        disabled={isCostPaid || isUsed}
-                        className="flex flex-wrap gap-2 justify-center"
-                    />
-                </div>
-            )}
-
-            {/* Action Bar - only show if there are actions to perform */}
-            {(customActions || onAttackRoll || (hasDamage && onDamageRoll) || (additionalDamage && additionalDamage.length > 0) || frequency) && (
-                <div className="bg-black/40 p-2 flex flex-wrap gap-2 items-center">
-                    {/* Custom Actions (Smart Buttons) */}
-                    {customActions}
-
-                    {/* Attack Button */}
-                    {onAttackRoll && (
-                        <RollButton
-                            label={finalRollLabel}
-                            onClick={onAttackRoll}
-                            bonus={totalAttackBonus}
-                            disabled={isUsed || !canRoll}
-                            className={clsx(
-                                'flex-1 py-2',
-                                attackModifier !== 0 && 'text-dagger-gold',
-                                !isCostPaid && needsActivation && 'border border-dashed border-white/20'
-                            )}
-                        />
+            {/* Content: Description, Badges, Mechanics, and Actions */}
+            {(showDescription || tokenTrack || (enhancedData && (getEnhancement(enhancedData))) || needsActivation || customActions || onAttackRoll || (hasDamage && onDamageRoll) || (additionalDamage && additionalDamage.length > 0) || frequency) && (
+                <div className="flex flex-col">
+                    {/* Description (toggled) */}
+                    {showDescription && description && (
+                        <div className={clsx(
+                            "text-sm text-gray-300 leading-relaxed mb-3",
+                            variant === 'standalone' ? 'px-4' : ''
+                        )}>
+                            <MarkdownText>{description}</MarkdownText>
+                        </div>
                     )}
 
-                    {/* Damage Button - only show if we have damage */}
-                    {hasDamage && onDamageRoll && (
-                        <RollButton
-                            label={`Damage ${calculatedDamage}`}
-                            onClick={onDamageRoll}
-                            bonus={undefined} // Integrated into the label string
-                            variant="damage"
-                            disabled={isUsed || !canRoll}
-                            className={clsx(
-                                'flex-1 py-2',
-                                damageModifier !== 0 && 'text-dagger-gold',
-                                !isCostPaid && needsActivation && 'border border-dashed border-white/20'
+                    {/* Badges Row - only show if we have content */}
+                    {(trait || range || damageType || actionType || badges.length > 0) && (
+                        <div className={clsx(
+                            "flex flex-wrap gap-1.5",
+                            variant === 'standalone' ? 'px-4 pb-4' : '',
+                            showDescription && description && "pt-0"
+                        )}>
+                            {/* Custom badges first */}
+                            {badges.map((badge, idx) => (
+                                <span
+                                    key={idx}
+                                    className={clsx('uppercase px-1.5 py-0.5 rounded-sm border border-white/10 bg-white/5 font-semibold text-[10px] text-gray-400', badge.className)}
+                                >
+                                    {badge.label}
+                                </span>
+                            ))}
+                            {/* Standard trait and range badges */}
+                            {trait && (
+                                <span className="uppercase bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-sm font-semibold text-[10px] text-gray-400">{trait}</span>
                             )}
-                        />
+                            {range && (
+                                <span className="uppercase bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-sm font-semibold text-[10px] text-gray-400">{range}</span>
+                            )}
+                            {damageType && (
+                                <span className="bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-sm font-semibold uppercase text-[10px] text-gray-400">{damageType}</span>
+                            )}
+                            {/* Action type badge */}
+                            {actionType && actionType !== 'passive' && (
+                                <span className={clsx(
+                                    'uppercase px-1.5 py-0.5 rounded-sm font-semibold border text-[10px]',
+                                    actionType === 'reaction' ? 'bg-orange-900/10 border-orange-500/20 text-orange-400/80' : 'bg-purple-900/10 border-purple-500/20 text-purple-400/80'
+                                )}>
+                                    {actionType}
+                                </span>
+                            )}
+                        </div>
                     )}
 
-                    {/* Additional Damage Buttons */}
-                    {additionalDamage?.map((extra, idx) => (
-                        <RollButton
-                            key={idx}
-                            label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra');
-                            }}
-                            variant="damage"
-                            disabled={isUsed || !canRoll}
-                            className="opacity-90 py-2 px-3 text-xs"
-                        />
-                    ))}
+                    {/* FEATURE VARIANT: Unified Interactive Section */}
+                    {variant === 'feature' && hasInteractiveContent && (
+                        <div className="mt-2 pt-3 border-t border-white/10 space-y-2">
+                            {/* Tokens & Mechanics (Block Level) */}
+                            {(tokenTrack || hasEnhancedMechanics) && (
+                                <div className="space-y-2">
+                                    {tokenTrack && !hasEnhancedMechanics && (
+                                        <div className="pb-1">
+                                            {tokenTrack}
+                                        </div>
+                                    )}
+                                    {hasEnhancedMechanics && enhancedData && (() => {
+                                        const enhancement = getEnhancement(enhancedData);
+                                        if (!enhancement) return null;
+                                        return (
+                                            <MechanicsTray
+                                                cardName={name}
+                                                enhancement={enhancement}
+                                                enhancedData={enhancedData}
+                                                costMode="uncontrolled"
+                                                isCostPaid={isCostPaid}
+                                                variant="nested"
+                                                showAttackButton={!!onAttackRoll}
+                                                // Pass the main roll handler and details to MechanicsTray
+                                                onRoll={onAttackRoll}
+                                                rollLabel={finalRollLabel}
+                                                rollBonus={totalAttackBonus}
+                                                // Pass damage details
+                                                onDamageRoll={onDamageRoll}
+                                                finalDamage={calculatedDamage}
+                                                // Pass additional damage
+                                                additionalDamage={additionalDamage}
+                                                onAdditionalDamageRoll={onAdditionalDamageRoll}
+                                                // Ensure we signal that we have rolls so the tray renders the row
+                                                hasAttackOrRoll={!!onAttackRoll || (!!hasDamage && !!onDamageRoll)}
+                                            />
+                                        );
+                                    })()}
+                                </div>
+                            )}
 
-                    {/* Frequency Checkbox */}
-                    {frequency}
+                            {/* Manual Actions Row - renders when no enhanced mechanics (MechanicsTray handles that case) */}
+                            {(!hasEnhancedMechanics || customActions) && (
+                                <>
+                                    {!hasEnhancedMechanics && (needsActivation || onAttackRoll || (hasDamage && onDamageRoll) || (additionalDamage && (additionalDamage.length > 0)) || frequency) && (
+                                        <div className={clsx(
+                                            "flex flex-wrap gap-2 items-center",
+                                            // Only add border if there are token/mechanics elements above
+                                            tokenTrack && "mt-2 pt-3 border-t border-white/10"
+                                        )}>
+                                            {/* Costs */}
+                                            {needsActivation && (
+                                                <DomainCostsRow
+                                                    cardName={name}
+                                                    displayName={name}
+                                                    costs={costs}
+                                                    isActiveOverride={isCostPaid}
+                                                    onActivate={() => {
+                                                        setIsCostPaid(true);
+                                                        if (costs?.stress && onMarkStress) onMarkStress();
+                                                        if (costs?.hope && onSpendHope) onSpendHope();
+                                                    }}
+                                                    onDeactivate={() => setIsCostPaid(false)}
+                                                    disabled={isCostPaid || isUsed}
+                                                    className="flex flex-wrap gap-2 items-center"
+                                                />
+                                            )}
+
+                                            {/* Custom Actions */}
+                                            {customActions}
+
+                                            {/* Attack Button */}
+                                            {onAttackRoll && (
+                                                <RollButton
+                                                    label={finalRollLabel}
+                                                    onClick={onAttackRoll}
+                                                    bonus={totalAttackBonus}
+                                                    disabled={isUsed || !canRoll}
+                                                    className={clsx(
+                                                        attackModifier !== 0 && 'text-dagger-gold',
+                                                        !isCostPaid && needsActivation && 'border border-dashed border-white/20'
+                                                    )}
+                                                />
+                                            )}
+
+                                            {/* Damage Button */}
+                                            {hasDamage && onDamageRoll && (
+                                                <RollButton
+                                                    label={`Damage ${calculatedDamage}`}
+                                                    onClick={onDamageRoll}
+                                                    bonus={undefined}
+                                                    variant="damage"
+                                                    disabled={isUsed || !canRoll}
+                                                    className={clsx(
+                                                        damageModifier !== 0 && 'text-dagger-gold',
+                                                        !isCostPaid && needsActivation && 'border border-dashed border-white/20'
+                                                    )}
+                                                />
+                                            )}
+
+                                            {/* Additional Damage Buttons */}
+                                            {additionalDamage?.map((extra, idx) => (
+                                                <RollButton
+                                                    key={idx}
+                                                    label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra');
+                                                    }}
+                                                    variant="damage"
+                                                    disabled={isUsed || !canRoll}
+                                                    className="opacity-90 py-2 px-3 text-xs"
+                                                />
+                                            ))}
+
+                                            {/* Frequency Checkbox */}
+                                            {frequency}
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    )}
+
+                    {/* STANDALONE VARIANT: Separated Sections */}
+                    {variant === 'standalone' && (
+                        <>
+                            {/* Mechanics (Tokens, Modifiers, Frequency) */}
+                            {(tokenTrack || hasEnhancedMechanics) && (
+                                <div className="px-4 py-3 bg-black/10 space-y-2 border-t border-white/5">
+                                    {tokenTrack && !hasEnhancedMechanics && (
+                                        <div className="pb-1">
+                                            {tokenTrack}
+                                        </div>
+                                    )}
+
+                                    {hasEnhancedMechanics && enhancedData && (() => {
+                                        const enhancement = getEnhancement(enhancedData);
+                                        if (!enhancement) return null;
+
+                                        return (
+                                            <MechanicsTray
+                                                cardName={name}
+                                                enhancement={enhancement}
+                                                enhancedData={enhancedData}
+                                                showAttackButton={false}
+                                                hasAttackOrRoll={false}
+                                                costMode="uncontrolled"
+                                                isCostPaid={isCostPaid}
+                                                variant="nested"
+                                                showCosts={false}
+                                                showFrequency={false}
+                                            />
+                                        );
+                                    })()}
+                                </div>
+                            )}
+
+                            {/* Action Bar (Costs + Rolls) */}
+                            {(needsActivation || customActions || onAttackRoll || (hasDamage && onDamageRoll) || (additionalDamage && (additionalDamage.length > 0)) || frequency) && (
+                                <div className="border-t border-white/10 flex flex-col bg-black/20">
+                                    {/* Costs Row */}
+                                    {needsActivation && (
+                                        <div className="px-4 py-3 border-b border-white/5">
+                                            <DomainCostsRow
+                                                cardName={name}
+                                                displayName={name}
+                                                costs={costs}
+                                                isActiveOverride={isCostPaid}
+                                                onActivate={() => {
+                                                    setIsCostPaid(true);
+                                                    if (costs?.stress && onMarkStress) onMarkStress();
+                                                    if (costs?.hope && onSpendHope) onSpendHope();
+                                                }}
+                                                onDeactivate={() => setIsCostPaid(false)}
+                                                disabled={isCostPaid || isUsed}
+                                                className="flex flex-wrap gap-2 justify-start"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Rolls & Actions Row */}
+                                    {(customActions || onAttackRoll || (hasDamage && onDamageRoll) || (additionalDamage && (additionalDamage.length > 0)) || frequency) && (
+                                        <div className="px-4 py-4 flex flex-wrap gap-2 items-center">
+                                            {/* Custom Actions */}
+                                            {customActions}
+
+                                            {/* Attack Button */}
+                                            {onAttackRoll && (
+                                                <RollButton
+                                                    label={finalRollLabel}
+                                                    onClick={onAttackRoll}
+                                                    bonus={totalAttackBonus}
+                                                    disabled={isUsed || !canRoll}
+                                                    className={clsx(
+                                                        attackModifier !== 0 && 'text-dagger-gold',
+                                                        !isCostPaid && needsActivation && 'border border-dashed border-white/20'
+                                                    )}
+                                                />
+                                            )}
+
+                                            {/* Damage Button */}
+                                            {hasDamage && onDamageRoll && (
+                                                <RollButton
+                                                    label={`Damage ${calculatedDamage}`}
+                                                    onClick={onDamageRoll}
+                                                    bonus={undefined}
+                                                    variant="damage"
+                                                    disabled={isUsed || !canRoll}
+                                                    className={clsx(
+                                                        damageModifier !== 0 && 'text-dagger-gold',
+                                                        !isCostPaid && needsActivation && 'border border-dashed border-white/20'
+                                                    )}
+                                                />
+                                            )}
+
+                                            {/* Additional Damage Buttons */}
+                                            {additionalDamage?.map((extra, idx) => (
+                                                <RollButton
+                                                    key={idx}
+                                                    label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra');
+                                                    }}
+                                                    variant="damage"
+                                                    disabled={isUsed || !canRoll}
+                                                    className="opacity-90 py-2 px-3 text-xs"
+                                                />
+                                            ))}
+
+                                            {/* Frequency Checkbox (if standalone) */}
+                                            {!hasEnhancedMechanics && frequency}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
             )}
         </div>

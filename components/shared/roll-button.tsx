@@ -26,18 +26,20 @@ export function RollButton({
 
     const hasTextColorOverride = className?.includes('text-');
 
+    const isDamage = label.toLowerCase().includes('damage');
+    const isSpellcast = label.toLowerCase().includes('spellcast');
+    const isAttack = label.toLowerCase().includes('attack');
+
+    const actionStaticColor = isDamage
+        ? 'text-red-400'
+        : 'text-dagger-gold';
+
     // Determine styles based on variant
     const variantStyles = {
-        primary: clsx('bg-white/10 hover:bg-white/20 border-white/10', !hasTextColorOverride && 'text-white'),
+        primary: clsx('bg-white/5 hover:bg-white/10 border-white/10', !hasTextColorOverride && (disabled ? 'text-gray-500' : actionStaticColor)),
         secondary: clsx('bg-white/5 hover:bg-white/10 border-white/5', !hasTextColorOverride && 'text-gray-300'),
-        damage: clsx('bg-white/10 hover:bg-white/20 border-white/10', !hasTextColorOverride && 'text-white'),
+        damage: clsx('bg-white/5 hover:bg-white/10 border-white/10', !hasTextColorOverride && (disabled ? 'text-gray-500' : 'text-red-400')),
     };
-
-    const isDamage = label.toLowerCase().includes('damage');
-    const isAttack = label.toLowerCase().includes('attack');
-    const isSpellcast = label === 'Spellcast';
-
-    const activeIconColor = isDamage ? 'text-red-400' : (isSpellcast ? 'text-purple-400' : 'text-dagger-gold');
 
     const Icon = icon || (isDamage ? AppIcons.combat.damage :
         isSpellcast ? (AppIcons.combat as any).spellcast :
@@ -55,7 +57,7 @@ export function RollButton({
             className={clsx(
                 "relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors",
                 variantStyles[variant],
-                disabled ? "opacity-30 cursor-not-allowed grayscale" : "hover:bg-opacity-80",
+                disabled ? "opacity-30 cursor-not-allowed grayscale" : "hover:shadow-lg",
                 className
             )}
         >
@@ -66,12 +68,12 @@ export function RollButton({
                 <AppIcons.combat.roll size={10} />
             </div>
 
-            <Icon size={14} className={clsx(disabled ? "text-gray-500" : activeIconColor)} />
+            <Icon size={14} className={clsx(disabled ? "text-gray-500" : actionStaticColor)} />
 
             <span>{label}</span>
 
             {bonus !== undefined && (
-                <span className={clsx("font-bold", disabled ? "text-gray-500" : !hasTextColorOverride && "text-white")}>
+                <span className={clsx("font-bold")}>
                     {bonus >= 0 ? `+${bonus}` : bonus}
                 </span>
             )}

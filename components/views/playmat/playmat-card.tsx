@@ -1,23 +1,27 @@
 /**
  * PLAYMAT CARD WRAPPER
  * ----------------------------------------------------------------------------
- * A smart wrapper component for domain cards on the playmat.
+ * A unified card wrapper component for domain cards on the playmat.
  *
  * FUNCTIONALITY:
- * - Displays the visual Domain Card (thumbnail)
- * - Renders a "Mechanics Tray" below the card containing:
+ * - Displays the visual Domain Card (thumbnail) at the top
+ * - Renders a header with the card name below the visual
+ * - Shows collapsible description with "Info" button
+ * - Renders mechanics/tokens (using MechanicsTray):
  *   - Token Tracks (for abilities with resources)
  *   - Frequency Checkboxes (once per rest, etc.)
- *   - Embedded Attack/Roll buttons (using AttackCard)
- *   - Move to Vault / Loadout controls
+ *   - Modifiers (passive and active)
+ * - Top-right overlay buttons: Move, Info, Art, Settings
  *
  * This component bridges the gap between the static "Card" and the dynamic "Game".
+ * Layout matches AttackCard standalone variant for visual consistency.
  */
 
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, ArrowRightLeft, Image as ImageIcon, Trash2, Info, Settings, Sliders } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { DomainCard } from '@/components/physical-cards/domain-card';
 import MechanicsTray from '@/components/shared/mechanics-tray';
@@ -79,29 +83,31 @@ export default function PlaymatCard({
 
   return (
     <div
-      className="relative isolate flex flex-col items-center gap-2 p-2 pt-14 bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full transition-colors"
+      className="relative isolate flex flex-col bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full transition-colors overflow-hidden pt-16"
     >
-      {/* Visual Domain Card */}
-      <DomainCard
-        name={libraryItem.name}
-        domain={libraryItem.domain}
-        tier={libraryItem.tier || 1}
-        type={libraryItem.type}
-        description={libraryItem.data?.description}
-        recallCost={libraryItem.data?.recall_cost ?? 0}
-        customImageUrl={card.state?.custom_image_url || '/assets/card/domain-placeholder.png'}
-        customImageType={card.state?.custom_image_type || 'artwork'}
-        customImagePosition={{
-          x: card.state?.custom_image_position_x ?? 50,
-          y: card.state?.custom_image_position_y ?? 0,
-        }}
-        size="thumbnail"
-        hasPassiveModifiers={!!(enhancement?.modifiers && enhancement.modifiers.length > 0)}
-        hasCombatAbility={!!mechanics.hasAttackOrRoll}
-      />
+      {/* Visual Domain Card - centered at the top with padding for icons */}
+      <div className="relative flex justify-center px-4 -mt-14 mb-4">
+        <div className="relative">
+          <DomainCard
+            name={libraryItem.name}
+            domain={libraryItem.domain}
+            tier={libraryItem.tier || 1}
+            type={libraryItem.type}
+            description={libraryItem.data?.description}
+            recallCost={libraryItem.data?.recall_cost ?? 0}
+            customImageUrl={card.state?.custom_image_url || '/assets/card/domain-placeholder.png'}
+            customImageType={card.state?.custom_image_type || 'artwork'}
+            customImagePosition={{
+              x: card.state?.custom_image_position_x ?? 50,
+              y: card.state?.custom_image_position_y ?? 0,
+            }}
+            size="thumbnail"
+            hasPassiveModifiers={!!(enhancement?.modifiers && enhancement.modifiers.length > 0)}
+            hasCombatAbility={!!mechanics.hasAttackOrRoll}
+          />
 
-      {/* Top Right Icon Overlay - positioned over top padding area */}
-      <div className="absolute top-3 right-3 z-40 flex items-center gap-1.5">
+          {/* Top Right Icon Overlay - positioned over domain card */}
+          <div className="absolute top-3 right-3 z-40 flex items-center gap-1.5">
         {/* Toggle Location Button (Vault/Loadout) */}
         <button
           onClick={(e) => {
@@ -137,7 +143,7 @@ export default function PlaymatCard({
             aria-label={`${showDescription ? 'Hide' : 'Show'} ${libraryItem.name} description`}
             title={showDescription ? "Hide description" : "Show description"}
           >
-            <Info size={12} />
+            <AppIcons.ui.info size={12} />
           </button>
         )}
 
@@ -232,29 +238,65 @@ export default function PlaymatCard({
           )}
         </div>
       </div>
-
-      {/* Collapsible Description Panel */}
-      {showDescription && libraryItem.data?.description && (
-        <div className="w-full p-3 bg-white/5 rounded-lg border border-white/5 text-sm text-gray-300">
-          <MarkdownText>{libraryItem.data.description}</MarkdownText>
         </div>
-      )}
+      </div>
 
-      {/* Mechanics Tray */}
-      {enhancement && (
-        <MechanicsTray
-          cardName={libraryItem.name}
-          enhancement={enhancement}
-          enhancedData={enhancedData}
-          showAttackButton={mechanics.showAttackButton}
-          hasAttackOrRoll={mechanics.hasAttackOrRoll}
-          rollBonus={mechanics.rollBonus}
-          rollLabel={mechanics.rollLabel}
-          finalDamage={mechanics.finalDamage}
-          additionalDamage={enhancement.attack?.additional_damage}
-          costMode="uncontrolled"
-        />
-      )}
+      {/* Inner Card Container - bg-white/5 to match character view nested cards */}
+      <div className="mx-4 mb-4 bg-white/5 rounded border border-white/5 p-3">
+        {/* Header Section - Card Title with Gold All-Caps */}
+        <div className="flex justify-between items-start relative mb-2">
+          {/* Info button for description */}
+          {libraryItem.data?.description && (
+            <div className="absolute top-0 right-0 z-10">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDescription(!showDescription);
+                }}
+                className={clsx(
+                  "transition-colors p-0.5 rounded hover:bg-white/10",
+                  showDescription ? "text-dagger-gold" : "text-gray-500 hover:text-gray-300"
+                )}
+                aria-label={`${showDescription ? 'Hide' : 'Show'} ${libraryItem.name} description`}
+                title={showDescription ? "Hide description" : "Show description"}
+              >
+                <AppIcons.ui.info size={12} />
+              </button>
+            </div>
+          )}
+
+          {/* Card Name - Gold All-Caps to match character/combat view */}
+          <h4 className="text-xs font-bold text-dagger-gold uppercase tracking-wider">{libraryItem.name}</h4>
+        </div>
+
+        {/* Collapsible Description Panel */}
+        {showDescription && libraryItem.data?.description && (
+          <div className="text-sm text-gray-300 leading-relaxed mb-3">
+            <MarkdownText>{libraryItem.data.description}</MarkdownText>
+          </div>
+        )}
+
+        {/* Mechanics Section (matching character feature cards) */}
+        {enhancement && (
+          <div className="mt-2 pt-3 border-t border-white/10 space-y-2">
+            {/* Tokens & Modifiers */}
+            <MechanicsTray
+              cardName={libraryItem.name}
+              enhancement={enhancement}
+              enhancedData={enhancedData}
+              showAttackButton={mechanics.showAttackButton}
+              hasAttackOrRoll={mechanics.hasAttackOrRoll}
+              rollBonus={mechanics.rollBonus}
+              rollLabel={mechanics.rollLabel}
+              finalDamage={mechanics.finalDamage}
+              additionalDamage={enhancement.attack?.additional_damage}
+              costMode="uncontrolled"
+              variant="nested"
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
