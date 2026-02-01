@@ -18,11 +18,9 @@
 import React, { useMemo } from 'react';
 import clsx from 'clsx';
 import { CharacterCard, useCharacterStore } from '@/store/character-store';
-import { Info, Dices } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { MarkdownText } from '@/components/shared/markdown-text';
-import CardTokenTrack from '@/components/shared/token-track';
-import { DomainCostsRow } from '@/components/shared/ability-costs-row';
-import FrequencyCheckbox from '@/components/shared/frequency-checkbox';
+import MechanicsTray from '@/components/shared/mechanics-tray';
 import { srdSubclasses } from '@/lib/content-loaders';
 
 interface SubclassFeatureCardProps {
@@ -117,7 +115,7 @@ export default function SubclassFeatureCard({
           className="p-1 hover:bg-white/10 rounded transition-colors"
           title={showLore ? "Hide lore" : "Show lore"}
         >
-          <Info size={12} className={showLore ? "text-dagger-gold" : "text-gray-400"} />
+          <AppIcons.ui.info size={12} className={showLore ? "text-dagger-gold" : "text-gray-400"} />
         </button>
       </div>
 
@@ -162,32 +160,13 @@ export default function SubclassFeatureCard({
                   <MarkdownText>{feature.text}</MarkdownText>
                 </div>
                 {/* Interactive elements for subclass features */}
-                {(hasCosts || hasTokens || hasFrequency) && (
-                  <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
-                    {hasTokens && (
-                      <CardTokenTrack
-                        cardName={cardName}
-                        maxTokens={enhancement.tokens.max_tokens ?? null}
-                        tokenSource={enhancement.tokens.token_source}
-                      />
-                    )}
-                    <div className="flex flex-wrap gap-2 items-center">
-                      {hasCosts && (
-                        <DomainCostsRow
-                          cardName={cardName}
-                          displayName={feature.name}
-                          costs={enhancement.costs}
-                          className="flex flex-wrap gap-2"
-                        />
-                      )}
-                      {hasFrequency && (
-                        <FrequencyCheckbox
-                          cardName={cardName}
-                          frequency={enhancement.frequency}
-                        />
-                      )}
-                    </div>
-                  </div>
+                {enhancement && (
+                  <MechanicsTray
+                    cardName={cardName}
+                    enhancement={enhancement}
+                    variant="nested"
+                    className="mt-3 pt-3 border-t border-white/10"
+                  />
                 )}
               </div>
             );

@@ -38,7 +38,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto'); // Native in Node 19+, check version or use fallback
 
-const JSON_DIR = path.join(__dirname, '../content/srd/json');
+const JSON_DIR = path.join(__dirname, '../content/public/srd/json');
 const OUTPUT_PATH = path.join(__dirname, '../supabase/seed_library.sql');
 
 // --- Modifier Parsing Logic ---
@@ -282,10 +282,10 @@ function processWeapons() {
       },
       modifiers: parseModifiers(item.feat_text) // Add parsed modifiers
     };
-    
+
     // Debug log to verify replacement
     if (item.damage && item.damage !== data.damage) {
-        // console.log(`Cleaned damage for ${item.name}: "${item.damage}" -> "${data.damage}"`);
+      // console.log(`Cleaned damage for ${item.name}: "${item.damage}" -> "${data.damage}"`);
     }
 
     sqlOutput.push(createInsert(id, 'weapon', item.name, null, tier, data));
@@ -376,6 +376,229 @@ function processDomains() {
   });
 }
 
+/**
+ * Extracts a section by its title from markdown (supports H2 and H3).
+ * Returns { title, content } or null if not found.
+ */
+function extractSectionByTitle(markdown, targetTitle) {
+  if (!markdown || !targetTitle) return null;
+
+  // Normalize line endings
+  markdown = markdown.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  // Build regex to find the target section (supports #, ## or ### headers, case-insensitive)
+  const escapedTitle = targetTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const sectionRegex = new RegExp(`^(#{1,3})\\s+${escapedTitle}\\s*$`, 'im');
+  const match = markdown.match(sectionRegex);
+
+  if (!match) return null;
+
+  const headerLevel = match[1].length; // 1 for #, 2 for ##, 3 for ###
+  const sectionStart = match.index + match[0].length;
+  const restOfDoc = markdown.substring(sectionStart);
+
+  // Find next header at same or higher level (fewer or equal #)
+  // For H1, stop at next H1
+  // For H2, stop at next H1 or H2
+  // For H3, stop at next H1, H2, or H3
+  const nextHeaderRegex = headerLevel === 1
+    ? /^#{1}\s+/m      // Stop at H1
+    : headerLevel === 2
+      ? /^#{1,2}\s+/m  // Stop at H1 or H2
+      : /^#{1,3}\s+/m; // Stop at H1, H2, or H3
+
+  const nextHeaderMatch = restOfDoc.match(nextHeaderRegex);
+  const contentEnd = nextHeaderMatch ? restOfDoc.indexOf(nextHeaderMatch[0]) : restOfDoc.length;
+
+  const content = restOfDoc.substring(0, contentEnd).trim();
+
+  if (content) {
+    return { title: targetTitle, content };
+  }
+
+  return null;
+}
+
+/**
+ * Extracts a bullet point definition by keyword.
+ * Looks for lines like "- **Keyword** description..."
+ */
+function extractBulletByKeyword(markdown, keyword) {
+  if (!markdown || !keyword) return null;
+
+  // Normalize line endings
+  markdown = markdown.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  // Find lines that start with "- **Keyword" (with optional text after keyword)
+  const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const bulletRegex = new RegExp(`^-\\s+\\*\\*${escapedKeyword}[^*]*\\*\\*(.+)$`, 'im');
+  const match = markdown.match(bulletRegex);
+
+  if (!match) return null;
+
+  // The content is everything after **Keyword**
+  const content = match[0].replace(/^-\s+/, '').trim();
+
+  if (content) {
+    return { title: keyword, content };
+  }
+
+  return null;
+}
+
+/**
+ * Extracts all content after H1 title.
+ * @param {string} markdown - The markdown content
+ * @param {boolean} includeSubsections - If true, includes all content including H2+ sections
+ */
+function extractH1Content(markdown, includeSubsections = false) {
+  if (!markdown) return null;
+
+  // Normalize line endings
+  markdown = markdown.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  const h1Match = markdown.match(/^#\s+(.+?)$/m);
+  if (!h1Match) return null;
+
+  const h1Title = h1Match[1].trim();
+  const contentStart = h1Match.index + h1Match[0].length;
+
+  const restOfDoc = markdown.substring(contentStart);
+
+  let content;
+  if (includeSubsections) {
+    // Include everything after H1 (all subsections)
+    content = restOfDoc.trim();
+  } else {
+    // Find next header (H1 or H2) and stop there
+    const nextHeaderMatch = restOfDoc.match(/^##+\s+/m);
+    const contentEnd = nextHeaderMatch ? restOfDoc.indexOf(nextHeaderMatch[0]) : restOfDoc.length;
+    content = restOfDoc.substring(0, contentEnd).trim();
+  }
+
+  if (content) {
+    return { title: h1Title, content };
+  }
+
+  return null;
+}
+
+/**
+ * Generates SRD rules JSON from markdown files in the SRD directory.
+ * Creates content/public/srd/json/srd_rules.json from markdown sources.
+ * Uses title-based matching for reliability.
+ */
+function generateSRDRulesFromMarkdown() {
+  const srdMarkdownDir = path.join(__dirname, '../content/public/srd/markdown/contents');
+  const outputPath = path.join(JSON_DIR, 'srd_rules.json');
+
+  if (!fs.existsSync(srdMarkdownDir)) {
+    console.log('SRD markdown directory not found, skipping SRD rules generation');
+    return;
+  }
+
+  const rules = [];
+
+  // Define rules with title-based matching for accuracy
+  // Format: { file, key, sectionTitle?, useH1Content?, extractBullet? }
+  const ruleDefinitions = [
+    // === TRAITS ===
+    { file: 'Character Creation.md', key: 'traits.general', sectionTitle: 'STEP 3: ASSIGN CHARACTER TRAITS' },
+
+    // === VITALS ===
+    // HP and Evasion are brief bullet points in STEP 4, so we extract specific bullets
+    { file: 'Character Creation.md', key: 'vitals.hitPoints', extractBullet: 'Hit Points' },
+    { file: 'Stress.md', key: 'vitals.stress', useH1Content: true },
+    { file: 'Making Moves and Taking Action.md', key: 'vitals.hope', sectionTitle: 'HOPE' },
+    { file: 'Character Creation.md', key: 'vitals.evasion', extractBullet: 'Evasion' },
+
+    // === COMBAT ===
+    { file: 'Attacking.md', key: 'combat.attacking', useFullFile: true },
+    { file: 'Attacking.md', key: 'combat.attackRolls', useFullFile: 'ATTACK ROLLS' },
+    { file: 'Attacking.md', key: 'combat.damageRolls', sectionTitle: 'DAMAGE ROLLS' },
+    { file: 'Attacking.md', key: 'combat.criticalDamage', sectionTitle: 'CRITICAL DAMAGE' },
+
+    // === EQUIPMENT ===
+    { file: 'Equipment.md', key: 'equipment.weapons', useH1Content: true },
+    { file: 'Equipment.md', key: 'equipment.armor', useH1Content: true },
+    { file: 'Equipment.md', key: 'equipment.general', useH1Content: true },
+
+    // === DOMAINS ===
+    { file: 'Classes.md', key: 'domains.loadoutVault', sectionTitle: 'LOADOUT & VAULT' },
+    { file: 'Classes.md', key: 'domains.recallCost', sectionTitle: 'DOMAIN CARD ANATOMY' },
+
+    // === CHARACTER ===
+    { file: 'Character Creation.md', key: 'character.experiences', sectionTitle: 'STEP 7: CREATE YOUR EXPERIENCES' },
+    { file: 'Communities.md', key: 'character.community', useFullFile: true },
+    { file: 'Ancestries.md', key: 'character.ancestry', useFullFile: true },
+    { file: 'Classes.md', key: 'character.class', sectionTitle: 'CLASSES' },
+    { file: 'Classes.md', key: 'character.subclass', sectionTitle: 'SUBCLASSES' },
+  ];
+
+  ruleDefinitions.forEach(def => {
+    const filePath = path.join(srdMarkdownDir, def.file);
+    if (!fs.existsSync(filePath)) {
+      console.warn(`⚠️  Skipping: File not found: ${def.file} (for rule ${def.key})`);
+      return;
+    }
+
+    const markdown = fs.readFileSync(filePath, 'utf8');
+    let section = null;
+
+    if (def.extractBullet) {
+      // Extract a specific bullet point definition
+      section = extractBulletByKeyword(markdown, def.extractBullet);
+    } else if (def.useFullFile) {
+      // Extract ALL content after H1 including all subsections
+      section = extractH1Content(markdown, true);
+    } else if (def.useH1Content) {
+      // Extract content under H1 (only content before first H2)
+      section = extractH1Content(markdown, false);
+    } else if (def.sectionTitle) {
+      // Extract by section title
+      section = extractSectionByTitle(markdown, def.sectionTitle);
+    }
+
+    if (!section || !section.content) {
+      console.warn(`⚠️  Skipping: No content found for ${def.key} in ${def.file} (looking for: ${def.sectionTitle || def.extractBullet || 'H1 content'})`);
+      return;
+    }
+
+    rules.push({
+      key: def.key,
+      title: section.title,
+      source_file: def.file,
+      source_section: section.title,
+      content: section.content
+    });
+
+    console.log(`✓ Extracted ${def.key} from ${def.file} [${section.title}]`);
+  });
+
+  // Write the generated rules to srd_rules.json
+  fs.writeFileSync(outputPath, JSON.stringify(rules, null, 2));
+  console.log(`✓ Generated ${rules.length} SRD rules from markdown files`);
+}
+
+function processSRDRules() {
+  const filePath = path.join(JSON_DIR, 'srd_rules.json');
+  if (!fs.existsSync(filePath)) return;
+
+  const items = JSON.parse(fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, ''));
+
+  items.forEach(item => {
+    const id = `srd-rule-${slugify(item.key)}`;
+    const data = {
+      key: item.key,
+      title: item.title,
+      content: item.content,
+      source_file: item.source_file,
+      source_section: item.source_section
+    };
+    sqlOutput.push(createInsert(id, 'srd_rule', item.title, null, null, data));
+  });
+}
+
 // Post-processing to link subclasses to classes based on name matching
 function linkSubclassesToClasses() {
   // This function would ideally read the class items, find the subclass IDs, and update the subclass entries
@@ -405,7 +628,12 @@ function linkSubclassesToClasses() {
 
 
 try {
+  console.log('Starting SRD generation...');
+  // STEP 1: Generate srd_rules.json from markdown files
+  generateSRDRulesFromMarkdown();
+
   console.log('Starting JSON parse...');
+  // STEP 2: Parse all JSON files and generate SQL
   processClasses();
   processSubclasses();
   processAncestries();
@@ -416,6 +644,7 @@ try {
   processArmor();
   processConsumables();
   processAdversaries();
+  processSRDRules();
 
   linkSubclassesToClasses(); // Add the linking SQL at the end
 
@@ -428,5 +657,6 @@ try {
   console.log(`Successfully generated SQL seed at: ${OUTPUT_PATH}`);
   console.log(`Total entries: ${sqlOutput.length}`);
 } catch (e) {
-  console.error('Error parsing JSON:', e);
+  console.error('Error parsing:', e);
+  process.exit(1);
 }

@@ -22,6 +22,7 @@ import { Sword, Shield, ArrowRightLeft, ImageIcon, Settings, Info, FlaskConical 
 import clsx from 'clsx';
 import { CharacterInventoryItem } from '@/store/character-store';
 import { MarkdownText } from '@/components/shared/markdown-text';
+import SRDInfoButton from '@/components/shared/srd-info-button';
 
 export interface InventoryItemCardProps {
     /** The inventory item to display */
@@ -52,6 +53,9 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
     // Get the full description text
     const fullDescription = item.description || data?.markdown || data?.description || '';
 
+    // Determine SRD rule key based on item type
+    const srdRuleKey = type === 'armor' ? 'equipment.armor' : type === 'weapon' ? 'equipment.weapons' : 'equipment.general';
+
     let locationLabel = '';
     if (item.location === 'equipped_primary') locationLabel = 'Primary';
     if (item.location === 'equipped_secondary') locationLabel = 'Secondary';
@@ -64,6 +68,11 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
         )}>
             {/* Action Buttons - absolute top right */}
             <div className="absolute top-1 right-1 z-10 flex items-center gap-0.5">
+                <SRDInfoButton
+                    ruleKey={srdRuleKey}
+                    size={12}
+                    title={type === 'weapon' ? 'Weapon Rules' : type === 'armor' ? 'Armor Rules' : 'Item Rules'}
+                />
                 {fullDescription && (
                     <button
                         type="button"
