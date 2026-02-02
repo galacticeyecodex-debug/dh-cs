@@ -133,6 +133,15 @@ describe('Abilities Schema Validation - Blade Domain', () => {
             const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'proficiency');
             expect(mod?.value).toBe(1);
         });
+
+        it('should have when_active condition (duration-limited bonus)', () => {
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'proficiency');
+            expect(mod?.condition?.type).toBe('when_active');
+        });
+
+        it('should have duration conditional', () => {
+            expect(enhanced.enhancement.duration).toBe('conditional');
+        });
     });
 
     describe('Fortified Armor', () => {
@@ -147,6 +156,11 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         it('should have modifier for damage_threshold +2', () => {
             const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage_threshold');
             expect(mod?.value).toBe(2);
+        });
+
+        it('should have when_armored condition', () => {
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage_threshold');
+            expect(mod?.condition?.type).toBe('when_armored');
         });
     });
 
@@ -201,6 +215,16 @@ describe('Abilities Schema Validation - Blade Domain', () => {
         it('should have modifier for damage', () => {
             const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage');
             expect(mod).toBeDefined();
+        });
+
+        it('should have when_active condition (cost-activated bonus)', () => {
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage');
+            expect(mod?.condition?.type).toBe('when_active');
+        });
+
+        it('should have 2_times_strength formula', () => {
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'damage');
+            expect(mod?.formula).toBe('2_times_strength');
         });
     });
 

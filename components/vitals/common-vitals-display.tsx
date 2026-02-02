@@ -34,16 +34,17 @@ interface CommonVitalsDisplayProps {
 }
 
 const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character }: CommonVitalsDisplayProps) {
-  const { updateVitals, updateHope, updateEvasion, updateModifiers } = useCharacterStore();
+  const { updateVitals, updateHope, updateEvasion, updateModifiers, cardStates } = useCharacterStore();
 
   // Helper to calculate totals and combine modifiers (memoized)
   const getStatDetails = useCallback((stat: string, base: number) => {
     // CRITICAL FIX: getStatModifiers() ALREADY includes user modifiers via getUserModifiers()
     // Do NOT manually add character.modifiers[stat] again or they'll be duplicated
-    const allMods = getStatModifiers(character, stat);
+    // Pass cardStates so when_active modifiers can be properly checked
+    const allMods = getStatModifiers(character, stat, cardStates);
     const total = base + allMods.reduce((acc, mod) => acc + mod.value, 0);
     return { total, allMods };
-  }, [character]);
+  }, [character, cardStates]);
 
   // --- EVASION --- (memoized)
   const evasionDetails = useMemo(() => {
@@ -328,6 +329,9 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
 
   // Check damage thresholds
   if (JSON.stringify(prevProps.character.damage_thresholds) !== JSON.stringify(nextProps.character.damage_thresholds)) return false;
+
+  // Check character cards (loadout changes affect modifiers)
+  if (JSON.stringify(prevProps.character.character_cards) !== JSON.stringify(nextProps.character.character_cards)) return false;
 
   // All relevant props are equal, skip re-render
   return true;

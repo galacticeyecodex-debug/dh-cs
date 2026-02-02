@@ -1289,7 +1289,7 @@
               "stat": "proficiency",
               "value": 1,
               "condition": {
-                "type": "always"
+                "type": "when_active"
               },
               "source": "Ruthless Predator"
             }

@@ -745,11 +745,30 @@
           "stat": "proficiency",
           "value": 1,
           "condition": {
-            "type": "always"
+            "type": "when_active"
           },
           "source": "Deadly Focus"
         }
-      ]
+      ],
+      "duration": "conditional"
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_rest",
+      "keywords": [
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "proficiency",
+          "value": 1,
+          "condition": {
+            "type": "when_active"
+          },
+          "source": "Deadly Focus"
+        }
+      ],
+      "duration": "conditional"
     }
   },
   {
@@ -771,7 +790,7 @@
           "stat": "damage_threshold",
           "value": 2,
           "condition": {
-            "type": "always"
+            "type": "when_armored"
           },
           "source": "Fortified Armor"
         }
@@ -884,7 +903,30 @@
           "value": 0,
           "formula": "2_times_strength",
           "condition": {
-            "type": "always"
+            "type": "when_active"
+          },
+          "source": "Rage Up"
+        }
+      ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "costs": {
+        "stress": 1
+      },
+      "keywords": [
+        "damage",
+        "stress_cost",
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "damage",
+          "value": 0,
+          "formula": "2_times_strength",
+          "condition": {
+            "type": "when_active"
           },
           "source": "Rage Up"
         }
@@ -2246,7 +2288,8 @@
         "trait": "Spellcast",
         "difficulty": 15,
         "target_reaction": false
-      }
+      },
+      "duration": "conditional"
     }
   },
   {
@@ -3299,7 +3342,8 @@
       ],
       "attack": {
         "range": "Close"
-      }
+      },
+      "duration": "conditional"
     }
   },
   {
@@ -3454,7 +3498,8 @@
         "physical",
         "stress_cost",
         "spell"
-      ]
+      ],
+      "duration": "conditional"
     }
   },
   {
@@ -5158,7 +5203,8 @@
       ],
       "attack": {
         "range": "Very Close"
-      }
+      },
+      "duration": "conditional"
     }
   },
   {

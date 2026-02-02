@@ -442,31 +442,31 @@ This section tracks the implementation status of all domain cards and class feat
 | Adjust Reality | 10 | ✅ | 5 Hope cost |
 | Falling Sky | 10 | ✅ | Attack + damage |
 
-### Blade (21 cards)
+### Blade (21 cards) (playtested as of 2/1/2026)
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
-| Get Back Up | 1 | ✅ | Stress cost |
-| Not Good Enough | 1 | ⚠️ | Utility - narrative effect |
-| Whirlwind | 1 | ✅ | Hope cost, attack |
-| A Soldier's Bond | 2 | ✅ | Once per long rest |
-| Reckless | 2 | ✅ | Stress cost |
-| Scramble | 3 | ✅ | Attack, once per rest |
-| Versatile Fighter | 3 | ✅ | Stress cost |
-| Deadly Focus | 4 | ✅ | +1 Proficiency modifier |
-| Fortified Armor | 4 | ✅ | +2 damage threshold modifier |
-| Champion's Edge | 5 | ✅ | 3 Hope cost |
-| Vitality | 5 | ✅ | +2 damage threshold modifier |
-| Battle-Hardened | 6 | ✅ | Hope cost, once per long rest |
-| Rage Up | 6 | ✅ | Stress cost, double damage modifier |
-| Blade-Touched | 7 | ✅ | +2 attack, +4 severe threshold (4+ Blade cards) |
-| Glancing Blow | 7 | ✅ | Stress cost |
-| Battle Cry | 8 | ✅ | Once per long rest |
+| Get Back Up | 1 | ⚠️ | Stress cost implemented. User must reduce severity when they mark HP as normal |
+| Not Good Enough | 1 | ⚠️ | Damage dice rerolling of 1s and 2s not implemented, but could be added |
+| Whirlwind | 1 | ✅ | Hope cost implemented |
+| A Soldier's Bond | 2 | ⚠️ | Once per long rest implemented; Could use a gain 3 Hope button |
+| Reckless | 2 | ✅ | Stress cost implemented; Use must choose to roll with advantage. Advantage rolls not specifically implemented, but can be configured in the dice roller |
+| Scramble | 3 | ✅ | Once per rest implemented |
+| Versatile Fighter | 3 | ✅ | Stress cost implemented, everything else must be handled by the user |
+| Deadly Focus | 4 | ⚠️ | +1 Proficiency modifier implemented, but needs an activation button to control this affect; should be included in the Combat view |
+| Fortified Armor | 4 | ⚠️ | +2 damage threshold modifier is partially implemented, bugged |
+| Champion's Edge | 5 | ✅ | 3 Hope cost implemented; effects must be applied by user |
+| Vitality | 5 | ⚠️ | Requires 3 mutually exclusive activation buttons for modifiers |
+| Battle-Hardened | 6 | ✅ | Hope cost, once per long rest implemented; effects must be applied by user |
+| Rage Up | 6 | ⚠️ | Stress cost properly implemented. Double damage modifier incorrectly implemented, but needs an activation button to control this affect anyway |
+| Blade-Touched | 7 | ⚠️ | +2 attack, +4 severe threshold (4+ Blade cards) modifiers are active, but not applied to Armor threshold in vitals |
+| Glancing Blow | 7 | ⚠️ | Requires an activation button that is avtice even in the Loadout |
+| Battle Cry | 8 | ✅ | Once per long rest implemented |
 | Frenzy | 8 | ✅ | +10 damage, +8 severe threshold (when_active) |
-| Gore and Glory | 9 | ⚠️ | Utility - narrative |
-| Reaper's Strike | 9 | ✅ | Hope cost, once per long rest |
+| Gore and Glory | 9 | ✅ | All effects must be applied by user |
+| Reaper's Strike | 9 | ✅ | Hope cost, once per long rest implemented |
 | Battle Monster | 10 | ✅ | 4 Stress cost, HP modifier |
-| Onslaught | 10 | ✅ | Stress cost, roll DC |
+| Onslaught | 10 | ⚠️ | Stress cost implemented, but Spellcast roll button is incorrectly implemented |
 
 ### Bone (21 cards)
 

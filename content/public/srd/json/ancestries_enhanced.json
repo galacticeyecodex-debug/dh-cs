@@ -192,7 +192,7 @@
               "stat": "evasion",
               "value": 2,
               "condition": {
-                "type": "always"
+                "type": "when_active"
               },
               "source": "Wings"
             }
