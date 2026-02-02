@@ -229,8 +229,8 @@ export default function CampaignDetailPage() {
                                     key={i}
                                     size={20}
                                     className={`transition-all duration-300 ${isFilled ? 'scale-100' : 'text-white/10 scale-90'}`}
-                                    fill={isFilled ? (isHighFear ? "#ef4444" : "#a855f7") : "none"}
-                                    stroke={isFilled ? (isHighFear ? "#7f1d1d" : "#581c87") : "currentColor"}
+                                    fill={isFilled ? (isHighFear ? "var(--vital-fear-high)" : "var(--vital-fear)") : "none"}
+                                    stroke={isFilled ? (isHighFear ? "var(--vital-fear-high-stroke)" : "var(--vital-fear-stroke)") : "currentColor"}
                                 />
                             );
                         })}

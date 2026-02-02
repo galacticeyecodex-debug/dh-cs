@@ -15,7 +15,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Settings, LogOut, Users, Sword } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import useUser from '@/hooks/useUser';
 import HeaderMenuButton from './header-menu-button';
 import clsx from 'clsx';
@@ -122,7 +122,7 @@ export default function UserMenu({ onNavigateToTab }: UserMenuProps) {
                             className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-colors"
                             role="menuitem"
                         >
-                            <Sword size={16} className="text-dagger-gold" />
+                            <AppIcons.combat.attack size={16} className="text-dagger-gold" />
                             Characters
                         </button>
                         <button
@@ -130,7 +130,7 @@ export default function UserMenu({ onNavigateToTab }: UserMenuProps) {
                             className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-colors"
                             role="menuitem"
                         >
-                            <Users size={16} className="text-dagger-gold" />
+                            <AppIcons.campaign.party size={16} className="text-dagger-gold" />
                             Campaigns
                         </button>
                     </div>
@@ -142,7 +142,7 @@ export default function UserMenu({ onNavigateToTab }: UserMenuProps) {
                             className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-colors"
                             role="menuitem"
                         >
-                            <User size={16} className="text-dagger-gold" />
+                            <AppIcons.campaign.player size={16} className="text-dagger-gold" />
                             Profile
                         </button>
                         <button
@@ -150,7 +150,7 @@ export default function UserMenu({ onNavigateToTab }: UserMenuProps) {
                             className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-3 transition-colors"
                             role="menuitem"
                         >
-                            <Settings size={16} className="text-dagger-gold" />
+                            <AppIcons.ui.settings size={16} className="text-dagger-gold" />
                             Settings
                         </button>
                     </div>
@@ -162,7 +162,7 @@ export default function UserMenu({ onNavigateToTab }: UserMenuProps) {
                             className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/20 hover:text-red-300 flex items-center gap-3 transition-colors"
                             role="menuitem"
                         >
-                            <LogOut size={16} />
+                            <AppIcons.campaign.leave size={16} />
                             Sign Out
                         </button>
                     </div>

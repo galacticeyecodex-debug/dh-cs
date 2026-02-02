@@ -11,7 +11,7 @@
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-import { X, Upload, ImageIcon, Trash2 } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { useCharacterStore, CharacterInventoryItem } from '@/store/character-store';
 import { uploadCharacterImage } from '@/lib/storage-service';
 import { toast } from 'sonner';
@@ -21,10 +21,10 @@ const MAX_IMAGE_FILE_SIZE_MB = '5MB';
 
 // Type colors for items
 const TYPE_COLORS: Record<string, string> = {
-    weapon: '#D4A84B', // dagger-gold
-    armor: '#3B82F6', // blue-500
-    consumable: '#F87171', // red-400
-    item: '#A855F7', // purple-500
+    weapon: 'var(--item-weapon)',
+    armor: 'var(--item-armor)',
+    consumable: 'var(--item-consumable)',
+    item: 'var(--item-general)',
 };
 
 interface ItemArtModalProps {
@@ -130,12 +130,12 @@ export default function ItemArtModal({ item, onClose }: ItemArtModalProps) {
                 <div className="flex justify-between items-center p-4 border-b border-white/10">
                     <div>
                         <h2 className="text-lg font-bold font-eveleth text-white flex items-center gap-2">
-                            <ImageIcon size={18} style={{ color: accentColor }} /> Item Artwork
+                            <AppIcons.ui.image size={18} style={{ color: accentColor }} /> Item Artwork
                         </h2>
                         <p className="text-sm text-gray-400">{item.name}</p>
                     </div>
                     <button onClick={onClose} aria-label="Close" className="text-white/70 hover:text-white">
-                        <X size={20} />
+                        <AppIcons.ui.close size={20} />
                     </button>
                 </div>
 
@@ -219,7 +219,7 @@ export default function ItemArtModal({ item, onClose }: ItemArtModalProps) {
                                 {/* Drag indicator */}
                                 <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20 pointer-events-none">
                                     <div className="bg-black/60 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                                        <ImageIcon size={12} /> Drag to reposition
+                                        <AppIcons.ui.image size={12} /> Drag to reposition
                                     </div>
                                 </div>
                             </div>
@@ -229,7 +229,7 @@ export default function ItemArtModal({ item, onClose }: ItemArtModalProps) {
                                     onClick={handleRemoveImage}
                                     className="text-red-400 hover:text-red-300 flex items-center gap-1"
                                 >
-                                    <Trash2 size={12} /> Remove
+                                    <AppIcons.ui.delete size={12} /> Remove
                                 </button>
                             </div>
                         </div>
@@ -248,7 +248,7 @@ export default function ItemArtModal({ item, onClose }: ItemArtModalProps) {
                             className="w-full bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg p-3 text-left transition-colors disabled:opacity-50"
                         >
                             <div className="flex items-start gap-3">
-                                <Upload size={16} className="mt-0.5" style={{ color: accentColor }} />
+                                <AppIcons.ui.upload size={16} className="mt-0.5" style={{ color: accentColor }} />
                                 <div>
                                     <div className="font-bold text-sm">Upload Image</div>
                                     <div className="text-xs text-gray-400 mt-1">
@@ -267,7 +267,7 @@ export default function ItemArtModal({ item, onClose }: ItemArtModalProps) {
                         {/* Choose from Gallery */}
                         <div className="mt-4 pt-4 border-t border-white/10">
                             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
-                                <ImageIcon size={12} /> Choose from Gallery
+                                <AppIcons.ui.image size={12} /> Choose from Gallery
                             </h4>
                             {character?.gallery_images && character.gallery_images.length > 0 ? (
                                 <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">

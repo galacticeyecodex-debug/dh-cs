@@ -14,7 +14,7 @@
  */
 
 import React, { useState } from 'react';
-import { X, Trash2, Check, Pencil, Plus } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Experience } from '@/types/modifiers';
@@ -124,7 +124,7 @@ export default function ExperienceSheet({
                 disabled={!newName.trim()}
                 className="w-full py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                <Plus size={16} /> Add Experience
+                <AppIcons.ui.add size={16} /> Add Experience
               </button>
             </div>
 
@@ -153,8 +153,8 @@ export default function ExperienceSheet({
                             <button onClick={() => setEditValue(v => v + 1)} aria-label="Increase value" className="px-2 py-0.5 hover:bg-white/10 text-white">+</button>
                           </div>
                           <div className="flex gap-2">
-                            <button onClick={() => setEditingIndex(null)} aria-label="Cancel edit" className="p-1 text-gray-400 hover:text-white"><X size={16} /></button>
-                            <button onClick={saveEdit} aria-label="Save edit" className="p-1 text-green-400 hover:text-green-300"><Check size={16} /></button>
+                            <button onClick={() => setEditingIndex(null)} aria-label="Cancel edit" className="p-1 text-gray-400 hover:text-white"><AppIcons.ui.close size={16} /></button>
+                            <button onClick={saveEdit} aria-label="Save edit" className="p-1 text-green-400 hover:text-green-300"><AppIcons.ui.confirm size={16} /></button>
                           </div>
                         </div>
                       </div>
@@ -162,7 +162,7 @@ export default function ExperienceSheet({
                       <div className="flex items-center justify-between w-full">
                         <div onClick={() => startEdit(index, exp)} className="font-bold text-white cursor-pointer flex items-center gap-2 hover:text-dagger-gold transition-colors">
                           {exp.name}
-                          <Pencil size={12} className="text-gray-600 opacity-50" />
+                          <AppIcons.ui.edit size={12} className="text-gray-600 opacity-50" />
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -171,7 +171,7 @@ export default function ExperienceSheet({
                             +{exp.value}
                           </div>
                           <button onClick={() => handleDelete(index)} aria-label="Delete experience" className="text-gray-500 hover:text-red-400 p-1">
-                            <Trash2 size={16} />
+                            <AppIcons.ui.delete size={16} />
                           </button>
                         </div>
                       </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { useCharacterStore } from '@/store/character-store';
 import { dataService } from '@/lib/data-service';
 import { Character } from '@/types/character';
@@ -74,7 +74,7 @@ export default function AssignCharacterModal({ isOpen, onClose, campaignId }: As
                     <div className="flex items-center justify-between p-6 border-b border-white/5">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-blue-500/20 rounded-lg">
-                                <User size={20} className="text-blue-400" />
+                                <AppIcons.campaign.player size={20} className="text-blue-400" />
                             </div>
                             <h2 className="text-xl font-bold text-white">Assign Character</h2>
                         </div>
@@ -84,7 +84,7 @@ export default function AssignCharacterModal({ isOpen, onClose, campaignId }: As
                             disabled={isSubmitting}
                             aria-label="Close modal"
                         >
-                            <X size={20} className="text-gray-400" />
+                            <AppIcons.ui.close size={20} className="text-gray-400" />
                         </button>
                     </div>
 
@@ -102,7 +102,7 @@ export default function AssignCharacterModal({ isOpen, onClose, campaignId }: As
                                 </div>
                             ) : characters.length === 0 ? (
                                 <div className="text-center py-8">
-                                    <User size={32} className="mx-auto text-gray-600 mb-2" />
+                                    <AppIcons.campaign.player size={32} className="mx-auto text-gray-600 mb-2" />
                                     <p className="text-gray-500 text-sm">No characters found</p>
                                     <p className="text-gray-600 text-xs mt-1">Create a character first</p>
                                 </div>

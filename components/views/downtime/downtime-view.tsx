@@ -330,7 +330,7 @@ function ActiveRestPanel({
         setShowTargetModal(false);
 
         // Roll 1d4 + Tier modifier
-        prepareRoll(move.name, characterTier, '1d4', '#d4af37'); // Gold dice for healing/utility
+        prepareRoll(move.name, characterTier, '1d4', 'var(--dice-gold)'); // Gold dice for healing/utility
     };
 
     // Handle target selection

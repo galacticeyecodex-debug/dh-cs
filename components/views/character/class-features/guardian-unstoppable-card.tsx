@@ -2,7 +2,7 @@
 
 import { MarkdownText } from '@/components/shared/markdown-text';
 import React from 'react';
-import { Shield, ChevronUp, X, Info } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { GuardianUnstoppable } from '@/types/character';
 import { toast } from 'sonner';
 import clsx from 'clsx';
@@ -75,13 +75,13 @@ export default function UnstoppableCard({
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
                 <h4 className={clsx("font-serif font-bold flex items-center gap-2", isActive ? "text-dagger-gold" : "text-gray-400")}>
-                    <Shield size={14} /> Unstoppable
+                    <AppIcons.vitals.armor size={14} /> Unstoppable
                 </h4>
                 <button
                     onClick={() => setShowInfo(!showInfo)}
                     className="p-1 hover:bg-white/10 rounded transition-colors"
                 >
-                    <Info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
+                    <AppIcons.ui.info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
                 </button>
             </div>
 
@@ -110,7 +110,7 @@ export default function UnstoppableCard({
                                 onClick={handleIncrease}
                                 className="flex items-center gap-2 px-4 py-2 bg-dagger-gold text-black font-bold rounded-lg hover:bg-white transition-colors"
                             >
-                                <ChevronUp size={16} />
+                                <AppIcons.ui.collapse size={16} />
                                 Scored Hit
                             </button>
                         </div>
@@ -118,13 +118,13 @@ export default function UnstoppableCard({
 
                     <div className="flex justify-between items-center px-1">
                         <div className="text-xs text-gray-400 flex items-center gap-1">
-                            <Shield size={12} className="text-blue-400" /> Reduce Phys. Damage
+                            <AppIcons.vitals.armor size={12} className="text-blue-400" /> Reduce Phys. Damage
                         </div>
                         <button
                             onClick={handleEnd}
                             className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 font-bold uppercase tracking-wider"
                         >
-                            <X size={12} /> End Effect
+                            <AppIcons.ui.close size={12} /> End Effect
                         </button>
                     </div>
                 </div>
@@ -137,7 +137,7 @@ export default function UnstoppableCard({
                         onClick={handleStart}
                         className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 hover:border-dagger-gold/50 hover:text-dagger-gold"
                     >
-                        <Shield size={16} /> Become Unstoppable ({dieSizeLabel})
+                        <AppIcons.vitals.armor size={16} /> Become Unstoppable ({dieSizeLabel})
                     </button>
                 </div>
             )}

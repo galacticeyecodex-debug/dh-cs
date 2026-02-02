@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { EnrichedCampaignMember } from '@/types/campaign';
-import { Crown, User, Shield, X, UserPlus } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { useCharacterStore } from '@/store/character-store';
 
 interface MemberListProps {
@@ -39,7 +39,7 @@ export default function MemberList({ members, campaignId, gmUserId, onAssignChar
                         className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-2 text-xs font-bold"
                         aria-label="Assign character"
                     >
-                        <UserPlus size={14} />
+                        <AppIcons.campaign.invite size={14} />
                         Assign
                     </button>
                 )}
@@ -59,9 +59,9 @@ export default function MemberList({ members, campaignId, gmUserId, onAssignChar
                                 {/* Role Icon */}
                                 <div className={`p-2 rounded-lg ${isGM ? 'bg-dagger-gold/20' : 'bg-blue-500/20'}`}>
                                     {isGM ? (
-                                        <Crown size={18} className="text-dagger-gold" />
+                                        <AppIcons.campaign.gm size={18} className="text-dagger-gold" />
                                     ) : (
-                                        <Shield size={18} className="text-blue-400" />
+                                        <AppIcons.vitals.armor size={18} className="text-blue-400" />
                                     )}
                                 </div>
 
@@ -100,7 +100,7 @@ export default function MemberList({ members, campaignId, gmUserId, onAssignChar
                                         title="Remove from campaign"
                                         aria-label={`Remove ${member.profile?.username} from campaign`}
                                     >
-                                        <X size={18} className="text-gray-400 group-hover:text-red-400" />
+                                        <AppIcons.ui.close size={18} className="text-gray-400 group-hover:text-red-400" />
                                     </button>
                                 )}
                             </div>
@@ -110,7 +110,7 @@ export default function MemberList({ members, campaignId, gmUserId, onAssignChar
 
                 {members.length === 0 && (
                     <div className="text-center py-8">
-                        <User size={32} className="mx-auto text-gray-600 mb-2" />
+                        <AppIcons.campaign.player size={32} className="mx-auto text-gray-600 mb-2" />
                         <p className="text-gray-500 text-sm">No members yet</p>
                     </div>
                 )}

@@ -5,7 +5,7 @@
  * character sheet interface. These tests verify:
  * - Header rendering with character name
  * - Bottom navigation functionality
- * - Dice FAB button presence
+ * - Dice navigation functionality
  * - Sign out button behavior
  */
 
@@ -145,6 +145,7 @@ describe('MobileLayout', () => {
             expect(screen.getByText('Character')).toBeInTheDocument();
             expect(screen.getByText('Combat')).toBeInTheDocument();
             expect(screen.getByText('Playmat')).toBeInTheDocument();
+            expect(screen.getByText('Dice Tray')).toBeInTheDocument();
             expect(screen.getByText('More')).toBeInTheDocument();
         });
 
@@ -201,28 +202,26 @@ describe('MobileLayout', () => {
         });
     });
 
-    describe('Dice FAB', () => {
-        it('should render the dice floating action button', () => {
+    describe('Dice Tray', () => {
+        it('should render the dice tray navigation button', () => {
             render(
                 <MobileLayout>
                     <div>Test Content</div>
                 </MobileLayout>
             );
 
-            // Find the FAB button by its aria-label
-            const diceFab = screen.getByLabelText('Roll Dice');
-            expect(diceFab).toBeInTheDocument();
+            expect(screen.getByText('Dice Tray')).toBeInTheDocument();
         });
 
-        it('should call openDiceOverlay when FAB is clicked', () => {
+        it('should call openDiceOverlay when Dice Tray nav is clicked', () => {
             render(
                 <MobileLayout>
                     <div>Test Content</div>
                 </MobileLayout>
             );
 
-            const diceFab = screen.getByLabelText('Roll Dice');
-            fireEvent.click(diceFab);
+            const diceNav = screen.getByText('Dice Tray').closest('button');
+            fireEvent.click(diceNav!);
 
             expect(mockOpenDiceOverlay).toHaveBeenCalled();
         });

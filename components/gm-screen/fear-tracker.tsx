@@ -87,8 +87,8 @@ export function FearTracker({ campaignId, currentFear }: FearTrackerProps) {
                             ? "scale-100"
                             : "text-white/10 scale-90"
                     )}
-                    fill={isFilled ? (isFullFear ? "#ef4444" : "#a855f7") : "none"}
-                    stroke={isFilled ? (isFullFear ? "#7f1d1d" : "#581c87") : "currentColor"}
+                    fill={isFilled ? (isFullFear ? "var(--vital-fear-high)" : "var(--vital-fear)") : "none"}
+                    stroke={isFilled ? (isFullFear ? "var(--vital-fear-high-stroke)" : "var(--vital-fear-stroke)") : "currentColor"}
                 />
             );
         }
@@ -106,7 +106,7 @@ export function FearTracker({ campaignId, currentFear }: FearTrackerProps) {
             <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded-lg bg-red-500/20">
-                        <FearIcon className="w-5 h-5 text-red-500" aria-hidden="true" />
+                        <FearIcon className="w-5 h-5 text-vital-fear-high" aria-hidden="true" />
                     </div>
                     <div>
                         <h2 className="text-base font-serif font-bold text-white">Fear</h2>

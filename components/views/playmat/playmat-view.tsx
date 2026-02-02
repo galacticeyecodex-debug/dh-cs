@@ -18,10 +18,9 @@
  * - Only re-renders cards when their location or data actually changes
  */
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character-store';
-import { LibraryBig, ScrollText, Plus, Archive, X, ArrowRightLeft, Zap, Shield, ShieldOff, Users, AlertCircle, Swords, Sparkles, Search, Upload, Image as ImageIcon, Trash2, Layers } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { AppIcons } from '@/lib/icon-utils';
 import AddItemModal from '@/components/views/inventory/add-item-modal';
 import clsx from 'clsx';
 import { MarkdownText } from '@/components/shared/markdown-text';
@@ -30,7 +29,7 @@ import ViewHeader from '@/components/shared/view-header';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import SRDInfoButton from '@/components/shared/srd-info-button';
 import ConfirmDialog from '@/components/shared/confirm-dialog';
-import { parseCardPassiveModifiers, parseCombatAbility, calculateDynamicValue, type PassiveModifier, type ModifierCondition, type CombatAbility } from '@/lib/card-parser';
+import { parseCardPassiveModifiers, parseCombatAbility, type PassiveModifier, type ModifierCondition } from '@/lib/card-parser';
 import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { uploadCharacterImage } from '@/lib/storage-service';
@@ -40,15 +39,25 @@ import Image from 'next/image';
 import PlaymatCard from './playmat-card';
 import type { EnhancedAbilityCard } from '@/types/cards';
 import { getAllAbilities, srdAncestries, srdCommunities } from '@/lib/content-loaders';
-import { getAttack, getRoll, getModifiers, isModifierActive } from '@/lib/enhancement-utils';
+import { getAttack, getRoll } from '@/lib/enhancement-utils';
 import useContentAccess from '@/hooks/useContentAccess';
 import { useLibraryItems, LibraryPresets } from '@/hooks/useLibraryItems';
+import { SegmentedControl } from '@/components/ui/segmented-control';
+import { SearchInput } from '@/components/ui/search-input';
+import { Panel } from '@/components/ui/panel';
+import { PillButton } from '@/components/ui/pill-button';
+
+type ViewMode = 'loadout' | 'vault';
+
+const VIEW_MODE_OPTIONS: { value: ViewMode; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
+  { value: 'loadout', label: 'Loadout', icon: AppIcons.ui.notability },
+  { value: 'vault', label: 'Vault', icon: AppIcons.ui.archive },
+];
 
 export default function PlaymatView() {
   const { character, cardStates, moveCard, addCardToCollection, removeCard, updateCardImage, updateCardImagePosition, updateModifiers, user } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
-  const router = useRouter();
-  const [viewMode, setViewMode] = useState<'loadout' | 'vault'>('loadout');
+  const [viewMode, setViewMode] = useState<ViewMode>('loadout');
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<CharacterCard | null>(null);
   const [cardDetailMode, setCardDetailMode] = useState<'full' | 'art-only'>('full');
@@ -152,7 +161,7 @@ export default function PlaymatView() {
       <div className="p-4 space-y-6 pb-24">
         {/* Header */}
         <ViewHeader
-          icon={Layers}
+          icon={AppIcons.ui.playmat}
           title="Playmat"
           subtitle="Manage your domain cards and loadout"
         />
@@ -162,28 +171,11 @@ export default function PlaymatView() {
           {/* Top row: Loadout/Vault toggle + Add Card button */}
           <div className="flex justify-between items-center gap-2">
             <div className="flex items-center gap-2">
-              <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
-                <button
-                  onClick={() => setViewMode('loadout')}
-                  className={clsx(
-                    "px-3 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                    viewMode === 'loadout' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
-                  )}
-                  aria-label="Show loadout cards"
-                >
-                  <ScrollText size={14} /> Loadout
-                </button>
-                <button
-                  onClick={() => setViewMode('vault')}
-                  className={clsx(
-                    "px-3 py-1.5 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors",
-                    viewMode === 'vault' ? "bg-dagger-gold text-black" : "text-gray-400 hover:text-white"
-                  )}
-                  aria-label="Show vault cards"
-                >
-                  <Archive size={14} /> Vault
-                </button>
-              </div>
+              <SegmentedControl
+                value={viewMode}
+                onChange={setViewMode}
+                options={VIEW_MODE_OPTIONS}
+              />
               <SRDInfoButton ruleKey="domains.loadoutVault" title="Loadout & Vault" />
             </div>
 
@@ -191,7 +183,7 @@ export default function PlaymatView() {
               onClick={() => setIsAddCardModalOpen(true)}
               className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-full text-sm font-bold flex items-center gap-1 transition-colors border border-white/10"
             >
-              <Plus size={16} /> <span className="hidden xs:inline">Add Card</span>
+              <AppIcons.ui.add size={16} /> <span className="hidden xs:inline">Add Card</span>
             </button>
           </div>
 
@@ -202,18 +194,19 @@ export default function PlaymatView() {
                 loadoutCards.map((card) => {
                   const cardId = `loadout-card-${card.id}`;
                   return (
-                    <button
+                    <PillButton
                       key={card.id}
+                      size="sm"
                       onClick={() => {
                         const el = document.getElementById(cardId);
                         el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                       }}
-                      className="flex-shrink-0 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-white hover:bg-white/10 hover:text-dagger-gold transition-colors truncate max-w-[120px]"
                       title={card.library_item?.name || 'Unknown Card'}
                       aria-label={`Scroll to ${card.library_item?.name || 'card'} in loadout`}
+                      className="truncate max-w-[120px]"
                     >
                       {card.library_item?.name || 'Card'}
-                    </button>
+                    </PillButton>
                   );
                 })
               ) : (
@@ -230,24 +223,12 @@ export default function PlaymatView() {
 
           {/* Vault Mode: Search Bar */}
           {viewMode === 'vault' && (
-            <div className="relative mt-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-              <input
-                type="text"
-                placeholder="Search vault cards..."
+            <div className="mt-2">
+              <SearchInput
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-dagger-gold transition-colors"
+                onChange={setSearchTerm}
+                placeholder="Search vault cards..."
               />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-                  aria-label="Clear search"
-                >
-                  <X size={12} />
-                </button>
-              )}
             </div>
           )}
         </div>
@@ -274,16 +255,16 @@ export default function PlaymatView() {
               if (statKeys.length === 0) return null;
 
               return (
-                <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+                <Panel>
                   <h3 className="text-xs font-bold uppercase text-dagger-gold tracking-wider mb-3 flex items-center gap-2">
-                    <Sparkles size={14} /> Active Modifiers
+                    <AppIcons.vitals.hope size={14} /> Active Modifiers
                   </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {statKeys.map(stat => {
                       const mods = modifiersByStat[stat];
                       const total = mods.reduce((sum, m) => sum + m.value, 0);
                       return (
-                        <div key={stat} className="bg-white/5 border border-dagger-gold/30 rounded-lg p-3">
+                        <Panel key={stat} variant="ghost" padding="sm" className="border-dagger-gold/30">
                           <div className="text-[10px] text-gray-400 uppercase mb-1 capitalize">
                             {stat.replace(/_/g, ' ')}
                           </div>
@@ -296,11 +277,11 @@ export default function PlaymatView() {
                           <div className="text-[9px] text-gray-500 mt-1">
                             {mods.length} modifier{mods.length > 1 ? 's' : ''}
                           </div>
-                        </div>
+                        </Panel>
                       );
                     })}
                   </div>
-                </div>
+                </Panel>
               );
             })()}
 
@@ -329,7 +310,7 @@ export default function PlaymatView() {
               ) : (
                 <div className="relative flex flex-col items-center gap-2 p-2 bg-dagger-panel border-2 border-dashed border-white/5 rounded-xl w-full">
                   <div className="w-[240px] aspect-[2.5/3.5] flex flex-col items-center justify-center text-gray-600 p-4 text-center">
-                    <LibraryBig size={24} className="mb-2" />
+                    <AppIcons.ui.library size={24} className="mb-2" />
                     <span className="text-sm">No cards in Loadout.</span>
                     <span className="text-xs">Add from Vault or create new!</span>
                   </div>
@@ -585,15 +566,15 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
     if (!condition || condition.type === 'always') return null;
     switch (condition.type) {
       case 'when_armored':
-        return <Shield size={12} className="text-gray-400" />;
+        return <AppIcons.vitals.armor size={12} className="text-gray-400" />;
       case 'when_unarmored':
-        return <ShieldOff size={12} className="text-gray-400" />;
+        return <AppIcons.vitals.noArmor size={12} className="text-gray-400" />;
       case 'when_active':
-        return <Zap size={12} className="text-yellow-400" />;
+        return <AppIcons.vitals.stress size={12} className="text-yellow-400" />;
       case 'loadout_domain_count':
-        return <Users size={12} className="text-purple-400" />;
+        return <AppIcons.campaign.party size={12} className="text-purple-400" />;
       case 'environment':
-        return <AlertCircle size={12} className="text-orange-400" />;
+        return <AppIcons.system.error size={12} className="text-orange-400" />;
       default:
         return null;
     }
@@ -652,7 +633,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
                   }}
                 >
                   {recallCost}
-                  <Zap size={14} className="absolute bottom-1 right-1 text-yellow-400" />
+                  <AppIcons.vitals.stress size={14} className="absolute bottom-1 right-1 text-yellow-400" />
                 </div>
                 <SRDInfoButton ruleKey="domains.recallCost" title="Recall Cost" />
               </div>
@@ -682,14 +663,14 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
           <div className="flex justify-between items-center p-4 border-b border-white/10">
             <h2 className="text-lg font-bold font-eveleth text-white">Change Art</h2>
             <button onClick={onClose} aria-label="Close" className="text-white/70 hover:text-white">
-              <X size={20} />
+              <AppIcons.ui.close size={20} />
             </button>
           </div>
         )}
 
         {isFull && (
           <button onClick={onClose} aria-label="Close" className="absolute top-2 right-2 text-white/70 hover:text-white bg-black/50 rounded-full p-1 z-20">
-            <X size={20} />
+            <AppIcons.ui.close size={20} />
           </button>
         )}
 
@@ -716,7 +697,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
               style={{ color: theme.accent }}
             >
               <span className="flex items-center gap-2">
-                <ImageIcon size={14} /> Card Artwork
+                <AppIcons.ui.image size={14} /> Card Artwork
               </span>
               <button
                 onClick={() => setShowImageOptions(!showImageOptions)}
@@ -805,7 +786,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
                   {/* Drag indicator */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20 pointer-events-none">
                     <div className="bg-black/60 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                      <ImageIcon size={12} /> Drag to reposition
+                      <AppIcons.ui.image size={12} /> Drag to reposition
                     </div>
                   </div>
                 </div>
@@ -815,7 +796,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
                     onClick={handleRemoveImage}
                     className="text-red-400 hover:text-red-300 flex items-center gap-1"
                   >
-                    <Trash2 size={12} /> Remove
+                    <AppIcons.ui.delete size={12} /> Remove
                   </button>
                 </div>
               </div>
@@ -839,7 +820,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
                     onClick={handleRemoveImage}
                     className="text-red-400 hover:text-red-300 flex items-center gap-1"
                   >
-                    <Trash2 size={12} /> Remove
+                    <AppIcons.ui.delete size={12} /> Remove
                   </button>
                 </div>
               </div>
@@ -858,7 +839,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
                   data-type="artwork"
                 >
                   <div className="flex items-start gap-3">
-                    <Upload size={16} className="mt-0.5" style={{ color: theme.accent }} />
+                    <AppIcons.ui.upload size={16} className="mt-0.5" style={{ color: theme.accent }} />
                     <div>
                       <div className="font-bold text-sm">Artwork Only</div>
                       <div className="text-xs text-gray-400 mt-1">
@@ -881,7 +862,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
                   className="w-full bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg p-3 text-left transition-colors disabled:opacity-50"
                 >
                   <div className="flex items-start gap-3">
-                    <Upload size={16} className="mt-0.5" style={{ color: theme.accent }} />
+                    <AppIcons.ui.upload size={16} className="mt-0.5" style={{ color: theme.accent }} />
                     <div>
                       <div className="font-bold text-sm">Full Custom Card</div>
                       <div className="text-xs text-gray-400 mt-1">
@@ -900,7 +881,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
                 {/* Choose from Gallery */}
                 <div className="mt-4 pt-4 border-t border-white/10">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
-                    <ImageIcon size={12} /> Choose from Gallery
+                    <AppIcons.ui.image size={12} /> Choose from Gallery
                   </h4>
                   {character?.gallery_images && character.gallery_images.length > 0 ? (
                     <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
@@ -968,7 +949,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
           {isFull && passiveModifiers.length > 0 && (
             <div className="mt-6 pt-4 border-t border-white/10">
               <h3 className="text-xs font-bold uppercase text-purple-400 tracking-wider mb-3 flex items-center gap-2">
-                <Sparkles size={14} /> Passive Modifiers
+                <AppIcons.vitals.hope size={14} /> Passive Modifiers
               </h3>
               <div className="space-y-2">
                 {passiveModifiers.map((mod, idx) => {
@@ -1019,7 +1000,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
           {isFull && combatAbility && (
             <div className="mt-6 pt-4 border-t border-white/10">
               <h3 className="text-xs font-bold uppercase text-purple-400 tracking-wider mb-3 flex items-center gap-2">
-                <Swords size={14} /> Combat Ability
+                <AppIcons.combat.navCombat size={14} /> Combat Ability
               </h3>
               <div className="bg-white/5 border border-purple-500/30 rounded-lg p-3 space-y-2">
                 <div className="flex items-center justify-between">
@@ -1078,7 +1059,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
             onClick={() => setShowRemoveConfirm(true)}
             className="flex items-center gap-1.5 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-lg text-sm font-bold transition-colors border border-red-500/30"
           >
-            <Trash2 size={14} /> Remove from Character
+            <AppIcons.ui.delete size={14} /> Remove from Character
           </button>
         </div>
       </div>

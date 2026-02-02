@@ -14,7 +14,7 @@
 
 import { MarkdownText } from '@/components/shared/markdown-text';
 import React from 'react';
-import { Swords, Plus, Dices, RotateCcw, Info } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { useCharacterStore } from '@/store/character-store';
 import { toast } from 'sonner';
 import { WarriorSlayerDice, SlayerDie } from '@/types/character';
@@ -99,14 +99,14 @@ export default function SlayerDiceCard({
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
                 <h4 className="font-serif font-bold text-white flex items-center gap-2">
-                    <Swords size={14} className="text-dagger-gold" /> Slayer Dice
+                    <AppIcons.combat.attack size={14} className="text-dagger-gold" /> Slayer Dice
                 </h4>
                 <button
                     onClick={() => setShowInfo(!showInfo)}
                     className="p-1 hover:bg-white/10 rounded transition-colors"
                     aria-label={showInfo ? "Hide slayer dice info" : "Show slayer dice info"}
                 >
-                    <Info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
+                    <AppIcons.ui.info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
                 </button>
             </div>
 
@@ -164,7 +164,7 @@ export default function SlayerDiceCard({
                                 : "bg-white/5 border border-white/5 text-gray-600 cursor-not-allowed"
                         )}
                     >
-                        <Plus size={14} /> Bank Die
+                        <AppIcons.ui.add size={14} /> Bank Die
                     </button>
 
                     {/* Spend Die */}
@@ -178,7 +178,7 @@ export default function SlayerDiceCard({
                                 : "bg-white/5 border border-white/5 text-gray-600 cursor-not-allowed"
                         )}
                     >
-                        <Dices size={14} /> Spend 1
+                        <AppIcons.combat.roll size={14} /> Spend 1
                     </button>
                 </div>
 
@@ -209,7 +209,7 @@ export default function SlayerDiceCard({
                             onClick={handleClearDice}
                             className="text-[10px] text-gray-500 hover:text-dagger-gold flex items-center gap-1 transition-colors uppercase font-bold tracking-wider"
                         >
-                            <RotateCcw size={10} /> End Session (Gain Hope)
+                            <AppIcons.ui.reset size={10} /> End Session (Gain Hope)
                         </button>
                     </div>
                 )}

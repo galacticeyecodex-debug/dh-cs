@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, Check, ExternalLink } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { Campaign } from '@/types/campaign';
 
 interface InviteCodeDisplayProps {
@@ -58,9 +58,9 @@ export default function InviteCodeDisplay({ campaign }: InviteCodeDisplayProps) 
                             aria-label="Copy invite code to clipboard"
                         >
                             {copied ? (
-                                <Check size={20} className="text-green-400" />
+                                <AppIcons.ui.confirm size={20} className="text-green-400" />
                             ) : (
-                                <Copy size={20} className="text-gray-400" />
+                                <AppIcons.ui.copy size={20} className="text-gray-400" />
                             )}
                         </button>
                     </div>
@@ -87,9 +87,9 @@ export default function InviteCodeDisplay({ campaign }: InviteCodeDisplayProps) 
                             aria-label="Copy invite link to clipboard"
                         >
                             {copied ? (
-                                <Check size={18} className="text-green-400" />
+                                <AppIcons.ui.confirm size={18} className="text-green-400" />
                             ) : (
-                                <ExternalLink size={18} className="text-gray-400" />
+                                <AppIcons.ui.link size={18} className="text-gray-400" />
                             )}
                         </button>
                     </div>

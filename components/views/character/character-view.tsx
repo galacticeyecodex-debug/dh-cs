@@ -691,7 +691,7 @@ export default function CharacterView() {
                               onClick={toggleMark}
                               className={`absolute -top-0.5 -left-0.5 w-4 h-4 rounded-full transition-all border border-gray-500 ${isMarked
                                 ? 'bg-dagger-gold'
-                                : 'bg-[#2d2d2d] hover:bg-[#3d3d3d]'
+                                : 'bg-[var(--indicator-unmarked)] hover:bg-[var(--indicator-unmarked-hover)]'
                                 }`}
                               aria-label={isMarked ? `Unmark ${key} trait` : `Mark ${key} trait`}
                               title={isMarked ? 'Trait is marked (cannot be increased until tier clear)' : 'Mark trait as used'}

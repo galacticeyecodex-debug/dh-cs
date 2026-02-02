@@ -38,7 +38,7 @@ interface NavButtonProps {
 }
 
 export default function MobileLayout({ children }: { children: React.ReactNode }) {
-  const { activeTab, setActiveTab, openDiceOverlay, openMoreMenu, isMoreMenuOpen, character, campaigns, activeCampaign } = useCharacterStore();
+  const { activeTab, setActiveTab, openDiceOverlay, isDiceOverlayOpen, openMoreMenu, isMoreMenuOpen, character, campaigns, activeCampaign } = useCharacterStore();
   const router = useRouter();
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
@@ -197,14 +197,6 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
         {children}
       </main>
 
-      {/* Floating Action Button (FAB) - Dice */}
-      <button
-        onClick={openDiceOverlay}
-        aria-label="Roll Dice"
-        className="fixed bottom-30 right-6 bg-dagger-gold/50 text-black p-4 rounded-full shadow-lg shadow-dagger-gold/20 hover:scale-105 transition-transform z-40"
-      >
-        <AppIcons.combat.roll size={28} />
-      </button>
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 pb-safe pt-2 px-6 z-50 backdrop-blur-lg">
@@ -226,6 +218,12 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
             onClick={() => setActiveTab('playmat')}
             icon={AppIcons.ui.playmat}
             label="Playmat"
+          />
+          <NavButton
+            active={isDiceOverlayOpen}
+            onClick={openDiceOverlay}
+            icon={AppIcons.combat.roll}
+            label="Dice Tray"
           />
           <NavButton
             active={isMoreTabActive || isMoreMenuOpen}

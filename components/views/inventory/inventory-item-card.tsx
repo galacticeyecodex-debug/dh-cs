@@ -18,7 +18,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Sword, Shield, ArrowRightLeft, ImageIcon, Settings, Info, FlaskConical } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { CharacterInventoryItem } from '@/store/character-store';
 import { MarkdownText } from '@/components/shared/markdown-text';
@@ -87,7 +87,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                         aria-label={`${showDescription ? 'Hide' : 'Show'} ${item.name} description`}
                         title={showDescription ? "Hide description" : "Show description"}
                     >
-                        <Info size={12} />
+                        <AppIcons.ui.info size={12} />
                     </button>
                 )}
                 <button
@@ -100,7 +100,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                     aria-label={`Edit ${item.name} artwork`}
                     title="Edit Artwork"
                 >
-                    <ImageIcon size={12} />
+                    <AppIcons.ui.image size={12} />
                 </button>
                 <button
                     type="button"
@@ -112,7 +112,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                     aria-label={`Manage ${item.name}`}
                     title="Manage Item"
                 >
-                    <Settings size={12} />
+                    <AppIcons.ui.settings size={12} />
                 </button>
             </div>
 
@@ -210,7 +210,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                         className="text-[10px] font-bold uppercase px-2 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded flex items-center gap-1 border border-green-500/30"
                         aria-label={`Use ${item.name}`}
                     >
-                        <FlaskConical size={12} /> Use
+                        <AppIcons.inventory.consumable size={12} /> Use
                     </button>
                 )}
 
@@ -222,7 +222,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                                 className="text-[10px] font-bold uppercase px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white flex items-center gap-1"
                                 aria-label={`Equip ${item.name} to primary slot`}
                             >
-                                <Sword size={12} /> Primary
+                                <AppIcons.combat.attack size={12} /> Primary
                             </button>
                         )}
                         {item.location !== 'equipped_secondary' && (
@@ -231,7 +231,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                                 className="text-[10px] font-bold uppercase px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white flex items-center gap-1"
                                 aria-label={`Equip ${item.name} to secondary slot`}
                             >
-                                <Sword size={12} /> Secondary
+                                <AppIcons.combat.attack size={12} /> Secondary
                             </button>
                         )}
                     </>
@@ -243,7 +243,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                         className="text-[10px] font-bold uppercase px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white flex items-center gap-1"
                         aria-label={`Equip ${item.name}`}
                     >
-                        <Shield size={12} /> Equip
+                        <AppIcons.vitals.armor size={12} /> Equip
                     </button>
                 )}
 
@@ -253,7 +253,7 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
                         className="text-[10px] font-bold uppercase px-2 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded flex items-center gap-1 ml-auto"
                         aria-label={`Unequip ${item.name}`}
                     >
-                        <ArrowRightLeft size={12} /> Unequip
+                        <AppIcons.ui.swap size={12} /> Unequip
                     </button>
                 )}
             </div>

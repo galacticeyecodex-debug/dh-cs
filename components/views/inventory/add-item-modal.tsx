@@ -17,7 +17,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { LibraryItem, HomebrewItem, useCharacterStore } from '@/store/character-store';
-import { Search, X, Sword, Shield, Heart, Gem, Package, ScrollText, Loader2, Plus, Sparkles } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import CreateHomebrewItemModal, { HomebrewItemData } from './create-homebrew-item-modal';
@@ -153,12 +153,12 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
                   onClick={() => setIsCreateHomebrewOpen(true)}
                   className="flex items-center gap-1 px-3 py-1.5 bg-dagger-gold text-black text-sm font-bold rounded-full hover:scale-105 active:scale-95 transition-all"
                 >
-                  <Plus size={16} />
+                  <AppIcons.ui.add size={16} />
                   Create Custom
                 </button>
               )}
               <button onClick={onClose} aria-label="Close" className="text-white/70 hover:text-white">
-                <X size={24} />
+                <AppIcons.ui.close size={24} />
               </button>
             </div>
           </div>
@@ -166,7 +166,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
           {/* Search and Filters */}
           <div className="p-4 space-y-3">
             <div className="relative">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <AppIcons.ui.search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search..."
@@ -179,7 +179,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
             <div className="flex gap-2 overflow-x-auto pb-2 -mb-2">
               <FilterButton
                 label="All"
-                icon={<Package size={16} />}
+                icon={<AppIcons.inventory.item size={16} />}
                 isSelected={selectedCategory === null}
                 onClick={() => setSelectedCategory(null)}
               />
@@ -187,31 +187,31 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
                 <>
                   <FilterButton
                     label="Weapons"
-                    icon={<Sword size={16} />}
+                    icon={<AppIcons.combat.attack size={16} />}
                     isSelected={selectedCategory === 'weapon'}
                     onClick={() => setSelectedCategory('weapon')}
                   />
                   <FilterButton
                     label="Armor"
-                    icon={<Shield size={16} />}
+                    icon={<AppIcons.vitals.armor size={16} />}
                     isSelected={selectedCategory === 'armor'}
                     onClick={() => setSelectedCategory('armor')}
                   />
                   <FilterButton
                     label="Consumables"
-                    icon={<Heart size={16} />}
+                    icon={<AppIcons.vitals.hitPoints size={16} />}
                     isSelected={selectedCategory === 'consumable'}
                     onClick={() => setSelectedCategory('consumable')}
                   />
                   <FilterButton
                     label="Misc Items"
-                    icon={<Gem size={16} />}
+                    icon={<AppIcons.inventory.valuable size={16} />}
                     isSelected={selectedCategory === 'item'}
                     onClick={() => setSelectedCategory('item')}
                   />
                   <FilterButton
                     label="Homebrew"
-                    icon={<Sparkles size={16} />}
+                    icon={<AppIcons.vitals.hope size={16} />}
                     isSelected={showHomebrewOnly}
                     onClick={() => setShowHomebrewOnly(!showHomebrewOnly)}
                   />
@@ -220,7 +220,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
               {filterType === 'cards' && (
                 <FilterButton
                   label="Cards"
-                  icon={<ScrollText size={16} />}
+                  icon={<AppIcons.ui.notability size={16} />}
                   isSelected={selectedCategory === 'card'}
                   onClick={() => setSelectedCategory('card')}
                 />
@@ -252,7 +252,7 @@ export default function AddItemModal({ isOpen, onClose, onAddItem, libraryItems,
           <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
-                <Loader2 className="animate-spin" size={24} />
+                <AppIcons.ui.loading className="animate-spin" size={24} />
                 <span className="text-sm">Loading library items...</span>
               </div>
             ) : filteredItems.length > 0 ? (

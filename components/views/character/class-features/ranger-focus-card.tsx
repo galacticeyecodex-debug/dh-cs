@@ -2,7 +2,7 @@
 
 import { MarkdownText } from '@/components/shared/markdown-text';
 import React from 'react';
-import { Target, Info, X, Check } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { RangerFocus } from '@/types/character';
 import { toast } from 'sonner';
 import clsx from 'clsx';
@@ -54,13 +54,13 @@ export default function RangerFocusCard({
 
             <div className="flex items-center justify-between mb-3">
                 <h4 className={clsx("font-serif font-bold flex items-center gap-2", isActive ? "text-emerald-400" : "text-gray-200")}>
-                    <Target size={14} /> Ranger&apos;s Focus
+                    <AppIcons.combat.target size={14} /> Ranger&apos;s Focus
                 </h4>
                 <button
                     onClick={() => setShowInfo(!showInfo)}
                     className="p-1 hover:bg-white/10 rounded transition-colors"
                 >
-                    <Info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
+                    <AppIcons.ui.info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
                 </button>
             </div>
 
@@ -86,7 +86,7 @@ export default function RangerFocusCard({
                             onClick={handleActivate}
                             className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded transition-colors"
                         >
-                            <Check size={16} />
+                            <AppIcons.ui.confirm size={16} />
                         </button>
                     </div>
                 ) : (
@@ -100,7 +100,7 @@ export default function RangerFocusCard({
                             className="p-1.5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded transition-colors"
                             title="Clear Focus"
                         >
-                            <X size={16} />
+                            <AppIcons.ui.close size={16} />
                         </button>
                     </div>
                 )}

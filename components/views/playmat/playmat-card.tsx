@@ -20,7 +20,6 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, ArrowRightLeft, Image as ImageIcon, Trash2, Info, Settings, Sliders } from 'lucide-react';
 import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { DomainCard } from '@/components/physical-cards/domain-card';
@@ -105,7 +104,7 @@ export default function PlaymatCard({
               aria-label={isLoadout ? `Move ${libraryItem.name} to vault` : `Move ${libraryItem.name} to loadout`}
               title={isLoadout ? "Move to Vault" : "Add to Loadout"}
             >
-              <ArrowRightLeft size={12} />
+              <AppIcons.ui.swap size={12} />
               {isLoadout ? "Vault" : "Loadout"}
             </button>
 
@@ -120,7 +119,7 @@ export default function PlaymatCard({
                 title="Change Card Art"
                 aria-label={`Change art for ${libraryItem.name}`}
               >
-                <ImageIcon size={12} />
+                <AppIcons.ui.image size={12} />
               </button>
             )}
 
@@ -140,7 +139,7 @@ export default function PlaymatCard({
                 title="Manage Card"
                 aria-label={`Manage options for ${libraryItem.name}`}
               >
-                <Settings size={12} />
+                <AppIcons.ui.settings size={12} />
               </button>
 
               {/* Dropdown Menu */}
@@ -166,7 +165,7 @@ export default function PlaymatCard({
                     )}
                     aria-label={`Manage modifiers for ${libraryItem.name}`}
                   >
-                    <Sliders size={14} /> Manage Modifiers
+                    <AppIcons.ui.sliders size={14} /> Manage Modifiers
                   </button>
 
                   {/* Move to Vault/Loadout */}
@@ -178,9 +177,9 @@ export default function PlaymatCard({
                     className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-2 transition-colors"
                   >
                     {isLoadout ? (
-                      <><Box size={14} /> Move to Vault</>
+                      <><AppIcons.ui.archive size={14} /> Move to Vault</>
                     ) : (
-                      <><ArrowRightLeft size={14} /> Move to Loadout</>
+                      <><AppIcons.ui.swap size={14} /> Move to Loadout</>
                     )}
                   </button>
 
@@ -193,7 +192,7 @@ export default function PlaymatCard({
                       }}
                       className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/20 hover:text-red-300 flex items-center gap-2 transition-colors border-t border-white/5"
                     >
-                      <Trash2 size={14} /> Remove from Character
+                      <AppIcons.ui.delete size={14} /> Remove from Character
                     </button>
                   )}
                 </div>
@@ -216,8 +215,6 @@ export default function PlaymatCard({
                 y: card.state?.custom_image_position_y ?? 0,
               }}
               size="thumbnail"
-              hasPassiveModifiers={!!(enhancement?.modifiers && enhancement.modifiers.length > 0)}
-              hasCombatAbility={!!mechanics.hasAttackOrRoll}
             />
           </div>
         </div>

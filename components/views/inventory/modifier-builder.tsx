@@ -14,7 +14,7 @@
  */
 
 import React, { useState, useId } from 'react';
-import { Plus, Trash2, Edit2, Check, X, Wand2 } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { Modifier, ModifierOperator, CharacterStat } from '@/types/modifiers';
 import { parseModifiers } from '@/lib/modifier-parser';
@@ -198,14 +198,14 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
               className="flex items-center gap-1 px-3 py-1.5 bg-white/10 text-white text-sm font-bold rounded-full hover:bg-white/20 transition-all"
               title="Parse text automatically"
             >
-              <Wand2 size={16} />
+              <AppIcons.combat.ability size={16} />
               Parse Text
             </button>
             <button
               onClick={() => setIsAdding(true)}
               className="flex items-center gap-1 px-3 py-1.5 bg-dagger-gold text-black text-sm font-bold rounded-full hover:scale-105 active:scale-95 transition-all"
             >
-              <Plus size={16} />
+              <AppIcons.ui.add size={16} />
               Add Manually
             </button>
           </div>
@@ -236,14 +236,14 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
               className="p-1.5 text-blue-400 hover:bg-white/10 rounded transition-colors"
               title="Edit modifier"
             >
-              <Edit2 size={16} />
+              <AppIcons.ui.editAlt size={16} />
             </button>
             <button
               onClick={() => handleDelete(mod.id)}
               className="p-1.5 text-red-400 hover:bg-white/10 rounded transition-colors"
               title="Delete modifier"
             >
-              <Trash2 size={16} />
+              <AppIcons.ui.delete size={16} />
             </button>
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
         <div className="bg-black/40 border border-blue-500/50 rounded-lg p-4 space-y-3">
           <div className="flex items-center justify-between mb-2">
             <h4 className="text-sm font-bold text-blue-400 flex items-center gap-2">
-              <Wand2 size={16} />
+              <AppIcons.combat.ability size={16} />
               Parse Feature Text
             </h4>
             <button
@@ -262,7 +262,7 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
               className="text-gray-500 hover:text-white"
               title="Cancel"
             >
-              <X size={18} />
+              <AppIcons.ui.close size={18} />
             </button>
           </div>
 
@@ -296,7 +296,7 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
               onClick={handleParseText}
               className="flex-1 py-2 bg-blue-500 text-white font-bold rounded-full hover:bg-blue-600 transition-all text-sm"
             >
-              <Wand2 size={16} className="inline mr-1" />
+              <AppIcons.combat.ability size={16} className="inline mr-1" />
               Parse & Add
             </button>
             <button
@@ -321,7 +321,7 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
               className="text-gray-500 hover:text-white"
               title="Cancel"
             >
-              <X size={18} />
+              <AppIcons.ui.close size={18} />
             </button>
           </div>
 
@@ -405,7 +405,7 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
               onClick={editingId ? handleUpdate : handleAdd}
               className="flex-1 py-2 bg-dagger-gold text-black font-bold rounded-full hover:scale-105 active:scale-95 transition-all text-sm"
             >
-              <Check size={16} className="inline mr-1" />
+              <AppIcons.ui.confirm size={16} className="inline mr-1" />
               {editingId ? 'Update' : 'Add'}
             </button>
             <button

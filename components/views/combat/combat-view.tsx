@@ -16,7 +16,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { useCharacterStore, CharacterCard } from '@/store/character-store';
-import { Shield, Swords, Crosshair, Eye, EyeOff, Wand2, Moon, Dna } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { dataService } from '@/lib/data-service';
 
 import { parseDamageRoll, calculateWeaponDamage, getScalingValue } from '@/lib/utils';
@@ -244,7 +244,7 @@ export default function CombatView() {
       <div className="p-4 space-y-6 pb-24">
         {/* Header */}
         <ViewHeader
-          icon={Swords}
+          icon={AppIcons.combat.navCombat}
           title="Combat"
           subtitle="Manage your weapons, spells, and combat abilities"
         />
@@ -263,7 +263,7 @@ export default function CombatView() {
         {armor && (
           <div className="space-y-2">
             <SectionHeader
-              title={<><Shield size={14} /> Active Armor <SRDInfoButton ruleKey="equipment.armor" title="Active Armor" /></>}
+              title={<><AppIcons.vitals.armor size={14} /> Active Armor <SRDInfoButton ruleKey="equipment.armor" title="Active Armor" /></>}
               isVisible={showArmor}
               onToggle={() => setShowArmor(!showArmor)}
             />
@@ -294,7 +294,7 @@ export default function CombatView() {
         {/* Weapons List */}
         <div className="space-y-2">
           <SectionHeader
-            title={<><Swords size={14} /> Active Weapons <SRDInfoButton ruleKey="combat.attacking" title="Active Weapons" /></>}
+            title={<><AppIcons.combat.navCombat size={14} /> Active Weapons <SRDInfoButton ruleKey="combat.attacking" title="Active Weapons" /></>}
             isVisible={showWeapons}
             onToggle={() => setShowWeapons(!showWeapons)}
           />
@@ -315,7 +315,7 @@ export default function CombatView() {
                     }`}
                   aria-label={`Adjust proficiency (currently ${totalProficiency})`}
                 >
-                  <Crosshair size={12} />
+                  <AppIcons.combat.target size={12} />
                   {totalProficiency}
                 </button>
               </div>
@@ -418,7 +418,7 @@ export default function CombatView() {
         {character.transformation && transformationCard && (
           <div className="space-y-3">
             <SectionHeader
-              title={<><Moon size={14} /> Transformation: {transformationCard.name}</>}
+              title={<><AppIcons.ui.downtime size={14} /> Transformation: {transformationCard.name}</>}
               isVisible={showTransformation}
               onToggle={() => setShowTransformation(!showTransformation)}
             />
@@ -484,7 +484,7 @@ export default function CombatView() {
         {combatFeatures.length > 0 && (
           <div className="space-y-3">
             <SectionHeader
-              title={<><Dna size={14} /> Traits & Features</>}
+              title={<><AppIcons.system.dna size={14} /> Traits & Features</>}
               isVisible={showFeatures}
               onToggle={() => setShowFeatures(!showFeatures)}
             />
@@ -578,7 +578,7 @@ export default function CombatView() {
         {combatAbilities.length > 0 && (
           <div className="space-y-3">
             <SectionHeader
-              title={<><Wand2 size={14} /> Spells & Abilities <SRDInfoButton ruleKey="combat.attacking" title="Spells & Abilities" /></>}
+              title={<><AppIcons.combat.ability size={14} /> Spells & Abilities <SRDInfoButton ruleKey="combat.attacking" title="Spells & Abilities" /></>}
               isVisible={showSpells}
               onToggle={() => setShowSpells(!showSpells)}
             />
@@ -596,7 +596,7 @@ export default function CombatView() {
                       }`}
                     aria-label={`Adjust spellcast (currently ${spellcastDetails.totalSpellcastBonus})`}
                   >
-                    <Wand2 size={12} />
+                    <AppIcons.combat.ability size={12} />
                     {spellcastDetails.totalSpellcastBonus >= 0 ? `+${spellcastDetails.totalSpellcastBonus}` : spellcastDetails.totalSpellcastBonus}
                   </button>
                 </div>

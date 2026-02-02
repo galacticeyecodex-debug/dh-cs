@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, PawPrint, Eye, Swords, Footprints } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { DruidBeastform } from '@/types/character';
 import { toast } from 'sonner';
 import clsx from 'clsx';
@@ -86,12 +86,12 @@ export default function BeastformSheet({
                 <div className="flex items-center justify-between p-4 border-b border-white/10">
                     <div>
                         <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2">
-                            <PawPrint size={20} className="text-green-400" /> Beastform Options
+                            <AppIcons.ui.beastform size={20} className="text-green-400" /> Beastform Options
                         </h2>
                         <p className="text-xs text-gray-400">Choose a form to transform</p>
                     </div>
                     <button onClick={onClose} aria-label="Close" className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white">
-                        <X size={20} />
+                        <AppIcons.ui.close size={20} />
                     </button>
                 </div>
 
@@ -128,14 +128,14 @@ export default function BeastformSheet({
 
                             <div className="grid grid-cols-2 gap-2 mb-3">
                                 <div className="bg-black/30 p-2 rounded flex items-center gap-2 border border-white/5">
-                                    <Swords size={14} className="text-gray-500" />
+                                    <AppIcons.combat.attack size={14} className="text-gray-500" />
                                     <div>
                                         <div className="text-[10px] text-gray-500 uppercase">Attack</div>
                                         <div className="text-xs font-bold text-white">{form.attack}</div>
                                     </div>
                                 </div>
                                 <div className="bg-black/30 p-2 rounded flex items-center gap-2 border border-white/5">
-                                    <Eye size={14} className="text-gray-500" />
+                                    <AppIcons.ui.visibility size={14} className="text-gray-500" />
                                     <div>
                                         <div className="text-[10px] text-gray-500 uppercase">Stats</div>
                                         <div className="text-xs font-bold text-white">Eva {form.evasion} • {form.trait} {form.bonus}</div>
