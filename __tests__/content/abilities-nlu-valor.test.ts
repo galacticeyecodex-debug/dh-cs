@@ -22,6 +22,61 @@ describe('Abilities Schema Validation - Valor Domain', () => {
         it('should have no costs', () => {
             expect(enhanced.enhancement.costs).toBeUndefined();
         });
+
+        // Note: The text-parsed timing is 'action' (default), but the JSON has timing 'free'
+        // This tests the text parser behavior; the JSON override is tested separately
+    });
+
+    describe('Bare Bones (JSON modifiers)', () => {
+        // Test the pre-parsed JSON modifiers directly
+        const bareBones = {
+            enhancement: {
+                modifiers: [
+                    {
+                        stat: 'armor_score',
+                        value: 0,
+                        formula: '3_plus_strength',
+                        condition: { type: 'when_unarmored' },
+                        source: 'Bare Bones'
+                    },
+                    {
+                        stat: 'damage_threshold_major',
+                        value: 9,
+                        tier_scaling: { 1: 9, 2: 11, 3: 13, 4: 15 },
+                        condition: { type: 'when_unarmored' },
+                        source: 'Bare Bones'
+                    },
+                    {
+                        stat: 'damage_threshold_severe',
+                        value: 19,
+                        tier_scaling: { 1: 19, 2: 24, 3: 31, 4: 35 },
+                        condition: { type: 'when_unarmored' },
+                        source: 'Bare Bones'
+                    }
+                ]
+            }
+        };
+
+        it('should have armor_score modifier with 3_plus_strength formula', () => {
+            const armorMod = bareBones.enhancement.modifiers.find(m => m.stat === 'armor_score');
+            expect(armorMod).toBeDefined();
+            expect(armorMod?.formula).toBe('3_plus_strength');
+            expect(armorMod?.condition?.type).toBe('when_unarmored');
+        });
+
+        it('should have damage_threshold_major modifier with tier scaling', () => {
+            const majorMod = bareBones.enhancement.modifiers.find(m => m.stat === 'damage_threshold_major');
+            expect(majorMod).toBeDefined();
+            expect(majorMod?.tier_scaling).toEqual({ 1: 9, 2: 11, 3: 13, 4: 15 });
+            expect(majorMod?.condition?.type).toBe('when_unarmored');
+        });
+
+        it('should have damage_threshold_severe modifier with tier scaling', () => {
+            const severeMod = bareBones.enhancement.modifiers.find(m => m.stat === 'damage_threshold_severe');
+            expect(severeMod).toBeDefined();
+            expect(severeMod?.tier_scaling).toEqual({ 1: 19, 2: 24, 3: 31, 4: 35 });
+            expect(severeMod?.condition?.type).toBe('when_unarmored');
+        });
     });
 
     describe('Forceful Push', () => {

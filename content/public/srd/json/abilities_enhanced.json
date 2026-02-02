@@ -1199,9 +1199,9 @@
     "domain": "Bone",
     "type": "Ability",
     "recall": "1",
-    "text": "When you’re targeted by an attack made from beyond Melee range, you can **mark a Stress** to roll a **d4** and gain a bonus to your Evasion equal to the result against the attack.",
+    "text": "When you're targeted by an attack made from beyond Melee range, you can **mark a Stress** to roll a **d4** and gain a bonus to your Evasion equal to the result against the attack.",
     "enhancement": {
-      "timing": "action",
+      "timing": "reaction",
       "frequency": "at_will",
       "costs": {
         "stress": 1
@@ -1209,21 +1209,7 @@
       "keywords": [
         "stress_cost",
         "ability"
-      ],
-      "modifiers": [
-        {
-          "stat": "evasion",
-          "value": 0,
-          "formula": "the",
-          "condition": {
-            "type": "always"
-          },
-          "source": "I See It Coming"
-        }
-      ],
-      "attack": {
-        "range": "Melee"
-      }
+      ]
     }
   },
   {
@@ -1524,7 +1510,7 @@
     "recall": "1",
     "text": "When you make a successful attack with a weapon, gain a bonus to your damage roll equal to either your Finesse or Agility.",
     "enhancement": {
-      "timing": "action",
+      "timing": "free",
       "frequency": "at_will",
       "keywords": [
         "damage",
@@ -1534,10 +1520,15 @@
         {
           "stat": "damage",
           "value": 0,
-          "formula": "either",
-          "condition": {
-            "type": "always"
-          },
+          "formula": "finesse",
+          "condition": { "type": "when_active" },
+          "source": "Cruel Precision"
+        },
+        {
+          "stat": "damage",
+          "value": 0,
+          "formula": "agility",
+          "condition": { "type": "when_active" },
           "source": "Cruel Precision"
         }
       ]
@@ -4750,11 +4741,33 @@
     "recall": "0",
     "text": "When you choose not to equip armor, you have a base Armor Score of 3 + your Strength and use the following as your base damage thresholds:\n\n- **Tier 1:** 9/19\n- **Tier 2:** 11/24\n- **Tier 3:** 13/31\n- **Tier 4:** 15/35",
     "enhancement": {
-      "timing": "action",
+      "timing": "free",
       "frequency": "at_will",
       "keywords": [
-        "damage",
         "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "armor_score",
+          "value": 0,
+          "formula": "3_plus_strength",
+          "condition": { "type": "when_unarmored" },
+          "source": "Bare Bones"
+        },
+        {
+          "stat": "damage_threshold_major",
+          "value": 9,
+          "tier_scaling": { "1": 9, "2": 11, "3": 13, "4": 15 },
+          "condition": { "type": "when_unarmored" },
+          "source": "Bare Bones"
+        },
+        {
+          "stat": "damage_threshold_severe",
+          "value": 19,
+          "tier_scaling": { "1": 19, "2": 24, "3": 31, "4": 35 },
+          "condition": { "type": "when_unarmored" },
+          "source": "Bare Bones"
+        }
       ]
     }
   },
@@ -5041,9 +5054,16 @@
       "keywords": [
         "healing",
         "stress_relief",
-        "stress_relief",
-        "stress_cost",
         "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "damage_threshold_severe",
+          "value": 0,
+          "formula": "proficiency",
+          "condition": { "type": "always" },
+          "source": "Rise Up"
+        }
       ]
     }
   },

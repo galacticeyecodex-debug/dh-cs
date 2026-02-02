@@ -9,6 +9,8 @@ import {
   parseCardPassiveModifiers,
   evaluateModifierCondition,
   calculateTier,
+  calculateTierScaledValue,
+  calculateDynamicValue,
   getBareBonesBonuses,
   parseCombatCategory,
   parseUsesProficiency,
@@ -367,6 +369,97 @@ describe('calculateTier', () => {
     expect(calculateTier(8)).toBe(4);
     expect(calculateTier(9)).toBe(4);
     expect(calculateTier(10)).toBe(4);
+  });
+});
+
+describe('calculateTierScaledValue', () => {
+  it('should use tier_scaling when present (tier 1)', () => {
+    const modifier = {
+      value: 9,
+      tier_scaling: { 1: 9, 2: 11, 3: 13, 4: 15 }
+    };
+    const character = createMockCharacter({ level: 1 });
+
+    expect(calculateTierScaledValue(modifier, character)).toBe(9);
+  });
+
+  it('should use tier_scaling when present (tier 2)', () => {
+    const modifier = {
+      value: 9,
+      tier_scaling: { 1: 9, 2: 11, 3: 13, 4: 15 }
+    };
+    const character = createMockCharacter({ level: 3 }); // level 3 = tier 2
+
+    expect(calculateTierScaledValue(modifier, character)).toBe(11);
+  });
+
+  it('should use tier_scaling when present (tier 3)', () => {
+    const modifier = {
+      value: 19,
+      tier_scaling: { 1: 19, 2: 24, 3: 31, 4: 35 }
+    };
+    const character = createMockCharacter({ level: 6 }); // level 6 = tier 3
+
+    expect(calculateTierScaledValue(modifier, character)).toBe(31);
+  });
+
+  it('should use tier_scaling when present (tier 4)', () => {
+    const modifier = {
+      value: 19,
+      tier_scaling: { 1: 19, 2: 24, 3: 31, 4: 35 }
+    };
+    const character = createMockCharacter({ level: 10 }); // level 10 = tier 4
+
+    expect(calculateTierScaledValue(modifier, character)).toBe(35);
+  });
+
+  it('should fall back to formula when no tier_scaling', () => {
+    const modifier = {
+      value: 0,
+      formula: '3_plus_strength'
+    };
+    const character = createMockCharacter({
+      stats: { strength: 2, agility: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }
+    });
+
+    expect(calculateTierScaledValue(modifier, character)).toBe(5); // 3 + 2
+  });
+
+  it('should fall back to value when no tier_scaling or formula', () => {
+    const modifier = {
+      value: 7
+    };
+    const character = createMockCharacter();
+
+    expect(calculateTierScaledValue(modifier, character)).toBe(7);
+  });
+});
+
+describe('calculateDynamicValue', () => {
+  it('should calculate proficiency formula', () => {
+    const character = createMockCharacter({ proficiency: 3 } as any);
+    expect(calculateDynamicValue('proficiency', character)).toBe(3);
+  });
+
+  it('should calculate half_agility formula', () => {
+    const character = createMockCharacter({
+      stats: { agility: 4, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }
+    });
+    expect(calculateDynamicValue('half_agility', character)).toBe(2);
+  });
+
+  it('should calculate 3_plus_strength formula', () => {
+    const character = createMockCharacter({
+      stats: { agility: 0, strength: 3, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }
+    });
+    expect(calculateDynamicValue('3_plus_strength', character)).toBe(6);
+  });
+
+  it('should calculate direct trait reference', () => {
+    const character = createMockCharacter({
+      stats: { agility: 0, strength: 0, finesse: 4, instinct: 0, presence: 0, knowledge: 0 }
+    });
+    expect(calculateDynamicValue('finesse', character)).toBe(4);
   });
 });
 

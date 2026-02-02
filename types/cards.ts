@@ -103,10 +103,23 @@ export interface CardRoll {
  */
 export interface CardModifier {
   stat: string;           // Target stat: "agility", "evasion", "damage", etc.
-  value: number;          // Calculated numeric value
+  value: number;          // Calculated numeric value (or base value for tier_scaling)
   formula?: string;       // Dynamic formula if applicable: "half_agility", "3_plus_strength"
   condition?: ModifierCondition; // Activation condition
   source?: string;        // Card name (for debugging)
+  tier_scaling?: TierScaling; // Tier-based value scaling (e.g., Bare Bones thresholds)
+}
+
+/**
+ * Tier-based value scaling for modifiers
+ * Maps character tier (1-4) to modifier values
+ * Used by cards like Bare Bones that have different thresholds per tier
+ */
+export interface TierScaling {
+  1: number;
+  2: number;
+  3: number;
+  4: number;
 }
 
 /**

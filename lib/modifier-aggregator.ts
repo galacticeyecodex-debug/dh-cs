@@ -43,7 +43,7 @@
 import type { EnhancedAbilityCard, CardModifier, CardStates } from '@/types/cards';
 import type { Character } from '@/types/character';
 import { getModifiers, isModifierActive } from './enhancement-utils';
-import { calculateDynamicValue, parseCardPassiveModifiers, getBareBonesBonuses, parseStaticModifiers, type PassiveModifier } from './card-parser';
+import { calculateDynamicValue, calculateTierScaledValue, parseCardPassiveModifiers, getBareBonesBonuses, parseStaticModifiers, type PassiveModifier } from './card-parser';
 import { validateModifierValue } from './modifier-validator';
 
 // ============================================================================
@@ -335,9 +335,8 @@ export function getAllActiveModifiers(
                     }
 
                     if (active) {
-                        const calculatedValue = mod.formula
-                            ? calculateDynamicValue(mod.formula, charForParsing as any)
-                            : mod.value;
+                        // Use tier scaling if available, otherwise formula or static value
+                        const calculatedValue = calculateTierScaledValue(mod, charForParsing as any);
 
                         allModifiers.push({
                             stat: mod.stat,
@@ -818,9 +817,8 @@ function getDomainCardModifiers(
                 }
 
                 if (isActive) {
-                    const calculatedValue = mod.formula
-                        ? calculateDynamicValue(mod.formula, character)
-                        : mod.value;
+                    // Use tier scaling if available, otherwise formula or static value
+                    const calculatedValue = calculateTierScaledValue(mod, character);
 
                     modifiers.push({
                         id: `card-${card.id}-enhanced-${mod.stat}-${absIndex}`,
@@ -885,9 +883,8 @@ export function getCardModifiersForDisplay(
             active = isModifierActive(mod, isCardActive, charForParsing as any);
         }
 
-        const calculatedValue = mod.formula
-            ? calculateDynamicValue(mod.formula, charForParsing as any)
-            : mod.value;
+        // Use tier scaling if available, otherwise formula or static value
+        const calculatedValue = calculateTierScaledValue(mod, charForParsing as any);
 
         return {
             stat: mod.stat,

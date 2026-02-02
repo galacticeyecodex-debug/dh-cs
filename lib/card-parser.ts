@@ -632,6 +632,11 @@ export function calculateDynamicValue(formula: string, character: Character): nu
     return baseValue + statValue;
   }
 
+  // Handle proficiency reference
+  if (formula === 'proficiency') {
+    return character.proficiency || 1;
+  }
+
   // Handle direct stat reference
   const statValue = character.stats?.[formula as keyof typeof character.stats];
   if (typeof statValue === 'number') {
@@ -639,6 +644,28 @@ export function calculateDynamicValue(formula: string, character: Character): nu
   }
 
   return 0;
+}
+
+/**
+ * Calculate tier-scaled modifier value
+ * Uses tier_scaling if present, otherwise falls back to formula or value
+ */
+export function calculateTierScaledValue(
+  modifier: { value: number; formula?: string; tier_scaling?: { 1: number; 2: number; 3: number; 4: number } },
+  character: Character
+): number {
+  // If tier_scaling is present, use it
+  if (modifier.tier_scaling) {
+    const tier = calculateTier(character.level || 1) as 1 | 2 | 3 | 4;
+    return modifier.tier_scaling[tier];
+  }
+
+  // Otherwise use formula or static value
+  if (modifier.formula) {
+    return calculateDynamicValue(modifier.formula, character);
+  }
+
+  return modifier.value;
 }
 
 /**
