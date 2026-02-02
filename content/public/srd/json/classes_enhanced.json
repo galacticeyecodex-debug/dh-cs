@@ -26,17 +26,6 @@
             "damage",
             "stress_relief",
             "ability"
-          ],
-          "modifiers": [
-            {
-              "stat": "stress",
-              "value": 0,
-              "formula": "the",
-              "condition": {
-                "type": "always"
-              },
-              "source": "Rally"
-            }
           ]
         }
       }
@@ -543,17 +532,6 @@
             "damage",
             "hope_gain",
             "ability"
-          ],
-          "modifiers": [
-            {
-              "stat": "damage",
-              "value": 0,
-              "formula": "twice",
-              "condition": {
-                "type": "always"
-              },
-              "source": "Channel Raw Power"
-            }
           ]
         }
       }
@@ -640,17 +618,6 @@
             "damage",
             "physical",
             "ability"
-          ],
-          "modifiers": [
-            {
-              "stat": "damage",
-              "value": 0,
-              "formula": "level",
-              "condition": {
-                "type": "always"
-              },
-              "source": "Combat Training"
-            }
           ]
         }
       }

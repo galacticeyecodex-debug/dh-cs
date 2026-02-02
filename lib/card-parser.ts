@@ -430,13 +430,29 @@ export function parseStaticModifiers(text: string, cardName: string): CardModifi
     }
   }
 
-  // Pattern 2: Dynamic bonus - "equal to half your Agility"
-  const dynamicMatches = Array.from(cleanText.matchAll(/equal to\s+(?:(half)\s+)?(?:your\s+)?([a-z]+)/gi));
+  // Pattern 2: Dynamic bonus - "equal to half your Agility" or "equal to twice your Strength"
+  // IMPORTANT: Only match known stat/trait names to avoid capturing words like "either" or "the"
+  const knownStats = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge', 'spellcast', 'proficiency'];
+  // Multiplier words mapped to their numeric values
+  const multiplierWords: Record<string, number> = {
+    'half': 0.5,
+    'twice': 2,
+    'double': 2,
+    'triple': 3,
+    'thrice': 3,
+  };
+  const multiplierPattern = Object.keys(multiplierWords).join('|');
+  const dynamicMatches = Array.from(cleanText.matchAll(new RegExp(`equal to\\s+(?:(${multiplierPattern})\\s+)?(?:your\\s+)?([a-z]+)`, 'gi')));
 
   for (const matchResult of dynamicMatches) {
     const match = matchResult as RegExpMatchArray;
-    const isHalf = !!match[1];
+    const multiplierWord = match[1]?.toLowerCase();
     const sourceStat = match[2]!.toLowerCase();
+
+    // Skip if the captured word is not a known stat (e.g., "either", "the")
+    if (!knownStats.includes(sourceStat)) {
+      continue;
+    }
 
     // Find what stat this bonus applies to (look backwards in the text)
     const beforeText = cleanText.substring(0, match.index);
@@ -445,7 +461,15 @@ export function parseStaticModifiers(text: string, cardName: string): CardModifi
     if (targetStatMatch) {
       const targetStat = matchStatName(targetStatMatch[1]!.trim());
       if (targetStat) {
-        const formula = isHalf ? `half_${sourceStat}` : sourceStat;
+        // Determine the formula based on multiplier
+        let formula: string;
+        if (multiplierWord === 'half') {
+          formula = `half_${sourceStat}`;
+        } else if (multiplierWord && multiplierWords[multiplierWord]) {
+          formula = `${multiplierWords[multiplierWord]}_times_${sourceStat}`;
+        } else {
+          formula = sourceStat;
+        }
 
         modifiers.push({
           stat: targetStat,
@@ -502,7 +526,82 @@ export function parseStaticModifiers(text: string, cardName: string): CardModifi
     });
   }
 
-  // Pattern 5: "add your [trait] to your [stat]" (e.g., "add your Proficiency to your Evasion")
+  // Pattern 5: Either/or stat choice - "equal to either your Finesse or Agility"
+  // Creates two separate when_active modifiers so user can choose which one to apply
+  const eitherOrMatches = Array.from(cleanText.matchAll(/(?:bonus\s+to\s+(?:your\s+)?([a-z\s]+?))\s+equal\s+to\s+(?:either\s+)?(?:your\s+)?(agility|strength|finesse|presence|knowledge|instinct)\s+or\s+(agility|strength|finesse|presence|knowledge|instinct)/gi));
+
+  for (const matchResult of eitherOrMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const targetStatText = match[1];
+    const option1 = match[2]?.toLowerCase();
+    const option2 = match[3]?.toLowerCase();
+    if (!targetStatText || !option1 || !option2) continue;
+
+    const targetStat = matchStatName(targetStatText.trim());
+    if (targetStat) {
+      // Create two separate modifiers with when_active condition
+      // User chooses which one to activate in the UI
+      modifiers.push({
+        stat: targetStat,
+        value: 0,
+        formula: option1,
+        condition: { type: 'when_active' },
+        source: cardName
+      });
+      modifiers.push({
+        stat: targetStat,
+        value: 0,
+        formula: option2,
+        condition: { type: 'when_active' },
+        source: cardName
+      });
+    }
+  }
+
+  // Pattern 6: Dice roll bonus - "roll a d4 and gain a bonus to your [stat] equal to the result"
+  // Creates a modifier with roll_result formula that the UI handles with dice input
+  const rollBonusMatches = Array.from(cleanText.matchAll(/roll\s+(?:a\s+)?(\d*d\d+).*?(?:gain\s+)?(?:a\s+)?bonus\s+to\s+(?:your\s+)?([a-z\s]+?)\s+equal\s+to\s+(?:the\s+)?result/gi));
+
+  for (const matchResult of rollBonusMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const diceNotation = match[1];
+    const targetStatText = match[2];
+    if (!diceNotation || !targetStatText) continue;
+
+    const targetStat = matchStatName(targetStatText.trim());
+    if (targetStat) {
+      modifiers.push({
+        stat: targetStat,
+        value: 0, // Will be filled in by UI after roll
+        formula: `roll_result_${diceNotation}`,
+        condition: { type: 'when_active' },
+        source: cardName
+      });
+    }
+  }
+
+  // Pattern 7: Fear Die bonus - "add the result of your Fear Die to your [stat]"
+  const fearDieMatches = Array.from(cleanText.matchAll(/add\s+(?:the\s+)?(?:result\s+of\s+)?(?:your\s+)?fear\s+die\s+to\s+(?:your\s+)?([a-z\s]+?)(?:\s+roll)?(?:\.|,|\n|$)/gi));
+
+  for (const matchResult of fearDieMatches) {
+    const match = matchResult as RegExpMatchArray;
+    const targetStatText = match[1];
+    if (!targetStatText) continue;
+
+    const targetStat = matchStatName(targetStatText.trim());
+    if (targetStat) {
+      modifiers.push({
+        stat: targetStat,
+        value: 0, // Fear die result, user enters via UI
+        formula: 'fear_die',
+        condition: { type: 'when_active' },
+        source: cardName
+      });
+    }
+  }
+
+  // Pattern 8: "add your [trait] to your [stat]" (e.g., "add your Proficiency to your Evasion")
+  // NOTE: Pattern 7 (fear_die) must come before this to avoid partial match
   const addTraitMatches = Array.from(cleanText.matchAll(/add\s+(?:your\s+)?(agility|strength|finesse|presence|knowledge|instinct|spellcast|proficiency|level|tier)\s+to\s+(?:your\s+)?([a-z\s]+?)(?:\.|,|\n|$|\s+(?:but|and|or|while|when))/gi));
 
   for (const matchResult of addTraitMatches) {
@@ -614,6 +713,17 @@ export function evaluateModifierCondition(
 
 /**
  * Calculate dynamic modifier value from formula
+ *
+ * Supported formula patterns:
+ * - "half_[stat]" → Math.floor(stat / 2)
+ * - "[number]_plus_[stat]" → number + stat (e.g., "3_plus_strength")
+ * - "[number]_times_[stat]" → number * stat (e.g., "2_times_strength")
+ * - "proficiency" → character.proficiency
+ * - "[stat]" → direct stat reference (e.g., "strength", "agility")
+ *
+ * UI-handled formulas (return 0, value entered by user):
+ * - "roll_result_[dice]" → User rolls dice, enters result (e.g., "roll_result_d4")
+ * - "fear_die" → User enters Fear Die result
  */
 export function calculateDynamicValue(formula: string, character: Character): number {
   // Handle "half_[stat]" pattern
@@ -630,6 +740,15 @@ export function calculateDynamicValue(formula: string, character: Character): nu
     const stat = plusMatch[2];
     const statValue = character.stats?.[stat as keyof typeof character.stats] || 0;
     return baseValue + statValue;
+  }
+
+  // Handle "[number]_times_[stat]" pattern (e.g., "2_times_strength" for Rage Up)
+  const timesMatch = formula.match(/^(\d+)_times_([a-z]+)$/);
+  if (timesMatch) {
+    const multiplier = parseInt(timesMatch[1]);
+    const stat = timesMatch[2];
+    const statValue = character.stats?.[stat as keyof typeof character.stats] || 0;
+    return multiplier * statValue;
   }
 
   // Handle proficiency reference

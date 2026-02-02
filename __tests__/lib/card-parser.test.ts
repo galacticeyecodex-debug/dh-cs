@@ -7,6 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   parseCardPassiveModifiers,
+  parseStaticModifiers,
   evaluateModifierCondition,
   calculateTier,
   calculateTierScaledValue,
@@ -455,6 +456,20 @@ describe('calculateDynamicValue', () => {
     expect(calculateDynamicValue('3_plus_strength', character)).toBe(6);
   });
 
+  it('should calculate 2_times_strength formula (Rage Up)', () => {
+    const character = createMockCharacter({
+      stats: { agility: 0, strength: 4, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }
+    });
+    expect(calculateDynamicValue('2_times_strength', character)).toBe(8); // 2 * 4
+  });
+
+  it('should calculate 3_times_agility formula', () => {
+    const character = createMockCharacter({
+      stats: { agility: 3, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }
+    });
+    expect(calculateDynamicValue('3_times_agility', character)).toBe(9); // 3 * 3
+  });
+
   it('should calculate direct trait reference', () => {
     const character = createMockCharacter({
       stats: { agility: 0, strength: 0, finesse: 4, instinct: 0, presence: 0, knowledge: 0 }
@@ -675,6 +690,103 @@ describe('parseCombatCategory', () => {
 
     it('should return false for empty text', () => {
       expect(parseUsesProficiency('')).toBe(false);
+    });
+  });
+});
+
+// ===========================================================================
+// parseStaticModifiers - Advanced Pattern Tests
+// ===========================================================================
+describe('parseStaticModifiers - advanced patterns', () => {
+  describe('either/or stat choice (Pattern 5)', () => {
+    it('should parse "either Finesse or Agility" as two separate modifiers', () => {
+      // Cruel Precision pattern
+      const text = 'When you make a successful attack with a weapon, gain a bonus to your damage roll equal to either your Finesse or Agility.';
+      const modifiers = parseStaticModifiers(text, 'Cruel Precision');
+
+      expect(modifiers).toHaveLength(2);
+
+      // First option: Finesse
+      expect(modifiers[0]).toMatchObject({
+        stat: 'damage',
+        formula: 'finesse',
+        condition: { type: 'when_active' },
+        source: 'Cruel Precision'
+      });
+
+      // Second option: Agility
+      expect(modifiers[1]).toMatchObject({
+        stat: 'damage',
+        formula: 'agility',
+        condition: { type: 'when_active' },
+        source: 'Cruel Precision'
+      });
+    });
+
+    it('should parse "either Strength or Presence" choice', () => {
+      const text = 'Gain a bonus to your attack roll equal to either your Strength or Presence.';
+      const modifiers = parseStaticModifiers(text, 'Test Card');
+
+      expect(modifiers).toHaveLength(2);
+      expect(modifiers[0].formula).toBe('strength');
+      expect(modifiers[1].formula).toBe('presence');
+    });
+  });
+
+  describe('dice roll bonus (Pattern 6)', () => {
+    it('should parse "roll a d4 and gain a bonus to Evasion equal to the result"', () => {
+      // I See It Coming pattern
+      const text = 'When you\'re targeted by an attack made from beyond Melee range, you can mark a Stress to roll a d4 and gain a bonus to your Evasion equal to the result against the attack.';
+      const modifiers = parseStaticModifiers(text, 'I See It Coming');
+
+      expect(modifiers).toHaveLength(1);
+      expect(modifiers[0]).toMatchObject({
+        stat: 'evasion',
+        value: 0,
+        formula: 'roll_result_d4',
+        condition: { type: 'when_active' },
+        source: 'I See It Coming'
+      });
+    });
+
+    it('should parse "roll a d6 and gain a bonus to damage equal to the result"', () => {
+      const text = 'Roll a d6 and gain a bonus to your damage equal to the result.';
+      const modifiers = parseStaticModifiers(text, 'Test Card');
+
+      expect(modifiers).toHaveLength(1);
+      expect(modifiers[0]).toMatchObject({
+        stat: 'damage',
+        formula: 'roll_result_d6',
+        condition: { type: 'when_active' }
+      });
+    });
+  });
+
+  describe('Fear Die bonus (Pattern 7)', () => {
+    it('should parse "add the result of your Fear Die to your damage roll"', () => {
+      // Midnight-Touched pattern
+      const text = 'When you make a successful attack, you can mark a Stress to add the result of your Fear Die to your damage roll.';
+      const modifiers = parseStaticModifiers(text, 'Midnight-Touched');
+
+      expect(modifiers).toHaveLength(1);
+      expect(modifiers[0]).toMatchObject({
+        stat: 'damage',
+        value: 0,
+        formula: 'fear_die',
+        condition: { type: 'when_active' },
+        source: 'Midnight-Touched'
+      });
+    });
+
+    it('should parse "add your Fear Die to your attack"', () => {
+      const text = 'You can add your Fear Die to your attack roll.';
+      const modifiers = parseStaticModifiers(text, 'Test Card');
+
+      expect(modifiers).toHaveLength(1);
+      expect(modifiers[0]).toMatchObject({
+        stat: 'attack',
+        formula: 'fear_die'
+      });
     });
   });
 });

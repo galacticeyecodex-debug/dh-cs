@@ -220,15 +220,19 @@ describe('Touched Cards Integration Tests', () => {
         });
     });
 
-    describe('Midnight-Touched (no stat modifiers)', () => {
-        it('should exist but have no stat modifiers (utility-only card)', () => {
+    describe('Midnight-Touched (Fear Die damage bonus)', () => {
+        it('should exist and have Fear Die damage modifier', () => {
             const card = findCard('Midnight-Touched');
             expect(card).toBeDefined();
 
             const modifiers = getModifiers(card!);
-            // Midnight-Touched has utility effects (hope gain, fear die damage)
-            // but no static stat modifiers
-            expect(modifiers.length).toBe(0);
+            // Midnight-Touched has Fear Die damage bonus parsed as a modifier
+            expect(modifiers.length).toBe(1);
+            expect(modifiers[0]).toMatchObject({
+                stat: 'damage',
+                formula: 'fear_die',
+                condition: { type: 'when_active' }
+            });
         });
     });
 

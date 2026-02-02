@@ -473,7 +473,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
 | Deft Maneuvers | 1 | ✅ | +1 attack modifier, Stress cost |
-| I See It Coming | 1 | ⚠️ | Evasion formula parsing incomplete |
+| I See It Coming | 1 | ✅ | Evasion bonus from d4 roll (roll_result formula) |
 | Untouchable | 1 | ✅ | Evasion = half Agility formula |
 | Ferocity | 2 | ✅ | 2 Hope cost |
 | Strategic Approach | 2 | ✅ | Token tracking (Knowledge-based) |
@@ -486,7 +486,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Rapid Riposte | 6 | ✅ | Stress cost, attack |
 | Recovery | 6 | ✅ | Hope cost |
 | Bone-Touched | 7 | ✅ | +1 Agility (4+ Bone cards), 3 Hope cost |
-| Cruel Precision | 7 | ⚠️ | Damage = Finesse OR Agility (choice not automated) |
+| Cruel Precision | 7 | ✅ | Damage = Finesse OR Agility (dual when_active modifiers) |
 | Breaking Blow | 8 | ✅ | Stress cost |
 | Wrangle | 8 | ✅ | Hope cost, roll |
 | On the Brink | 9 | ⚠️ | Utility - conditional Hope gain |
@@ -563,7 +563,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Phantom Retreat | 5 | ✅ | Hope cost |
 | Dark Whispers | 6 | ✅ | Stress cost, roll |
 | Mass Disguise | 6 | ✅ | Stress cost |
-| Midnight-Touched | 7 | ⚠️ | Stress cost - condition unclear |
+| Midnight-Touched | 7 | ✅ | Fear Die damage bonus (fear_die formula), Stress cost |
 | Vanishing Dodge | 7 | ✅ | Hope cost |
 | Shadowhunter | 8 | ✅ | +1 Evasion modifier |
 | Spellcharge | 8 | ✅ | Token tracking |
@@ -696,12 +696,18 @@ This section tracks the implementation status of all domain cards and class feat
 ## Summary
 
 **Domain Cards:** 189 total
-- ✅ Fully Implemented: ~172 cards (91%)
-- ⚠️ Partial: ~15 cards (8%)
+- ✅ Fully Implemented: ~176 cards (93%)
+- ⚠️ Partial: ~11 cards (6%)
 - ❌ Manual Only: 2 cards (1%)
 
+**Newly Supported Formula Types:**
+1. **Either/Or choices** - Cards like Cruel Precision (Finesse OR Agility) now parse as dual `when_active` modifiers
+2. **Dice roll bonuses** - Cards like I See It Coming (`roll_result_d4` formula)
+3. **Fear Die bonuses** - Cards like Midnight-Touched (`fear_die` formula)
+4. **Multiplier formulas** - Cards like Rage Up (`2_times_strength` for "twice your Strength")
+
 **Known Gaps:**
-1. **"Either/Or" choices** - Cards like Cruel Precision (Finesse OR Agility) have both options as activatable modifiers
-2. **Conditional environment** - Sage-Touched "natural environment" condition is not auto-detected
+1. **Conditional environment** - Sage-Touched "natural environment" condition is not auto-detected
+2. **Substitution mechanics** - Grace-Touched (HP → Stress swap) requires manual tracking
 
 **Class Features:** 9 major mechanics fully implemented, ~20 subclass features require manual tracking
