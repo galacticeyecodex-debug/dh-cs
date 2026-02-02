@@ -20,10 +20,9 @@
  * - ItemRow component memoized to prevent unnecessary list re-renders
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useCharacterStore, CharacterInventoryItem, LibraryItem } from '@/store/character-store';
-import { Coins, Package, Plus, Gem, Eye, EyeOff, Sword, Shield, Backpack, FlaskConical } from 'lucide-react';
-import clsx from 'clsx';
+import { AppIcons } from '@/lib/icon-utils';
 import AddItemModal from './add-item-modal';
 import CreateHomebrewItemModal, { HomebrewItemData } from './create-homebrew-item-modal';
 import ItemArtModal from './item-art-modal';
@@ -32,6 +31,19 @@ import SectionHeader from '@/components/shared/section-header';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import ViewHeader from '@/components/shared/view-header';
 import { useLibraryItems, LibraryPresets } from '@/hooks/useLibraryItems';
+import { Panel } from '@/components/ui/panel';
+import { PillButton } from '@/components/ui/pill-button';
+import { Counter } from '@/components/ui/counter';
+
+type FilterCategory = 'weapon' | 'armor' | 'consumable' | 'item' | null;
+
+const FILTER_OPTIONS: { value: FilterCategory; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
+  { value: null, label: 'All', icon: AppIcons.inventory.item },
+  { value: 'weapon', label: 'Weapons', icon: AppIcons.combat.attack },
+  { value: 'armor', label: 'Armor', icon: AppIcons.vitals.armor },
+  { value: 'consumable', label: 'Consumables', icon: AppIcons.inventory.consumable },
+  { value: 'item', label: 'Misc Items', icon: AppIcons.inventory.valuable },
+];
 
 export default function InventoryView() {
   const {
@@ -51,7 +63,7 @@ export default function InventoryView() {
   const [artEditingItem, setArtEditingItem] = useState<CharacterInventoryItem | null>(null);
   const [showWealth, setShowWealth] = useState(true);
   const [showFilter, setShowFilter] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<FilterCategory>(null);
 
   // Use centralized library hook instead of duplicated fetch logic
   const {
@@ -160,15 +172,8 @@ export default function InventoryView() {
   const sortedItems = [...inventoryItems]
     .filter(item => item.name !== 'Gold')
     .filter(item => {
-      let matchesCategory = true;
-      const type = item.library_item?.type;
-
-      if (selectedCategory === 'weapon') matchesCategory = type === 'weapon';
-      else if (selectedCategory === 'armor') matchesCategory = type === 'armor';
-      else if (selectedCategory === 'consumable') matchesCategory = type === 'consumable';
-      else if (selectedCategory === 'item') matchesCategory = type === 'item';
-
-      return matchesCategory;
+      if (!selectedCategory) return true;
+      return item.library_item?.type === selectedCategory;
     })
     .sort((a, b) => {
       const aEquipped = a.location.startsWith('equipped') ? 1 : 0;
@@ -182,7 +187,7 @@ export default function InventoryView() {
       <div className="p-4 space-y-6 pb-24">
         {/* Header */}
         <ViewHeader
-          icon={Backpack}
+          icon={AppIcons.inventory.gear}
           title="Inventory"
           subtitle="Manage your gear, weapons, and wealth"
         />
@@ -190,92 +195,60 @@ export default function InventoryView() {
         {/* Gold Tracker */}
         <div className="space-y-2">
           <SectionHeader
-            title={<><Coins size={14} /> Wealth</>}
+            title={<><AppIcons.inventory.currency size={14} /> Wealth</>}
             isVisible={showWealth}
             onToggle={() => setShowWealth(!showWealth)}
           />
 
           {showWealth && (
-            <div className="bg-dagger-panel border border-white/10 rounded-xl p-4">
+            <Panel>
               <div className="grid grid-cols-3 gap-4 text-center">
-                <GoldCounter
+                <Counter
                   label="Handfuls"
                   value={character.gold.handfuls}
                   onIncrement={handleHandfulsIncrement}
                   onDecrement={handleHandfulsDecrement}
+                  min={0}
                 />
-                <GoldCounter
+                <Counter
                   label="Bags"
                   value={character.gold.bags}
                   onIncrement={handleBagsIncrement}
                   onDecrement={handleBagsDecrement}
+                  min={0}
                 />
-                <GoldCounter
+                <Counter
                   label="Chests"
                   value={character.gold.chests}
                   onIncrement={handleChestsIncrement}
                   onDecrement={handleChestsDecrement}
+                  min={0}
                 />
               </div>
-            </div>
+            </Panel>
           )}
         </div>
 
         {/* Filter */}
         <div className="space-y-2">
           <SectionHeader
-            title={<><Package size={14} /> Filter</>}
+            title={<><AppIcons.inventory.item size={14} /> Filter</>}
             isVisible={showFilter}
             onToggle={() => setShowFilter(!showFilter)}
           />
 
           {showFilter && (
             <div className="flex gap-2 overflow-x-auto pb-2 -mb-2">
-              <button
-                className={clsx(
-                  "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
-                  selectedCategory === null ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-                )}
-                onClick={() => setSelectedCategory(null)}
-              >
-                <Package size={16} /> All
-              </button>
-              <button
-                className={clsx(
-                  "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
-                  selectedCategory === 'weapon' ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-                )}
-                onClick={() => setSelectedCategory('weapon')}
-              >
-                <Sword size={16} /> Weapons
-              </button>
-              <button
-                className={clsx(
-                  "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
-                  selectedCategory === 'armor' ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-                )}
-                onClick={() => setSelectedCategory('armor')}
-              >
-                <Shield size={16} /> Armor
-              </button>
-              <button
-                className={clsx(
-                  "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
-                  selectedCategory === 'consumable' ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-                )}
-                onClick={() => setSelectedCategory('consumable')}
-              >
-                <FlaskConical size={16} /> Consumables
-              </button>
-              <button
-                className={clsx(
-                  "flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-colors whitespace-nowrap",
-                  selectedCategory === 'item' ? "bg-dagger-gold text-black" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-                )}
-                onClick={() => setSelectedCategory('item')}
-              >
-                <Gem size={16} /> Misc Items
-              </button>
+              {FILTER_OPTIONS.map(({ value, label, icon }) => (
+                <PillButton
+                  key={label}
+                  icon={icon}
+                  active={selectedCategory === value}
+                  onClick={() => setSelectedCategory(value)}
+                >
+                  {label}
+                </PillButton>
+              ))}
             </div>
           )}
         </div>
@@ -283,19 +256,23 @@ export default function InventoryView() {
         {/* Items List Header */}
         <div className="flex justify-between items-center">
           <h3 className="text-xs font-bold uppercase text-gray-500 tracking-wider flex items-center gap-2">
-            <Package size={14} /> Inventory Items
+            <AppIcons.inventory.item size={14} /> Inventory Items
           </h3>
           <button
             onClick={() => setIsAddItemModalOpen(true)}
             className="bg-dagger-gold text-black px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 hover:scale-105 transition-transform"
           >
-            <Plus size={16} /> Add Item
+            <AppIcons.ui.add size={16} /> Add Item
           </button>
         </div>
 
         {/* Items List */}
         <div className="space-y-2">
-          {error && <div className="p-3 bg-red-800/50 border border-red-500 rounded text-red-300 text-sm">{error}</div>}
+          {error && (
+            <Panel variant="ghost" className="bg-red-800/50 border-red-500 text-red-300 text-sm">
+              {error}
+            </Panel>
+          )}
           {sortedItems.length > 0 ? (
             sortedItems.map((item) => (
               <InventoryItemCard
@@ -308,9 +285,9 @@ export default function InventoryView() {
               />
             ))
           ) : (
-            <div className="p-4 bg-white/5 rounded-lg border border-white/5 text-gray-400 text-sm text-center">
+            <Panel variant="ghost" className="text-gray-400 text-sm text-center">
               Your inventory is empty. Click &quot;Add Item&quot; to get started!
-            </div>
+            </Panel>
           )}
         </div>
 
@@ -349,21 +326,3 @@ export default function InventoryView() {
     </ErrorBoundary>
   );
 }
-
-const GoldCounter = React.memo(function GoldCounter({ label, value, onIncrement, onDecrement }: { label: string, value: number, onIncrement: () => void, onDecrement: () => void }) {
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="text-2xl font-bold text-white">{value}</div>
-      <div className="text-[10px] uppercase text-gray-500">{label}</div>
-      <div className="flex w-full gap-1 mt-1 max-w-[80px]">
-        <button type="button" onClick={onDecrement} aria-label={`Decrease ${label}`} className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-sm font-bold text-gray-300">-</button>
-        <button type="button" onClick={onIncrement} aria-label={`Increase ${label}`} className="flex-1 h-6 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-sm font-bold text-gray-300">+</button>
-      </div>
-    </div>
-  );
-}, (prevProps, nextProps) => {
-  return prevProps.value === nextProps.value &&
-    prevProps.label === nextProps.label &&
-    prevProps.onIncrement === nextProps.onIncrement &&
-    prevProps.onDecrement === nextProps.onDecrement;
-});

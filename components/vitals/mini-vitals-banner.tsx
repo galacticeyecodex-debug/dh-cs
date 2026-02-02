@@ -81,8 +81,8 @@ export function MiniVitalsPanel({
                 vitalId={selectedVital?.vitalId}
                 color={selectedVital?.color ?? ''}
                 strokeColor={selectedVital?.strokeColor}
-                onIncrement={selectedVital?.onIncrement ?? (() => {})}
-                onDecrement={selectedVital?.onDecrement ?? (() => {})}
+                onIncrement={selectedVital?.onIncrement ?? (() => { })}
+                onDecrement={selectedVital?.onDecrement ?? (() => { })}
                 onClose={handleCloseTray}
             />
 
@@ -252,7 +252,8 @@ export default function CharacterVitalsBanner() {
         current: vitalData.evasionTotal,
         icon: getIconByName(iconPreferences.evasion, AppIcons.vitals.evasion),
         vitalId: 'evasion',
-        color: 'text-cyan-400',
+        color: 'text-vital-evasion',
+        strokeColor: 'stroke-vital-evasion-stroke',
         subLabel: 'Score',
     });
 
@@ -266,8 +267,8 @@ export default function CharacterVitalsBanner() {
             max: vitalData.armorMax,
             icon: getIconByName(iconPreferences.armor, AppIcons.vitals.armor),
             vitalId: 'armor',
-            color: 'text-blue-400',
-            strokeColor: 'stroke-blue-900',
+            color: 'text-vital-armor',
+            strokeColor: 'stroke-vital-armor-stroke',
             subLabel: 'Marked',
             trackType: 'mark-bad',
             onIncrement: handleArmorIncrement,
@@ -280,7 +281,7 @@ export default function CharacterVitalsBanner() {
             max: 0,
             icon: getIconByName(iconPreferences.armor, AppIcons.vitals.armor),
             vitalId: 'armor',
-            color: 'text-blue-400',
+            color: 'text-vital-armor',
             subLabel: 'None',
         });
     }
@@ -293,8 +294,8 @@ export default function CharacterVitalsBanner() {
         max: vitalData.hpMax,
         icon: getIconByName(iconPreferences.hitPoints, AppIcons.vitals.hitPoints),
         vitalId: 'hitPoints',
-        color: 'text-red-400',
-        strokeColor: 'stroke-red-900',
+        color: 'text-vital-hp',
+        strokeColor: 'stroke-vital-hp-stroke',
         subLabel: 'Marked',
         trackType: 'mark-bad',
         onIncrement: handleHpIncrement,
@@ -308,8 +309,8 @@ export default function CharacterVitalsBanner() {
         max: vitalData.stressMax,
         icon: getIconByName(iconPreferences.stress, AppIcons.vitals.stress),
         vitalId: 'stress',
-        color: 'text-purple-400',
-        strokeColor: 'stroke-purple-900',
+        color: 'text-vital-stress',
+        strokeColor: 'stroke-vital-stress-stroke',
         subLabel: 'Marked',
         trackType: 'fill-up-bad',
         onIncrement: handleStressIncrement,
@@ -323,8 +324,8 @@ export default function CharacterVitalsBanner() {
         max: vitalData.hopeMax,
         icon: getIconByName(iconPreferences.hope, AppIcons.vitals.hope),
         vitalId: 'hope',
-        color: 'text-dagger-gold',
-        strokeColor: 'stroke-amber-900',
+        color: 'text-vital-hope',
+        strokeColor: 'stroke-vital-hope-stroke',
         subLabel: 'Gained',
         trackType: 'fill-up-good',
         onIncrement: handleHopeIncrement,
@@ -341,7 +342,8 @@ export default function CharacterVitalsBanner() {
             max: 12, // SRD: Max Fear is always 12
             icon: getIconByName(iconPreferences.fear, AppIcons.vitals.fear),
             vitalId: 'fear',
-            color: isHighFear ? 'text-red-400' : 'text-purple-400',
+            color: isHighFear ? 'text-vital-fear-high' : 'text-vital-fear',
+            strokeColor: isHighFear ? 'stroke-vital-fear-high-stroke' : 'stroke-vital-fear-stroke',
             subLabel: 'Gained',
         });
     }

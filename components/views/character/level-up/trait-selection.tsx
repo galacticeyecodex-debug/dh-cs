@@ -16,7 +16,7 @@
  */
 
 import React from 'react';
-import { Check } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { Character } from '@/store/character-store';
 
 interface TraitSelectionProps {
@@ -121,7 +121,7 @@ export default function TraitSelection({
                 {selected && (
                   <div className="flex-shrink-0">
                     <div className="w-6 h-6 rounded-full bg-dagger-gold flex items-center justify-center">
-                      <Check size={16} className="text-black" />
+                      <AppIcons.ui.confirm size={16} className="text-black" />
                     </div>
                   </div>
                 )}

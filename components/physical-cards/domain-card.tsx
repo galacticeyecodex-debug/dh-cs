@@ -7,8 +7,6 @@
 import React from 'react';
 import Image from 'next/image';
 import { MarkdownText } from '@/components/shared/markdown-text';
-import { Sparkles, Swords } from 'lucide-react';
-import { getDomainTheme } from '@/lib/domain-colors';
 import { CardBanner } from './card-banner';
 import { CardDivider } from './card-divider';
 
@@ -23,8 +21,6 @@ export interface DomainCardProps {
   customImageType?: 'artwork' | 'full-card';
   /** Image position as percentages (0-100). x=50, y=0 means centered horizontally, top-aligned */
   customImagePosition?: { x: number; y: number };
-  hasPassiveModifiers?: boolean;
-  hasCombatAbility?: boolean;
   onClick?: () => void;
   size?: 'thumbnail' | 'full';
 }
@@ -39,12 +35,9 @@ export function DomainCard({
   customImageUrl,
   customImageType = 'artwork',
   customImagePosition = { x: 50, y: 0 },
-  hasPassiveModifiers,
-  hasCombatAbility,
   onClick,
   size = 'thumbnail',
 }: DomainCardProps) {
-  const theme = getDomainTheme(domain);
   const isFullCard = customImageUrl && customImageType === 'full-card';
   const isThumbnail = size === 'thumbnail';
 
@@ -107,43 +100,6 @@ export function DomainCard({
       >
         {recallCost}
       </div>
-
-      {/* Modifier and combat mechanic badge - top right below recall cost */}
-      {(hasPassiveModifiers || hasCombatAbility) && (
-        <div
-          className="absolute flex flex-col items-center gap-1"
-          style={{
-            right: isThumbnail ? '14px' : '24px',
-            top: isThumbnail ? '46px' : '60px',
-            zIndex: 40,
-          }}
-        >
-          {hasPassiveModifiers && (
-            <div
-              className="rounded-full px-1.5 py-0.5 flex items-center gap-0.5 border-2 shadow-lg"
-              style={{
-                backgroundColor: `${theme.primary}dd`,
-                borderColor: theme.accent,
-              }}
-              title="Has passive modifiers"
-            >
-              <Sparkles size={isThumbnail ? 10 : 14} className="text-white" />
-            </div>
-          )}
-          {hasCombatAbility && (
-            <div
-              className="rounded-full px-1.5 py-0.5 flex items-center gap-0.5 border-2 shadow-lg"
-              style={{
-                backgroundColor: `${theme.primary}dd`,
-                borderColor: theme.accent,
-              }}
-              title="Has combat ability"
-            >
-              <Swords size={isThumbnail ? 10 : 14} className="text-white" />
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Image area - optional custom artwork */}
       {customImageUrl && customImageType === 'artwork' ? (

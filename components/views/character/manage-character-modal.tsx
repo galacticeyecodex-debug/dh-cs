@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { X, AlertCircle, Settings, Plus, Minus, Zap, Trash2 } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/core/error-boundary';
@@ -414,14 +414,14 @@ export default function ManageCharacterModal({
               {/* Header */}
               <div className="px-6 pb-4 border-b border-red-700/30 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <AlertCircle size={24} className="text-red-500" />
+                  <AppIcons.system.error size={24} className="text-red-500" />
                   <h2 className="text-xl font-bold text-red-200">Confirm De-Level</h2>
                 </div>
                 <button
                   onClick={() => setConfirmDeLevelOpen(false)}
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  <X size={24} />
+                  <AppIcons.ui.close size={24} />
                 </button>
               </div>
 
@@ -503,14 +503,14 @@ export default function ManageCharacterModal({
               {/* Header */}
               <div className="px-6 pb-4 border-b border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Settings size={24} className="text-dagger-gold" />
+                  <AppIcons.ui.settings size={24} className="text-dagger-gold" />
                   <h2 className="text-xl font-bold text-white">Manage Character</h2>
                 </div>
                 <button
                   onClick={onClose}
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  <X size={24} />
+                  <AppIcons.ui.close size={24} />
                 </button>
               </div>
 
@@ -541,7 +541,7 @@ export default function ManageCharacterModal({
                       disabled={level <= 1}
                       className="px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-gray-300 hover:text-white hover:border-dagger-gold/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
-                      <Minus size={20} />
+                      <AppIcons.ui.remove size={20} />
                     </button>
                     <div className="flex-1 text-center">
                       <span className="text-2xl font-bold text-dagger-gold">{level}</span>
@@ -561,7 +561,7 @@ export default function ManageCharacterModal({
                           : "px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-gray-300 hover:text-white hover:border-dagger-gold/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       }
                     >
-                      {level >= currentLevel ? <Zap size={20} className="fill-black" /> : <Plus size={20} />}
+                      {level >= currentLevel ? <AppIcons.combat.activation size={20} className="fill-black" /> : <AppIcons.ui.add size={20} />}
                     </button>
                   </div>
                   {isDeLeveling && (
@@ -773,7 +773,7 @@ export default function ManageCharacterModal({
                       {isDeleting ? (
                         <span className="inline-block w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <Trash2 size={16} />
+                        <AppIcons.ui.delete size={16} />
                       )}
                       Delete Character
                     </button>

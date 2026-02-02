@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Ticket, Users as UsersIcon } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { useCharacterStore } from '@/store/character-store';
 
 interface JoinCampaignFormProps {
@@ -69,7 +69,7 @@ export default function JoinCampaignForm({ isOpen, onClose }: JoinCampaignFormPr
                     <div className="flex items-center justify-between p-6 border-b border-white/5">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-blue-500/20 rounded-lg">
-                                <UsersIcon size={20} className="text-blue-400" />
+                                <AppIcons.campaign.party size={20} className="text-blue-400" />
                             </div>
                             <h2 className="text-xl font-bold text-white">Join Campaign</h2>
                         </div>
@@ -79,7 +79,7 @@ export default function JoinCampaignForm({ isOpen, onClose }: JoinCampaignFormPr
                             disabled={isSubmitting}
                             aria-label="Close modal"
                         >
-                            <X size={20} className="text-gray-400" />
+                            <AppIcons.ui.close size={20} className="text-gray-400" />
                         </button>
                     </div>
 
@@ -96,7 +96,7 @@ export default function JoinCampaignForm({ isOpen, onClose }: JoinCampaignFormPr
                                 </label>
                                 <div className="relative">
                                     <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                                        <Ticket size={20} className="text-gray-500" />
+                                        <AppIcons.campaign.ticket size={20} className="text-gray-500" />
                                     </div>
                                     <input
                                         id="invite-code"

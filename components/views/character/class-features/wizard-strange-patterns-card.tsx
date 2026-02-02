@@ -2,7 +2,7 @@
 
 import { MarkdownText } from '@/components/shared/markdown-text';
 import React from 'react';
-import { HelpingHand, Info } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { WizardStrangePatterns } from '@/types/character';
 import { toast } from 'sonner';
 import clsx from 'clsx';
@@ -33,13 +33,13 @@ export default function StrangePatternsCard({
 
             <div className="flex items-center justify-between mb-3">
                 <h4 className="font-serif font-bold text-gray-200 flex items-center gap-2">
-                    <HelpingHand size={14} className="text-purple-400" /> Strange Patterns
+                    <AppIcons.ui.help size={14} className="text-purple-400" /> Strange Patterns
                 </h4>
                 <button
                     onClick={() => setShowInfo(!showInfo)}
                     className="p-1 hover:bg-white/10 rounded transition-colors"
                 >
-                    <Info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
+                    <AppIcons.ui.info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
                 </button>
             </div>
 

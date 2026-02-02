@@ -28,7 +28,7 @@
  */
 
 import React from 'react';
-import { AlertCircle, RotateCcw } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { errorLogger } from '@/lib/error-logging';
 
 interface ErrorBoundaryProps {
@@ -82,7 +82,7 @@ export class ErrorBoundary extends React.Component<
         <div className="flex flex-col items-center justify-center min-h-[400px] p-8 bg-dagger-dark">
           <div className="max-w-md w-full bg-dagger-panel border border-red-500/30 rounded-xl p-6 space-y-4">
             <div className="flex items-center justify-center">
-              <AlertCircle className="w-16 h-16 text-red-500" />
+              <AppIcons.system.error className="w-16 h-16 text-red-500" />
             </div>
 
             <div className="text-center space-y-2">
@@ -114,7 +114,7 @@ export class ErrorBoundary extends React.Component<
               onClick={this.resetError}
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-dagger-gold text-black font-bold rounded-lg hover:bg-yellow-500 transition-colors"
             >
-              <RotateCcw className="w-4 h-4" />
+              <AppIcons.ui.reset className="w-4 h-4" />
               Try Again
             </button>
           </div>
@@ -138,7 +138,7 @@ export function ErrorFallback({
 }) {
   return (
     <div className="flex flex-col items-center justify-center h-full bg-dagger-dark text-white p-4">
-      <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+      <AppIcons.system.error className="w-16 h-16 text-red-500 mb-4" />
       <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
       <p className="text-gray-400 mb-6 text-center max-w-md">
         {error.message || 'An unexpected error occurred'}
@@ -147,7 +147,7 @@ export function ErrorFallback({
         onClick={onReset}
         className="flex items-center gap-2 px-6 py-3 bg-dagger-gold text-black font-bold rounded-full hover:scale-105 transition-transform"
       >
-        <RotateCcw className="w-4 h-4" />
+        <AppIcons.ui.reset className="w-4 h-4" />
         Try Again
       </button>
     </div>

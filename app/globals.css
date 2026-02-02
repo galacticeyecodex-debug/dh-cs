@@ -42,6 +42,61 @@
   --color-dagger-dark: var(--dagger-dark);
   --color-dagger-gold: var(--dagger-gold);
   --color-dagger-panel: var(--dagger-panel);
+  --color-vital-hp: var(--vital-hp);
+  --color-vital-hp-stroke: var(--vital-hp-stroke);
+  --color-vital-armor: var(--vital-armor);
+  --color-vital-armor-stroke: var(--vital-armor-stroke);
+  --color-vital-stress: var(--vital-stress);
+  --color-vital-stress-stroke: var(--vital-stress-stroke);
+  --color-vital-hope: var(--vital-hope);
+  --color-vital-hope-stroke: var(--vital-hope-stroke);
+  --color-vital-evasion: var(--vital-evasion);
+  --color-vital-evasion-stroke: var(--vital-evasion-stroke);
+  --color-vital-fear: var(--vital-fear);
+  --color-vital-fear-stroke: var(--vital-fear-stroke);
+  --color-vital-fear-high: var(--vital-fear-high);
+  --color-vital-fear-high-stroke: var(--vital-fear-high-stroke);
+  --color-dice-extra: var(--dice-extra);
+  --color-success: var(--success);
+
+  /* Domain Colors */
+  --color-domain-arcana: var(--domain-arcana);
+  --color-domain-arcana-secondary: var(--domain-arcana-secondary);
+  --color-domain-blade: var(--domain-blade);
+  --color-domain-blade-secondary: var(--domain-blade-secondary);
+  --color-domain-blood: var(--domain-blood);
+  --color-domain-blood-secondary: var(--domain-blood-secondary);
+  --color-domain-bone: var(--domain-bone);
+  --color-domain-bone-secondary: var(--domain-bone-secondary);
+  --color-domain-codex: var(--domain-codex);
+  --color-domain-codex-secondary: var(--domain-codex-secondary);
+  --color-domain-grace: var(--domain-grace);
+  --color-domain-grace-secondary: var(--domain-grace-secondary);
+  --color-domain-midnight: var(--domain-midnight);
+  --color-domain-midnight-secondary: var(--domain-midnight-secondary);
+  --color-domain-sage: var(--domain-sage);
+  --color-domain-sage-secondary: var(--domain-sage-secondary);
+  --color-domain-splendor: var(--domain-splendor);
+  --color-domain-splendor-secondary: var(--domain-splendor-secondary);
+  --color-domain-valor: var(--domain-valor);
+  --color-domain-valor-secondary: var(--domain-valor-secondary);
+  --color-domain-dread: var(--domain-dread);
+  --color-domain-dread-secondary: var(--domain-dread-secondary);
+
+  /* Dice Colors */
+  --color-dice-hope: var(--dice-hope);
+  --color-dice-fear: var(--dice-fear);
+  --color-dice-damage: var(--dice-damage);
+  --color-dice-plus: var(--dice-plus);
+  --color-dice-minus: var(--dice-minus);
+  --color-dice-gold: var(--dice-gold);
+
+  /* Item Type Colors */
+  --color-item-weapon: var(--item-weapon);
+  --color-item-armor: var(--item-armor);
+  --color-item-consumable: var(--item-consumable);
+  --color-item-general: var(--item-general);
+
   --font-serif: var(--font-cinzel), serif;
   --font-eveleth: var(--font-eveleth), sans-serif;
 }
@@ -82,6 +137,66 @@
   --dagger-dark: #0f0f13;
   --dagger-gold: #f6c928;
   --dagger-panel: #1e1e24;
+  --vital-hp: #f87171;
+  --vital-hp-stroke: oklch(from var(--vital-hp) calc(l - 0.8) c h / 0.4);
+  --vital-armor: #60a5fa;
+  --vital-armor-stroke: oklch(from var(--vital-armor) calc(l - 0.8) c h / 0.4);
+  --vital-stress: #c084fc;
+  --vital-stress-stroke: oklch(from var(--vital-stress) calc(l - 0.8) c h / 0.4);
+  --vital-hope: #f6c928;
+  --vital-hope-stroke: oklch(from var(--vital-hope) calc(l - 0.8) c h / 0.4);
+  --vital-evasion: #22d3ee;
+  --vital-evasion-stroke: oklch(from var(--vital-evasion) calc(l - 0.8) c h / 0.4);
+  --vital-fear: #a855f7;
+  --vital-fear-stroke: oklch(from var(--vital-fear) calc(l - 0.8) c h / 0.4);
+  --vital-fear-high: #ef4444;
+  --vital-fear-high-stroke: oklch(from var(--vital-fear-high) calc(l - 0.8) c h / 0.4);
+
+  /* Domain Colors */
+  --domain-arcana: #664295;
+  --domain-arcana-secondary: #4e3456;
+  --domain-blade: #b93035;
+  --domain-blade-secondary: #af231c;
+  --domain-blood: #981B1D;
+  --domain-blood-secondary: #580000;
+  --domain-bone: #c1c7cc;
+  --domain-bone-secondary: #a4a9a8;
+  --domain-codex: #3370ab;
+  --domain-codex-secondary: #24395d;
+  --domain-grace: #cb3b90;
+  --domain-grace-secondary: #8d3965;
+  --domain-midnight: #2c2c2c;
+  --domain-midnight-secondary: #1e201f;
+  --domain-sage: #0e854d;
+  --domain-sage-secondary: #244e30;
+  --domain-splendor: #d1b447;
+  --domain-splendor-secondary: #b8a342;
+  --domain-valor: #dc7a27;
+  --domain-valor-secondary: #e2680e;
+  --domain-dread: #362b6c;
+  --domain-dread-secondary: #2a2152;
+
+  /* Dice Colors */
+  --dice-hope: #f6c928;
+  --dice-fear: #4a148c;
+  --dice-damage: #ef4444;
+  --dice-plus: #ffffff;
+  --dice-minus: #000000;
+  --dice-gold: #d4af37;
+  --dice-extra: #22c55e;
+
+  /* Success/Error */
+  --success: #22c55e;
+
+  /* Item Type Colors */
+  --item-weapon: #D4A84B;
+  --item-armor: #3B82F6;
+  --item-consumable: #F87171;
+  --item-general: #A855F7;
+
+  /* UI Indicators */
+  --indicator-unmarked: #2d2d2d;
+  --indicator-unmarked-hover: #3d3d3d;
 }
 
 .dark {
@@ -152,6 +267,7 @@
       transform: translateY(100%);
       opacity: 0;
     }
+
     to {
       transform: translateY(0);
       opacity: 1;

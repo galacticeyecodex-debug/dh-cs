@@ -47,8 +47,8 @@ export default function GlobalError({
             alignItems: 'center',
             justifyContent: 'center',
             minHeight: '100vh',
-            backgroundColor: '#0a0a0a',
-            color: '#ffffff',
+            backgroundColor: 'var(--dagger-dark)',
+            color: 'var(--foreground)',
             padding: '20px',
             textAlign: 'center',
           }}
@@ -57,7 +57,7 @@ export default function GlobalError({
             style={{
               maxWidth: '500px',
               width: '100%',
-              backgroundColor: '#1a1a1a',
+              backgroundColor: 'var(--dagger-panel)',
               border: '1px solid rgba(239, 68, 68, 0.3)',
               borderRadius: '12px',
               padding: '40px 24px',
@@ -107,7 +107,7 @@ export default function GlobalError({
                   style={{
                     fontSize: '12px',
                     fontWeight: 'bold',
-                    color: '#ef4444',
+                    color: 'var(--vital-hp)',
                     marginBottom: '8px',
                   }}
                 >
@@ -145,7 +145,7 @@ export default function GlobalError({
                 style={{
                   width: '100%',
                   padding: '12px 24px',
-                  backgroundColor: '#eab308',
+                  backgroundColor: 'var(--dagger-gold)',
                   color: '#000000',
                   fontWeight: 'bold',
                   fontSize: '16px',

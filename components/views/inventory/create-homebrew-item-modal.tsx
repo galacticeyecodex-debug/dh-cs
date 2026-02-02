@@ -14,7 +14,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { X, Save, AlertCircle, Trash2, ArrowRightFromLine } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModifierBuilder from '@/components/views/inventory/modifier-builder';
@@ -316,7 +316,7 @@ export default function CreateHomebrewItemModal({
                 className="text-white/70 hover:text-white transition-colors"
                 aria-label="Close"
               >
-                <X size={24} />
+                <AppIcons.ui.close size={24} />
               </button>
             </div>
 
@@ -326,7 +326,7 @@ export default function CreateHomebrewItemModal({
               {errors.length > 0 && (
                 <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
                   <div className="flex items-start gap-2">
-                    <AlertCircle size={20} className="text-red-400 mt-0.5 flex-shrink-0" />
+                    <AppIcons.system.error size={20} className="text-red-400 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
                       <div className="font-bold text-red-300 mb-1">Validation Errors:</div>
                       <ul className="list-disc list-inside text-sm text-red-200 space-y-1">
@@ -570,7 +570,7 @@ export default function CreateHomebrewItemModal({
                       className="px-3 py-3 bg-red-900/40 text-red-400 border border-red-500/50 rounded-full hover:bg-red-900/60 transition-all flex items-center gap-2 whitespace-nowrap"
                       title="Delete Homebrew Definition"
                     >
-                      <Trash2 size={18} />
+                      <AppIcons.ui.delete size={18} />
                       <span className="hidden sm:inline">Delete Item</span>
                     </button>
                   )}
@@ -580,7 +580,7 @@ export default function CreateHomebrewItemModal({
                       className="px-3 py-3 bg-white/5 text-gray-400 border border-white/10 rounded-full hover:bg-white/10 hover:text-white transition-all flex items-center gap-2 whitespace-nowrap"
                       title="Remove from Inventory"
                     >
-                      <ArrowRightFromLine size={18} />
+                      <AppIcons.ui.popOut size={18} />
                       <span className="hidden sm:inline">Remove (Keep in Library)</span>
                     </button>
                   )}
@@ -597,7 +597,7 @@ export default function CreateHomebrewItemModal({
                 onClick={handleSave}
                 className="flex-1 py-3 px-6 bg-dagger-gold text-black font-bold rounded-full hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 shrink-0"
               >
-                <Save size={20} />
+                <AppIcons.ui.save size={20} />
                 {isEditing ? 'Save Changes' : 'Create Item'}
               </button>
             </div>

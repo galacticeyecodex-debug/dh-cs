@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { useCharacterStore } from '@/store/character-store';
 
 interface CreateCampaignModalProps {
@@ -66,7 +66,7 @@ export default function CreateCampaignModal({ isOpen, onClose }: CreateCampaignM
                     <div className="flex items-center justify-between p-6 border-b border-white/5">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-dagger-gold/20 rounded-lg">
-                                <Sparkles size={20} className="text-dagger-gold" />
+                                <AppIcons.vitals.hope size={20} className="text-dagger-gold" />
                             </div>
                             <h2 className="text-xl font-bold text-white">Create Campaign</h2>
                         </div>
@@ -76,7 +76,7 @@ export default function CreateCampaignModal({ isOpen, onClose }: CreateCampaignM
                             disabled={isSubmitting}
                             aria-label="Close modal"
                         >
-                            <X size={20} className="text-gray-400" />
+                            <AppIcons.ui.close size={20} className="text-gray-400" />
                         </button>
                     </div>
 

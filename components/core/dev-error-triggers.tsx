@@ -21,7 +21,7 @@
  */
 
 import React, { useState } from 'react';
-import { AlertCircle, Bug, Zap } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 
 export default function DevErrorTriggers() {
   const [shouldThrow, setShouldThrow] = useState(false);
@@ -72,7 +72,7 @@ export default function DevErrorTriggers() {
         className="fixed bottom-4 left-4 z-50 bg-red-600 text-white p-2 rounded-full shadow-lg hover:bg-red-700 transition-colors"
         title="Show Dev Error Triggers"
       >
-        <Bug size={20} />
+        <AppIcons.system.debug size={20} />
       </button>
     );
   }
@@ -81,7 +81,7 @@ export default function DevErrorTriggers() {
     <div className="fixed bottom-4 left-4 z-50 bg-zinc-900 border border-red-500/50 rounded-lg shadow-2xl p-4 max-w-xs">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <AlertCircle className="w-5 h-5 text-red-500" />
+          <AppIcons.system.error className="w-5 h-5 text-red-500" />
           <h3 className="text-sm font-bold text-white">Error Test Panel</h3>
         </div>
         <button
@@ -101,7 +101,7 @@ export default function DevErrorTriggers() {
           onClick={triggerComponentError}
           className="w-full flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded transition-colors"
         >
-          <Zap size={14} />
+          <AppIcons.vitals.stress size={14} />
           Component Error
         </button>
 
@@ -109,7 +109,7 @@ export default function DevErrorTriggers() {
           onClick={triggerAsyncError}
           className="w-full flex items-center gap-2 px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold rounded transition-colors"
         >
-          <Zap size={14} />
+          <AppIcons.vitals.stress size={14} />
           Async Error
         </button>
 
@@ -117,7 +117,7 @@ export default function DevErrorTriggers() {
           onClick={triggerNetworkError}
           className="w-full flex items-center gap-2 px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold rounded transition-colors"
         >
-          <Zap size={14} />
+          <AppIcons.vitals.stress size={14} />
           Network Error
         </button>
 
@@ -125,7 +125,7 @@ export default function DevErrorTriggers() {
           onClick={triggerUndefinedError}
           className="w-full flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded transition-colors"
         >
-          <Zap size={14} />
+          <AppIcons.vitals.stress size={14} />
           Undefined Error
         </button>
       </div>

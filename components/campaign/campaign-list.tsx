@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import useUser from '@/hooks/useUser';
-import { Plus, Users } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import CampaignCard from './campaign-card';
 import CreateCampaignModal from './create-campaign-modal';
 import JoinCampaignForm from './join-campaign-form';
@@ -37,7 +37,7 @@ export default function CampaignList() {
                 className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
                 aria-label="Join campaign with invite code"
             >
-                <Users size={16} />
+                <AppIcons.campaign.party size={16} />
                 <span className="hidden sm:inline">Join</span>
             </button>
             <button
@@ -45,7 +45,7 @@ export default function CampaignList() {
                 className="px-3 py-1.5 bg-dagger-gold hover:bg-dagger-gold-light text-black font-bold rounded-lg transition-colors flex items-center gap-2 text-sm"
                 aria-label="Create new campaign"
             >
-                <Plus size={16} />
+                <AppIcons.ui.add size={16} />
                 <span className="hidden sm:inline">Create</span>
             </button>
         </div>
@@ -66,7 +66,7 @@ export default function CampaignList() {
                     </div>
                 ) : campaigns.length === 0 ? (
                     <div className="bg-dagger-panel border border-white/10 rounded-xl p-12 text-center">
-                        <Users size={48} className="mx-auto text-gray-600 mb-4" />
+                        <AppIcons.campaign.party size={48} className="mx-auto text-gray-600 mb-4" />
                         <h3 className="text-xl font-bold text-white mb-2">No Campaigns Yet</h3>
                         <p className="text-gray-400 mb-6">Create your first campaign or join one with an invite code</p>
                         <div className="flex gap-3 justify-center">

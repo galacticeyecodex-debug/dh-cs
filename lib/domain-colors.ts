@@ -15,78 +15,78 @@ export interface DomainTheme {
 
 export const DOMAIN_COLORS: Record<string, DomainTheme> = {
   arcana: {
-    primary: '#664295', // Purple
-    secondary: '#4e3456',
+    primary: 'var(--domain-arcana)',
+    secondary: 'var(--domain-arcana-secondary)',
     accent: '#8b5cf6',
     gradient: 'from-purple-800 to-indigo-900',
     textColor: '#ffffff',
   },
   blade: {
-    primary: '#b93035', // Red
-    secondary: '#af231c',
+    primary: 'var(--domain-blade)',
+    secondary: 'var(--domain-blade-secondary)',
     accent: '#dc2626',
     gradient: 'from-red-700 to-red-800',
     textColor: '#ffffff',
   },
   blood: {
-    primary: '#981B1D', // Dark Crimson
-    secondary: '#580000',
+    primary: 'var(--domain-blood)',
+    secondary: 'var(--domain-blood-secondary)',
     accent: '#ef4444',
     gradient: 'from-red-900 to-red-950',
     textColor: '#ffffff',
   },
   bone: {
-    primary: '#c1c7cc', // Light Gray
-    secondary: '#a4a9a8',
+    primary: 'var(--domain-bone)',
+    secondary: 'var(--domain-bone-secondary)',
     accent: '#374151',
     gradient: 'from-gray-300 to-gray-400',
     textColor: '#000000',
   },
   codex: {
-    primary: '#3370ab', // Blue
-    secondary: '#24395d',
+    primary: 'var(--domain-codex)',
+    secondary: 'var(--domain-codex-secondary)',
     accent: '#0891b2',
     gradient: 'from-blue-700 to-blue-800',
     textColor: '#ffffff',
   },
   grace: {
-    primary: '#cb3b90', // Pink
-    secondary: '#8d3965',
+    primary: 'var(--domain-grace)',
+    secondary: 'var(--domain-grace-secondary)',
     accent: '#f472b6',
     gradient: 'from-pink-600 to-pink-700',
     textColor: '#ffffff',
   },
   midnight: {
-    primary: '#2c2c2c', // Black
-    secondary: '#1e201f',
+    primary: 'var(--domain-midnight)',
+    secondary: 'var(--domain-midnight-secondary)',
     accent: '#4b5563',
     gradient: 'from-gray-800 to-black',
     textColor: '#ffffff',
   },
   sage: {
-    primary: '#0e854d', // Green
-    secondary: '#244e30',
+    primary: 'var(--domain-sage)',
+    secondary: 'var(--domain-sage-secondary)',
     accent: '#059669',
     gradient: 'from-green-700 to-green-800',
     textColor: '#ffffff',
   },
   splendor: {
-    primary: '#d1b447', // Gold
-    secondary: '#b8a342',
+    primary: 'var(--domain-splendor)',
+    secondary: 'var(--domain-splendor-secondary)',
     accent: '#fbbf24',
     gradient: 'from-yellow-600 to-yellow-700',
     textColor: '#000000',
   },
   valor: {
-    primary: '#dc7a27', // Orange
-    secondary: '#e2680e',
+    primary: 'var(--domain-valor)',
+    secondary: 'var(--domain-valor-secondary)',
     accent: '#ea580c',
     gradient: 'from-orange-600 to-orange-700',
     textColor: '#ffffff',
   },
   dread: {
-    primary: '#362b6c', // Dark Purple/Void
-    secondary: '#2a2152',
+    primary: 'var(--domain-dread)',
+    secondary: 'var(--domain-dread-secondary)',
     accent: '#4c1d95',
     gradient: 'from-indigo-900 to-purple-950',
     textColor: '#ffffff',

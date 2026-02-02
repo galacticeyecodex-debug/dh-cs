@@ -62,7 +62,7 @@ export function rollDice(sides: number): number {
  * @param themeColor - The color to use for the dice (defaults to red for damage)
  * @returns Parsed dice configuration and any static modifiers
  */
-export function parseDiceNotation(diceString: string, themeColor: string = '#ef4444'): ParsedDiceNotation {
+export function parseDiceNotation(diceString: string, themeColor: string = 'var(--dice-damage)'): ParsedDiceNotation {
   // Clean up the string - remove damage type annotations and whitespace
   const cleanDice = diceString.replace(/(phy|mag|physical|magic)/gi, '').replace(/\s/g, '');
   const diceParts = cleanDice.split('+');

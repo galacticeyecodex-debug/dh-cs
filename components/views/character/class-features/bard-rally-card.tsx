@@ -2,7 +2,7 @@
 
 import { MarkdownText } from '@/components/shared/markdown-text';
 import React from 'react';
-import { Dices, RotateCcw, Info } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { useCharacterStore } from '@/store/character-store';
 import { toast } from 'sonner';
 import { BardRallyDice } from '@/types/character';
@@ -82,13 +82,13 @@ export default function RallyDiceCard({
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
                 <h4 className="font-serif font-bold text-dagger-gold flex items-center gap-2">
-                    <Dices size={14} /> Rally
+                    <AppIcons.combat.roll size={14} /> Rally
                 </h4>
                 <button
                     onClick={() => setShowInfo(!showInfo)}
                     className="p-1 hover:bg-white/10 rounded transition-colors"
                 >
-                    <Info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
+                    <AppIcons.ui.info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
                 </button>
             </div>
 
@@ -109,7 +109,7 @@ export default function RallyDiceCard({
                             onClick={handleRally}
                             className="w-full py-2.5 bg-dagger-gold/10 hover:bg-dagger-gold/20 border border-dagger-gold/30 text-dagger-gold font-bold rounded-lg transition-all flex items-center justify-center gap-2"
                         >
-                            <Dices size={16} /> Rally the Party ({dieSize})
+                            <AppIcons.combat.roll size={16} /> Rally the Party ({dieSize})
                         </button>
                     </div>
                 ) : (
@@ -131,7 +131,7 @@ export default function RallyDiceCard({
 
                         <div className="flex justify-end">
                             <button onClick={handleClear} className="text-[10px] text-gray-500 hover:text-red-400 flex items-center gap-1 transition-colors uppercase font-bold tracking-wider">
-                                <RotateCcw size={10} /> Clear Dice
+                                <AppIcons.ui.reset size={10} /> Clear Dice
                             </button>
                         </div>
                     </div>

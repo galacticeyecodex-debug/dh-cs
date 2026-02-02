@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { PawPrint, Info, X } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { DruidBeastform } from '@/types/character';
 import { toast } from 'sonner';
 import clsx from 'clsx';
@@ -37,7 +37,7 @@ export default function BeastformCard({
 
                 <div className="flex items-center justify-between mb-3">
                     <h4 className={clsx("font-serif font-bold flex items-center gap-2", isActive ? "text-green-400" : "text-gray-200")}>
-                        <PawPrint size={14} /> Beastform
+                        <AppIcons.ui.beastform size={14} /> Beastform
                     </h4>
                 </div>
 
@@ -67,7 +67,7 @@ export default function BeastformCard({
                         onClick={() => setShowSheet(true)}
                         className="w-full py-2.5 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 font-bold rounded-lg transition-all flex items-center justify-center gap-2"
                     >
-                        <PawPrint size={16} /> Transform
+                        <AppIcons.ui.beastform size={16} /> Transform
                     </button>
                 )}
             </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Settings, Trash2 } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { useCharacterStore } from '@/store/character-store';
 import { Campaign } from '@/types/campaign';
 import { useRouter } from 'next/navigation';
@@ -91,7 +91,7 @@ export default function CampaignSettingsModal({ isOpen, onClose, campaign }: Cam
                     <div className="flex items-center justify-between p-6 border-b border-white/5">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-gray-500/20 rounded-lg">
-                                <Settings size={20} className="text-gray-400" />
+                                <AppIcons.ui.settings size={20} className="text-gray-400" />
                             </div>
                             <h2 className="text-xl font-bold text-white">Campaign Settings</h2>
                         </div>
@@ -101,7 +101,7 @@ export default function CampaignSettingsModal({ isOpen, onClose, campaign }: Cam
                             disabled={isSubmitting}
                             aria-label="Close settings"
                         >
-                            <X size={20} className="text-gray-400" />
+                            <AppIcons.ui.close size={20} className="text-gray-400" />
                         </button>
                     </div>
 
@@ -175,7 +175,7 @@ export default function CampaignSettingsModal({ isOpen, onClose, campaign }: Cam
                                 }`}
                             disabled={isSubmitting}
                         >
-                            <Trash2 size={16} />
+                            <AppIcons.ui.delete size={16} />
                             {showDeleteConfirm ? 'Click Again to Confirm' : 'Delete Campaign'}
                         </button>
                     </div>

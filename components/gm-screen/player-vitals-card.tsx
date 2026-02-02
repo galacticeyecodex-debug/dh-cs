@@ -111,8 +111,8 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             icon: getIconByName(vitalIcons.hitPoints, AppIcons.vitals.hitPoints),
             current: hitPointsCurrent,
             max: hitPointsMax,
-            color: 'text-red-400',
-            strokeColor: 'stroke-red-900',
+            color: 'text-vital-hp',
+            strokeColor: 'stroke-vital-hp-stroke',
             trackType: 'mark-bad',
         },
         {
@@ -122,8 +122,8 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             icon: getIconByName(vitalIcons.stress, AppIcons.vitals.stress),
             current: stressCurrent,
             max: stressMax,
-            color: 'text-purple-400',
-            strokeColor: 'stroke-purple-900',
+            color: 'text-vital-stress',
+            strokeColor: 'stroke-vital-stress-stroke',
             trackType: 'fill-up-bad',
         },
         {
@@ -133,8 +133,8 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             icon: getIconByName(vitalIcons.armor, AppIcons.vitals.armor),
             current: armorSlots,
             max: armorMax,
-            color: 'text-blue-400',
-            strokeColor: 'stroke-blue-900',
+            color: 'text-vital-armor',
+            strokeColor: 'stroke-vital-armor-stroke',
             trackType: 'mark-bad',
         },
         {
@@ -144,8 +144,8 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
             icon: getIconByName(vitalIcons.hope, AppIcons.vitals.hope),
             current: hopeCurrent,
             max: hopeMax,
-            color: 'text-dagger-gold',
-            strokeColor: 'stroke-amber-900',
+            color: 'text-vital-hope',
+            strokeColor: 'stroke-vital-hope-stroke',
             trackType: 'fill-up-good',
         },
     ];

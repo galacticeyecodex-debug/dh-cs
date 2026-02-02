@@ -15,7 +15,7 @@
 
 import React from 'react';
 import clsx from 'clsx';
-import { ChevronDown } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface HeaderMenuButtonProps {
@@ -68,7 +68,7 @@ export default function HeaderMenuButton({
                 </AvatarFallback>
             </Avatar>
             <span className={clsx(labelClassName, 'truncate')}>{label}</span>
-            <ChevronDown
+            <AppIcons.ui.expand
                 size={18}
                 className={clsx(
                     'text-gray-400 transition-transform duration-200 flex-shrink-0',

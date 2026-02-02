@@ -21,18 +21,18 @@ export function FearChangeActivity({ activity, compact = false }: FearChangeActi
 
     return (
         <div className="flex items-start gap-2">
-            <div className="p-1.5 bg-red-500/20 rounded-lg">
-                <Skull size={14} className="text-red-500" />
+            <div className="p-1.5 bg-vital-fear-high/20 rounded-lg">
+                <Skull size={14} className="text-vital-fear-high" />
             </div>
             <div className="flex-1 min-w-0">
                 {/* Header */}
                 <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-red-400 text-sm">GM</span>
+                    <span className="font-medium text-vital-fear-high text-sm">GM</span>
                     <span className="text-gray-400 text-sm">
                         {actionText} {Math.abs(data.change)} Fear
                     </span>
                     {isGaining ? (
-                        <TrendingUp size={14} className="text-red-500" />
+                        <TrendingUp size={14} className="text-vital-fear-high" />
                     ) : (
                         <TrendingDown size={14} className="text-green-500" />
                     )}
@@ -47,7 +47,7 @@ export function FearChangeActivity({ activity, compact = false }: FearChangeActi
 
                 {/* Message */}
                 {data.message && !compact && (
-                    <div className="mt-2 text-sm border-l-2 border-red-500/50 pl-2 text-gray-300 italic">
+                    <div className="mt-2 text-sm border-l-2 border-vital-fear-high/50 pl-2 text-gray-300 italic">
                         &ldquo;{data.message}&rdquo;
                     </div>
                 )}

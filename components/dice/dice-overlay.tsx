@@ -28,6 +28,15 @@ import { parseDiceNotation } from '@/lib/dice';
 
 type DiceRole = 'hope' | 'fear' | 'plus' | 'minus' | 'damage';
 
+/**
+ * Resolves a CSS variable to its computed hex value.
+ * The @3d-dice/dice-box library requires actual color values, not CSS variable references.
+ */
+function getCssVariableValue(varName: string): string {
+  if (typeof window === 'undefined') return '#000000';
+  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#000000';
+}
+
 interface DieConfig {
   id: string;
   sides: number;
@@ -59,7 +68,7 @@ export default function DiceOverlay() {
       setHasRolled(false);
       if (activeRoll?.dice) {
         // Parse damage notation into builder pool
-        const parsed = parseDiceNotation(activeRoll.dice, activeRoll.diceColor || '#ef4444');
+        const parsed = parseDiceNotation(activeRoll.dice, activeRoll.diceColor || 'var(--dice-damage)');
         setDicePool(parsed.diceConfig.map((d, i) => ({
           id: `dmg-${i}`,
           sides: d.sides,
@@ -73,7 +82,7 @@ export default function DiceOverlay() {
         ]);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDiceOverlayOpen]);
 
   // Calculate Experience Modifiers
@@ -221,7 +230,7 @@ export default function DiceOverlay() {
     // Case 1: Damage Roll (uses builder pool)
     if (activeRoll?.dice) {
       // Parse the original notation for any static modifier (e.g., +3 in "2d8+3")
-      const parsed = parseDiceNotation(activeRoll.dice, activeRoll.diceColor || '#ef4444');
+      const parsed = parseDiceNotation(activeRoll.dice, activeRoll.diceColor || 'var(--dice-damage)');
       const stringModifier = parsed.stringModifier;
 
       setLastRollResult({ hope: 0, fear: 0, total: 0, modifier: totalModifier + stringModifier, type: 'Damage' });
@@ -234,10 +243,10 @@ export default function DiceOverlay() {
           return;
         }
 
-        const themeColor = activeRoll.diceColor || '#ef4444';
+        const themeColor = activeRoll.diceColor || getCssVariableValue('--dice-damage');
         const diceConfig = dicePool.map(d => ({
           sides: d.sides,
-          themeColor: d.role === 'damage' ? themeColor : d.role === 'plus' ? '#ffffff' : '#000000'
+          themeColor: d.role === 'damage' ? themeColor : d.role === 'plus' ? getCssVariableValue('--dice-plus') : getCssVariableValue('--dice-minus')
         }));
 
         const result = await boxInstanceRef.current.roll(diceConfig);
@@ -300,7 +309,11 @@ export default function DiceOverlay() {
     try {
       const diceConfig = dicePool.map(d => ({
         sides: d.sides,
-        themeColor: d.role === 'hope' ? '#f6c928' : d.role === 'fear' ? '#4a148c' : d.role === 'plus' ? '#ffffff' : d.role === 'minus' ? '#000000' : '#22c55e'
+        themeColor: d.role === 'hope' ? getCssVariableValue('--dice-hope')
+          : d.role === 'fear' ? getCssVariableValue('--dice-fear')
+          : d.role === 'plus' ? getCssVariableValue('--dice-plus')
+          : d.role === 'minus' ? getCssVariableValue('--dice-minus')
+          : getCssVariableValue('--dice-extra')
       }));
 
       if (diceConfig.length === 0) {
@@ -481,7 +494,7 @@ export default function DiceOverlay() {
                                 die.role === 'fear' ? "bg-purple-900/40 border-purple-500" :
                                   die.role === 'plus' ? "bg-white/20 border-white" :
                                     die.role === 'minus' ? "bg-gray-800/40 border-gray-400" :
-                                      die.role === 'damage' ? "bg-red-900/40 border-red-500" :
+                                      die.role === 'damage' ? "bg-dice-damage/20 border-dice-damage" :
                                         "bg-green-900/40 border-green-500"
                             )}
                             data-testid={`die-button-${die.role}-d${die.sides}`}

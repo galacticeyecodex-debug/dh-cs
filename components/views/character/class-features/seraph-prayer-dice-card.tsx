@@ -15,7 +15,7 @@
 
 import { MarkdownText } from '@/components/shared/markdown-text';
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, Dices, Info, RotateCcw, CheckCircle2, Circle } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { SeraphPrayerDice, PrayerDie } from '@/types/character';
 import { useCharacterStore } from '@/store/character-store';
@@ -141,14 +141,14 @@ export default function PrayerDiceCard({
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h4 className="font-serif font-bold text-dagger-gold flex items-center gap-2">
-          <Sparkles size={14} />
+          <AppIcons.vitals.hope size={14} />
           Prayer Dice
         </h4>
         <button
           onClick={() => setShowInfo(!showInfo)}
           className="p-1 hover:bg-white/10 rounded transition-colors"
         >
-          <Info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
+          <AppIcons.ui.info size={14} className={showInfo ? "text-dagger-gold" : "text-gray-400"} />
         </button>
       </div>
 
@@ -176,7 +176,7 @@ export default function PrayerDiceCard({
             onClick={handleRoll}
             className="w-full py-2.5 bg-dagger-gold/10 hover:bg-dagger-gold/20 border border-dagger-gold/30 text-dagger-gold font-bold rounded-lg transition-all flex items-center justify-center gap-2"
           >
-            <Dices size={16} />
+            <AppIcons.combat.roll size={16} />
             Roll {spellcastValue} Prayer Dice (d4)
             {hasDevout && <span className="text-xs opacity-75">+1 Devout</span>}
           </button>
@@ -199,7 +199,7 @@ export default function PrayerDiceCard({
                     className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg p-3 transition-colors hover:bg-white/10"
                   >
                     <div className="flex items-center gap-3">
-                      <Circle size={14} className="text-gray-500" />
+                      <AppIcons.ui.circle size={14} className="text-gray-500" />
                       <span className="text-base font-bold text-white">
                         Value: {die.value}
                       </span>
@@ -229,7 +229,7 @@ export default function PrayerDiceCard({
                     className="flex items-center justify-between bg-white/5 border border-white/5 rounded-lg p-3 opacity-50"
                   >
                     <div className="flex items-center gap-3">
-                      <CheckCircle2 size={14} className="text-green-400" />
+                      <AppIcons.system.successAlt size={14} className="text-green-400" />
                       <span className="text-base font-bold text-gray-500">
                         Value: {die.value}
                       </span>
@@ -255,7 +255,7 @@ export default function PrayerDiceCard({
               onClick={handleClearAll}
               className="flex items-center gap-1 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-gray-400 text-xs font-bold rounded transition-colors"
             >
-              <RotateCcw size={12} />
+              <AppIcons.ui.reset size={12} />
               Clear All
             </button>
           </div>

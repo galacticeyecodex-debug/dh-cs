@@ -18,7 +18,7 @@
 
 import React, { useMemo } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Backpack, Moon, BookOpen, X, Sliders } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import type { TabId } from '@/store/slices/ui-slice';
 import { useDevMode } from '@/components/views/settings/settings-view';
@@ -34,19 +34,19 @@ const baseMenuItems: MoreMenuItem[] = [
     {
         id: 'inventory',
         label: 'Inventory',
-        icon: Backpack,
+        icon: AppIcons.inventory.gear,
         description: 'Equipment and items',
     },
     {
         id: 'downtime',
         label: 'Downtime',
-        icon: Moon,
+        icon: AppIcons.ui.downtime,
         description: 'Rest and projects',
     },
     {
         id: 'journal',
         label: 'Journal',
-        icon: BookOpen,
+        icon: AppIcons.ui.external,
         description: 'Relationships & Reputation',
     },
 ];
@@ -54,7 +54,7 @@ const baseMenuItems: MoreMenuItem[] = [
 const devMenuItem: MoreMenuItem = {
     id: 'dev',
     label: 'Modifiers',
-    icon: Sliders,
+    icon: AppIcons.ui.sliders,
     description: 'View all active modifiers',
 };
 
@@ -110,7 +110,7 @@ export default function MoreMenu() {
                         className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
                         aria-label="Close menu"
                     >
-                        <X size={20} />
+                        <AppIcons.ui.close size={20} />
                     </button>
                 </div>
 
