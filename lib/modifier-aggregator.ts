@@ -592,6 +592,11 @@ function getClassModifiers(character: Character, stat: string): ModifierSource[]
  * Get modifiers from subclass features.
  * Extracts from foundation_features, specialization_features, mastery_features
  * based on character's subclass_progression.
+ *
+ * Priority order:
+ * 1. enhancement.modifiers (from enhanced JSON - most precise)
+ * 2. stat_bonuses (structured data)
+ * 3. text parsing (fallback)
  */
 function getSubclassModifiers(character: Character, stat: string): ModifierSource[] {
     const modifiers: ModifierSource[] = [];
@@ -607,7 +612,45 @@ function getSubclassModifiers(character: Character, stat: string): ModifierSourc
         if (!features || !Array.isArray(features)) return;
 
         features.forEach((feature: any) => {
-            // Check structured stat_bonuses FIRST
+            // Priority 1: Check enhancement.modifiers (from enhanced JSON)
+            const enhancedMods = feature.enhancement?.modifiers;
+            if (enhancedMods && Array.isArray(enhancedMods)) {
+                // Handle "damage_threshold" stat which applies to all three thresholds
+                const matchingMods = enhancedMods.filter((mod: any) => {
+                    if (mod.stat === stat) return true;
+                    // "damage_threshold" applies to minor, major, and severe
+                    if (mod.stat === 'damage_threshold' &&
+                        (stat === 'damage_threshold_minor' ||
+                         stat === 'damage_threshold_major' ||
+                         stat === 'damage_threshold_severe')) {
+                        return true;
+                    }
+                    return false;
+                });
+
+                if (matchingMods.length > 0) {
+                    matchingMods.forEach((mod: any, index: number) => {
+                        // Check if modifier is active (always, when_active, etc.)
+                        const isActive = !mod.condition || mod.condition.type === 'always';
+                        if (isActive) {
+                            const calculatedValue = mod.formula
+                                ? calculateDynamicValue(mod.formula, character)
+                                : mod.value;
+
+                            modifiers.push({
+                                id: `subclass-${tier}-${feature.name}-enhanced-${stat}-${index}`,
+                                name: `${subclassName}: ${feature.name}`,
+                                value: validateModifierValue(calculatedValue),
+                                source: 'subclass',
+                                type: 'subclass'
+                            });
+                        }
+                    });
+                    return; // Skip other extraction methods if we found enhanced modifiers
+                }
+            }
+
+            // Priority 2: Check structured stat_bonuses
             const hasStructuredBonus = feature.stat_bonuses &&
                 Object.keys(feature.stat_bonuses).includes(stat);
 
@@ -620,7 +663,7 @@ function getSubclassModifiers(character: Character, stat: string): ModifierSourc
                     type: 'subclass'
                 });
             } else if (feature.text) {
-                // Fallback to text parsing
+                // Priority 3: Fallback to text parsing
                 const featureSource = `${subclassName}: ${feature.name}`;
                 const textMods = parseStaticModifiers(feature.text, featureSource);
                 textMods.filter(mod => mod.stat === stat).forEach((mod, index) => {
@@ -660,6 +703,43 @@ function getSubclassModifiers(character: Character, stat: string): ModifierSourc
             if (!features || !Array.isArray(features)) return;
 
             features.forEach((feature: any) => {
+                // Priority 1: Check enhancement.modifiers (from enhanced JSON)
+                const enhancedMods = feature.enhancement?.modifiers;
+                if (enhancedMods && Array.isArray(enhancedMods)) {
+                    // Handle "damage_threshold" stat which applies to all three thresholds
+                    const matchingMods = enhancedMods.filter((mod: any) => {
+                        if (mod.stat === stat) return true;
+                        if (mod.stat === 'damage_threshold' &&
+                            (stat === 'damage_threshold_minor' ||
+                             stat === 'damage_threshold_major' ||
+                             stat === 'damage_threshold_severe')) {
+                            return true;
+                        }
+                        return false;
+                    });
+
+                    if (matchingMods.length > 0) {
+                        matchingMods.forEach((mod: any, index: number) => {
+                            const isActive = !mod.condition || mod.condition.type === 'always';
+                            if (isActive) {
+                                const calculatedValue = mod.formula
+                                    ? calculateDynamicValue(mod.formula, character)
+                                    : mod.value;
+
+                                modifiers.push({
+                                    id: `multiclass-${tier}-${feature.name}-enhanced-${stat}-${index}`,
+                                    name: `${multiclassName}: ${feature.name}`,
+                                    value: validateModifierValue(calculatedValue),
+                                    source: 'subclass',
+                                    type: 'multiclass'
+                                });
+                            }
+                        });
+                        return;
+                    }
+                }
+
+                // Priority 2: Check structured stat_bonuses
                 const hasStructuredBonus = feature.stat_bonuses &&
                     Object.keys(feature.stat_bonuses).includes(stat);
 
@@ -672,6 +752,7 @@ function getSubclassModifiers(character: Character, stat: string): ModifierSourc
                         type: 'multiclass'
                     });
                 } else if (feature.text) {
+                    // Priority 3: Fallback to text parsing
                     const featureSource = `${multiclassName}: ${feature.name}`;
                     const textMods = parseStaticModifiers(feature.text, featureSource);
                     textMods.filter(mod => mod.stat === stat).forEach((mod, index) => {
