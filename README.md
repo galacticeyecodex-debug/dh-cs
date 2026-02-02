@@ -453,13 +453,13 @@ This section tracks the implementation status of all domain cards and class feat
 | Reckless | 2 | ✅ | Stress cost implemented; Use must choose to roll with advantage. Advantage rolls not specifically implemented, but can be configured in the dice roller |
 | Scramble | 3 | ✅ | Once per rest implemented |
 | Versatile Fighter | 3 | ✅ | Stress cost implemented, everything else must be handled by the user |
-| Deadly Focus | 4 | ⚠️ | +1 Proficiency modifier implemented, but needs an activation button to control this affect; should be included in the Combat view |
-| Fortified Armor | 4 | ⚠️ | +2 damage threshold modifier is partially implemented, bugged |
+| Deadly Focus | 4 | ✅ | +1 Proficiency modifier with when_active condition |
+| Fortified Armor | 4 | ✅ | +2 damage threshold modifier with when_armored condition |
 | Champion's Edge | 5 | ✅ | 3 Hope cost implemented; effects must be applied by user |
 | Vitality | 5 | ⚠️ | Requires 3 mutually exclusive activation buttons for modifiers |
 | Battle-Hardened | 6 | ✅ | Hope cost, once per long rest implemented; effects must be applied by user |
-| Rage Up | 6 | ⚠️ | Stress cost properly implemented. Double damage modifier incorrectly implemented, but needs an activation button to control this affect anyway |
-| Blade-Touched | 7 | ⚠️ | +2 attack, +4 severe threshold (4+ Blade cards) modifiers are active, but not applied to Armor threshold in vitals |
+| Rage Up | 6 | ✅ | Stress cost, +2×Strength damage modifier (when_active) |
+| Blade-Touched | 7 | ✅ | +2 attack, +4 severe threshold (loadout_domain_count: 4+ Blade cards) |
 | Glancing Blow | 7 | ⚠️ | Requires an activation button that is avtice even in the Loadout |
 | Battle Cry | 8 | ✅ | Once per long rest implemented |
 | Frenzy | 8 | ✅ | +10 damage, +8 severe threshold (when_active) |
@@ -616,7 +616,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Restoration | 6 | ✅ | Token tracking (Spellcast) |
 | Zone of Protection | 6 | ✅ | Token tracking, roll DC, once per long rest |
 | Healing Strike | 7 | ✅ | 2 Hope cost |
-| Splendor-Touched | 7 | ⚠️ | +3 severe threshold - modifier type needs validation |
+| Splendor-Touched | 7 | ✅ | +3 severe threshold (loadout_domain_count: 4+ Splendor cards) |
 | Shield Aura | 8 | ✅ | Stress cost |
 | Stunning Sunlight | 8 | ✅ | Hope cost, high damage |
 | Overwhelming Aura | 9 | ✅ | Presence = Spellcast modifier, 2 Hope + Stress cost |
@@ -675,7 +675,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Bard | Troubadour | Song effects | Song-specific buffs (Relaxing/Epic/Heartbreaking) need manual application |
 | Bard | Wordsmith | Heart of a Poet | d4 bonus to persuasion not auto-applied |
 | Druid | Warden of Renewal | Regeneration | 3 Hope → clear 1d4 HP healing not automated |
-| Guardian | Stalwart | Unwavering/Unrelenting/Undaunted | +1/+2/+3 damage thresholds - needs implementation |
+| Guardian | Stalwart | Unwavering/Unrelenting/Undaunted | ✅ Implemented - +1/+2/+3 damage thresholds via enhancement.modifiers |
 | Guardian | Vengeance | Revenge | Counter damage mechanic requires manual tracking |
 | Ranger | All | Ranger's Focus | Focus target tracking not implemented |
 | Ranger | Wayfinder | Ruthless Predator | +1 Proficiency on damage roll not automated |
