@@ -33,6 +33,8 @@ function getConditionText(condition?: { type: string; domain?: string; minCount?
   switch (condition.type) {
     case 'when_active':
       return 'Activate to apply this bonus';
+    case 'when_active_permanent':
+      return 'Permanent bonus (choose to apply)';
     case 'when_armored':
       return 'While wearing armor';
     case 'when_unarmored':
@@ -137,9 +139,11 @@ export default function MechanicsTray({
   const shouldShowFrequency = showFrequency && enhancement.frequency && enhancement.frequency !== 'at_will';
   const showDuration = !!enhancement.duration;
 
-  // Extract when_active modifiers
+  // Extract when_active and when_active_permanent modifiers (both need activation buttons)
   const modifiers = enhancedData ? getModifiers(enhancedData) : [];
-  const whenActiveModifiers = modifiers.filter(mod => mod.condition?.type === 'when_active');
+  const whenActiveModifiers = modifiers.filter(mod =>
+    mod.condition?.type === 'when_active' || mod.condition?.type === 'when_active_permanent'
+  );
   const hasWhenActiveModifiers = whenActiveModifiers.length > 0;
 
   // Determine if anything should render

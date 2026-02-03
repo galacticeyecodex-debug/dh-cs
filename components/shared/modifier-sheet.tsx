@@ -24,7 +24,7 @@ import SRDInfoButton from './srd-info-button';
 type ModifierSourceType = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
 
 // Condition types from types/cards.ts ModifierCondition
-type ConditionType = 'always' | 'when_armored' | 'when_unarmored' | 'when_active' | 'cost_activated' | 'loadout_domain_count' | 'environment';
+type ConditionType = 'always' | 'when_armored' | 'when_unarmored' | 'when_active' | 'when_active_permanent' | 'cost_activated' | 'loadout_domain_count' | 'environment';
 
 interface Modifier {
   id: string;

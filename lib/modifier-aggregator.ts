@@ -837,7 +837,10 @@ function getEquipmentModifiers(character: Character, stat: string): ModifierSour
 }
 
 /**
- * Get modifiers from domain cards in loadout
+ * Get modifiers from domain cards in loadout (and vault cards with permanent modifiers)
+ *
+ * Cards with `when_active_permanent` condition apply even from the vault.
+ * This is used for cards like Vitality where you make a permanent choice.
  */
 function getDomainCardModifiers(
     character: any,
@@ -848,16 +851,17 @@ function getDomainCardModifiers(
 
     if (!character.character_cards) return modifiers;
 
-    const loadoutCards = character.character_cards.filter(
-        (card: any) => card.location === 'loadout'
-    );
+    // Process all cards (loadout and vault) - we'll filter based on condition type
+    const allCards = character.character_cards;
 
-    loadoutCards.forEach((card: any) => {
+    allCards.forEach((card: any) => {
         const cardName = card.library_item?.name;
         if (!cardName || !card.library_item?.data) return;
 
-        // Special case: Bare Bones
-        if (cardName === 'Bare Bones') {
+        const isInLoadout = card.location === 'loadout';
+
+        // Special case: Bare Bones (only applies from loadout)
+        if (cardName === 'Bare Bones' && isInLoadout) {
             const bareBonesModifiers = getBareBonesBonuses(character);
             bareBonesModifiers
                 .filter((mod: any) => mod.stat === stat && mod.isActive)
@@ -888,9 +892,16 @@ function getDomainCardModifiers(
             jsonModifiers.forEach((mod, absIndex) => {
                 if (mod.stat !== stat) return;
 
+                // For vault cards, only process when_active_permanent modifiers
+                if (!isInLoadout && mod.condition?.type !== 'when_active_permanent') {
+                    return;
+                }
+
                 // Determine activation
                 let isActive: boolean;
-                if (mod.condition?.type === 'when_active' || mod.condition?.type === 'cost_activated') {
+                if (mod.condition?.type === 'when_active' ||
+                    mod.condition?.type === 'when_active_permanent' ||
+                    mod.condition?.type === 'cost_activated') {
                     const modifierKey = `${mod.stat}-${absIndex}`;
                     isActive = cardStates[cardName]?.active_modifiers?.[modifierKey] ?? false;
                 } else {
@@ -917,7 +928,9 @@ function getDomainCardModifiers(
             return;
         }
 
-        // Fallback: Text parsing
+        // Fallback: Text parsing (only for loadout cards)
+        if (!isInLoadout) return;
+
         const cardModifiers = parseCardPassiveModifiers(card, character, isCardActive);
         cardModifiers
             .filter((mod: any) => mod.stat === stat && mod.isActive)

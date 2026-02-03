@@ -118,6 +118,7 @@
  * │   ├── { type: 'when_armored' } - Only when armor equipped
  * │   ├── { type: 'when_unarmored' } - Only when no armor equipped
  * │   ├── { type: 'when_active' } - User must click Activate button
+ * │   ├── { type: 'when_active_permanent' } - Like when_active but applies from vault too (e.g., Vitality)
  * │   ├── { type: 'cost_activated' } - [DEPRECATED] use 'when_active'
  * │   ├── { type: 'loadout_domain_count', domain, minCount } - When loadout has N cards from domain
  * │   └── { type: 'environment', requirement } - Based on environment

@@ -855,6 +855,40 @@
           "source": "Vitality"
         }
       ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "stress_slots",
+          "value": 1,
+          "condition": {
+            "type": "when_active_permanent"
+          },
+          "source": "Vitality (+1 Stress Slot)"
+        },
+        {
+          "stat": "hp_slots",
+          "value": 1,
+          "condition": {
+            "type": "when_active_permanent"
+          },
+          "source": "Vitality (+1 HP Slot)"
+        },
+        {
+          "stat": "damage_threshold",
+          "value": 2,
+          "condition": {
+            "type": "when_active_permanent"
+          },
+          "source": "Vitality (+2 Thresholds)"
+        }
+      ]
     }
   },
   {

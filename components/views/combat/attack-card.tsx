@@ -202,9 +202,11 @@ const AttackCard = React.memo(function AttackCard({
         const hasDuration = !!enhancement.duration;
         // Check for costs
         const hasEnhancedCosts = !!(enhancement.costs?.stress || enhancement.costs?.hope);
-        // Check for when_active modifiers
+        // Check for when_active or when_active_permanent modifiers
         const modifiers = getModifiers(enhancedData);
-        const hasWhenActiveModifiers = modifiers.some(mod => mod.condition?.type === 'when_active');
+        const hasWhenActiveModifiers = modifiers.some(mod =>
+            mod.condition?.type === 'when_active' || mod.condition?.type === 'when_active_permanent'
+        );
 
         return hasTokens || hasFrequency || hasDuration || hasEnhancedCosts || hasWhenActiveModifiers;
     })();

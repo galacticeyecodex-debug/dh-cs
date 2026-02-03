@@ -127,14 +127,15 @@ export interface TierScaling {
  * ============================================================================
  * These conditions determine WHEN a modifier is active. The UI component
  * (DomainAbilityButton) handles the activation flow for most types.
- * 
+ *
  * See lib/card-parser.ts for full documentation on each condition type.
- * 
+ *
  * Quick Reference:
  * - 'always': Active when card is in loadout
  * - 'when_armored': Active when armor is equipped
  * - 'when_unarmored': Active when NO armor is equipped
  * - 'when_active': Requires user to click activation button (Mark Stress/Spend Hope/Activate)
+ * - 'when_active_permanent': Like when_active, but applies even from vault (e.g., Vitality)
  * - 'cost_activated': DEPRECATED - use 'when_active' instead
  * - 'loadout_domain_count': Active when loadout has enough cards from a domain
  * - 'environment': Active based on environment (future feature)
@@ -144,6 +145,7 @@ export type ModifierCondition =
   | { type: 'when_armored' }
   | { type: 'when_unarmored' }
   | { type: 'when_active' }
+  | { type: 'when_active_permanent' }  // Applies even from vault once activated (e.g., Vitality)
   | { type: 'cost_activated' }  // DEPRECATED: Use 'when_active' instead
   | { type: 'loadout_domain_count'; domain: string; minCount: number }
   | { type: 'environment'; requirement: string };

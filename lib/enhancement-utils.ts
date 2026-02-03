@@ -180,8 +180,10 @@ export function isModifierActive(
             return true;
 
         case 'when_active':
+        case 'when_active_permanent':
         case 'cost_activated':
             // Only active when user has toggled the ability on
+            // when_active_permanent works the same but also applies from vault
             return isCardActive;
 
         case 'when_armored':
