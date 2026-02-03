@@ -56,6 +56,7 @@ export default function CardEnhancementPanel({
 
   // Check if there's anything to show
   const hasCosts = enhancement.costs?.stress || enhancement.costs?.hope;
+  const hasGains = enhancement.gains?.hope;
   const hasTokens = enhancement.tokens?.has_tokens;
   const hasFrequency = enhancement.frequency && enhancement.frequency !== 'at_will';
   const hasActionInfo = !!enhancement.action_type;
@@ -64,7 +65,7 @@ export default function CardEnhancementPanel({
   const hasDuration = !!enhancement.duration;
 
   // If nothing to enhance, don't render
-  if (!hasCosts && !hasTokens && !hasFrequency && !hasActionInfo && !hasRange && !mechanics.hasAttackOrRoll && !hasDuration) {
+  if (!hasCosts && !hasGains && !hasTokens && !hasFrequency && !hasActionInfo && !hasRange && !mechanics.hasAttackOrRoll && !hasDuration) {
     return null;
   }
 
@@ -239,6 +240,16 @@ export default function CardEnhancementPanel({
           costs={enhancement.costs || undefined}
           className="flex flex-wrap gap-2"
         />
+
+        {/* Gain buttons (e.g., "Gain 3 Hope" for A Soldier's Bond) */}
+        {hasGains && (
+          <DomainAbilityButton
+            cardName={card.name}
+            displayName={card.name}
+            costType="hope_gain"
+            costValue={enhancement.gains!.hope}
+          />
+        )}
 
         {/* Duration/Active button - ONLY for cards without when_active modifiers */}
         {enhancement.duration && !getModifiers(card).some(mod => mod.condition?.type === 'when_active') && (

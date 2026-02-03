@@ -652,15 +652,18 @@
     }
   },
   {
-    "name": "A Soldier’s Bond",
+    "name": "A Soldier's Bond",
     "level": "2",
     "domain": "Blade",
     "type": "Ability",
     "recall": "1",
-    "text": "Once per long rest, when you compliment someone or ask them about something they’re good at, you can both gain 3 Hope.",
+    "text": "Once per long rest, when you compliment someone or ask them about something they're good at, you can both gain 3 Hope.",
     "enhancement": {
       "timing": "action",
       "frequency": "once_per_long_rest",
+      "gains": {
+        "hope": 3
+      },
       "keywords": [
         "hope_gain",
         "ability"
@@ -865,7 +868,7 @@
       ],
       "modifiers": [
         {
-          "stat": "stress_slots",
+          "stat": "stress",
           "value": 1,
           "condition": {
             "type": "when_active_permanent"
@@ -873,7 +876,7 @@
           "source": "Vitality (+1 Stress Slot)"
         },
         {
-          "stat": "hp_slots",
+          "stat": "hit_points",
           "value": 1,
           "condition": {
             "type": "when_active_permanent"
@@ -881,7 +884,7 @@
           "source": "Vitality (+1 HP Slot)"
         },
         {
-          "stat": "damage_threshold",
+          "stat": "damage_thresholds",
           "value": 2,
           "condition": {
             "type": "when_active_permanent"
@@ -1150,8 +1153,7 @@
       "timing": "reaction",
       "frequency": "at_will",
       "costs": {
-        "stress": 1,
-        "hit_points": 1
+        "stress": 1
       },
       "keywords": [
         "damage",
@@ -1159,8 +1161,7 @@
         "ability"
       ],
       "roll": {
-        "type": "Spellcast Roll",
-        "trait": "Spellcast",
+        "type": "Reaction Roll",
         "difficulty": 15,
         "target_reaction": true
       }

@@ -95,11 +95,13 @@ export function useCardMechanics(
     const totalSpellcast = spellcastBase + spellcastBonusMods.reduce((acc, mod) => acc + mod.value, 0);
 
     // 3. Calculate Roll Trait Bonus
+    // Skip if this is a target reaction roll (the target rolls, not the player)
+    const isTargetReaction = roll?.target_reaction === true;
     let rollBonus = 0;
     let rollLabel = '';
     const rollTrait = roll?.trait || attack?.trait;
 
-    if (rollTrait) {
+    if (rollTrait && !isTargetReaction) {
       if (rollTrait.toLowerCase() === 'spellcast') {
         rollBonus = totalSpellcast;
         rollLabel = 'Spellcast';
@@ -118,8 +120,10 @@ export function useCardMechanics(
     const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, scalingValue) : undefined;
 
     // 5. Determine if Attack button should be shown
+    // Exclude target reaction rolls (the target rolls, not the player)
     const combatCategory = attack?.combat_category || 'passive_triggered';
-    const showAttackButton = !!(roll || combatCategory === 'standalone_attack' || combatCategory === 'roll_only');
+    const playerRoll = roll && !isTargetReaction;
+    const showAttackButton = !!(playerRoll || combatCategory === 'standalone_attack' || combatCategory === 'roll_only');
 
     return {
       totalProficiency,

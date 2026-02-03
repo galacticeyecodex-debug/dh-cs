@@ -63,6 +63,13 @@ export interface CardCosts {
 }
 
 /**
+ * Structured gains from using an ability (e.g., "gain 3 Hope")
+ */
+export interface CardGains {
+  hope?: number;
+}
+
+/**
  * Attack mechanics for combat abilities
  */
 export interface CardAttack {
@@ -185,6 +192,7 @@ export interface EnhancementBlock {
   timing: Timing;
   frequency: Frequency;
   costs?: CardCosts | null;
+  gains?: CardGains | null;
   keywords?: string[];
   tokens?: CardTokens;
   attack?: CardAttack | null;

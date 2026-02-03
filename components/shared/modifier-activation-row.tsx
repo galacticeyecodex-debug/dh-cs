@@ -20,6 +20,7 @@ import React from 'react';
 import { Check } from 'lucide-react';
 import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
+import { calculateDynamicValue } from '@/lib/card-parser';
 import type { CardModifier } from '@/types/cards';
 
 interface ModifierActivationRowProps {
@@ -39,11 +40,19 @@ export default function ModifierActivationRow({
   conditionText,
   className,
 }: ModifierActivationRowProps) {
-  const { cardStates, toggleModifierActive } = useCharacterStore();
+  const { character, cardStates, toggleModifierActive } = useCharacterStore();
 
   // Per-modifier activation state
   const isActive = cardStates[cardName]?.active_modifiers?.[modifierKey] || false;
-  const value = modifier.value;
+
+  // Calculate the effective value - use formula if present, otherwise use static value
+  const value = React.useMemo(() => {
+    if (modifier.formula && character) {
+      return calculateDynamicValue(modifier.formula, character);
+    }
+    return modifier.value;
+  }, [modifier.formula, modifier.value, character]);
+
   const isPositive = value > 0;
 
   // Format the stat name nicely
@@ -102,7 +111,7 @@ export default function ModifierActivationRow({
             ? 'bg-dagger-gold/20 border-dagger-gold text-dagger-gold shadow-lg shadow-dagger-gold/5'
             : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
         )}
-        aria-label={`${isActive ? 'Deactivate' : 'Activate'} ${modifier.value} ${statLabel} modifier for ${cardName}`}
+        aria-label={`${isActive ? 'Deactivate' : 'Activate'} ${value} ${statLabel} modifier for ${cardName}`}
       >
         {isActive && <Check size={12} />}
         <span>{isActive ? 'Active' : 'Activate'}</span>

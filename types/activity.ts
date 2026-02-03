@@ -88,6 +88,7 @@ export interface CardUsedActivityData {
     card_type: 'ability' | 'spell' | 'domain';
     domain?: string;
     cost_paid?: { hope?: number; stress?: number };
+    hope_gained?: number;
 }
 
 export interface ItemUsedActivityData {

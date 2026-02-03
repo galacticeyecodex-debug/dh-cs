@@ -17,12 +17,13 @@ interface DomainAbilityButtonProps {
   /**
    * Cost type determines button appearance and behavior:
    * - 'hope': Spend Hope to activate (yellow/gold styling)
+   * - 'hope_gain': Gain Hope (green/gold styling) - for abilities like A Soldier's Bond
    * - 'stress': Mark Stress to activate (purple styling)
    * - 'activate': No cost, just toggle on/off (green styling) - for abilities like Frenzy
    * - 'duration': Persistent effect toggle (blue styling)
    * - 'free': Same as 'activate' - deprecated, use 'activate'
    */
-  costType: 'hope' | 'stress' | 'activate' | 'duration' | 'free';
+  costType: 'hope' | 'hope_gain' | 'stress' | 'activate' | 'duration' | 'free';
   costValue?: number;
   label?: string; // Optional override
   className?: string;
@@ -88,6 +89,11 @@ export function DomainAbilityButton({
     Icon = HopeIcon;  // Use user's preferred icon
     costColor = 'text-dagger-gold';
     activeColor = 'bg-dagger-gold/20 text-dagger-gold border-dagger-gold/50';
+  } else if (costType === 'hope_gain') {
+    displayLabel = label || `Gain ${costValue > 0 ? costValue : ''} Hope`;
+    Icon = HopeIcon;  // Use user's preferred icon
+    costColor = 'text-emerald-400';
+    activeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50';
   } else if (costType === 'stress') {
     displayLabel = label || `Mark ${costValue > 0 ? costValue : 'a'} Stress`;
     Icon = StressIcon;  // Use user's preferred icon
@@ -130,6 +136,33 @@ export function DomainAbilityButton({
               card_name: friendlyName,
               card_type: 'ability',
               cost_paid: { hope: costValue }
+            },
+            is_private: false
+          });
+        }
+      }
+      // Call callback if provided (for custom behavior)
+      if (onActivate) onActivate();
+    } else if (costType === 'hope_gain') {
+      // Gain Hope (for abilities like A Soldier's Bond)
+      if (costValue > 0) {
+        const newHope = Math.min(6, character.hope + costValue);
+        updateHope(newHope);
+        toast.success(`Gained ${costValue} Hope from ${friendlyName}`);
+
+        // Broadcast activity if in a campaign
+        if (activeCampaign) {
+          logActivity({
+            campaign_id: activeCampaign.id,
+            user_id: character.user_id,
+            character_id: character.id,
+            character_name: character.name,
+            activity_type: 'card_used',
+            data: {
+              card_id: cardName,
+              card_name: friendlyName,
+              card_type: 'ability',
+              hope_gained: costValue
             },
             is_private: false
           });
@@ -191,13 +224,14 @@ export function DomainAbilityButton({
   const canAfford = React.useMemo(() => {
     if (!character) return false;
     if (costType === 'hope') return character.hope >= costValue;
+    if (costType === 'hope_gain') return true; // Can always gain Hope (capped at 6)
     if (costType === 'stress') return character.vitals.stress_current + costValue <= character.vitals.stress_max;
     return true;
   }, [character, costType, costValue]);
 
   // All buttons should be disabled if they cannot be afforded (e.g. not enough Hope)
   // or if explicitly disabled by parent (e.g. already paid)
-  const isCostButton = costType === 'stress' || costType === 'hope';
+  const isCostButton = costType === 'stress' || costType === 'hope' || costType === 'hope_gain';
   const isActuallyDisabled = disabled || !canAfford;
 
   // Cost buttons NEVER show "active" state - they just pay resources
