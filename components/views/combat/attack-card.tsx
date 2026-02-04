@@ -205,7 +205,9 @@ const AttackCard = React.memo(function AttackCard({
         // Check for when_active or when_active_permanent modifiers
         const modifiers = getModifiers(enhancedData);
         const hasWhenActiveModifiers = modifiers.some(mod =>
-            mod.condition?.type === 'when_active' || mod.condition?.type === 'when_active_permanent'
+            mod.condition?.type === 'when_active' ||
+            mod.condition?.type === 'when_active_permanent' ||
+            mod.condition?.type === 'loadout_domain_count'
         );
 
         return hasTokens || hasFrequency || hasDuration || hasEnhancedCosts || hasWhenActiveModifiers;

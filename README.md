@@ -446,11 +446,11 @@ This section tracks the implementation status of all domain cards and class feat
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
-| Get Back Up | 1 | ⚠️ | Stress cost implemented. User must reduce severity when they mark HP as normal |
+| Get Back Up | 1 | ✅ | Stress cost implemented |
 | Not Good Enough | 1 | ⚠️ | Damage dice rerolling of 1s and 2s not implemented, but could be added later |
 | Whirlwind | 1 | ✅ | Hope cost implemented |
 | A Soldier's Bond | 2 | ✅ | Gain 3 Hope button implemented |
-| Reckless | 2 | ✅ | Stress cost implemented; Use must choose to roll with advantage. Advantage rolls not specifically implemented, but can be configured in the dice roller |
+| Reckless | 2 | ✅ | Stress cost implemented; User must choose to roll with advantage. Advantage rolls not specifically implemented, but can be configured in the dice roller |
 | Scramble | 3 | ✅ | Once per rest implemented |
 | Versatile Fighter | 3 | ✅ | Stress cost implemented, everything else must be handled by the user |
 | Deadly Focus | 4 | ✅ | +1 Proficiency modifier with when_active condition |
@@ -466,7 +466,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Gore and Glory | 9 | ✅ | Gain Hope and Clear Stress buttons implemented |
 | Reaper's Strike | 9 | ✅ | Hope cost, once per long rest implemented |
 | Battle Monster | 10 | ✅ | 4 Stress cost, HP modifier |
-| Onslaught | 10 | ⚠️ | Stress cost implemented, but Spellcast roll button is incorrectly implemented |
+| Onslaught | 10 | ✅ | Stress cost implemented |
 
 ### Bone (21 cards)
 

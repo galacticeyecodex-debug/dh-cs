@@ -17,11 +17,12 @@
 'use client';
 
 import React from 'react';
-import { Check } from 'lucide-react';
+import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
 import { getStatModifiers } from '@/lib/modifier-aggregator';
 import { isModifierActive } from '@/lib/enhancement-utils';
+import { getDomainTheme } from '@/lib/domain-colors';
 import type { CardModifier, CardStates } from '@/types/cards';
 import type { Character } from '@/types/character';
 
@@ -84,6 +85,8 @@ interface ModifierActivationRowProps {
   /** Optional description of when this modifier applies */
   conditionText?: string;
   className?: string;
+  /** The domain of the card (for styling Touched cards) */
+  domain?: string;
 }
 
 export default function ModifierActivationRow({
@@ -92,6 +95,7 @@ export default function ModifierActivationRow({
   modifierKey,
   conditionText,
   className,
+  domain,
 }: ModifierActivationRowProps) {
   const { character, cardStates, toggleModifierActive } = useCharacterStore();
 
@@ -133,13 +137,25 @@ export default function ModifierActivationRow({
 
   // Color coding
   const valueColor = isPositive ? 'text-green-400' : 'text-red-400';
+
+  // Domain theme for Touched cards
+  const isDomainCondition = modifier.condition?.type === 'loadout_domain_count';
+  const displayDomain = (isDomainCondition ? (modifier.condition as any).domain : domain) || domain;
+  const theme = getDomainTheme(displayDomain);
+
   // Standardize to white/10 border like other buttons
-  const borderColor = isActive
+  let borderColor = isActive
     ? (isPositive ? 'border-green-500/30' : 'border-red-500/30')
     : 'border-white/10';
-  const bgColor = isActive
+  let bgColor = isActive
     ? (isPositive ? 'bg-green-500/10' : 'bg-red-500/10')
     : 'bg-white/5';
+
+  // Override with domain colors for domain-activated modifiers (Touched cards)
+  if (isActive && isDomainCondition) {
+    borderColor = `border-[oklch(from_${theme.primary}_l_c_h_/_0.5)]`;
+    bgColor = `bg-[oklch(from_${theme.primary}_l_c_h_/_0.15)]`;
+  }
 
   const handleToggle = () => {
     toggleModifierActive(cardName, modifierKey);
@@ -149,10 +165,14 @@ export default function ModifierActivationRow({
     <div
       className={clsx(
         'flex items-center justify-between gap-3 px-3 py-1.5 rounded border transition-colors',
-        bgColor,
-        borderColor,
+        !isDomainCondition && bgColor,
+        !isDomainCondition && borderColor,
+        isDomainCondition && isActive && borderColor,
         className
       )}
+      style={isDomainCondition && isActive ? {
+        backgroundColor: `oklch(from ${theme.primary} l c h / 0.1)`
+      } : {}}
     >
       {/* Modifier Info */}
       <div className="flex-1">
@@ -175,17 +195,25 @@ export default function ModifierActivationRow({
       {isAutoActivateCondition ? (
         <div
           className={clsx(
-            'flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold border',
+            'flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold border transition-all duration-300',
             isActive
-              ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
-              : 'bg-white/5 border-white/10 text-gray-500'
+              ? (isDomainCondition
+                ? 'opacity-100 shadow-lg shadow-black/20'
+                : 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300')
+              : 'bg-white/5 border-white/10 text-gray-500 opacity-50'
           )}
+          style={isActive && isDomainCondition ? {
+            backgroundColor: `oklch(from ${theme.primary} l c h / 0.2)`,
+            borderColor: `oklch(from ${theme.primary} l c h / 0.5)`,
+            color: `oklch(from ${theme.primary} l c h / 1.0)`,
+          } : {}}
           title={isActive ? 'Condition met - automatically active' : 'Condition not met'}
         >
-          {isActive && <Check size={12} />}
+          {isActive && (isDomainCondition ? <AppIcons.vitals.hope size={12} className="animate-pulse" /> : <AppIcons.ui.confirm size={12} />)}
           <span>{isActive ? 'Active' : 'Inactive'}</span>
         </div>
       ) : (
+
         <button
           onClick={handleToggle}
           className={clsx(
@@ -196,7 +224,7 @@ export default function ModifierActivationRow({
           )}
           aria-label={`${isActive ? 'Deactivate' : 'Activate'} ${value} ${statLabel} modifier for ${cardName}`}
         >
-          {isActive && <Check size={12} />}
+          {isActive && <AppIcons.ui.confirm size={12} />}
           <span>{isActive ? 'Active' : 'Activate'}</span>
         </button>
       )}

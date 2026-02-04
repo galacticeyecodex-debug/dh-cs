@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
 import { CardCosts } from '@/types/cards';
 import { AppIcons, getIconByName } from '@/lib/icon-utils';
+import { getDomainTheme } from '@/lib/domain-colors';
 import { toast } from 'sonner';
 
 export interface DomainAbilityButtonProps {
@@ -35,6 +36,7 @@ export interface DomainAbilityButtonProps {
   isActiveOverride?: boolean;
   onActivate?: () => void;
   onDeactivate?: () => void;
+  domain?: string;
 }
 
 export function DomainAbilityButton({
@@ -48,6 +50,7 @@ export function DomainAbilityButton({
   isActiveOverride,
   onActivate,
   onDeactivate,
+  domain,
 }: DomainAbilityButtonProps) {
   // Use displayName for notifications if provided, otherwise use cardName
   const friendlyName = displayName || cardName;
@@ -61,6 +64,8 @@ export function DomainAbilityButton({
     logActivity,
     activeCampaign
   } = useCharacterStore();
+
+  const theme = domain ? getDomainTheme(domain) : null;
 
   // Resolve dynamic icons based on user preferences
   const HopeIcon = getIconByName(vitalIcons.hope, AppIcons.vitals.hope);
@@ -136,6 +141,11 @@ export function DomainAbilityButton({
     Icon = AppIcons.combat.duration;
     costColor = 'text-blue-400';
     activeColor = 'bg-blue-500/20 text-blue-300 border-blue-500/50';
+  }
+
+  // Domain override
+  if (isActive && theme) {
+    activeColor = `border-[oklch(from_${theme.primary}_l_c_h_/_0.5)] text-[oklch(from_${theme.primary}_l_c_h_/_1.0)]`;
   }
 
   const handleActivate = (e: React.MouseEvent) => {
@@ -370,7 +380,9 @@ export function DomainAbilityButton({
         "flex items-center justify-center gap-1 px-3 py-1.5 rounded text-xs font-bold border transition-colors cursor-default",
         activeColor,
         className
-      )}>
+      )}
+        style={theme ? { backgroundColor: `oklch(from ${theme.primary} l c h / 0.15)` } : {}}
+      >
         {buttonContent}
         <button
           onClick={handleReset}
