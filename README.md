@@ -449,7 +449,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Get Back Up | 1 | ⚠️ | Stress cost implemented. User must reduce severity when they mark HP as normal |
 | Not Good Enough | 1 | ⚠️ | Damage dice rerolling of 1s and 2s not implemented, but could be added later |
 | Whirlwind | 1 | ✅ | Hope cost implemented |
-| A Soldier's Bond | 2 | ⚠️ | Once per long rest implemented; Could use a gain 3 Hope button |
+| A Soldier's Bond | 2 | ✅ | Gain 3 Hope button implemented |
 | Reckless | 2 | ✅ | Stress cost implemented; Use must choose to roll with advantage. Advantage rolls not specifically implemented, but can be configured in the dice roller |
 | Scramble | 3 | ✅ | Once per rest implemented |
 | Versatile Fighter | 3 | ✅ | Stress cost implemented, everything else must be handled by the user |
@@ -463,7 +463,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Glancing Blow | 7 | ✅ | Stress cost implemented |
 | Battle Cry | 8 | ✅ | Once per long rest implemented |
 | Frenzy | 8 | ✅ | +10 damage, +8 severe threshold (when_active) |
-| Gore and Glory | 9 | ✅ | All effects must be applied by user |
+| Gore and Glory | 9 | ✅ | Gain Hope and Clear Stress buttons implemented |
 | Reaper's Strike | 9 | ✅ | Hope cost, once per long rest implemented |
 | Battle Monster | 10 | ✅ | 4 Stress cost, HP modifier |
 | Onslaught | 10 | ⚠️ | Stress cost implemented, but Spellcast roll button is incorrectly implemented |
