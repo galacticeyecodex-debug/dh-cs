@@ -19,12 +19,10 @@ import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCharacterStore } from '@/store/character-store';
 import SRDInfoButton from './srd-info-button';
+import type { ModifierCondition } from '@/types/cards';
 
-// Modifier source types align with ModifierSourceType from modifier-aggregator
 type ModifierSourceType = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
 
-// Condition types from types/cards.ts ModifierCondition
-type ConditionType = 'always' | 'when_armored' | 'when_unarmored' | 'when_active' | 'when_active_permanent' | 'cost_activated' | 'loadout_domain_count' | 'environment';
 
 interface Modifier {
   id: string;
@@ -33,12 +31,7 @@ interface Modifier {
   source: ModifierSourceType;
   type?: string; // For visual distinction (equipment, domain_card, etc.)
   isActive?: boolean; // Whether condition is currently met
-  condition?: {
-    type: ConditionType;
-    domain?: string;
-    minCount?: number;
-    requirement?: string;
-  };
+  condition?: ModifierCondition;
 }
 
 export interface ModifierTab {

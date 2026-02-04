@@ -43,6 +43,7 @@
 import type { EnhancedAbilityCard, CardModifier, CardStates } from '@/types/cards';
 import type { Character } from '@/types/character';
 import { getModifiers, isModifierActive } from './enhancement-utils';
+import { normalizeCardName } from '@/lib/utils';
 import { calculateDynamicValue, calculateTierScaledValue, parseCardPassiveModifiers, getBareBonesBonuses, parseStaticModifiers, type PassiveModifier } from './card-parser';
 import { validateModifierValue } from './modifier-validator';
 
@@ -318,7 +319,7 @@ export function getAllActiveModifiers(
         const isCardActive = cardStates[cardName]?.is_active ?? false;
 
         // Check for enhanced JSON modifiers
-        const enhancedData = cachedEnhancedAbilities.find(a => a.name === cardName);
+        const enhancedData = cachedEnhancedAbilities.find(a => normalizeCardName(a.name) === normalizeCardName(cardName));
         if (enhancedData) {
             const jsonModifiers = getModifiers(enhancedData);
             if (jsonModifiers.length > 0) {
@@ -621,8 +622,8 @@ function getSubclassModifiers(character: Character, stat: string): ModifierSourc
                     // "damage_threshold" applies to minor, major, and severe
                     if (mod.stat === 'damage_threshold' &&
                         (stat === 'damage_threshold_minor' ||
-                         stat === 'damage_threshold_major' ||
-                         stat === 'damage_threshold_severe')) {
+                            stat === 'damage_threshold_major' ||
+                            stat === 'damage_threshold_severe')) {
                         return true;
                     }
                     return false;
@@ -711,8 +712,8 @@ function getSubclassModifiers(character: Character, stat: string): ModifierSourc
                         if (mod.stat === stat) return true;
                         if (mod.stat === 'damage_threshold' &&
                             (stat === 'damage_threshold_minor' ||
-                             stat === 'damage_threshold_major' ||
-                             stat === 'damage_threshold_severe')) {
+                                stat === 'damage_threshold_major' ||
+                                stat === 'damage_threshold_severe')) {
                             return true;
                         }
                         return false;
@@ -881,7 +882,7 @@ function getDomainCardModifiers(
 
         // Check enhanced JSON modifiers first
         const enhancedData = cachedEnhancedAbilities.find(
-            (a: EnhancedAbilityCard) => a.name === cardName
+            (a: EnhancedAbilityCard) => normalizeCardName(a.name) === normalizeCardName(cardName)
         );
 
         if (enhancedData) {
@@ -958,7 +959,7 @@ export function getCardModifiersForDisplay(
 ): PassiveModifier[] {
     if (!character) return [];
 
-    const enhancedData = cachedEnhancedAbilities.find(a => a.name === cardName);
+    const enhancedData = cachedEnhancedAbilities.find(a => normalizeCardName(a.name) === normalizeCardName(cardName));
     if (!enhancedData) return [];
 
     const traitsWithTotals = calculateTraitsWithTotals(character, 'all');

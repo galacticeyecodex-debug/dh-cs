@@ -447,7 +447,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
 | Get Back Up | 1 | ⚠️ | Stress cost implemented. User must reduce severity when they mark HP as normal |
-| Not Good Enough | 1 | ⚠️ | Damage dice rerolling of 1s and 2s not implemented, but could be added |
+| Not Good Enough | 1 | ⚠️ | Damage dice rerolling of 1s and 2s not implemented, but could be added later |
 | Whirlwind | 1 | ✅ | Hope cost implemented |
 | A Soldier's Bond | 2 | ⚠️ | Once per long rest implemented; Could use a gain 3 Hope button |
 | Reckless | 2 | ✅ | Stress cost implemented; Use must choose to roll with advantage. Advantage rolls not specifically implemented, but can be configured in the dice roller |
@@ -455,12 +455,12 @@ This section tracks the implementation status of all domain cards and class feat
 | Versatile Fighter | 3 | ✅ | Stress cost implemented, everything else must be handled by the user |
 | Deadly Focus | 4 | ✅ | +1 Proficiency modifier with when_active condition |
 | Fortified Armor | 4 | ✅ | +2 damage threshold modifier with when_armored condition |
-| Champion's Edge | 5 | ✅ | 3 Hope cost implemented; effects must be applied by user |
-| Vitality | 5 | ⚠️ | Requires 3 mutually exclusive activation buttons for modifiers |
+| Champion's Edge | 5 | ⚠️ | 3 Hope cost missing; effects must be applied by user |
+| Vitality | 5 | ✅ | 3 activation buttons for modifiers that are still active in the Loadout |
 | Battle-Hardened | 6 | ✅ | Hope cost, once per long rest implemented; effects must be applied by user |
 | Rage Up | 6 | ✅ | Stress cost, +2×Strength damage modifier (when_active) |
 | Blade-Touched | 7 | ✅ | +2 attack, +4 severe threshold (loadout_domain_count: 4+ Blade cards) |
-| Glancing Blow | 7 | ⚠️ | Requires an activation button that is avtice even in the Loadout |
+| Glancing Blow | 7 | ✅ | Stress cost implemented |
 | Battle Cry | 8 | ✅ | Once per long rest implemented |
 | Frenzy | 8 | ✅ | +10 damage, +8 severe threshold (when_active) |
 | Gore and Glory | 9 | ✅ | All effects must be applied by user |

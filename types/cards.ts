@@ -1,5 +1,5 @@
 /**
- * ENHANCED CARD TYPES
+ * ENHANCED CARD TYPES [FORCED REFRESH]
  * ----------------------------------------------------------------------------
  * Extended TypeScript interfaces for domain cards (abilities/spells) with
  * structured metadata for interactive UI components.

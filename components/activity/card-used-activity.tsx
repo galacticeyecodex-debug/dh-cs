@@ -53,6 +53,19 @@ export function CardUsedActivity({ activity, compact = false }: CardUsedActivity
                                 {cardData.cost_paid.stress && `• +${cardData.cost_paid.stress} Stress`}
                             </span>
                         )}
+                        {cardData.gains && !compact && (
+                            <span className="text-xs text-gray-500">
+                                {cardData.gains.hope && `• Gained ${cardData.gains.hope} Hope`}
+                                {cardData.gains.stress && `• Cleared ${cardData.gains.stress} Stress`}
+                                {cardData.gains.hp && `• Healed ${cardData.gains.hp} HP`}
+                                {cardData.gains.armor && `• Restored ${cardData.gains.armor} Armor`}
+                            </span>
+                        )}
+                        {cardData.hope_gained && !compact && (
+                            <span className="text-xs text-gray-500">
+                                • Gained {cardData.hope_gained} Hope
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>

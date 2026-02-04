@@ -21,6 +21,7 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character-store';
 import { AppIcons } from '@/lib/icon-utils';
+import { normalizeCardName } from '@/lib/utils';
 import AddItemModal from '@/components/views/inventory/add-item-modal';
 import clsx from 'clsx';
 import { MarkdownText } from '@/components/shared/markdown-text';
@@ -29,7 +30,7 @@ import ViewHeader from '@/components/shared/view-header';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import SRDInfoButton from '@/components/shared/srd-info-button';
 import ConfirmDialog from '@/components/shared/confirm-dialog';
-import { parseCardPassiveModifiers, parseCombatAbility, type PassiveModifier, type ModifierCondition } from '@/lib/card-parser';
+import { parseCardPassiveModifiers, parseCombatAbility, type PassiveModifier } from '@/lib/card-parser';
 import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { uploadCharacterImage } from '@/lib/storage-service';
@@ -37,7 +38,7 @@ import { MAX_IMAGE_FILE_SIZE, MAX_IMAGE_FILE_SIZE_MB } from '@/lib/image-utils';
 import { getStatModifiers, getAllActiveModifiers } from '@/lib/modifier-aggregator';
 import Image from 'next/image';
 import PlaymatCard from './playmat-card';
-import type { EnhancedAbilityCard } from '@/types/cards';
+import type { EnhancedAbilityCard, ModifierCondition } from '@/types/cards';
 import { getAllAbilities, srdAncestries, srdCommunities } from '@/lib/content-loaders';
 import { getAttack, getRoll } from '@/lib/enhancement-utils';
 import useContentAccess from '@/hooks/useContentAccess';
@@ -289,7 +290,8 @@ export default function PlaymatView() {
             <div className="flex flex-col gap-4">
               {loadoutCards.length > 0 ? (
                 loadoutCards.map((charCard) => {
-                  const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
+                  const normalizedLibraryName = normalizeCardName(charCard.library_item?.name || '');
+                  const enhancedData = enhancedAbilities.find(a => normalizeCardName(a.name) === normalizedLibraryName);
                   // Check if card has attack or roll (which means it has modifiers to manage)
                   const hasModifiers = !!(enhancedData && (getAttack(enhancedData) || getRoll(enhancedData)));
                   return (
@@ -335,7 +337,8 @@ export default function PlaymatView() {
             {vaultCards.length > 0 ? (
               <div className="flex flex-col items-center gap-4">
                 {vaultCards.map((charCard) => {
-                  const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
+                  const normalizedLibraryName = normalizeCardName(charCard.library_item?.name || '');
+                  const enhancedData = enhancedAbilities.find(a => normalizeCardName(a.name) === normalizedLibraryName);
                   // Check if card has attack or roll (which means it has modifiers to manage)
                   const hasModifiers = !!(enhancedData && (getAttack(enhancedData) || getRoll(enhancedData)));
                   return (
@@ -382,7 +385,7 @@ export default function PlaymatView() {
 
         {/* Ability Modifier Sheet */}
         {activeAbilityId && (() => {
-          const ability = enhancedAbilities.find(a => a.name === activeAbilityId);
+          const ability = enhancedAbilities.find(a => normalizeCardName(a.name) === normalizeCardName(activeAbilityId));
           if (!ability) return null;
 
           const tabs = [];

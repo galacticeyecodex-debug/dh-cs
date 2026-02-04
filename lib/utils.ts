@@ -25,6 +25,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Normalizes card names for consistent matching.
+ * Replaces curly quotes with straight quotes.
+ */
+export function normalizeCardName(name: string): string {
+  if (!name) return name;
+  return name.replace(/[’‘]/g, "'");
+}
+
 export function parseDamageRoll(input: string): { dice: string; modifier: number } {
   // Remove markdown bold syntax (**), text like "phy", "mag", "physical", "magic" (case insensitive) and whitespace
   const cleanInput = input.replace(/\*\*/g, '').replace(/(phy|mag|physical|magic)/gi, '').replace(/\s/g, '');

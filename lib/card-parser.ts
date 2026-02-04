@@ -229,6 +229,7 @@ import type {
   EnhancedAbilityCard,
   EnhancedFeature,
   Frequency,
+  ModifierCondition,
   Range,
   TargetType,
   Timing,
@@ -245,6 +246,22 @@ export interface PassiveModifier {
   isActive: boolean;      // Whether condition is currently met
   source: string;         // Card name for display
 }
+/**
+ * MODIFIER CONDITIONS
+ * ----------------------------------------------------------------------------
+ * Defines the circumstances under which a passive modifier is considered active.
+ * 
+ * TYPES:
+ * - 'always': The modifier applies as long as the card is in the 'loadout' location.
+ * - 'when_armored': Applies only if the character has an item in 'equipped_armor'.
+ * - 'when_unarmored': Applies only if 'equipped_armor' is empty.
+ * - 'when_active': Requires manual activation in the UI. Toggled via cardState.
+ * - 'when_active_permanent': Manual activation that persists even if card is moved
+ *   to the vault (used for permanent stat boosts like 'Vitality').
+ * - 'loadout_domain_count': Dynamic check based on the number of cards from a 
+ *   specific domain currently in the loadout.
+ * - 'environment': Contextual modifiers based on scene conditions (future use).
+ */
 
 /**
  * Condition types for modifier activation
@@ -2666,13 +2683,13 @@ export function parseDamageScaling(text: string, damage?: string): { scaling: Da
   // Check for resource-based scaling (tokens spent for damage dice)
   // Pattern: "roll a number of d10s equal to the tokens" (for damage)
   if (/(?:roll\s+)?(?:a\s+)?number\s+of\s+\*?\*?d\d+s?\*?\*?\s+equal\s+to\s+(?:the\s+)?tokens/i.test(text) ||
-      /equal\s+to\s+(?:the\s+)?(?:number\s+of\s+)?tokens?\s+(?:you\s+)?spent/i.test(text)) {
+    /equal\s+to\s+(?:the\s+)?(?:number\s+of\s+)?tokens?\s+(?:you\s+)?spent/i.test(text)) {
     return { scaling: 'resource', resource_type: 'tokens' };
   }
 
   // Check for Hope-based scaling
   if (/(?:roll\s+)?(?:a\s+)?number\s+of\s+\*?\*?d\d+s?\*?\*?\s+equal\s+to\s+(?:the\s+)?hope/i.test(text) ||
-      /equal\s+to\s+(?:the\s+)?hope\s+spent/i.test(text)) {
+    /equal\s+to\s+(?:the\s+)?hope\s+spent/i.test(text)) {
     return { scaling: 'resource', resource_type: 'hope' };
   }
 
@@ -2689,7 +2706,7 @@ export function parseDamageScaling(text: string, damage?: string): { scaling: Da
   // Check for spellcast scaling (dice count = Spellcast trait)
   // Pattern: "using your Spellcast trait" or "roll a number of d10s equal to your Spellcast trait"
   if (/using\s+(?:your\s+)?spellcast(?:\s+trait)?/i.test(text) ||
-      /(?:roll\s+)?(?:a\s+)?number\s+of\s+\*?\*?d\d+s?\*?\*?\s+equal\s+to\s+(?:your\s+)?spellcast/i.test(text)) {
+    /(?:roll\s+)?(?:a\s+)?number\s+of\s+\*?\*?d\d+s?\*?\*?\s+equal\s+to\s+(?:your\s+)?spellcast/i.test(text)) {
     return { scaling: 'spellcast' };
   }
 

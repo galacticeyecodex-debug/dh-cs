@@ -7,7 +7,7 @@ import { CardCosts } from '@/types/cards';
 import { AppIcons, getIconByName } from '@/lib/icon-utils';
 import { toast } from 'sonner';
 
-interface DomainAbilityButtonProps {
+export interface DomainAbilityButtonProps {
   cardName: string;
   /**
    * Human-readable display name for the ability (used in notifications).
@@ -188,7 +188,7 @@ export function DomainAbilityButton({
               card_id: cardName,
               card_name: friendlyName,
               card_type: 'ability',
-              hope_gained: costValue
+              gains: { hope: costValue }
             },
             is_private: false
           });
@@ -231,6 +231,24 @@ export function DomainAbilityButton({
       const newStress = Math.max(0, currentStress - amount);
       updateVitals('stress_current', newStress);
       toast.success(`Cleared ${amount} Stress from ${friendlyName}`);
+
+      // Broadcast activity
+      if (activeCampaign) {
+        logActivity({
+          campaign_id: activeCampaign.id,
+          user_id: character.user_id,
+          character_id: character.id,
+          character_name: character.name,
+          activity_type: 'card_used',
+          data: {
+            card_id: cardName,
+            card_name: friendlyName,
+            card_type: 'ability',
+            gains: { stress: amount }
+          },
+          is_private: false
+        });
+      }
       if (onActivate) onActivate();
     } else if (costType === 'hit_points_clear') {
       // Clear Hit Points / Heal (for abilities like Battle-Hardened)
@@ -241,6 +259,24 @@ export function DomainAbilityButton({
       const newHP = Math.min(maxHP, currentHP + amount);
       updateVitals('hit_points_current', newHP);
       toast.success(`Cleared ${amount} Hit Point${amount !== 1 ? 's' : ''} from ${friendlyName}`);
+
+      // Broadcast activity
+      if (activeCampaign) {
+        logActivity({
+          campaign_id: activeCampaign.id,
+          user_id: character.user_id,
+          character_id: character.id,
+          character_name: character.name,
+          activity_type: 'card_used',
+          data: {
+            card_id: cardName,
+            card_name: friendlyName,
+            card_type: 'ability',
+            gains: { hp: amount }
+          },
+          is_private: false
+        });
+      }
       if (onActivate) onActivate();
     } else if (costType === 'armor_slots_clear') {
       // Restore Armor Slots (for abilities like Champion's Edge)
@@ -251,6 +287,24 @@ export function DomainAbilityButton({
       const newArmor = Math.min(maxArmor, currentArmor + amount);
       updateVitals('armor_slots', newArmor);
       toast.success(`Restored ${amount} Armor Slot${amount !== 1 ? 's' : ''} from ${friendlyName}`);
+
+      // Broadcast activity
+      if (activeCampaign) {
+        logActivity({
+          campaign_id: activeCampaign.id,
+          user_id: character.user_id,
+          character_id: character.id,
+          character_name: character.name,
+          activity_type: 'card_used',
+          data: {
+            card_id: cardName,
+            card_name: friendlyName,
+            card_type: 'ability',
+            gains: { armor: amount }
+          },
+          is_private: false
+        });
+      }
       if (onActivate) onActivate();
     } else if (costType === 'duration' || costType === 'activate' || costType === 'free') {
       // Toggle activation state (no cost payment)
