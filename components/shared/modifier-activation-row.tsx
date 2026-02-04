@@ -20,8 +20,60 @@ import React from 'react';
 import { Check } from 'lucide-react';
 import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
-import { calculateDynamicValue } from '@/lib/card-parser';
-import type { CardModifier } from '@/types/cards';
+import { getStatModifiers } from '@/lib/modifier-aggregator';
+import type { CardModifier, CardStates } from '@/types/cards';
+import type { Character } from '@/types/character';
+
+/**
+ * Calculate formula value using MODIFIED stats (after all modifiers applied).
+ * This ensures formulas like "2_times_strength" use the total Strength, not base.
+ */
+function calculateFormulaWithModifiedStats(
+  formula: string,
+  character: Character,
+  cardStates: CardStates
+): number {
+  // Handle "[number]_times_[stat]" pattern (e.g., "2_times_strength")
+  const timesMatch = formula.match(/^(\d+)_times_([a-z]+)$/);
+  if (timesMatch) {
+    const multiplier = parseInt(timesMatch[1]);
+    const stat = timesMatch[2];
+    const baseValue = character.stats?.[stat as keyof typeof character.stats] || 0;
+    const modifiers = getStatModifiers(character, stat, cardStates);
+    const totalMods = modifiers.reduce((sum, m) => sum + m.value, 0);
+    return multiplier * (baseValue + totalMods);
+  }
+
+  // Handle "half_[stat]" pattern
+  if (formula.startsWith('half_')) {
+    const stat = formula.replace('half_', '');
+    const baseValue = character.stats?.[stat as keyof typeof character.stats] || 0;
+    const modifiers = getStatModifiers(character, stat, cardStates);
+    const totalMods = modifiers.reduce((sum, m) => sum + m.value, 0);
+    return Math.floor((baseValue + totalMods) / 2);
+  }
+
+  // Handle "[number]_plus_[stat]" pattern
+  const plusMatch = formula.match(/^(\d+)_plus_([a-z]+)$/);
+  if (plusMatch) {
+    const baseNum = parseInt(plusMatch[1]);
+    const stat = plusMatch[2];
+    const baseValue = character.stats?.[stat as keyof typeof character.stats] || 0;
+    const modifiers = getStatModifiers(character, stat, cardStates);
+    const totalMods = modifiers.reduce((sum, m) => sum + m.value, 0);
+    return baseNum + baseValue + totalMods;
+  }
+
+  // Handle direct stat reference
+  const statValue = character.stats?.[formula as keyof typeof character.stats];
+  if (typeof statValue === 'number') {
+    const modifiers = getStatModifiers(character, formula, cardStates);
+    const totalMods = modifiers.reduce((sum, m) => sum + m.value, 0);
+    return statValue + totalMods;
+  }
+
+  return 0;
+}
 
 interface ModifierActivationRowProps {
   cardName: string;
@@ -46,12 +98,13 @@ export default function ModifierActivationRow({
   const isActive = cardStates[cardName]?.active_modifiers?.[modifierKey] || false;
 
   // Calculate the effective value - use formula if present, otherwise use static value
+  // For formulas, we need to use MODIFIED stats (after all modifiers applied)
   const value = React.useMemo(() => {
     if (modifier.formula && character) {
-      return calculateDynamicValue(modifier.formula, character);
+      return calculateFormulaWithModifiedStats(modifier.formula, character, cardStates);
     }
     return modifier.value;
-  }, [modifier.formula, modifier.value, character]);
+  }, [modifier.formula, modifier.value, character, cardStates]);
 
   const isPositive = value > 0;
 
