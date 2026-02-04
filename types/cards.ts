@@ -63,10 +63,13 @@ export interface CardCosts {
 }
 
 /**
- * Structured gains from using an ability (e.g., "gain 3 Hope")
+ * Structured gains from using an ability (e.g., "gain 3 Hope", "clear a Hit Point")
  */
 export interface CardGains {
   hope?: number;
+  stress_clear?: number;    // Clear X Stress
+  hit_points_clear?: number; // Clear X Hit Points (heal)
+  armor_slots_clear?: number; // Clear X Armor Slots (restore armor)
 }
 
 /**

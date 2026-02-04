@@ -19,11 +19,14 @@ interface DomainAbilityButtonProps {
    * - 'hope': Spend Hope to activate (yellow/gold styling)
    * - 'hope_gain': Gain Hope (green/gold styling) - for abilities like A Soldier's Bond
    * - 'stress': Mark Stress to activate (purple styling)
+   * - 'stress_clear': Clear Stress (green/purple styling) - for abilities like Gore and Glory
+   * - 'hit_points_clear': Clear Hit Points/heal (green/red styling) - for abilities like Battle-Hardened
+   * - 'armor_slots_clear': Restore Armor Slots (green/blue styling) - for abilities like Champion's Edge
    * - 'activate': No cost, just toggle on/off (green styling) - for abilities like Frenzy
    * - 'duration': Persistent effect toggle (blue styling)
    * - 'free': Same as 'activate' - deprecated, use 'activate'
    */
-  costType: 'hope' | 'hope_gain' | 'stress' | 'activate' | 'duration' | 'free';
+  costType: 'hope' | 'hope_gain' | 'stress' | 'stress_clear' | 'hit_points_clear' | 'armor_slots_clear' | 'activate' | 'duration' | 'free';
   costValue?: number;
   label?: string; // Optional override
   className?: string;
@@ -68,13 +71,21 @@ export function DomainAbilityButton({
     ? isActiveOverride
     : (cardStates[cardName]?.is_active || false);
 
+  // Resolve additional icons for new types
+  const HPIcon = getIconByName(vitalIcons.hitPoints, AppIcons.vitals.hitPoints);
+  const ArmorIcon = getIconByName(vitalIcons.armor, AppIcons.vitals.armor);
+
   // Resource Tracking Logic
   let resourceInfo = '';
   if (character) {
-    if (costType === 'hope') {
+    if (costType === 'hope' || costType === 'hope_gain') {
       resourceInfo = `(${character.hope}/6)`;
-    } else if (costType === 'stress') {
+    } else if (costType === 'stress' || costType === 'stress_clear') {
       resourceInfo = `(${character.vitals.stress_current}/${character.vitals.stress_max})`;
+    } else if (costType === 'hit_points_clear') {
+      resourceInfo = `(${character.vitals.hit_points_current}/${character.vitals.hit_points_max})`;
+    } else if (costType === 'armor_slots_clear') {
+      resourceInfo = `(${character.vitals.armor_slots}/${character.vitals.armor_score})`;
     }
   }
 
@@ -99,6 +110,21 @@ export function DomainAbilityButton({
     Icon = StressIcon;  // Use user's preferred icon
     costColor = 'text-purple-400';
     activeColor = 'bg-purple-900/40 text-purple-300 border-purple-500/50';
+  } else if (costType === 'stress_clear') {
+    displayLabel = label || `Clear ${costValue > 0 ? costValue : 'a'} Stress`;
+    Icon = StressIcon;
+    costColor = 'text-emerald-400';
+    activeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50';
+  } else if (costType === 'hit_points_clear') {
+    displayLabel = label || `Clear ${costValue > 0 ? costValue : 'a'} Hit Point${costValue !== 1 ? 's' : ''}`;
+    Icon = HPIcon;
+    costColor = 'text-emerald-400';
+    activeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50';
+  } else if (costType === 'armor_slots_clear') {
+    displayLabel = label || `Clear ${costValue > 0 ? costValue : 'an'} Armor Slot${costValue !== 1 ? 's' : ''}`;
+    Icon = ArmorIcon;
+    costColor = 'text-emerald-400';
+    activeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50';
   } else if (costType === 'activate' || costType === 'free') {
     // No-cost activation (e.g., Frenzy) - green styling
     displayLabel = label || (isActive ? 'Active' : 'Activate');
@@ -197,6 +223,35 @@ export function DomainAbilityButton({
       }
       // Call callback if provided (for custom behavior)
       if (onActivate) onActivate();
+    } else if (costType === 'stress_clear') {
+      // Clear Stress (for abilities like Gore and Glory)
+      const amount = costValue > 0 ? costValue : 1;
+      const currentStress = character.vitals.stress_current;
+      if (currentStress <= 0) return; // No stress to clear
+      const newStress = Math.max(0, currentStress - amount);
+      updateVitals('stress_current', newStress);
+      toast.success(`Cleared ${amount} Stress from ${friendlyName}`);
+      if (onActivate) onActivate();
+    } else if (costType === 'hit_points_clear') {
+      // Clear Hit Points / Heal (for abilities like Battle-Hardened)
+      const amount = costValue > 0 ? costValue : 1;
+      const currentHP = character.vitals.hit_points_current;
+      const maxHP = character.vitals.hit_points_max;
+      if (currentHP >= maxHP) return; // Already at full HP
+      const newHP = Math.min(maxHP, currentHP + amount);
+      updateVitals('hit_points_current', newHP);
+      toast.success(`Cleared ${amount} Hit Point${amount !== 1 ? 's' : ''} from ${friendlyName}`);
+      if (onActivate) onActivate();
+    } else if (costType === 'armor_slots_clear') {
+      // Restore Armor Slots (for abilities like Champion's Edge)
+      const amount = costValue > 0 ? costValue : 1;
+      const currentArmor = character.vitals.armor_slots;
+      const maxArmor = character.vitals.armor_score;
+      if (currentArmor >= maxArmor) return; // Already at full armor
+      const newArmor = Math.min(maxArmor, currentArmor + amount);
+      updateVitals('armor_slots', newArmor);
+      toast.success(`Restored ${amount} Armor Slot${amount !== 1 ? 's' : ''} from ${friendlyName}`);
+      if (onActivate) onActivate();
     } else if (costType === 'duration' || costType === 'activate' || costType === 'free') {
       // Toggle activation state (no cost payment)
       if (isActive) return; // Already active, use handleReset instead
@@ -220,18 +275,24 @@ export function DomainAbilityButton({
     }
   };
 
-  // Check affordability
+  // Check affordability / availability
   const canAfford = React.useMemo(() => {
     if (!character) return false;
     if (costType === 'hope') return character.hope >= costValue;
     if (costType === 'hope_gain') return true; // Can always gain Hope (capped at 6)
     if (costType === 'stress') return character.vitals.stress_current + costValue <= character.vitals.stress_max;
+    if (costType === 'stress_clear') return character.vitals.stress_current > 0; // Has stress to clear
+    if (costType === 'hit_points_clear') return character.vitals.hit_points_current < character.vitals.hit_points_max; // Not at full HP
+    if (costType === 'armor_slots_clear') {
+      return character.vitals.armor_slots < character.vitals.armor_score; // Not at full armor
+    }
     return true;
   }, [character, costType, costValue]);
 
   // All buttons should be disabled if they cannot be afforded (e.g. not enough Hope)
   // or if explicitly disabled by parent (e.g. already paid)
-  const isCostButton = costType === 'stress' || costType === 'hope' || costType === 'hope_gain';
+  const isCostButton = costType === 'stress' || costType === 'hope' || costType === 'hope_gain' ||
+    costType === 'stress_clear' || costType === 'hit_points_clear' || costType === 'armor_slots_clear';
   const isActuallyDisabled = disabled || !canAfford;
 
   // Cost buttons NEVER show "active" state - they just pay resources

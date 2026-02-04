@@ -12,13 +12,13 @@ Accumulated insights from past coding sessions. Each learning is a hard-won piec
 
 ## UI & Component Patterns
 
-*(Learnings about React components, state management, and UI logic will go here)*
+- **When displaying formula-based values in UI components, always check whether the formula needs base stats or modified stats** - `calculateDynamicValue()` uses raw `character.stats`, but UI displays often need the total after modifiers. Use `getStatModifiers()` to get the full modified value before applying formula multipliers. *(Issue #95: Rage Up showed -2 Damage using base Strength -1, but should show +8 using modified Strength +4)*
 
 ---
 
 ## Parser & Enhancement System
 
-*(Learnings about card-parser.ts, modifier-aggregator.ts, and the enhancement pipeline will go here)*
+- **Always use `enhancement_override` for manual JSON edits - the `enhancement` block will be overwritten by the parser** - Running `npm run enhance-json` or similar parser commands regenerates the `enhancement` block from card text. Manual customizations (gains, modifiers, condition overrides) MUST go in `enhancement_override` to persist. The UI uses `getEnhancement()` which prefers `enhancement_override` when present. *(Issue #95: Multiple card edits were initially placed in `enhancement` and would have been lost)*
 
 ---
 

@@ -56,7 +56,8 @@ export default function CardEnhancementPanel({
 
   // Check if there's anything to show
   const hasCosts = enhancement.costs?.stress || enhancement.costs?.hope;
-  const hasGains = enhancement.gains?.hope;
+  const hasGains = enhancement.gains?.hope || enhancement.gains?.stress_clear ||
+    enhancement.gains?.hit_points_clear || enhancement.gains?.armor_slots_clear;
   const hasTokens = enhancement.tokens?.has_tokens;
   const hasFrequency = enhancement.frequency && enhancement.frequency !== 'at_will';
   const hasActionInfo = !!enhancement.action_type;
@@ -193,7 +194,13 @@ export default function CardEnhancementPanel({
               const modifierKey = `${mod.stat}-${index}`;
 
               // For when_active modifiers, use the activation row with toggle
-              if (mod.condition?.type === 'when_active') {
+              // For auto-activate conditions (loadout_domain_count, when_armored, etc.), also use activation row
+              const isActivatableCondition = mod.condition?.type === 'when_active' ||
+                mod.condition?.type === 'loadout_domain_count' ||
+                mod.condition?.type === 'when_armored' ||
+                mod.condition?.type === 'when_unarmored';
+
+              if (isActivatableCondition) {
                 return (
                   <ModifierActivationRow
                     key={`${card.name}-${mod.stat}-${index}`}
@@ -205,7 +212,7 @@ export default function CardEnhancementPanel({
                 );
               }
 
-              // For other modifiers (passive), show a read-only info row
+              // For other modifiers (passive/always), show a read-only info row
               return (
                 <div
                   key={`${card.name}-${mod.stat}-${index}`}
@@ -242,12 +249,36 @@ export default function CardEnhancementPanel({
         />
 
         {/* Gain buttons (e.g., "Gain 3 Hope" for A Soldier's Bond) */}
-        {hasGains && (
+        {enhancement.gains?.hope && (
           <DomainAbilityButton
             cardName={card.name}
             displayName={card.name}
             costType="hope_gain"
-            costValue={enhancement.gains!.hope}
+            costValue={enhancement.gains.hope}
+          />
+        )}
+        {enhancement.gains?.stress_clear && (
+          <DomainAbilityButton
+            cardName={card.name}
+            displayName={card.name}
+            costType="stress_clear"
+            costValue={enhancement.gains.stress_clear}
+          />
+        )}
+        {enhancement.gains?.hit_points_clear && (
+          <DomainAbilityButton
+            cardName={card.name}
+            displayName={card.name}
+            costType="hit_points_clear"
+            costValue={enhancement.gains.hit_points_clear}
+          />
+        )}
+        {enhancement.gains?.armor_slots_clear && (
+          <DomainAbilityButton
+            cardName={card.name}
+            displayName={card.name}
+            costType="armor_slots_clear"
+            costValue={enhancement.gains.armor_slots_clear}
           />
         )}
 

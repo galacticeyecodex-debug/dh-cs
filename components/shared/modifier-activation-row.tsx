@@ -21,6 +21,7 @@ import { Check } from 'lucide-react';
 import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
 import { getStatModifiers } from '@/lib/modifier-aggregator';
+import { isModifierActive } from '@/lib/enhancement-utils';
 import type { CardModifier, CardStates } from '@/types/cards';
 import type { Character } from '@/types/character';
 
@@ -94,8 +95,23 @@ export default function ModifierActivationRow({
 }: ModifierActivationRowProps) {
   const { character, cardStates, toggleModifierActive } = useCharacterStore();
 
-  // Per-modifier activation state
-  const isActive = cardStates[cardName]?.active_modifiers?.[modifierKey] || false;
+  // Determine if this is an auto-activating condition (not user-controlled)
+  const isAutoActivateCondition = modifier.condition?.type === 'loadout_domain_count' ||
+    modifier.condition?.type === 'when_armored' ||
+    modifier.condition?.type === 'when_unarmored' ||
+    modifier.condition?.type === 'always';
+
+  // For auto-activate conditions, check if the condition is met
+  // For manual conditions (when_active), use the stored activation state
+  const isCardActive = cardStates[cardName]?.is_active ?? false;
+  const isConditionMet = character && modifier.condition
+    ? isModifierActive(modifier, isCardActive, character)
+    : false;
+
+  // Per-modifier activation state - auto conditions are active when condition is met
+  const isActive = isAutoActivateCondition
+    ? isConditionMet
+    : (cardStates[cardName]?.active_modifiers?.[modifierKey] || false);
 
   // Calculate the effective value - use formula if present, otherwise use static value
   // For formulas, we need to use MODIFIED stats (after all modifiers applied)
@@ -155,20 +171,35 @@ export default function ModifierActivationRow({
         )}
       </div>
 
-      {/* Activation Toggle */}
-      <button
-        onClick={handleToggle}
-        className={clsx(
-          'flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold border transition-colors',
-          isActive
-            ? 'bg-dagger-gold/20 border-dagger-gold text-dagger-gold shadow-lg shadow-dagger-gold/5'
-            : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
-        )}
-        aria-label={`${isActive ? 'Deactivate' : 'Activate'} ${value} ${statLabel} modifier for ${cardName}`}
-      >
-        {isActive && <Check size={12} />}
-        <span>{isActive ? 'Active' : 'Activate'}</span>
-      </button>
+      {/* Activation Toggle - Auto conditions show status, manual conditions show toggle */}
+      {isAutoActivateCondition ? (
+        <div
+          className={clsx(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold border',
+            isActive
+              ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
+              : 'bg-white/5 border-white/10 text-gray-500'
+          )}
+          title={isActive ? 'Condition met - automatically active' : 'Condition not met'}
+        >
+          {isActive && <Check size={12} />}
+          <span>{isActive ? 'Active' : 'Inactive'}</span>
+        </div>
+      ) : (
+        <button
+          onClick={handleToggle}
+          className={clsx(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold border transition-colors',
+            isActive
+              ? 'bg-dagger-gold/20 border-dagger-gold text-dagger-gold shadow-lg shadow-dagger-gold/5'
+              : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
+          )}
+          aria-label={`${isActive ? 'Deactivate' : 'Activate'} ${value} ${statLabel} modifier for ${cardName}`}
+        >
+          {isActive && <Check size={12} />}
+          <span>{isActive ? 'Active' : 'Activate'}</span>
+        </button>
+      )}
     </div>
   );
 }

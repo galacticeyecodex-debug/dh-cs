@@ -661,6 +661,14 @@
     "enhancement": {
       "timing": "action",
       "frequency": "once_per_long_rest",
+      "keywords": [
+        "hope_gain",
+        "ability"
+      ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_long_rest",
       "gains": {
         "hope": 3
       },
@@ -798,15 +806,33 @@
           "source": "Fortified Armor"
         }
       ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "damage_threshold",
+          "value": 2,
+          "condition": {
+            "type": "when_active"
+          },
+          "source": "Fortified Armor"
+        }
+      ]
     }
   },
   {
-    "name": "Champion’s Edge",
+    "name": "Champion's Edge",
     "level": "5",
     "domain": "Blade",
     "type": "Ability",
     "recall": "1",
-    "text": "When you critically succeed on an attack, you can **spend up to 3 Hope** and choose one of the following options for each Hope spent:\n\n- You clear a Hit Point.\n- You clear an Armor Slot.\n- The target must mark an additional Hit Point.\n\nYou can’t choose the same option more than once.",
+    "text": "When you critically succeed on an attack, you can **spend up to 3 Hope** and choose one of the following options for each Hope spent:\n\n- You clear a Hit Point.\n- You clear an Armor Slot.\n- The target must mark an additional Hit Point.\n\nYou can't choose the same option more than once.",
     "enhancement": {
       "timing": "reaction",
       "frequency": "at_will",
@@ -815,23 +841,25 @@
       },
       "keywords": [
         "healing",
-        "healing",
         "hope_cost",
         "ability"
       ]
     },
     "enhancement_override": {
-      "action_type": "reaction",
-      "timing": "action",
+      "timing": "reaction",
       "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
+      "gains": {
+        "hit_points_clear": 1,
+        "armor_slots_clear": 1
+      },
       "keywords": [
         "healing",
         "hope_cost",
         "ability"
-      ],
-      "costs": {
-        "hope": 3
-      }
+      ]
     }
   },
   {
@@ -909,9 +937,22 @@
       },
       "keywords": [
         "healing",
+        "hope_cost",
+        "ability"
+      ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_long_rest",
+      "costs": {
+        "hope": 1
+      },
+      "gains": {
+        "hit_points_clear": 1
+      },
+      "keywords": [
         "healing",
         "hope_cost",
-        "movement",
         "ability"
       ]
     }
@@ -1095,6 +1136,19 @@
       "keywords": [
         "damage",
         "stress_relief",
+        "hope_gain",
+        "ability"
+      ]
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "gains": {
+        "hope": 1,
+        "stress_clear": 1
+      },
+      "keywords": [
+        "damage",
         "stress_relief",
         "hope_gain",
         "ability"
