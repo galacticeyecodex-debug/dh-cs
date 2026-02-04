@@ -127,6 +127,7 @@ export default function MechanicsTray({
   const { prepareRoll } = useCharacterStore();
 
   const costs = enhancement.costs;
+  const gains = enhancement.gains;
   const tokens = enhancement.tokens;
 
   // Only show token track if we have valid data (max > 0 or source)
@@ -148,7 +149,8 @@ export default function MechanicsTray({
 
   // Determine if anything should render
   const hasCosts = showCosts && !!(costs?.stress || costs?.hope);
-  const showMechanics = showTokenTrack || shouldShowFrequency || hasAttackOrRoll || showDuration || hasWhenActiveModifiers || hasCosts;
+  const hasGains = showCosts && !!(gains?.hope || gains?.stress_clear || gains?.hit_points_clear || gains?.armor_slots_clear);
+  const showMechanics = showTokenTrack || shouldShowFrequency || hasAttackOrRoll || showDuration || hasWhenActiveModifiers || hasCosts || hasGains;
 
   if (!showMechanics) return null;
 
@@ -169,10 +171,11 @@ export default function MechanicsTray({
 
   const paddingX = variant === 'default' ? 'px-4' : 'px-0';
 
-  // Determine if there are management actions (Costs, Duration, Frequency)
+  // Determine if there are management actions (Costs, Gains, Duration, Frequency)
   const hasManagementActions = (showDuration && enhancement.duration && !hasWhenActiveModifiers) ||
     (costMode === 'uncontrolled' && costs && showCosts) ||
     (costMode === 'controlled' && needsActivation && showCosts) ||
+    hasGains ||
     (shouldShowFrequency && enhancement.frequency);
 
   return (
@@ -255,6 +258,44 @@ export default function MechanicsTray({
               disabled={costDisabled}
               className="flex flex-wrap gap-2 items-center"
             />
+          )}
+
+          {/* Gains - positive action buttons (e.g., "Gain Hope", "Clear Stress") */}
+          {hasGains && (
+            <>
+              {gains?.hope && (
+                <DomainAbilityButton
+                  cardName={cardName}
+                  displayName={cardName}
+                  costType="hope_gain"
+                  costValue={gains.hope}
+                />
+              )}
+              {gains?.stress_clear && (
+                <DomainAbilityButton
+                  cardName={cardName}
+                  displayName={cardName}
+                  costType="stress_clear"
+                  costValue={gains.stress_clear}
+                />
+              )}
+              {gains?.hit_points_clear && (
+                <DomainAbilityButton
+                  cardName={cardName}
+                  displayName={cardName}
+                  costType="hit_points_clear"
+                  costValue={gains.hit_points_clear}
+                />
+              )}
+              {gains?.armor_slots_clear && (
+                <DomainAbilityButton
+                  cardName={cardName}
+                  displayName={cardName}
+                  costType="armor_slots_clear"
+                  costValue={gains.armor_slots_clear}
+                />
+              )}
+            </>
           )}
 
           {/* Duration toggle */}
