@@ -455,7 +455,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Versatile Fighter | 3 | ✅ | Stress cost implemented, everything else must be handled by the user |
 | Deadly Focus | 4 | ✅ | +1 Proficiency modifier with when_active condition |
 | Fortified Armor | 4 | ✅ | +2 damage threshold modifier with when_armored condition |
-| Champion's Edge | 5 | ⚠️ | 3 Hope cost missing; effects must be applied by user |
+| Champion's Edge | 5 | ✅ | Hope cost, Heal HP, and Restore Armor buttons implemented |
 | Vitality | 5 | ✅ | 3 activation buttons for modifiers that are still active in the Loadout |
 | Battle-Hardened | 6 | ✅ | Hope cost, once per long rest implemented; effects must be applied by user |
 | Rage Up | 6 | ✅ | Stress cost, +2×Strength damage modifier (when_active) |
