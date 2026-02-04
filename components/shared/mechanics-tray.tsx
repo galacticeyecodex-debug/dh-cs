@@ -94,6 +94,8 @@ export interface MechanicsTrayProps {
   variant?: 'default' | 'nested';
   /** Whether to render costs (default true). Set false if parent handles costs. */
   showCosts?: boolean;
+  /** Whether to render gains (default true). Set false if parent handles gains. */
+  showGains?: boolean;
   /** Whether to render frequency (default true). Set false if parent handles frequency. */
   showFrequency?: boolean;
   /** Whether to show the 'Modifiers' section label (default false) */
@@ -121,6 +123,7 @@ export default function MechanicsTray({
   className,
   variant = 'default',
   showCosts = true,
+  showGains = true,
   showFrequency = true,
   showModifierLabel = false,
 }: MechanicsTrayProps) {
@@ -149,7 +152,7 @@ export default function MechanicsTray({
 
   // Determine if anything should render
   const hasCosts = showCosts && !!(costs?.stress || costs?.hope);
-  const hasGains = showCosts && !!(gains?.hope || gains?.stress_clear || gains?.hit_points_clear || gains?.armor_slots_clear);
+  const hasGains = showGains && !!(gains?.hope || gains?.stress_clear || gains?.hit_points_clear || gains?.armor_slots_clear);
   const showMechanics = showTokenTrack || shouldShowFrequency || hasAttackOrRoll || showDuration || hasWhenActiveModifiers || hasCosts || hasGains;
 
   if (!showMechanics) return null;
