@@ -40,6 +40,10 @@ function getConditionText(condition?: ModifierCondition): string | undefined {
       return 'While wearing armor';
     case 'when_unarmored':
       return 'While not wearing armor';
+    case 'when_hp_marked':
+      return condition.minMarked && condition.minMarked > 1
+        ? `With ${condition.minMarked}+ HP marked`
+        : 'While HP is marked';
     case 'loadout_domain_count':
       return `With ${condition.minCount}+ ${condition.domain} cards`;
     case 'always':
@@ -147,6 +151,7 @@ export default function MechanicsTray({
   const whenActiveModifiers = modifiers.filter(mod =>
     mod.condition?.type === 'when_active' ||
     mod.condition?.type === 'when_active_permanent' ||
+    mod.condition?.type === 'when_hp_marked' ||
     mod.condition?.type === 'loadout_domain_count'
   );
   const hasModifiers = whenActiveModifiers.length > 0;

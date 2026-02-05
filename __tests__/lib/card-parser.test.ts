@@ -476,6 +476,50 @@ describe('calculateDynamicValue', () => {
     });
     expect(calculateDynamicValue('finesse', character)).toBe(4);
   });
+
+  it('should calculate marked_hp formula', () => {
+    const character = createMockCharacter({
+      vitals: {
+        hit_points_max: 6,
+        hit_points_current: 4, // 2 HP marked
+        stress_max: 6,
+        stress_current: 0,
+        armor_score: 0,
+        armor_slots: 0
+      }
+    } as any);
+    expect(calculateDynamicValue('marked_hp', character)).toBe(2);
+  });
+
+  it('should calculate 2_times_marked_hp formula (Power Through Pain)', () => {
+    const character = createMockCharacter({
+      vitals: {
+        hit_points_max: 6,
+        hit_points_current: 3, // 3 HP marked
+        stress_max: 6,
+        stress_current: 0,
+        armor_score: 0,
+        armor_slots: 0
+      }
+    } as any);
+    // Power Through Pain: bonus = 2 * marked HP = 2 * 3 = 6
+    expect(calculateDynamicValue('2_times_marked_hp', character)).toBe(6);
+  });
+
+  it('should return 0 for marked_hp when no HP marked', () => {
+    const character = createMockCharacter({
+      vitals: {
+        hit_points_max: 6,
+        hit_points_current: 6, // 0 HP marked
+        stress_max: 6,
+        stress_current: 0,
+        armor_score: 0,
+        armor_slots: 0
+      }
+    } as any);
+    expect(calculateDynamicValue('marked_hp', character)).toBe(0);
+    expect(calculateDynamicValue('2_times_marked_hp', character)).toBe(0);
+  });
 });
 
 describe('getBareBonesBonuses', () => {

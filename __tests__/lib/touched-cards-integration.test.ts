@@ -10,17 +10,34 @@
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { isModifierActive, getModifiers } from '@/lib/enhancement-utils';
+import { calculateDynamicValue } from '@/lib/card-parser';
 import type { EnhancedAbilityCard, CardModifier } from '@/types/cards';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 // Load the actual enhanced abilities JSON
 let enhancedAbilities: EnhancedAbilityCard[] = [];
 
 beforeAll(() => {
-    const jsonPath = join(process.cwd(), 'content/public/srd/json/abilities_enhanced.json');
-    const jsonContent = readFileSync(jsonPath, 'utf-8');
-    enhancedAbilities = JSON.parse(jsonContent);
+    const publicPath = join(process.cwd(), 'content/public/srd/json/abilities_enhanced.json');
+    const privatePath = join(process.cwd(), 'content/private/playtest/json/abilities_enhanced.json');
+
+    const publicContent = readFileSync(publicPath, 'utf-8');
+    enhancedAbilities = JSON.parse(publicContent);
+
+    try {
+        if (require('path').isAbsolute(privatePath)) { // Just a dummy check if we need require
+            // Standard way is to use imported existsSync
+        }
+        const fs = require('fs');
+        if (fs.existsSync(privatePath)) {
+            const privateContent = fs.readFileSync(privatePath, 'utf-8');
+            const privateAbilities = JSON.parse(privateContent);
+            enhancedAbilities = [...enhancedAbilities, ...privateAbilities];
+        }
+    } catch (e) {
+        // Private content may not exist in all environments
+    }
 });
 
 // Helper to find a card by name
@@ -32,12 +49,16 @@ function findCard(name: string): EnhancedAbilityCard | undefined {
 function createCharacterWithLoadout(domain: string, count: number) {
     const cards = Array.from({ length: count }, (_, i) => ({
         location: 'loadout',
-        library_item: { domain: domain.charAt(0).toUpperCase() + domain.slice(1).toLowerCase() }
+        library_item: {
+            domain: domain.charAt(0).toUpperCase() + domain.slice(1).toLowerCase(),
+            data: { domain: domain.charAt(0).toUpperCase() + domain.slice(1).toLowerCase() }
+        }
     }));
 
     return {
-        character_cards: cards,
-        character_inventory: []
+        character_cards: cards as any,
+        character_inventory: [],
+        vitals: { hit_points_max: 6, hit_points_current: 6 }
     };
 }
 
@@ -75,8 +96,8 @@ describe('Touched Cards Integration Tests', () => {
             expect(spellcastMod).toBeDefined();
             expect(spellcastMod?.value).toBe(1);
             expect(spellcastMod?.condition?.type).toBe('loadout_domain_count');
-            expect(spellcastMod?.condition?.domain).toBe('arcana');
-            expect(spellcastMod?.condition?.minCount).toBe(4);
+            expect((spellcastMod?.condition as any)?.domain).toBe('arcana');
+            expect((spellcastMod?.condition as any)?.minCount).toBe(4);
         });
 
         it('should activate when 4+ Arcana cards in loadout', () => {
@@ -108,7 +129,7 @@ describe('Touched Cards Integration Tests', () => {
             expect(attackMod).toBeDefined();
             expect(attackMod?.value).toBe(2);
             expect(attackMod?.condition?.type).toBe('loadout_domain_count');
-            expect(attackMod?.condition?.domain).toBe('blade');
+            expect((attackMod?.condition as any)?.domain).toBe('blade');
 
             const thresholdMod = modifiers.find(m => m.stat === 'damage_threshold_severe');
             expect(thresholdMod).toBeDefined();
@@ -137,8 +158,8 @@ describe('Touched Cards Integration Tests', () => {
             expect(agilityMod).toBeDefined();
             expect(agilityMod?.value).toBe(1);
             expect(agilityMod?.condition?.type).toBe('loadout_domain_count');
-            expect(agilityMod?.condition?.domain).toBe('bone');
-            expect(agilityMod?.condition?.minCount).toBe(4);
+            expect((agilityMod?.condition as any)?.domain).toBe('bone');
+            expect((agilityMod?.condition as any)?.minCount).toBe(4);
         });
 
         it('should activate when 4+ Bone cards in loadout', () => {
@@ -160,7 +181,7 @@ describe('Touched Cards Integration Tests', () => {
             expect(spellcastMod).toBeDefined();
             expect(spellcastMod?.formula).toBe('proficiency');
             expect(spellcastMod?.condition?.type).toBe('loadout_domain_count');
-            expect(spellcastMod?.condition?.domain).toBe('codex');
+            expect((spellcastMod?.condition as any)?.domain).toBe('codex');
         });
     });
 
@@ -174,7 +195,7 @@ describe('Touched Cards Integration Tests', () => {
             expect(spellcastMod).toBeDefined();
             expect(spellcastMod?.value).toBe(2);
             expect(spellcastMod?.condition?.type).toBe('loadout_domain_count');
-            expect(spellcastMod?.condition?.domain).toBe('sage');
+            expect((spellcastMod?.condition as any)?.domain).toBe('sage');
         });
     });
 
@@ -188,8 +209,8 @@ describe('Touched Cards Integration Tests', () => {
             expect(thresholdMod).toBeDefined();
             expect(thresholdMod?.value).toBe(3);
             expect(thresholdMod?.condition?.type).toBe('loadout_domain_count');
-            expect(thresholdMod?.condition?.domain).toBe('splendor');
-            expect(thresholdMod?.condition?.minCount).toBe(4);
+            expect((thresholdMod?.condition as any)?.domain).toBe('splendor');
+            expect((thresholdMod?.condition as any)?.minCount).toBe(4);
         });
     });
 
@@ -203,8 +224,8 @@ describe('Touched Cards Integration Tests', () => {
             expect(armorMod).toBeDefined();
             expect(armorMod?.value).toBe(1);
             expect(armorMod?.condition?.type).toBe('loadout_domain_count');
-            expect(armorMod?.condition?.domain).toBe('valor');
-            expect(armorMod?.condition?.minCount).toBe(4);
+            expect((armorMod?.condition as any)?.domain).toBe('valor');
+            expect((armorMod?.condition as any)?.minCount).toBe(4);
         });
     });
 
@@ -233,6 +254,55 @@ describe('Touched Cards Integration Tests', () => {
                 formula: 'fear_die',
                 condition: { type: 'when_active' }
             });
+        });
+    });
+
+    describe('Blood-Touched', () => {
+        it('should have evasion +1 modifier and hope gain button', () => {
+            // Note: Blood-Touched is in private playtest JSON, so we need to ensure 
+            // the test runner can find it.
+            const card = findCard('Blood-Touched');
+            if (!card) {
+                console.warn('Skipping Blood-Touched test: Card not found in public SRD (expected for Playtest domain)');
+                return;
+            }
+
+            const modifiers = getModifiers(card);
+            const evasionMod = modifiers.find(m => m.stat === 'evasion');
+            expect(evasionMod).toBeDefined();
+            expect(evasionMod?.value).toBe(1);
+            expect(evasionMod?.condition?.type).toBe('loadout_domain_count');
+            expect((evasionMod?.condition as any)?.domain).toBe('blood');
+        });
+
+        it('should activate when 4+ Blood cards in loadout', () => {
+            const card = findCard('Blood-Touched');
+            if (!card) return;
+
+            const modifier = getModifiers(card).find(m => m.stat === 'evasion')!;
+            const character = createCharacterWithLoadout('blood', 4);
+
+            expect(isModifierActive(modifier, false, character)).toBe(true);
+        });
+
+        it('should scale evasion bonus based on marked HP (1 per 3 HP)', () => {
+            const card = findCard('Blood-Touched');
+            if (!card) return;
+
+            const modifier = getModifiers(card).find(m => m.stat === 'evasion')!;
+            const character = createCharacterWithLoadout('blood', 4);
+
+            // 0 marked HP = +0 Evasion
+            character.vitals.hit_points_current = 6;
+            expect(calculateDynamicValue(modifier.formula!, character as any)).toBe(0);
+
+            // 3 marked HP = +1 Evasion
+            character.vitals.hit_points_current = 3;
+            expect(calculateDynamicValue(modifier.formula!, character as any)).toBe(1);
+
+            // 6 marked HP = +2 Evasion
+            character.vitals.hit_points_current = 0;
+            expect(calculateDynamicValue(modifier.formula!, character as any)).toBe(2);
         });
     });
 

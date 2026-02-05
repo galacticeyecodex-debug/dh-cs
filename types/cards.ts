@@ -147,6 +147,7 @@ export interface TierScaling {
  * - 'when_active': Requires user to click activation button (Mark Stress/Spend Hope/Activate)
  * - 'when_active_permanent': Like when_active, but applies even from vault (e.g., Vitality)
  * - 'cost_activated': DEPRECATED - use 'when_active' instead
+ * - 'when_hp_marked': Active when HP is marked (Power Through Pain); minMarked defaults to 1
  * - 'loadout_domain_count': Active when loadout has enough cards from a domain
  * - 'environment': Active based on environment (future feature)
  */
@@ -157,6 +158,7 @@ export type ModifierCondition =
   | { type: 'when_active' }
   | { type: 'when_active_permanent' }  // Applies even from vault once activated (e.g., Vitality)
   | { type: 'cost_activated' }  // DEPRECATED: Use 'when_active' instead
+  | { type: 'when_hp_marked'; minMarked?: number }  // Active when HP is marked (e.g., Power Through Pain)
   | { type: 'loadout_domain_count'; domain: string; minCount: number }
   | { type: 'environment'; requirement: string };
 

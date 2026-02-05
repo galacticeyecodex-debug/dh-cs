@@ -448,20 +448,20 @@ This section tracks the implementation status of all domain cards and class feat
 |------|------|--------|-------|
 | Blood Spike | 1 | ✅ | Spellcast roll, d10 damage, Stress cost, proficiency scaling |
 | Lifeblood Talisman | 1 | ✅ | HP cost button, Hope cost implemented |
-| Power Through Pain | 1 | ⚠️ | Damage bonus is dynamic (2× marked HP), static +2 is approximation |
+| Power Through Pain | 1 | ✅ | Damage bonus is dynamic (2× marked HP) |
 | Brand of Castigation | 2 | ✅ | Stress cost implemented |
 | Vitality Manipulation | 2 | ✅ | Stress cost, Spellcast roll, buff/debuff choice |
 | Burning Blood | 3 | ✅ | HP cost button, DC 12 Spellcast roll, AoE |
 | Blood Puppet | 3 | ✅ | Hope cost, Spellcast roll, d10 physical damage |
 | Grisly Harpoon | 4 | ✅ | Stress cost, DC 13, 3d8 magic damage, movement |
 | Weave the Flesh | 4 | ✅ | HP cost button, once per rest, Stress cost for enhanced effect |
-| Mutual Suffering | 5 | ✅ | Reaction timing, Spellcast roll, rest duration |
+| Mutual Suffering | 5 | ✅ | Reaction timing, Spellcast roll, once per rest frequency |
 | Parasite of the Will | 5 | ✅ | HP cost button, Hope cost, Spellcast roll, advantage buff |
 | Vital Ward | 6 | ✅ | HP cost button, resistance to physical/magic damage |
 | Blood Bind | 6 | ✅ | Stress cost, d10 damage, Restrained + Vulnerable |
-| Blood-Touched | 7 | ⚠️ | Missing loadout_domain_count condition; Evasion bonus is dynamic (+1 per 3 HP marked) |
-| Vampiric Strike | 7 | ✅ | Hope cost implemented; healing/stress clear is narrative effect |
-| Life Leash | 8 | ✅ | Hope cost implemented, rest duration |
+| Blood-Touched | 7 | ✅ | Evasion bonus is dynamic (+1 per 3 HP marked) |
+| Vampiric Strike | 7 | ✅ | Hope cost, Clear HP button, Clear Stress button implemented |
+| Life Leash | 8 | ✅ | Hope cost implemented; rest duration is complicated and should not be implemented |
 | Runic Adrenaline | 8 | ✅ | HP cost button for d8 bonus, advantage die upgrade is narrative |
 | Bloodbath | 9 | ✅ | Once per rest, Hope cost, AoE Spellcast roll |
 | Glyph of Hemorrhaging | 9 | ✅ | HP cost button, Stress cost, Spellcast roll |
@@ -727,7 +727,7 @@ This section tracks the implementation status of all domain cards and class feat
 - ❌ Manual Only: 2 cards (1%)
 
 **Playtest Content:**
-- Blood domain (21 cards) - 19 fully implemented, 2 partial (Power Through Pain, Blood-Touched)
+- Blood domain (21 cards) - 21 fully implemented (including Power Through Pain and Blood-Touched dynamic formulas)
 
 **Newly Supported Formula Types:**
 1. **Either/Or choices** - Cards like Cruel Precision (Finesse OR Agility) now parse as dual `when_active` modifiers
@@ -739,6 +739,6 @@ This section tracks the implementation status of all domain cards and class feat
 **Known Gaps:**
 1. **Conditional environment** - Sage-Touched "natural environment" condition is not auto-detected
 2. **Substitution mechanics** - Grace-Touched (HP → Stress swap) requires manual tracking
-3. **Dynamic HP-based formulas** - Power Through Pain, Blood-Touched Evasion bonus scale with marked HP
+
 
 **Class Features:** 9 major mechanics fully implemented, ~20 subclass features require manual tracking

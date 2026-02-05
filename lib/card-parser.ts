@@ -794,6 +794,8 @@ export function evaluateModifierCondition(
  * - "half_[stat]" → Math.floor(stat / 2)
  * - "[number]_plus_[stat]" → number + stat (e.g., "3_plus_strength")
  * - "[number]_times_[stat]" → number * stat (e.g., "2_times_strength")
+ * - "[number]_times_marked_hp" → number * marked HP (e.g., "2_times_marked_hp" for Power Through Pain)
+ * - "marked_hp" → max HP - current HP (HP uses "mark-bad" semantics)
  * - "proficiency" → character.proficiency
  * - "[stat]" → direct stat reference (e.g., "strength", "agility")
  *
@@ -825,6 +827,32 @@ export function calculateDynamicValue(formula: string, character: Character): nu
     const stat = timesMatch[2];
     const statValue = character.stats?.[stat as keyof typeof character.stats] || 0;
     return multiplier * statValue;
+  }
+
+  // Handle "[number]_times_marked_hp" pattern (e.g., "2_times_marked_hp" for Power Through Pain)
+  // Marked HP = max HP - current HP (since HP uses "mark-bad" semantics where current = remaining)
+  const markedHpMatch = formula.match(/^(\d+)_times_marked_hp$/);
+  if (markedHpMatch) {
+    const multiplier = parseInt(markedHpMatch[1]);
+    const maxHp = character.vitals?.hit_points_max || 0;
+    const currentHp = character.vitals?.hit_points_current || 0;
+    const markedHp = maxHp - currentHp;
+    return multiplier * markedHp;
+  }
+
+  // Handle direct "marked_hp" reference
+  if (formula === 'marked_hp') {
+    const maxHp = character.vitals?.hit_points_max || 0;
+    const currentHp = character.vitals?.hit_points_current || 0;
+    return maxHp - currentHp;
+  }
+
+  // Handle "1_per_3_marked_hp" pattern (for Blood-Touched Evasion)
+  if (formula === '1_per_3_marked_hp') {
+    const maxHp = character.vitals?.hit_points_max || 0;
+    const currentHp = character.vitals?.hit_points_current || 0;
+    const markedHp = maxHp - currentHp;
+    return Math.floor(markedHp / 3);
   }
 
   // Handle proficiency reference

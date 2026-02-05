@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS public.library (
   name TEXT NOT NULL,
   domain TEXT, -- Nullable (e.g. for classes)
   tier INT,    -- Nullable
-  source TEXT DEFAULT 'srd' CHECK (source IN ('srd', 'playtest', 'homebrew')), -- Content source for access control
+  source TEXT DEFAULT 'srd' CHECK (source = 'srd' OR source LIKE 'playtest%' OR source LIKE 'homebrew%'), -- Content source for access control
   data JSONB NOT NULL, -- The raw JSON content
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

@@ -22,7 +22,6 @@ import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
 import { getStatModifiers } from '@/lib/modifier-aggregator';
 import { isModifierActive } from '@/lib/enhancement-utils';
-import { getDomainTheme } from '@/lib/domain-colors';
 import type { CardModifier, CardStates } from '@/types/cards';
 import type { Character } from '@/types/character';
 
@@ -35,6 +34,31 @@ function calculateFormulaWithModifiedStats(
   character: Character,
   cardStates: CardStates
 ): number {
+  // Handle "[number]_times_marked_hp" pattern (e.g., "2_times_marked_hp" for Power Through Pain)
+  const markedHpMatch = formula.match(/^(\d+)_times_marked_hp$/);
+  if (markedHpMatch) {
+    const multiplier = parseInt(markedHpMatch[1]);
+    const maxHp = character.vitals?.hit_points_max || 0;
+    const currentHp = character.vitals?.hit_points_current || 0;
+    const markedHp = maxHp - currentHp;
+    return multiplier * markedHp;
+  }
+
+  // Handle direct "marked_hp" reference
+  if (formula === 'marked_hp') {
+    const maxHp = character.vitals?.hit_points_max || 0;
+    const currentHp = character.vitals?.hit_points_current || 0;
+    return maxHp - currentHp;
+  }
+
+  // Handle "1_per_3_marked_hp" pattern (for Blood-Touched Evasion)
+  if (formula === '1_per_3_marked_hp') {
+    const maxHp = character.vitals?.hit_points_max || 0;
+    const currentHp = character.vitals?.hit_points_current || 0;
+    const markedHp = maxHp - currentHp;
+    return Math.floor(markedHp / 3);
+  }
+
   // Handle "[number]_times_[stat]" pattern (e.g., "2_times_strength")
   const timesMatch = formula.match(/^(\d+)_times_([a-z]+)$/);
   if (timesMatch) {
@@ -64,6 +88,11 @@ function calculateFormulaWithModifiedStats(
     const modifiers = getStatModifiers(character, stat, cardStates);
     const totalMods = modifiers.reduce((sum, m) => sum + m.value, 0);
     return baseNum + baseValue + totalMods;
+  }
+
+  // Handle proficiency reference
+  if (formula === 'proficiency') {
+    return character.proficiency || 1;
   }
 
   // Handle direct stat reference
@@ -103,6 +132,7 @@ export default function ModifierActivationRow({
   const isAutoActivateCondition = modifier.condition?.type === 'loadout_domain_count' ||
     modifier.condition?.type === 'when_armored' ||
     modifier.condition?.type === 'when_unarmored' ||
+    modifier.condition?.type === 'when_hp_marked' ||
     modifier.condition?.type === 'always';
 
   // For auto-activate conditions, check if the condition is met
@@ -135,27 +165,13 @@ export default function ModifierActivationRow({
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 
-  // Color coding
-  const valueColor = isPositive ? 'text-green-400' : 'text-red-400';
-
-  // Domain theme for Touched cards
-  const isDomainCondition = modifier.condition?.type === 'loadout_domain_count';
-  const displayDomain = (isDomainCondition ? (modifier.condition as any).domain : domain) || domain;
-  const theme = getDomainTheme(displayDomain);
-
   // Standardize to white/10 border like other buttons
-  let borderColor = isActive
+  const borderColor = isActive
     ? (isPositive ? 'border-green-500/30' : 'border-red-500/30')
     : 'border-white/10';
-  let bgColor = isActive
+  const bgColor = isActive
     ? (isPositive ? 'bg-green-500/10' : 'bg-red-500/10')
     : 'bg-white/5';
-
-  // Override with domain colors for domain-activated modifiers (Touched cards)
-  if (isActive && isDomainCondition) {
-    borderColor = `border-[oklch(from_${theme.primary}_l_c_h_/_0.5)]`;
-    bgColor = `bg-[oklch(from_${theme.primary}_l_c_h_/_0.15)]`;
-  }
 
   const handleToggle = () => {
     toggleModifierActive(cardName, modifierKey);
@@ -165,19 +181,15 @@ export default function ModifierActivationRow({
     <div
       className={clsx(
         'flex items-center justify-between gap-3 px-3 py-1.5 rounded border transition-colors',
-        !isDomainCondition && bgColor,
-        !isDomainCondition && borderColor,
-        isDomainCondition && isActive && borderColor,
+        isActive ? bgColor : 'bg-white/5',
+        isActive ? borderColor : 'border-white/10',
         className
       )}
-      style={isDomainCondition && isActive ? {
-        backgroundColor: `oklch(from ${theme.primary} l c h / 0.1)`
-      } : {}}
     >
       {/* Modifier Info */}
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className={clsx('text-xs font-black', valueColor)}>
+          <span className={clsx('text-xs font-black', isPositive ? 'text-green-400' : 'text-red-400')}>
             {value >= 0 ? '+' : ''}{value}
           </span>
           <span className="text-xs font-bold text-white uppercase tracking-tight">
@@ -197,23 +209,15 @@ export default function ModifierActivationRow({
           className={clsx(
             'flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold border transition-all duration-300',
             isActive
-              ? (isDomainCondition
-                ? 'opacity-100 shadow-lg shadow-black/20'
-                : 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300')
+              ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-lg shadow-black/20'
               : 'bg-white/5 border-white/10 text-gray-500 opacity-50'
           )}
-          style={isActive && isDomainCondition ? {
-            backgroundColor: `oklch(from ${theme.primary} l c h / 0.2)`,
-            borderColor: `oklch(from ${theme.primary} l c h / 0.5)`,
-            color: `oklch(from ${theme.primary} l c h / 1.0)`,
-          } : {}}
           title={isActive ? 'Condition met - automatically active' : 'Condition not met'}
         >
-          {isActive && (isDomainCondition ? <AppIcons.vitals.hope size={12} className="animate-pulse" /> : <AppIcons.ui.confirm size={12} />)}
+          {isActive && <AppIcons.ui.confirm size={12} />}
           <span>{isActive ? 'Active' : 'Inactive'}</span>
         </div>
       ) : (
-
         <button
           onClick={handleToggle}
           className={clsx(
