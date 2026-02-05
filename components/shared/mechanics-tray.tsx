@@ -256,106 +256,84 @@ export default function MechanicsTray({
         </div>
       )}
 
-      {/* Management Sections Container */}
-      {hasManagementActions && (
-        <div className="space-y-3" aria-label="management-sections">
+      {/* Section Order: Cost → Benefit → Rolls → Frequency */}
 
-          {/* Cost Section */}
-          {showCostsInTray && (
-            <div className={clsx(
-              "space-y-1.5",
-              paddingX,
-              (showTokenTrack || hasModifiers) && "pt-3 border-t border-white/10 mt-2"
-            )}>
-              <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
-                Cost
-              </h4>
-              <div className="flex flex-wrap gap-2 items-center justify-start">
-                <DomainCostsRow
-                  cardName={cardName}
-                  displayName={cardName}
-                  costs={costs as CardCosts}
-                  isActiveOverride={costMode === 'controlled' ? isCostPaid : undefined}
-                  onActivate={costMode === 'controlled' ? onCostActivate : undefined}
-                  onDeactivate={costMode === 'controlled' ? onCostDeactivate : undefined}
-                  disabled={costMode === 'controlled' ? costDisabled : false}
-                  className="flex flex-wrap gap-2 items-center"
-                />
-              </div>
-            </div>
-          )}
+      {/* Cost Section */}
+      {showCostsInTray && (
+        <div className={clsx(
+          "space-y-1.5",
+          paddingX,
+          (showTokenTrack || hasModifiers) && "pt-3 border-t border-white/10 mt-2"
+        )}>
+          <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
+            Cost
+          </h4>
+          <div className="flex flex-wrap gap-2 items-center justify-start">
+            <DomainCostsRow
+              cardName={cardName}
+              displayName={cardName}
+              costs={costs as CardCosts}
+              isActiveOverride={costMode === 'controlled' ? isCostPaid : undefined}
+              onActivate={costMode === 'controlled' ? onCostActivate : undefined}
+              onDeactivate={costMode === 'controlled' ? onCostDeactivate : undefined}
+              disabled={costMode === 'controlled' ? costDisabled : false}
+              className="flex flex-wrap gap-2 items-center"
+            />
+          </div>
+        </div>
+      )}
 
-          {/* Benefit Section */}
-          {(showGainsInTray || (showDuration && !hasModifiers)) && (
-            <div className={clsx(
-              "space-y-1.5",
-              paddingX,
-              (showTokenTrack || hasModifiers || showCostsInTray) && "pt-3 border-t border-white/10 mt-2"
-            )}>
-              <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
-                Benefit
-              </h4>
-              <div className="flex flex-wrap gap-2 items-center justify-start">
-                {gains?.hope && (
-                  <DomainAbilityButton
-                    cardName={cardName}
-                    displayName={cardName}
-                    costType="hope_gain"
-                    costValue={gains.hope}
-                  />
-                )}
-                {gains?.stress_clear && (
-                  <DomainAbilityButton
-                    cardName={cardName}
-                    displayName={cardName}
-                    costType="stress_clear"
-                    costValue={gains.stress_clear}
-                  />
-                )}
-                {gains?.hit_points_clear && (
-                  <DomainAbilityButton
-                    cardName={cardName}
-                    displayName={cardName}
-                    costType="hit_points_clear"
-                    costValue={gains.hit_points_clear}
-                  />
-                )}
-                {gains?.armor_slots_clear && (
-                  <DomainAbilityButton
-                    cardName={cardName}
-                    displayName={cardName}
-                    costType="armor_slots_clear"
-                    costValue={gains.armor_slots_clear}
-                  />
-                )}
-                {showDuration && !hasModifiers && (
-                  <DomainAbilityButton
-                    cardName={cardName}
-                    costType="duration"
-                    className="justify-start focus:ring-0"
-                  />
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Frequency Section */}
-          {shouldShowFrequency && (
-            <div className={clsx(
-              "space-y-1.5",
-              paddingX,
-              (showTokenTrack || hasModifiers || showCostsInTray || showGainsInTray || (showDuration && !hasModifiers)) && "pt-3 border-t border-white/10 mt-2"
-            )}>
-              <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
-                Frequency
-              </h4>
-              <FrequencyCheckbox
+      {/* Benefit Section */}
+      {(showGainsInTray || (showDuration && !hasModifiers)) && (
+        <div className={clsx(
+          "space-y-1.5",
+          paddingX,
+          (showTokenTrack || hasModifiers || showCostsInTray) && "pt-3 border-t border-white/10 mt-2"
+        )}>
+          <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
+            Benefit
+          </h4>
+          <div className="flex flex-wrap gap-2 items-center justify-start">
+            {gains?.hope && (
+              <DomainAbilityButton
                 cardName={cardName}
-                frequency={enhancement.frequency!}
-                className="bg-white/5 py-1.5 justify-start"
+                displayName={cardName}
+                costType="hope_gain"
+                costValue={gains.hope}
               />
-            </div>
-          )}
+            )}
+            {gains?.stress_clear && (
+              <DomainAbilityButton
+                cardName={cardName}
+                displayName={cardName}
+                costType="stress_clear"
+                costValue={gains.stress_clear}
+              />
+            )}
+            {gains?.hit_points_clear && (
+              <DomainAbilityButton
+                cardName={cardName}
+                displayName={cardName}
+                costType="hit_points_clear"
+                costValue={gains.hit_points_clear}
+              />
+            )}
+            {gains?.armor_slots_clear && (
+              <DomainAbilityButton
+                cardName={cardName}
+                displayName={cardName}
+                costType="armor_slots_clear"
+                costValue={gains.armor_slots_clear}
+              />
+            )}
+            {showDuration && !hasModifiers && (
+              <DomainAbilityButton
+                cardName={cardName}
+                costType="duration"
+                className="justify-start focus:ring-0"
+              />
+            )}
+          </div>
         </div>
       )}
 
@@ -365,7 +343,7 @@ export default function MechanicsTray({
           className={clsx(
             "space-y-1.5",
             paddingX,
-            (showTokenTrack || hasModifiers || hasManagementActions) && "pt-3 border-t border-white/10 mt-2"
+            (showTokenTrack || hasModifiers || showCostsInTray || showGainsInTray || (showDuration && !hasModifiers)) && "pt-3 border-t border-white/10 mt-2"
           )}
           aria-label="rolls-row"
         >
@@ -411,6 +389,24 @@ export default function MechanicsTray({
               />
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Frequency Section (last) */}
+      {shouldShowFrequency && (
+        <div className={clsx(
+          "space-y-1.5",
+          paddingX,
+          (showTokenTrack || hasModifiers || showCostsInTray || showGainsInTray || (showDuration && !hasModifiers) || hasActualRolls) && "pt-3 border-t border-white/10 mt-2"
+        )}>
+          <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
+            Frequency
+          </h4>
+          <FrequencyCheckbox
+            cardName={cardName}
+            frequency={enhancement.frequency!}
+            className="bg-white/5 py-1.5 justify-start"
+          />
         </div>
       )}
     </div>
