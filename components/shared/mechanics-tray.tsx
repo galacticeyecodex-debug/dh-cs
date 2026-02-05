@@ -283,8 +283,8 @@ export default function MechanicsTray({
         </div>
       )}
 
-      {/* Benefit Section */}
-      {(showGainsInTray || (showDuration && !hasModifiers)) && (
+      {/* Benefit Section - only for actual resource gains */}
+      {showGainsInTray && (
         <div className={clsx(
           "space-y-1.5",
           paddingX,
@@ -326,13 +326,6 @@ export default function MechanicsTray({
                 costValue={gains.armor_slots_clear}
               />
             )}
-            {showDuration && !hasModifiers && (
-              <DomainAbilityButton
-                cardName={cardName}
-                costType="duration"
-                className="justify-start focus:ring-0"
-              />
-            )}
           </div>
         </div>
       )}
@@ -343,7 +336,7 @@ export default function MechanicsTray({
           className={clsx(
             "space-y-1.5",
             paddingX,
-            (showTokenTrack || hasModifiers || showCostsInTray || showGainsInTray || (showDuration && !hasModifiers)) && "pt-3 border-t border-white/10 mt-2"
+            (showTokenTrack || hasModifiers || showCostsInTray || showGainsInTray) && "pt-3 border-t border-white/10 mt-2"
           )}
           aria-label="rolls-row"
         >
@@ -392,21 +385,32 @@ export default function MechanicsTray({
         </div>
       )}
 
-      {/* Frequency Section (last) */}
-      {shouldShowFrequency && (
+      {/* Frequency Section (last) - includes frequency checkbox AND activation buttons */}
+      {(shouldShowFrequency || (showDuration && !hasModifiers)) && (
         <div className={clsx(
           "space-y-1.5",
           paddingX,
-          (showTokenTrack || hasModifiers || showCostsInTray || showGainsInTray || (showDuration && !hasModifiers) || hasActualRolls) && "pt-3 border-t border-white/10 mt-2"
+          (showTokenTrack || hasModifiers || showCostsInTray || showGainsInTray || hasActualRolls) && "pt-3 border-t border-white/10 mt-2"
         )}>
           <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
             Frequency
           </h4>
-          <FrequencyCheckbox
-            cardName={cardName}
-            frequency={enhancement.frequency!}
-            className="bg-white/5 py-1.5 justify-start"
-          />
+          <div className="flex flex-wrap gap-2 items-center justify-start">
+            {shouldShowFrequency && (
+              <FrequencyCheckbox
+                cardName={cardName}
+                frequency={enhancement.frequency!}
+                className="bg-white/5 py-1.5 justify-start"
+              />
+            )}
+            {showDuration && !hasModifiers && (
+              <DomainAbilityButton
+                cardName={cardName}
+                costType="duration"
+                className="justify-start focus:ring-0"
+              />
+            )}
+          </div>
         </div>
       )}
     </div>
