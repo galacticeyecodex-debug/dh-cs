@@ -51,6 +51,7 @@ export function CardUsedActivity({ activity, compact = false }: CardUsedActivity
                             <span className="text-xs text-gray-500">
                                 {cardData.cost_paid.hope && `• Spent ${cardData.cost_paid.hope} Hope`}
                                 {cardData.cost_paid.stress && `• +${cardData.cost_paid.stress} Stress`}
+                                {cardData.cost_paid.hit_points && `• Marked ${cardData.cost_paid.hit_points} HP`}
                             </span>
                         )}
                         {cardData.gains && !compact && (

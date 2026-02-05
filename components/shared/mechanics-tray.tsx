@@ -131,9 +131,7 @@ export default function MechanicsTray({
   const { prepareRoll, character, cardStates } = useCharacterStore();
 
   const costs = enhancement.costs;
-  // @ts-ignore - gains property existence issue in some environments
   const gains = enhancement.gains;
-  // @ts-ignore - tokens property existence issue
   const tokens = enhancement.tokens;
 
   // 1. Data Analysis (Determine what we HAVE)
@@ -153,7 +151,7 @@ export default function MechanicsTray({
   );
   const hasModifiers = whenActiveModifiers.length > 0;
 
-  const hasCosts = !!(costs?.stress || costs?.hope);
+  const hasCosts = !!(costs?.stress || costs?.hope || costs?.hit_points);
   const hasGainsData = !!(gains?.hope || gains?.stress_clear || gains?.hit_points_clear || gains?.armor_slots_clear);
 
   // 2. Logic (Determine what to SHOW)
@@ -302,7 +300,6 @@ export default function MechanicsTray({
                   <DomainAbilityButton
                     cardName={cardName}
                     displayName={cardName}
-                    // @ts-ignore
                     costType="hope_gain"
                     costValue={gains.hope}
                   />
@@ -311,7 +308,6 @@ export default function MechanicsTray({
                   <DomainAbilityButton
                     cardName={cardName}
                     displayName={cardName}
-                    // @ts-ignore
                     costType="stress_clear"
                     costValue={gains.stress_clear}
                   />
@@ -320,7 +316,6 @@ export default function MechanicsTray({
                   <DomainAbilityButton
                     cardName={cardName}
                     displayName={cardName}
-                    // @ts-ignore
                     costType="hit_points_clear"
                     costValue={gains.hit_points_clear}
                   />
@@ -329,7 +324,6 @@ export default function MechanicsTray({
                   <DomainAbilityButton
                     cardName={cardName}
                     displayName={cardName}
-                    // @ts-ignore
                     costType="armor_slots_clear"
                     costValue={gains.armor_slots_clear}
                   />

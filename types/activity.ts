@@ -87,7 +87,7 @@ export interface CardUsedActivityData {
     card_name: string;
     card_type: 'ability' | 'spell' | 'domain';
     domain?: string;
-    cost_paid?: { hope?: number; stress?: number };
+    cost_paid?: { hope?: number; stress?: number; hit_points?: number };
     gains?: { hope?: number; stress?: number; hp?: number; armor?: number };
     hope_gained?: number; // Legacy, kept for compatibility
 }

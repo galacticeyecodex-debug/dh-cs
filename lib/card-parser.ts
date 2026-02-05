@@ -303,14 +303,8 @@ export interface PassiveModifier {
  * 'environment' - Active based on environment conditions (future feature)
  *   Example: "While in darkness, gain advantage"
  */
-export type ModifierCondition =
-  | { type: 'always' }
-  | { type: 'when_armored' }
-  | { type: 'when_unarmored' }
-  | { type: 'when_active' }
-  | { type: 'cost_activated' }  // DEPRECATED: Use 'when_active' instead
-  | { type: 'loadout_domain_count'; domain: string; minCount: number }
-  | { type: 'environment'; requirement: string };
+// Re-export ModifierCondition for backwards compatibility with imports from card-parser
+export type { ModifierCondition } from '@/types/cards';
 
 /**
  * Stat name mappings for text parsing
