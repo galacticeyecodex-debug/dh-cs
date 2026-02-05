@@ -126,7 +126,13 @@ export default function useContentAccess(): UseContentAccessResult {
     // Dynamic Playtest Packs
     const playtestPacks = contentAccess.playtest_packs ?? {};
     Object.entries(playtestPacks).forEach(([packId, enabled]) => {
-      if (enabled) sources.push(packId);
+      if (enabled) {
+        sources.push(packId);
+        // Map 'pack-xyz' -> 'playtest-xyz' to match library source convention
+        if (packId.startsWith('pack-')) {
+          sources.push(packId.replace('pack-', 'playtest-'));
+        }
+      }
     });
 
     // Homebrew Campaigns

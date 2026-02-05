@@ -2034,6 +2034,11 @@ export function extractKeywords(text: string, cardType: string): string[] {
   // Tokens
   if (hasTokenMechanics(text)) keywords.push('tokens');
 
+  // Attack-related
+  if (/\battack\b/i.test(lowerText) || /\bhit (?!\s+point)/i.test(lowerText)) {
+    keywords.push('attack');
+  }
+
   // Card type
   if (cardType === 'Spell') keywords.push('spell');
   if (cardType === 'Ability') keywords.push('ability');
@@ -2583,10 +2588,48 @@ export function hasCombatRelevance(card?: {
   action_type?: ActionType;
   attack?: CardAttack | null;
   keywords?: string[];
+  modifiers?: CardModifier[];
+  timing?: Timing;
 } | null): boolean {
   if (!card) return false;
+
+  // 1. Explicit attack actions or attack blocks are always relevant
   if (card.action_type === 'attack') return true;
   if (card.attack) return true;
+
+  // 2. Reactions are almost always combat-related in Daggerheart (Scramble, Glancing Blow, etc)
+  if (card.timing === 'reaction') return true;
+
+  // 3. Check for specific combat-related keywords
+  const combatKeywords = [
+    'damage',
+    'attack',
+    'buff',
+    'debuff',
+    'physical',
+    'magic',
+    'healing',
+    'damage_reduction',
+    'control'
+  ];
+  if (card.keywords?.some(k => combatKeywords.includes(k))) return true;
+
+  // 4. Check for combat-related stat modifiers (passive or active)
+  // This catches cards like "Fortified Armor" (+Thresholds) or "Deadly Focus" (+Proficiency)
+  const combatStats = [
+    'attack',
+    'damage',
+    'proficiency',
+    'evasion',
+    'armor_score',
+    'damage_threshold',
+    'damage_threshold_minor',
+    'damage_threshold_major',
+    'damage_threshold_severe',
+    'damage_reduction',
+    'spellcast'
+  ];
+  if (card.modifiers?.some(m => combatStats.includes(m.stat))) return true;
 
   return false;
 }

@@ -41,7 +41,7 @@ import {
 export default function CreateCharacterPage() {
   const router = useRouter();
   const { user, fetchCharacter } = useCharacterStore();
-  const { includePlaytest, loading: contentAccessLoading } = useContentAccess();
+  const { includePlaytest, enabledSources, loading: contentAccessLoading } = useContentAccess();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<CharacterFormData>>({
     name: '',
@@ -98,7 +98,7 @@ export default function CreateCharacterPage() {
     const fetchAllLibraryData = async () => {
       setLibraryLoading(true);
       setError(null);
-      const contentOptions = { includePlaytest };
+      const contentOptions = { includePlaytest, enabledSources };
 
       try {
         const [ancestries, communities, classes, subclasses, domains, weapons, armor, consumables, abilities, spells, grimoires] = await Promise.all([
@@ -123,7 +123,7 @@ export default function CreateCharacterPage() {
     };
 
     fetchAllLibraryData();
-  }, [user, router, includePlaytest, contentAccessLoading]);
+  }, [user, router, includePlaytest, contentAccessLoading, enabledSources]);
 
   useEffect(() => {
     if (formData.class_id && libraryData.classes.length > 0) {

@@ -372,6 +372,8 @@ export default function PlaymatView() {
           libraryItems={allLibraryItems}
           filterType="cards"
           ownedCards={character?.character_cards}
+          characterDomains={character?.domains}
+          characterLevel={character?.level}
         />
 
         {/* Card Detail Modal */}

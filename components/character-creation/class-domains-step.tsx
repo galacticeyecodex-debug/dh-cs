@@ -24,17 +24,20 @@ export default function ClassDomainsStep({
   onBack,
   isValid
 }: ClassDomainsStepProps) {
+  const selectedClass = libraryData.classes.find(c => c.id === formData.class_id);
+  const subclassNames = selectedClass?.data?.subclass_names || [];
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold font-serif flex items-center gap-2"><Sparkle size={20} /> Step 3: Class & Domains</h2>
       <div>
         <label htmlFor="class_id" className="block text-sm font-medium text-gray-400">Class</label>
-        <select 
-          id="class_id" 
-          name="class_id" 
-          value={formData.class_id || ''} 
+        <select
+          id="class_id"
+          name="class_id"
+          value={formData.class_id || ''}
           onChange={handleInputChange}
-          className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold text-white" 
+          className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold text-white"
           required
         >
           <option value="">Select a Class</option>
@@ -49,17 +52,17 @@ export default function ClassDomainsStep({
         <>
           <div>
             <label htmlFor="subclass_id" className="block text-sm font-medium text-gray-400">Subclass</label>
-            <select 
-              id="subclass_id" 
-              name="subclass_id" 
-              value={formData.subclass_id || ''} 
+            <select
+              id="subclass_id"
+              name="subclass_id"
+              value={formData.subclass_id || ''}
               onChange={handleInputChange}
-              className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold text-white" 
+              className="w-full p-2 rounded bg-black/20 border border-white/10 mt-1 focus:ring-dagger-gold focus:border-dagger-gold text-white"
               required
             >
               <option value="">Select a Subclass</option>
               {libraryData.subclasses
-                .filter(sc => sc.data.parent_class_id === formData.class_id)
+                .filter(sc => sc.data.parent_class_id === formData.class_id || subclassNames.includes(sc.name))
                 .map(sc => (
                   <option key={sc.id} value={sc.id}>
                     {sc.name}{sc.source === 'playtest' ? ' [Playtest]' : ''}

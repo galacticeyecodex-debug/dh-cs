@@ -36,6 +36,7 @@
           "timing": "reaction",
           "frequency": "at_will",
           "keywords": [
+            "attack",
             "ability"
           ],
           "modifiers": [
@@ -75,6 +76,7 @@
           "keywords": [
             "damage",
             "stress_cost",
+            "attack",
             "ability"
           ],
           "attack": {
@@ -123,6 +125,7 @@
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
+            "attack",
             "ability"
           ]
         }
@@ -161,6 +164,7 @@
             "hope_gain",
             "hope_cost",
             "tokens",
+            "attack",
             "ability"
           ],
           "tokens": {
@@ -184,6 +188,7 @@
           "keywords": [
             "damage",
             "hope_cost",
+            "attack",
             "ability"
           ]
         }
@@ -199,6 +204,7 @@
           "keywords": [
             "damage",
             "movement",
+            "attack",
             "ability"
           ]
         }
@@ -223,6 +229,7 @@
           "keywords": [
             "stress_cost",
             "movement",
+            "attack",
             "ability"
           ],
           "attack": {
@@ -243,6 +250,7 @@
             "healing",
             "healing",
             "stress_relief",
+            "attack",
             "ability"
           ]
         }
@@ -311,6 +319,7 @@
           },
           "keywords": [
             "stress_cost",
+            "attack",
             "ability"
           ]
         }
@@ -484,6 +493,7 @@
             "damage",
             "magic",
             "stress_cost",
+            "attack",
             "ability"
           ],
           "attack": {
@@ -530,6 +540,7 @@
             "magic",
             "hope_gain",
             "hope_cost",
+            "attack",
             "ability"
           ],
           "modifiers": [
@@ -639,6 +650,7 @@
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
+            "attack",
             "ability"
           ]
         }
@@ -652,6 +664,7 @@
           "keywords": [
             "damage",
             "magic",
+            "attack",
             "ability"
           ]
         }
@@ -707,6 +720,7 @@
           "keywords": [
             "damage",
             "stress_cost",
+            "attack",
             "ability"
           ]
         }
@@ -840,6 +854,7 @@
           "keywords": [
             "damage",
             "stress_cost",
+            "attack",
             "ability"
           ],
           "attack": {
@@ -898,6 +913,7 @@
           "timing": "reaction",
           "frequency": "at_will",
           "keywords": [
+            "attack",
             "ability"
           ],
           "roll": {
@@ -925,6 +941,7 @@
             "healing",
             "hope_gain",
             "debuff",
+            "attack",
             "ability"
           ],
           "attack": {
@@ -990,6 +1007,7 @@
           },
           "keywords": [
             "stress_cost",
+            "attack",
             "ability"
           ],
           "attack": {
@@ -1006,6 +1024,7 @@
           "timing": "reaction",
           "frequency": "at_will",
           "keywords": [
+            "attack",
             "ability"
           ],
           "modifiers": [
@@ -1036,6 +1055,7 @@
           },
           "keywords": [
             "hope_cost",
+            "attack",
             "ability"
           ],
           "duration": "rest"
@@ -1076,6 +1096,7 @@
           "keywords": [
             "healing",
             "hope_cost",
+            "attack",
             "ability"
           ]
         }
@@ -1109,6 +1130,7 @@
             "healing",
             "healing",
             "hope_cost",
+            "attack",
             "ability"
           ],
           "attack": {
@@ -1130,6 +1152,7 @@
           "keywords": [
             "damage_reduction",
             "stress_cost",
+            "attack",
             "ability"
           ],
           "attack": {
@@ -1198,6 +1221,7 @@
             "damage_reduction",
             "stress_cost",
             "movement",
+            "attack",
             "ability"
           ],
           "modifiers": [
@@ -1241,6 +1265,7 @@
             "stress_cost",
             "debuff",
             "movement",
+            "attack",
             "ability"
           ],
           "modifiers": [
@@ -1316,6 +1341,7 @@
           "timing": "action",
           "frequency": "at_will",
           "keywords": [
+            "attack",
             "ability"
           ],
           "modifiers": [
@@ -1343,6 +1369,7 @@
           },
           "keywords": [
             "hope_cost",
+            "attack",
             "ability"
           ]
         }
@@ -1369,6 +1396,7 @@
             "stress_cost",
             "hope_cost",
             "movement",
+            "attack",
             "ability"
           ]
         }
