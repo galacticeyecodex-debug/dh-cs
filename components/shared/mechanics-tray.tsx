@@ -383,6 +383,7 @@ export default function MechanicsTray({
                 }}
                 disabled={!canRoll}
                 variant="damage"
+                icon={AppIcons.combat.damage}
                 className="opacity-90"
               />
             ))}
