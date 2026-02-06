@@ -416,7 +416,7 @@ This section tracks the implementation status of all domain cards and class feat
 
 ## Domain Cards by Domain
 
-### Arcana (21 cards)
+### Arcana (21 cards) ✅
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
@@ -442,7 +442,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Adjust Reality | 10 | ✅ | 5 Hope cost |
 | Falling Sky | 10 | ✅ | Attack + damage; Spend "any number" of Stress button missing. |
 
-### Blood (21 cards) - Playtest Domain
+### Blood (21 cards) - Playtest Domain ✅
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
@@ -468,7 +468,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Crimson Adamance | 10 | ✅ | Hope and Stress costs implemented |
 | Sanguine Feast | 10 | ✅ | 2 Hope cost and Spellcast roll implemented |
 
-### Blade (21 cards) (playtested as of 2/1/2026)
+### Blade (21 cards) ✅
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
@@ -494,7 +494,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Battle Monster | 10 | ✅ | 4 Stress cost, HP modifier |
 | Onslaught | 10 | ✅ | Stress cost implemented |
 
-### Bone (21 cards)
+### Bone (21 cards) ⚠️
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
@@ -520,7 +520,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Deathrun | 10 | ✅ | +1 Proficiency, 3 Hope cost |
 | Swift Step | 10 | ⚠️ | Utility - movement |
 
-### Codex (21 cards)
+### Codex (21 cards) ⚠️
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
@@ -546,7 +546,33 @@ This section tracks the implementation status of all domain cards and class feat
 | Book of Yarrow | 10 | ✅ | 5 Hope cost, roll DC |
 | Transcendent Union | 10 | ✅ | 5 Hope cost, once per long rest |
 
-### Grace (21 cards)
+### Dread (21 cards) - Playtest Domain ⚠️
+
+| Card | Tier | Status | Notes |
+|------|------|--------|-------|
+| Blighting Strike | 1 | ✅ | Spellcast roll, d6+1/d10+1 magic damage, Proficiency scaling |
+| Voice of Dread | 1 | ✅ | Spellcast roll, mark a Stress, Vulnerable debuff |
+| Umbral Veil | 1 | ✅ | Frequency once_per_rest, token tracking (Hope-based) |
+| Hideous Retribution | 2 | ✅ | Reaction timing, Spellcast roll, d6 magic damage, Stress cost |
+| Siphon Essence | 2 | ✅ | Frequency once_per_long_rest, d20 magic damage, healing, Proficiency bonus |
+| Shared Trauma | 3 | ✅ | Frequency once_per_rest, Melee range, healing keyword |
+| Terrify | 3 | ✅ | Spellcast roll, 1d4 Stress damage, movement effect, Vulnerable debuff |
+| Chains of Affliction | 4 | ✅ | Stress cost, Close range, damage reduction effect |
+| Summon Horror | 4 | ✅ | Spellcast roll, Hope cost, d10 magic damage, Reaction Roll (12) for Stress |
+| Spectral Mist | 5 | ✅ | Stress cost, Close range, incorporeal effect, movement keyword |
+| Dire Strike | 5 | ✅ | Hope cost, leach power (GM loses Fear) |
+| Darkfire | 6 | ✅ | AoE Spellcast roll, Hope cost, d8+6 magic damage, Reaction Roll (14) |
+| Jump Scare | 6 | ✅ | Stress cost, teleport (movement), Vulnerable debuff |
+| Dread-Touched | 7 | ✅ | Frequency once_per_rest, Stress cost, loadout condition |
+| Wall of Hunger | 7 | ✅ | Spellcast Roll (13), Restrained debuff, control keyword |
+| Dark Army | 8 | ✅ | Frequency once_per_long_rest, token tracking (8 tokens), d8 damage/reduction |
+| Eldritch Flesh | 8 | ✅ | Damage threshold modifier (Stress-scaled), Hope cost |
+| Damnation | 9 | ✅ | Spellcast roll, Stress-scaled d20s damage, AoE debuff |
+| Savor the Anguish | 9 | ✅ | Hope cost, Stress relief / GM Fear loss |
+| Avatar of Terror | 10 | ✅ | Transformation (utility), Stress cost, damage bonus (Fear-scaled), Hope gain |
+| Invoke Torment | 10 | ✅ | Passive damage bonus, Stress relief |
+
+### Grace (21 cards) ⚠️
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
@@ -572,33 +598,33 @@ This section tracks the implementation status of all domain cards and class feat
 | Encore | 10 | ✅ | Roll |
 | Notorious | 10 | ✅ | Stress cost |
 
-### Midnight (21 cards)
+### Midnight (21 cards) ✅
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
-| Pick and Pull | 1 | ⚠️ | Utility - narrative |
+| Pick and Pull | 1 | ✅ | Utility - narrative |
 | Rain of Blades | 1 | ✅ | Hope cost, attack + damage |
 | Uncanny Disguise | 1 | ✅ | Token tracking (Spellcast), Stress cost |
 | Midnight Spirit | 2 | ✅ | Hope cost, Spellcast-scaled damage |
 | Shadowbind | 2 | ✅ | Roll |
-| Chokehold | 3 | ⚠️ | Stress cost; Missing extra damage button |
-| Veil of Night | 3 | ✅ | Roll DC |
+| Chokehold | 3 | ✅ | Stress cost; Extra damage button implemented |
+| Veil of Night | 3 | ✅ | Roll Spellcast implemented |
 | Glyph of Nightfall | 4 | ✅ | Hope cost, roll |
 | Stealth Expertise | 4 | ✅ | Stress cost |
 | Hush | 5 | ✅ | Hope cost, roll |
-| Phantom Retreat | 5 | ⚠️ | Hope cost; Needs an Activate button |
+| Phantom Retreat | 5 | ✅ | Hope cost; Note section implemented |
 | Dark Whispers | 6 | ✅ | Stress cost, roll |
 | Mass Disguise | 6 | ✅ | Stress cost; Needs an Activate button variant that can countdown from 8. This could be a token tracker with 8 tokens or we could try to render a 3D d8. |
-| Midnight-Touched | 7 | ⚠️ | Fear Die damage bonus (fear_die formula), Stress cost, loadout_domain_count condition; The activated Modifier shouldn't be there. |
+| Midnight-Touched | 7 | ✅ | Stress cost, loadout_domain_count condition |
 | Vanishing Dodge | 7 | ✅ | Hope cost |
 | Shadowhunter | 8 | ✅ | +1 Evasion modifier (when_active, darkness-conditional) |
-| Spellcharge | 8 | ⚠️ | Token tracking (spellcast-based max); Needs a d6 extra damage button. |
-| Night Terror | 9 | ⚠️ | Once per long rest, targets make Reaction Roll (DC 16);Needs a d6 extra damage button. |
-| Twilight Toll | 9 | ⚠️ | Token tracking. Needs a d12 extra damage button. |
-| Eclipse | 10 | ⚠️ | Roll DC 16, once per long rest (no player cost - targets mark Stress). Needs an Activate button. |
+| Spellcharge | 8 | ✅ | Token tracking linked to d6 extra damage button implemented. |
+| Night Terror | 9 | ✅ | Once per long rest, d6 extra damage button |
+| Twilight Toll | 9 | ✅ | Token tracking linked to d12 extra damage button implemented|
+| Eclipse | 10 | ✅ | Roll DC 16, once per long rest (no player cost - targets mark Stress). Activate button implemented. |
 | Specter of the Dark | 10 | ✅ | Stress cost |
 
-### Sage (21 cards)
+### Sage (21 cards) ⚠️
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
@@ -624,7 +650,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Force of Nature | 10 | ✅ | +10 damage (when_active), Hope + Stress cost |
 | Tempest | 10 | ✅ | High damage roll |
 
-### Splendor (21 cards)
+### Splendor (21 cards) ⚠️
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
@@ -650,7 +676,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Invigoration | 10 | ✅ | Hope cost, once per session |
 | Resurrection | 10 | ✅ | Roll DC 20 |
 
-### Valor (21 cards)
+### Valor (21 cards) ⚠️
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
@@ -694,7 +720,7 @@ This section tracks the implementation status of all domain cards and class feat
 | Warrior (Slayer) | Slayer Dice | d6 pool up to Proficiency |
 | Wizard | Strange Patterns | 1-12 number selector |
 
-### Class Features Requiring Manual Tracking
+### Class Features Requiring Manual Tracking ⚠️
 
 | Class | Subclass | Feature | Why Manual |
 |-------|----------|---------|------------|
@@ -721,13 +747,14 @@ This section tracks the implementation status of all domain cards and class feat
 
 ## Summary
 
-**Domain Cards:** 210 total (189 SRD + 21 Blood playtest)
-- ✅ Fully Implemented: ~200 cards (95%)
+**Domain Cards:** 231 total (189 SRD + 21 Blood playtest + 21 Dread playtest)
+- ✅ Fully Implemented: ~221 cards (95%)
 - ⚠️ Partial: ~8 cards (4%)
 - ❌ Manual Only: 2 cards (1%)
 
 **Playtest Content:**
 - Blood domain (21 cards) - 21 fully implemented (including Power Through Pain and Blood-Touched dynamic formulas)
+- Dread domain (21 cards) - 21 fully implemented (including Stress-scaled thresholds and Fear-scaled damage)
 
 **Newly Supported Formula Types:**
 1. **Either/Or choices** - Cards like Cruel Precision (Finesse OR Agility) now parse as dual `when_active` modifiers
@@ -735,6 +762,7 @@ This section tracks the implementation status of all domain cards and class feat
 3. **Fear Die bonuses** - Cards like Midnight-Touched (`fear_die` formula)
 4. **Multiplier formulas** - Cards like Rage Up (`2_times_strength` for "twice your Strength")
 5. **HP cost buttons** - Blood domain cards with "mark a Hit Point" costs now have interactive buttons
+6. **Stress/Fear-scaled bonuses** - Dread domain cards with thresholds scaled by Stress or damage by GM Fear tokens.
 
 **Known Gaps:**
 1. **Conditional environment** - Sage-Touched "natural environment" condition is not auto-detected
