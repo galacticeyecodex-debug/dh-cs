@@ -157,7 +157,7 @@ export default function MechanicsTray({
   const hasModifiers = whenActiveModifiers.length > 0;
 
   const hasCosts = !!(costs?.stress || costs?.hope || costs?.hit_points);
-  const hasGainsData = !!(gains?.hope || gains?.stress_clear || gains?.hit_points_clear || gains?.armor_slots_clear);
+  const hasGainsData = !!(gains?.hope || gains?.stress_clear || gains?.hit_points_clear || gains?.armor_slots_clear || gains?.damage_reduction_roll);
 
   // 2. Logic (Determine what to SHOW)
   const showTokenTrack = hasTokenTrack;
@@ -329,6 +329,18 @@ export default function MechanicsTray({
                 displayName={cardName}
                 costType="armor_slots_clear"
                 costValue={gains.armor_slots_clear}
+              />
+            )}
+            {gains?.damage_reduction_roll && (
+              <RollButton
+                label={`Reduce Damage (${gains.damage_reduction_roll})`}
+                onClick={() => {
+                  const { dice, modifier } = parseDamageRoll(gains.damage_reduction_roll!);
+                  prepareRoll(`${cardName} Damage Reduction`, modifier, dice);
+                }}
+                disabled={!canRoll}
+                variant="secondary"
+                icon={AppIcons.vitals.armor}
               />
             )}
           </div>

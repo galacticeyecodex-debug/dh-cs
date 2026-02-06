@@ -70,6 +70,7 @@ export interface CardGains {
   stress_clear?: number;    // Clear X Stress
   hit_points_clear?: number; // Clear X Hit Points (heal)
   armor_slots_clear?: number; // Clear X Armor Slots (restore armor)
+  damage_reduction_roll?: string; // Roll for damage reduction (e.g., "1d8")
 }
 
 /**

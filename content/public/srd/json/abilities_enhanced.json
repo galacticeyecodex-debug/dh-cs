@@ -28,6 +28,21 @@
           "source": "Rune Ward"
         }
       ]
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
+      "gains": {
+        "damage_reduction_roll": "1d8"
+      },
+      "keywords": [
+        "damage_reduction",
+        "hope_cost",
+        "spell"
+      ]
     }
   },
   {
