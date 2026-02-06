@@ -3435,6 +3435,37 @@
           "source": "Midnight-Touched"
         }
       ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_rest",
+      "costs": {
+        "stress": 1
+      },
+      "keywords": [
+        "damage",
+        "hope_gain",
+        "stress_cost",
+        "ability"
+      ],
+      "gains": {
+        "hope": 1
+      },
+      "modifiers": [
+        {
+          "stat": "damage",
+          "value": 0,
+          "formula": "fear_die",
+          "condition": {
+            "type": "when_active",
+            "loadout_domain_count": {
+              "domain": "midnight",
+              "minCount": 4
+            }
+          },
+          "source": "Midnight-Touched"
+        }
+      ]
     }
   },
   {
@@ -3488,6 +3519,24 @@
           "source": "Shadowhunter"
         }
       ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "buff",
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "evasion",
+          "value": 1,
+          "condition": {
+            "type": "when_active"
+          },
+          "source": "Shadowhunter"
+        }
+      ]
     }
   },
   {
@@ -3511,6 +3560,21 @@
         "has_tokens": true,
         "max_tokens": null,
         "token_source": "the"
+      }
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "magic",
+        "tokens",
+        "spell"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "spellcast"
       }
     }
   },
@@ -3597,6 +3661,27 @@
         "trait": "Spellcast",
         "difficulty": 16,
         "target_reaction": false
+      }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_long_rest",
+      "keywords": [
+        "debuff",
+        "spell"
+      ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 16,
+        "target_reaction": false
+      },
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Far",
+        "combat_category": "roll_only",
+        "difficulty": 16,
+        "damage_scaling": "none"
       }
     }
   },

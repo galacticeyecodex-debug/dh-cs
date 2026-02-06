@@ -589,13 +589,13 @@ This section tracks the implementation status of all domain cards and class feat
 | Phantom Retreat | 5 | ✅ | Hope cost |
 | Dark Whispers | 6 | ✅ | Stress cost, roll |
 | Mass Disguise | 6 | ✅ | Stress cost |
-| Midnight-Touched | 7 | ✅ | Fear Die damage bonus (fear_die formula), Stress cost |
+| Midnight-Touched | 7 | ✅ | Fear Die damage bonus (fear_die formula), Stress cost, loadout_domain_count condition |
 | Vanishing Dodge | 7 | ✅ | Hope cost |
-| Shadowhunter | 8 | ✅ | +1 Evasion modifier |
-| Spellcharge | 8 | ✅ | Token tracking |
-| Night Terror | 9 | ✅ | Roll DC, once per long rest |
+| Shadowhunter | 8 | ✅ | +1 Evasion modifier (when_active, darkness-conditional) |
+| Spellcharge | 8 | ✅ | Token tracking (spellcast-based max) |
+| Night Terror | 9 | ✅ | Once per long rest, targets make Reaction Roll (DC 16) |
 | Twilight Toll | 9 | ✅ | Token tracking |
-| Eclipse | 10 | ✅ | Stress cost, roll DC, once per long rest |
+| Eclipse | 10 | ✅ | Roll DC 16, once per long rest (no player cost - targets mark Stress) |
 | Specter of the Dark | 10 | ✅ | Stress cost |
 
 ### Sage (21 cards)

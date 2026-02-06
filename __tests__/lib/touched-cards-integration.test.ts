@@ -258,8 +258,8 @@ describe('Touched Cards Integration Tests', () => {
     });
 
     describe('Blood-Touched', () => {
-        it('should have evasion +1 modifier and hope gain button', () => {
-            // Note: Blood-Touched is in private playtest JSON, so we need to ensure 
+        it('should have evasion modifier with dynamic formula', () => {
+            // Note: Blood-Touched is in private playtest JSON, so we need to ensure
             // the test runner can find it.
             const card = findCard('Blood-Touched');
             if (!card) {
@@ -270,7 +270,10 @@ describe('Touched Cards Integration Tests', () => {
             const modifiers = getModifiers(card);
             const evasionMod = modifiers.find(m => m.stat === 'evasion');
             expect(evasionMod).toBeDefined();
-            expect(evasionMod?.value).toBe(1);
+            // Blood-Touched uses a dynamic formula: +1 per 3 marked HP
+            // Base value is 0, the formula calculates the actual bonus
+            expect(evasionMod?.value).toBe(0);
+            expect(evasionMod?.formula).toBe('1_per_3_marked_hp');
             expect(evasionMod?.condition?.type).toBe('loadout_domain_count');
             expect((evasionMod?.condition as any)?.domain).toBe('blood');
         });
