@@ -88,6 +88,8 @@ export default function PlaymatView() {
   }, [cardToRemove, removeCard]);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [domainFilter, setDomainFilter] = useState<string>('all');
+  const [levelFilter, setLevelFilter] = useState<string>('all');
 
   // Memoize enhanced abilities based on playtest setting
   // Also include ancestry and community features as they can appear on the playmat
@@ -124,21 +126,60 @@ export default function PlaymatView() {
     [character?.character_cards]
   );
 
-  // Vault cards can be filtered by search term
-  const vaultCards = useMemo(() => {
-    const allCards = character?.character_cards || [];
-    const vaultOnly = allCards.filter(card => card.location === 'vault');
-    if (!searchTerm) return vaultOnly;
-    const term = searchTerm.toLowerCase();
-    return vaultOnly.filter(card => {
-      const { name, domain, type } = card.library_item || {};
-      return (
-        name?.toLowerCase().includes(term) ||
-        domain?.toLowerCase().includes(term) ||
-        type?.toLowerCase().includes(term)
-      );
+  // Get all vault cards (unfiltered) for extracting available domains/levels
+  const allVaultCards = useMemo(() =>
+    (character?.character_cards || []).filter(card => card.location === 'vault'),
+    [character?.character_cards]
+  );
+
+  // Extract unique domains and levels from vault cards for filter options
+  const { availableDomains, availableLevels } = useMemo(() => {
+    const domains = new Set<string>();
+    const levels = new Set<number>();
+
+    allVaultCards.forEach(card => {
+      if (card.library_item?.domain) domains.add(card.library_item.domain);
+      if (card.library_item?.tier) levels.add(card.library_item.tier);
     });
-  }, [character?.character_cards, searchTerm]);
+
+    return {
+      availableDomains: Array.from(domains).sort(),
+      availableLevels: Array.from(levels).sort((a, b) => a - b)
+    };
+  }, [allVaultCards]);
+
+  // Vault cards filtered by search term, domain, and level
+  const vaultCards = useMemo(() => {
+    let filtered = allVaultCards;
+
+    // Apply domain filter
+    if (domainFilter !== 'all') {
+      filtered = filtered.filter(card =>
+        card.library_item?.domain?.toLowerCase() === domainFilter.toLowerCase()
+      );
+    }
+
+    // Apply level filter
+    if (levelFilter !== 'all') {
+      const level = parseInt(levelFilter, 10);
+      filtered = filtered.filter(card => card.library_item?.tier === level);
+    }
+
+    // Apply search term
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(card => {
+        const { name, domain, type } = card.library_item || {};
+        return (
+          name?.toLowerCase().includes(term) ||
+          domain?.toLowerCase().includes(term) ||
+          type?.toLowerCase().includes(term)
+        );
+      });
+    }
+
+    return filtered;
+  }, [allVaultCards, searchTerm, domainFilter, levelFilter]);
 
   const handleMoveCard = useCallback((cardId: string, destination: 'loadout' | 'vault') => {
     // Basic check for loadout limit
@@ -222,14 +263,41 @@ export default function PlaymatView() {
             </div>
           )}
 
-          {/* Vault Mode: Search Bar */}
+          {/* Vault Mode: Search Bar + Filters */}
           {viewMode === 'vault' && (
-            <div className="mt-2">
+            <div className="mt-2 space-y-2">
               <SearchInput
                 value={searchTerm}
                 onChange={setSearchTerm}
                 placeholder="Search vault cards..."
               />
+              {/* Domain and Level Filters */}
+              {allVaultCards.length > 0 && (
+                <div className="flex gap-2">
+                  {/* Domain Filter */}
+                  <select
+                    value={domainFilter}
+                    onChange={(e) => setDomainFilter(e.target.value)}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-dagger-gold"
+                  >
+                    <option value="all">All Domains</option>
+                    {availableDomains.map(domain => (
+                      <option key={domain} value={domain}>{domain}</option>
+                    ))}
+                  </select>
+                  {/* Level Filter */}
+                  <select
+                    value={levelFilter}
+                    onChange={(e) => setLevelFilter(e.target.value)}
+                    className="w-28 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-dagger-gold"
+                  >
+                    <option value="all">All Levels</option>
+                    {availableLevels.map(level => (
+                      <option key={level} value={level}>Level {level}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -334,6 +402,24 @@ export default function PlaymatView() {
         {/* Vault View */}
         {viewMode === 'vault' && (
           <div className="space-y-4">
+            {/* Card count */}
+            {allVaultCards.length > 0 && (
+              <div className="text-xs text-gray-500 text-center">
+                Showing {vaultCards.length} of {allVaultCards.length} card{allVaultCards.length !== 1 ? 's' : ''}
+                {(domainFilter !== 'all' || levelFilter !== 'all' || searchTerm) && (
+                  <button
+                    onClick={() => {
+                      setDomainFilter('all');
+                      setLevelFilter('all');
+                      setSearchTerm('');
+                    }}
+                    className="ml-2 text-dagger-gold hover:text-yellow-400 underline"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            )}
             {vaultCards.length > 0 ? (
               <div className="flex flex-col items-center gap-4">
                 {vaultCards.map((charCard) => {
@@ -358,7 +444,9 @@ export default function PlaymatView() {
               </div>
             ) : (
               <div className="text-center text-gray-500 py-12">
-                {searchTerm ? "No cards in vault match your search." : "Your Vault is empty."}
+                {(searchTerm || domainFilter !== 'all' || levelFilter !== 'all')
+                  ? "No cards match your filters."
+                  : "Your Vault is empty."}
               </div>
             )}
           </div>
