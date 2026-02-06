@@ -447,12 +447,13 @@ const AttackCard = React.memo(function AttackCard({
                                             {additionalDamage?.map((extra, idx) => (
                                                 <RollButton
                                                     key={idx}
-                                                    label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
+                                                    label={`Extra ${extra.damage}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra');
+                                                        onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra Damage');
                                                     }}
                                                     variant="damage"
+                                                    icon={AppIcons.combat.damage}
                                                     disabled={isUsed || !canRoll}
                                                     className="opacity-90 py-2 px-3 text-xs"
                                                 />
@@ -563,12 +564,13 @@ const AttackCard = React.memo(function AttackCard({
                                             {additionalDamage?.map((extra, idx) => (
                                                 <RollButton
                                                     key={idx}
-                                                    label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
+                                                    label={`Extra ${extra.damage}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra');
+                                                        onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra Damage');
                                                     }}
                                                     variant="damage"
+                                                    icon={AppIcons.combat.damage}
                                                     disabled={isUsed || !canRoll}
                                                     className="opacity-90 py-2 px-3 text-xs"
                                                 />

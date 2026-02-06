@@ -30,7 +30,7 @@ export function RollButton({
     const isSpellcast = label.toLowerCase().includes('spellcast');
     const isAttack = label.toLowerCase().includes('attack');
 
-    const actionStaticColor = isDamage
+    const actionStaticColor = (isDamage || variant === 'damage')
         ? 'text-red-400'
         : 'text-dagger-gold';
 

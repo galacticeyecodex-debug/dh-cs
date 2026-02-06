@@ -44,7 +44,8 @@ export interface CardMechanicsResult {
  * @returns Computed mechanics values for rendering roll/damage buttons
  */
 export function useCardMechanics(
-  enhancement: EnhancementBlock | undefined
+  enhancement: EnhancementBlock | undefined,
+  cardName?: string
 ): CardMechanicsResult {
   const { character, cardStates } = useCharacterStore();
 
@@ -116,7 +117,13 @@ export function useCardMechanics(
 
     // 4. Calculate Damage
     const baseDamage = attack?.damage;
-    const scalingValue = getScalingValue(attack?.damage_scaling, totalProficiency, totalSpellcast);
+    const tokenCount = (cardName && cardStates?.[cardName]?.current_tokens) || 0;
+    const scalingValue = getScalingValue(
+      attack?.damage_scaling,
+      totalProficiency,
+      totalSpellcast,
+      tokenCount
+    );
     const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, scalingValue) : undefined;
 
     // 5. Determine if Attack button should be shown

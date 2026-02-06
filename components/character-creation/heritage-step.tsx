@@ -4,6 +4,7 @@ import React from 'react';
 import { Dna } from 'lucide-react';
 import clsx from 'clsx';
 import { CharacterFormData, LibraryData } from './types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface HeritageStepProps {
   formData: Partial<CharacterFormData>;
@@ -31,6 +32,14 @@ export default function HeritageStep({
   const featIndex2 = formData.ancestry_feat_index_2 ?? 1;
 
   const suggestedName = selectedAncestry1 && selectedAncestry2 ? `${selectedAncestry1.name}-${selectedAncestry2.name}` : '';
+
+  // Helper to create synthetic event for handleInputChange compatibility
+  const createSelectHandler = (name: string) => (value: string) => {
+    const syntheticEvent = {
+      target: { name, value }
+    } as React.ChangeEvent<HTMLSelectElement>;
+    handleInputChange(syntheticEvent);
+  };
 
   const handleFeatSelect = (ancestryNum: 1 | 2, index: number) => {
     if (!formData.is_mixed_ancestry) return;
@@ -102,17 +111,16 @@ export default function HeritageStep({
           <label htmlFor="ancestry_id" className="block text-sm font-medium text-gray-400 mb-1">
             {formData.is_mixed_ancestry ? 'Primary Ancestry' : 'Ancestry'}
           </label>
-          <select 
-            id="ancestry_id" 
-            name="ancestry_id" 
-            value={formData.ancestry_id || ''} 
-            onChange={handleInputChange}
-            className="w-full p-2 rounded bg-black/20 border border-white/10 focus:ring-dagger-gold focus:border-dagger-gold text-white" 
-            required
-          >
-            <option value="">Select an Ancestry</option>
-            {libraryData.ancestries.map(anc => <option key={anc.id} value={anc.id}>{anc.name}</option>)}
-          </select>
+          <Select value={formData.ancestry_id || ''} onValueChange={createSelectHandler('ancestry_id')}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select an Ancestry" />
+            </SelectTrigger>
+            <SelectContent>
+              {libraryData.ancestries.map(anc => (
+                <SelectItem key={anc.id} value={anc.id}>{anc.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           
           {selectedAncestry1?.data?.features && (
             <div className="mt-2 grid grid-cols-1 gap-2">
@@ -138,17 +146,16 @@ export default function HeritageStep({
         {formData.is_mixed_ancestry && (
           <div className="animate-in fade-in slide-in-from-top-2 duration-300 border-t border-white/5 pt-4">
             <label htmlFor="ancestry_id_2" className="block text-sm font-medium text-gray-400 mb-1">Secondary Ancestry</label>
-            <select 
-              id="ancestry_id_2" 
-              name="ancestry_id_2" 
-              value={formData.ancestry_id_2 || ''} 
-              onChange={handleInputChange}
-              className="w-full p-2 rounded bg-black/20 border border-white/10 focus:ring-dagger-gold focus:border-dagger-gold text-white" 
-              required
-            >
-              <option value="">Select an Ancestry</option>
-              {libraryData.ancestries.map(anc => <option key={anc.id} value={anc.id}>{anc.name}</option>)}
-            </select>
+            <Select value={formData.ancestry_id_2 || ''} onValueChange={createSelectHandler('ancestry_id_2')}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select an Ancestry" />
+              </SelectTrigger>
+              <SelectContent>
+                {libraryData.ancestries.map(anc => (
+                  <SelectItem key={anc.id} value={anc.id}>{anc.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             
             {selectedAncestry2?.data?.features && (
               <div className="mt-2 grid grid-cols-1 gap-2">
@@ -164,17 +171,16 @@ export default function HeritageStep({
 
       <div>
         <label htmlFor="community_id" className="block text-sm font-medium text-gray-400 mb-1">Community</label>
-        <select 
-          id="community_id" 
-          name="community_id" 
-          value={formData.community_id || ''} 
-          onChange={handleInputChange}
-          className="w-full p-2 rounded bg-black/20 border border-white/10 focus:ring-dagger-gold focus:border-dagger-gold text-white" 
-          required
-        >
-          <option value="">Select a Community</option>
-          {libraryData.communities.map(comm => <option key={comm.id} value={comm.id}>{comm.name}</option>)}
-        </select>
+        <Select value={formData.community_id || ''} onValueChange={createSelectHandler('community_id')}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a Community" />
+          </SelectTrigger>
+          <SelectContent>
+            {libraryData.communities.map(comm => (
+              <SelectItem key={comm.id} value={comm.id}>{comm.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex justify-between pt-2">

@@ -47,6 +47,7 @@ import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SearchInput } from '@/components/ui/search-input';
 import { Panel } from '@/components/ui/panel';
 import { PillButton } from '@/components/ui/pill-button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type ViewMode = 'loadout' | 'vault';
 
@@ -275,27 +276,29 @@ export default function PlaymatView() {
               {allVaultCards.length > 0 && (
                 <div className="flex gap-2">
                   {/* Domain Filter */}
-                  <select
-                    value={domainFilter}
-                    onChange={(e) => setDomainFilter(e.target.value)}
-                    className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-dagger-gold"
-                  >
-                    <option value="all">All Domains</option>
-                    {availableDomains.map(domain => (
-                      <option key={domain} value={domain}>{domain}</option>
-                    ))}
-                  </select>
+                  <Select value={domainFilter} onValueChange={setDomainFilter}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="All Domains" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Domains</SelectItem>
+                      {availableDomains.map(domain => (
+                        <SelectItem key={domain} value={domain}>{domain}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {/* Level Filter */}
-                  <select
-                    value={levelFilter}
-                    onChange={(e) => setLevelFilter(e.target.value)}
-                    className="w-28 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-dagger-gold"
-                  >
-                    <option value="all">All Levels</option>
-                    {availableLevels.map(level => (
-                      <option key={level} value={level}>Level {level}</option>
-                    ))}
-                  </select>
+                  <Select value={levelFilter} onValueChange={setLevelFilter}>
+                    <SelectTrigger className="w-28">
+                      <SelectValue placeholder="All Levels" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      {availableLevels.map(level => (
+                        <SelectItem key={String(level)} value={String(level)}>Level {level}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
             </div>

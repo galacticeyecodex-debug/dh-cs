@@ -27,8 +27,10 @@ export interface DomainAbilityButtonProps {
    * - 'activate': No cost, just toggle on/off (green styling) - for abilities like Frenzy
    * - 'duration': Persistent effect toggle (blue styling)
    * - 'free': Same as 'activate' - deprecated, use 'activate'
+   * - 'token_replenish': Reset tokens to max (blue styling)
+   * - 'vault': Return card to vault (gray styling)
    */
-  costType: 'hope' | 'hope_gain' | 'stress' | 'stress_clear' | 'hit_points' | 'hit_points_clear' | 'armor_slots_clear' | 'activate' | 'duration' | 'free';
+  costType: 'hope' | 'hope_gain' | 'stress' | 'stress_clear' | 'hit_points' | 'hit_points_clear' | 'armor_slots_clear' | 'activate' | 'duration' | 'free' | 'token_replenish' | 'vault';
   costValue?: number;
   label?: string; // Optional override
   className?: string;
@@ -63,7 +65,9 @@ export function DomainAbilityButton({
     toggleCardActive,
     vitalIcons,
     logActivity,
-    activeCampaign
+    activeCampaign,
+    moveCard,
+    setCardTokens
   } = useCharacterStore();
 
   const theme = domain ? getDomainTheme(domain) : null;
@@ -140,7 +144,7 @@ export function DomainAbilityButton({
   } else if (costType === 'activate' || costType === 'free') {
     // No-cost activation (e.g., Frenzy) - green styling
     displayLabel = label || (isActive ? 'Active' : 'Activate');
-    Icon = AppIcons.combat.activation;  // Could use Play or Power icon if desired
+    Icon = AppIcons.combat.activation;
     costColor = 'text-emerald-400';
     activeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50';
   } else if (costType === 'duration') {
@@ -148,6 +152,16 @@ export function DomainAbilityButton({
     Icon = AppIcons.combat.duration;
     costColor = 'text-blue-400';
     activeColor = 'bg-blue-500/20 text-blue-300 border-blue-500/50';
+  } else if (costType === 'token_replenish') {
+    displayLabel = label || 'Replenish Tokens';
+    Icon = AppIcons.system.sync;
+    costColor = 'text-cyan-400';
+    activeColor = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50';
+  } else if (costType === 'vault') {
+    displayLabel = label || 'Return to Vault';
+    Icon = AppIcons.system.sync;
+    costColor = 'text-gray-400';
+    activeColor = 'bg-gray-500/20 text-gray-300 border-gray-500/50';
   }
 
   // Domain override
@@ -358,6 +372,21 @@ export function DomainAbilityButton({
       } else {
         toggleCardActive(cardName);
       }
+    } else if (costType === 'token_replenish') {
+      const card = character.character_cards?.find(c => c.library_item?.name === cardName);
+      const maxTokens = card?.library_item?.data?.enhancement?.tokens?.max_tokens;
+      if (maxTokens) {
+        setCardTokens(cardName, maxTokens);
+        toast.success(`Replenished tokens for ${friendlyName}`);
+      }
+      if (onActivate) onActivate();
+    } else if (costType === 'vault') {
+      const card = character.character_cards?.find(c => c.library_item?.name === cardName);
+      if (card) {
+        moveCard(card.id, 'vault');
+        toast.success(`${friendlyName} returned to vault`);
+      }
+      if (onActivate) onActivate();
     }
   };
 

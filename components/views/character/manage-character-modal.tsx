@@ -23,6 +23,7 @@ import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import clsx from 'clsx';
 import useContentAccess from '@/hooks/useContentAccess';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AncestryFeature {
   name: string;
@@ -609,21 +610,24 @@ export default function ManageCharacterModal({
                   <label className="block text-sm font-bold text-gray-300 mb-2">
                     {isMixedAncestry ? 'Primary Ancestry' : 'Ancestry'}
                   </label>
-                  <select
+                  <Select
                     value={primaryAncestryId}
-                    onChange={(e) => {
-                      setPrimaryAncestryId(e.target.value);
+                    onValueChange={(val) => {
+                      setPrimaryAncestryId(val);
                       setPrimaryFeatureIndex(0);
                     }}
-                    className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-white focus:border-dagger-gold outline-none transition-colors"
                   >
-                    <option value="">Select an ancestry...</option>
-                    {availableAncestries.map((anc) => (
-                      <option key={anc.id} value={anc.id}>
-                        {anc.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select an ancestry..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableAncestries.map((anc) => (
+                        <SelectItem key={anc.id} value={anc.id}>
+                          {anc.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
                   {/* Primary Ancestry Features */}
                   {primaryAncestry?.data?.features && (
@@ -658,21 +662,24 @@ export default function ManageCharacterModal({
                     <label className="block text-sm font-bold text-gray-300 mb-2">
                       Secondary Ancestry
                     </label>
-                    <select
+                    <Select
                       value={secondaryAncestryId}
-                      onChange={(e) => {
-                        setSecondaryAncestryId(e.target.value);
+                      onValueChange={(val) => {
+                        setSecondaryAncestryId(val);
                         setSecondaryFeatureIndex(0);
                       }}
-                      className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-white focus:border-dagger-gold outline-none transition-colors"
                     >
-                      <option value="">Select an ancestry...</option>
-                      {availableAncestries.map((anc) => (
-                        <option key={anc.id} value={anc.id}>
-                          {anc.name}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select an ancestry..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableAncestries.map((anc) => (
+                          <SelectItem key={anc.id} value={anc.id}>
+                            {anc.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
 
                     {/* Secondary Ancestry Features */}
                     {secondaryAncestry?.data?.features && (
@@ -696,18 +703,18 @@ export default function ManageCharacterModal({
                   <label className="block text-sm font-bold text-gray-300 mb-2">
                     Community
                   </label>
-                  <select
-                    value={community}
-                    onChange={(e) => setCommunity(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-white focus:border-dagger-gold outline-none transition-colors"
-                  >
-                    <option value="">Select a community...</option>
-                    {availableCommunities.map((com) => (
-                      <option key={com.name} value={com.name}>
-                        {com.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={community} onValueChange={setCommunity}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a community..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableCommunities.map((com) => (
+                        <SelectItem key={com.name} value={com.name}>
+                          {com.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Transformation */}
@@ -717,18 +724,19 @@ export default function ManageCharacterModal({
                       Transformation
                       <span className="text-xs text-purple-400 font-normal">(Playtest)</span>
                     </label>
-                    <select
-                      value={transformation}
-                      onChange={(e) => setTransformation(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-black/50 border border-purple-500/30 text-white focus:border-purple-500 outline-none transition-colors"
-                    >
-                      <option value="">None (no transformation)</option>
-                      {availableTransformations.map((t) => (
-                        <option key={t.name} value={t.name}>
-                          {t.name}
-                        </option>
-                      ))}
-                    </select>
+                    <Select value={transformation} onValueChange={setTransformation}>
+                      <SelectTrigger className="w-full border-purple-500/30 focus:ring-purple-500">
+                        <SelectValue placeholder="None (no transformation)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">None (no transformation)</SelectItem>
+                        {availableTransformations.map((t) => (
+                          <SelectItem key={t.name} value={t.name}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <p className="text-xs text-gray-500 mt-1">
                       Transformations are typically awarded by the GM during play.
                     </p>
@@ -740,18 +748,18 @@ export default function ManageCharacterModal({
                   <label className="block text-sm font-bold text-gray-300 mb-2">
                     Spellcast Trait
                   </label>
-                  <select
-                    value={spellcastTrait}
-                    onChange={(e) => setSpellcastTrait(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-white focus:border-dagger-gold outline-none transition-colors"
-                  >
-                    <option value="">Select a trait...</option>
-                    {['Agility', 'Strength', 'Finesse', 'Instinct', 'Presence', 'Knowledge'].map((trait) => (
-                      <option key={trait} value={trait}>
-                        {trait}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={spellcastTrait} onValueChange={setSpellcastTrait}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a trait..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['Agility', 'Strength', 'Finesse', 'Instinct', 'Presence', 'Knowledge'].map((trait) => (
+                        <SelectItem key={trait} value={trait}>
+                          {trait}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {error && (

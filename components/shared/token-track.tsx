@@ -23,6 +23,7 @@ import { getStatModifiers } from '@/lib/modifier-aggregator';
 export default function CardTokenTrack({
   cardName,
   maxTokens,
+  initialTokens,
   tokenSource,
   currentTokens: propTokens,
   onTokenChange,
@@ -30,8 +31,8 @@ export default function CardTokenTrack({
 }: CardTokenTrackProps) {
   const { character, cardStates, setCardTokens } = useCharacterStore();
 
-  // Calculate max tokens
-  let calculatedMax = maxTokens ?? 0;
+  // Calculate max tokens (default to 12 if unspecified/null, assuming 'X' variability)
+  let calculatedMax = maxTokens ?? 12;
 
   // Allow dynamic calculation if maxTokens is null OR undefined (missing), provided we have a source
   if ((maxTokens === null || maxTokens === undefined) && tokenSource && character) {
@@ -91,7 +92,11 @@ export default function CardTokenTrack({
   }
 
   // Get current tokens from store or props
-  const storedTokens = cardStates?.[cardName]?.current_tokens ?? 0;
+  // If no stored state exists, use initialTokens as the default
+  const storedTokens = cardStates?.[cardName] !== undefined
+    ? cardStates[cardName].current_tokens
+    : (propTokens ?? initialTokens ?? 0);
+
   const currentTokens = propTokens ?? storedTokens;
 
   const handleSpendToken = () => {

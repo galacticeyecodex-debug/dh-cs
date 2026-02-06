@@ -19,6 +19,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { LibraryItem, useCharacterStore } from '@/store/character-store';
 import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import CreateHomebrewItemModal, { HomebrewItemData } from './create-homebrew-item-modal';
 import { MarkdownText } from '@/components/shared/markdown-text';
@@ -296,28 +297,27 @@ export default function AddItemModal({
                 {selectedDomains.map((selectedDomain, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <span className="text-[10px] text-gray-500 uppercase font-bold">Domain {index + 1}:</span>
-                    <div className="relative">
-                      <select
-                        value={selectedDomain || ''}
-                        onChange={(e) => {
-                          const newVal = e.target.value || null;
-                          setSelectedDomains(prev => {
-                            const next = [...prev];
-                            next[index] = newVal;
-                            return next;
-                          });
-                        }}
-                        className="appearance-none bg-dagger-panel border border-white/10 rounded-md pl-2 pr-8 py-1 text-xs text-white focus:ring-1 focus:ring-dagger-gold focus:border-dagger-gold outline-none transition-all cursor-pointer hover:bg-white/5"
-                      >
-                        <option value="">Any Domain</option>
+                    <Select
+                      value={selectedDomain || 'any'}
+                      onValueChange={(val) => {
+                        const newVal = val === 'any' ? null : val;
+                        setSelectedDomains(prev => {
+                          const next = [...prev];
+                          next[index] = newVal;
+                          return next;
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="h-7 text-xs w-32">
+                        <SelectValue placeholder="Any Domain" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any Domain</SelectItem>
                         {domains.map(domain => (
-                          <option key={domain} value={domain}>{domain}</option>
+                          <SelectItem key={domain} value={domain}>{domain}</SelectItem>
                         ))}
-                      </select>
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                        <AppIcons.ui.expand size={12} />
-                      </div>
-                    </div>
+                      </SelectContent>
+                    </Select>
                   </div>
                 ))}
               </div>
@@ -328,38 +328,36 @@ export default function AddItemModal({
               <div className="flex flex-wrap gap-4 items-center p-2 bg-black/20 rounded-lg border border-white/5">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-gray-500 uppercase font-bold">From Level:</span>
-                  <div className="relative">
-                    <select
-                      value={minLevel}
-                      onChange={(e) => setMinLevel(Number(e.target.value))}
-                      className="appearance-none bg-dagger-panel border border-white/10 rounded-md pl-2 pr-8 py-1 text-xs text-white focus:ring-1 focus:ring-dagger-gold focus:border-dagger-gold outline-none transition-all cursor-pointer hover:bg-white/5"
-                    >
+                  <Select
+                    value={String(minLevel)}
+                    onValueChange={(val) => setMinLevel(Number(val))}
+                  >
+                    <SelectTrigger className="h-7 text-xs w-16">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(l => (
-                        <option key={l} value={l}>{l}</option>
+                        <SelectItem key={l} value={String(l)}>{l}</SelectItem>
                       ))}
-                    </select>
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                      <AppIcons.ui.expand size={12} />
-                    </div>
-                  </div>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-gray-500 uppercase font-bold">To Level:</span>
-                  <div className="relative">
-                    <select
-                      value={maxLevel}
-                      onChange={(e) => setMaxLevel(Number(e.target.value))}
-                      className="appearance-none bg-dagger-panel border border-white/10 rounded-md pl-2 pr-8 py-1 text-xs text-white focus:ring-1 focus:ring-dagger-gold focus:border-dagger-gold outline-none transition-all cursor-pointer hover:bg-white/5"
-                    >
+                  <Select
+                    value={String(maxLevel)}
+                    onValueChange={(val) => setMaxLevel(Number(val))}
+                  >
+                    <SelectTrigger className="h-7 text-xs w-16">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(l => (
-                        <option key={l} value={l}>{l}</option>
+                        <SelectItem key={l} value={String(l)}>{l}</SelectItem>
                       ))}
-                    </select>
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                      <AppIcons.ui.expand size={12} />
-                    </div>
-                  </div>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             )}

@@ -393,13 +393,16 @@ export function calculateWeaponDamage(
 export function getScalingValue(
   damageScaling: string | undefined,
   proficiency: number,
-  spellcastValue: number
+  spellcastValue: number,
+  tokenCount: number = 0
 ): number | false {
   switch (damageScaling) {
     case 'proficiency':
       return proficiency;
     case 'spellcast':
       return Math.max(1, spellcastValue);
+    case 'resource':
+      return tokenCount;
     default:
       return false;
   }

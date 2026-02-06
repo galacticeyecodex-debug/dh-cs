@@ -38,6 +38,7 @@
       "gains": {
         "damage_reduction_roll": "1d8"
       },
+      "duration": "active",
       "keywords": [
         "damage_reduction",
         "hope_cost",
@@ -78,6 +79,61 @@
         "damage_scaling": "resource",
         "resource_type": "tokens"
       },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false
+      }
+    },
+    "enhancement_override": {
+      "action_type": "attack",
+      "timing": "free",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "magic",
+        "stress_cost",
+        "tokens",
+        "spell"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "spellcast"
+      },
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Far",
+        "combat_category": "standalone_attack",
+        "damage": "d10",
+        "damage_type": "magic",
+        "targets": "single",
+        "damage_scaling": "resource",
+        "resource_type": "tokens"
+      },
+      "linked_costs": [
+        {
+          "resource": "tokens",
+          "amount": "X",
+          "label": "Damage",
+          "cost_label": "Spend {n} Tokens",
+          "benefit_label": "Roll {n}d10 Damage",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d10"
+          }
+        },
+        {
+          "resource": "stress",
+          "amount": 1,
+          "label": "Replenish Tokens",
+          "cost_label": "Mark Stress",
+          "benefit_label": "Replenish Tokens",
+          "action": {
+            "type": "replenish_tokens"
+          }
+        }
+      ],
       "roll": {
         "type": "Spellcast Roll",
         "trait": "Spellcast",
@@ -167,6 +223,23 @@
       "attack": {
         "range": "Very Far"
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
+      "keywords": [
+        "damage",
+        "hope_cost",
+        "movement",
+        "spell"
+      ],
+      "attack": {
+        "range": "Very Far"
+      },
+      "duration": "active"
     }
   },
   {
@@ -186,6 +259,21 @@
         "type": "Spellcast Roll",
         "trait": "Spellcast",
         "target_reaction": true
+      }
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "keywords": [
+        "spell"
+      ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false
+      },
+      "gains": {
+        "vault": true
       }
     }
   },
@@ -315,6 +403,36 @@
         "requires_cost_for_roll": true
       },
       "duration": "conditional"
+    },
+    "enhancement_override": {
+      "action_type": "attack",
+      "timing": "action",
+      "frequency": "at_will",
+      "costs": {
+        "stress": 2
+      },
+      "keywords": [
+        "damage",
+        "magic",
+        "aoe",
+        "stress_cost",
+        "spell"
+      ],
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Close",
+        "combat_category": "standalone_attack",
+        "damage": "2d8+4",
+        "damage_type": "magic",
+        "targets": "all_in_range",
+        "damage_scaling": "none"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false,
+        "requires_cost_for_roll": true
+      }
     }
   },
   {
@@ -352,6 +470,25 @@
         "difficulty": 15,
         "target_reaction": false
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "spell"
+      ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 15,
+        "target_reaction": false
+      },
+      "notes": [
+        {
+          "label": "Marking Location",
+          "placeholder": "Where did you leave the rift?"
+        }
+      ]
     }
   },
   {
@@ -440,6 +577,25 @@
         "trait": "Spellcast",
         "target_reaction": false
       }
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
+      "keywords": [
+        "hope_cost",
+        "movement",
+        "attack",
+        "spell"
+      ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false
+      },
+      "duration": "active"
     }
   },
   {
@@ -462,6 +618,34 @@
         "attack",
         "spell"
       ]
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "magic",
+        "hope_cost",
+        "attack",
+        "spell"
+      ],
+      "linked_costs": [
+        {
+          "resource": "hope",
+          "amount": "X",
+          "label": "Reflect Roll",
+          "cost_label": "Spend {n} Hope",
+          "benefit_label": "Roll {n}d6",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d6"
+          }
+        }
+      ],
+      "attack": {
+        "range": "Close",
+        "combat_category": "standalone_attack"
+      }
     }
   },
   {
@@ -493,6 +677,53 @@
         "difficulty": 14,
         "target_reaction": false
       }
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "once_per_long_rest",
+      "keywords": [
+        "damage",
+        "stress_cost",
+        "attack",
+        "spell",
+        "tokens"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": 12,
+        "initial_tokens": 1,
+        "token_source": "layers"
+      },
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Close",
+        "combat_category": "standalone_attack",
+        "difficulty": 14,
+        "damage_scaling": "none"
+      },
+      "linked_costs": [
+        {
+          "resource": "stress",
+          "amount": "X",
+          "label": "Mark Stress for Layers",
+          "cost_label": "Mark Stress",
+          "benefit_label": "Gain Layers",
+          "action": {
+            "type": "gain_tokens",
+            "amount_per_resource": 1
+          }
+        }
+      ],
+      "variable_roll": {
+        "source": "tokens",
+        "roll": "d6"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 14,
+        "target_reaction": false
+      }
     }
   },
   {
@@ -501,7 +732,7 @@
     "domain": "Arcana",
     "type": "Spell",
     "recall": "2",
-    "text": "Make a **Spellcast Roll (16)**. Once per rest on a success, all targets within Very Far range who aren’t flying must make a **Reaction Roll (18)**. Targets who fail take **3d10+8** physical damage and are temporarily Vulnerable. Targets who succeed take half damage.\n\nAdditionally, when you succeed on the **Spellcast Roll**, all terrain within Very Far range becomes difficult to move through and structures within this range might sustain damage or crumble.",
+    "text": "Make a **Spellcast Roll (16)**. Once per rest on a success, all targets within Very Far range who aren't flying must make a **Reaction Roll (18)**. Targets who fail take **3d10+8** physical damage and are temporarily Vulnerable. Targets who succeed take half damage.\n\nAdditionally, when you succeed on the **Spellcast Roll**, all terrain within Very Far range becomes difficult to move through and structures within this range might sustain damage or crumble.",
     "enhancement": {
       "timing": "reaction",
       "frequency": "once_per_rest",
@@ -532,6 +763,36 @@
         "difficulty": 16,
         "target_reaction": true
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_rest",
+      "keywords": [
+        "damage",
+        "physical",
+        "aoe",
+        "debuff",
+        "spell"
+      ],
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Very Far",
+        "combat_category": "standalone_attack",
+        "damage": "3d10+8",
+        "damage_type": "physical",
+        "targets": "all_in_range",
+        "difficulty": 16,
+        "secondary_effects": [
+          "vulnerable"
+        ],
+        "damage_scaling": "none"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 16,
+        "target_reaction": false
+      }
     }
   },
   {
@@ -555,6 +816,22 @@
         "difficulty": 15,
         "target_reaction": false
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_rest",
+      "keywords": [
+        "damage",
+        "movement",
+        "spell"
+      ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 15,
+        "target_reaction": false
+      },
+      "duration": "active"
     }
   },
   {
@@ -602,6 +879,47 @@
         "damage_type": "magic",
         "targets": "all_in_range",
         "damage_scaling": "none"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false
+      }
+    },
+    "enhancement_override": {
+      "action_type": "attack",
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "magic",
+        "aoe",
+        "stress_cost",
+        "spell"
+      ],
+      "linked_costs": [
+        {
+          "resource": "stress",
+          "amount": "X",
+          "label": "Damage Roll",
+          "cost_label": "Mark {n} Stress",
+          "benefit_label": "Roll {n}d20+{multiplier}",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d20",
+            "modifier_per_die": 2
+          }
+        }
+      ],
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Far",
+        "combat_category": "standalone_attack",
+        "damage": "1d20+2",
+        "damage_type": "magic",
+        "targets": "all_in_range",
+        "damage_scaling": "resource",
+        "resource_type": "stress"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -3093,8 +3411,7 @@
         "additional_damage": [
           {
             "damage": "1d8",
-            "condition": "If a target you hit is Vulnerable, they take an",
-            "label": "Vuln"
+            "condition": "If a target you hit is Vulnerable, they take an"
           }
         ],
         "damage": "1d8+2",
@@ -3228,6 +3545,28 @@
         "movement",
         "ability"
       ]
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "costs": {
+        "stress": 1
+      },
+      "keywords": [
+        "damage",
+        "stress_cost",
+        "debuff",
+        "ability"
+      ],
+      "attack": {
+        "additional_damage": [
+          {
+            "damage": "2d6",
+            "condition": "When attacking a Vulnerable target",
+            "label": "Extra"
+          }
+        ]
+      }
     }
   },
   {
@@ -3362,6 +3701,24 @@
         "movement",
         "spell"
       ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "hope_cost",
+        "movement",
+        "spell"
+      ],
+      "costs": {
+        "hope": 1
+      },
+      "notes": [
+        {
+          "label": "Retreat Location",
+          "placeholder": "Where did you activate Phantom Retreat?"
+        }
+      ]
     }
   },
   {
@@ -3417,6 +3774,26 @@
       "attack": {
         "range": "Close"
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "costs": {
+        "stress": 1
+      },
+      "keywords": [
+        "stress_cost",
+        "buff",
+        "spell"
+      ],
+      "attack": {
+        "range": "Close"
+      },
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": 8,
+        "token_source": "Countdown"
+      }
     }
   },
   {
@@ -3465,22 +3842,7 @@
       ],
       "gains": {
         "hope": 1
-      },
-      "modifiers": [
-        {
-          "stat": "damage",
-          "value": 0,
-          "formula": "fear_die",
-          "condition": {
-            "type": "when_active",
-            "loadout_domain_count": {
-              "domain": "midnight",
-              "minCount": 4
-            }
-          },
-          "source": "Midnight-Touched"
-        }
-      ]
+      }
     }
   },
   {
@@ -3590,7 +3952,20 @@
         "has_tokens": true,
         "max_tokens": null,
         "token_source": "spellcast"
-      }
+      },
+      "linked_costs": [
+        {
+          "resource": "tokens",
+          "amount": "X",
+          "label": "Damage",
+          "cost_label": "Spend {n} Tokens",
+          "benefit_label": "Add {n}d6 Damage",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d6"
+          }
+        }
+      ]
     }
   },
   {
@@ -3617,6 +3992,37 @@
       "attack": {
         "range": "Very Close"
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_long_rest",
+      "keywords": [
+        "damage",
+        "debuff",
+        "spell"
+      ],
+      "roll": {
+        "type": "Reaction Roll",
+        "trait": "Spellcast",
+        "difficulty": 16,
+        "target_reaction": true
+      },
+      "linked_costs": [
+        {
+          "resource": "fear",
+          "amount": "X",
+          "label": "Damage",
+          "cost_label": "Spend {n} Fear",
+          "benefit_label": "Roll {n}d6 Damage",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d6"
+          }
+        }
+      ],
+      "attack": {
+        "range": "Very Close"
+      }
     }
   },
   {
@@ -3638,6 +4044,35 @@
         "has_tokens": true,
         "max_tokens": null
       },
+      "attack": {
+        "range": "Far"
+      }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "tokens",
+        "ability"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null
+      },
+      "linked_costs": [
+        {
+          "resource": "tokens",
+          "amount": "X",
+          "label": "Damage",
+          "cost_label": "Spend {n} Tokens",
+          "benefit_label": "Roll {n}d12 Damage",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d12"
+          }
+        }
+      ],
       "attack": {
         "range": "Far"
       }
@@ -3697,7 +4132,8 @@
         "combat_category": "roll_only",
         "difficulty": 16,
         "damage_scaling": "none"
-      }
+      },
+      "duration": "active"
     }
   },
   {

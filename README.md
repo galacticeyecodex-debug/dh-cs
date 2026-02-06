@@ -420,27 +420,27 @@ This section tracks the implementation status of all domain cards and class feat
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
-| Rune Ward | 1 | ✅ | Hope cost, damage reduction formula |
-| Unleash Chaos | 1 | ✅ | Token tracking, Spellcast scaling, Stress replenish |
+| Rune Ward | 1 | ✅ | Hope cost, damage reduction roll implemented |
+| Unleash Chaos | 1 | ✅ | Token tracking, Spellcast scaling; Stress cost implemented |
 | Wall Walk | 1 | ✅ | Hope cost button |
-| Cinder Grasp | 2 | ✅ | Attack roll, damage |
-| Floating Eye | 2 | ✅ | Hope cost |
-| Counterspell | 3 | ✅ | Spellcast roll |
+| Cinder Grasp | 2 | ✅ | Attack roll, damage, extra damage button implemented |
+| Floating Eye | 2 | ✅ | Hope cost; Activate button implemented |
+| Counterspell | 3 | ✅ | Spellcast roll button; Return to vault cost button implemented |
 | Flight | 3 | ✅ | Token tracking (Agility-based) |
 | Blink Out | 4 | ✅ | Hope cost, roll DC |
 | Preservation Blast | 4 | ✅ | Attack + damage |
-| Chain Lightning | 5 | ✅ | Stress cost, attack + damage |
+| Chain Lightning | 5 | ✅ | Stress cost, attack + damage button implemented |
 | Premonition | 5 | ✅ | Once per long rest tracking |
-| Rift Walker | 6 | ✅ | Roll DC |
+| Rift Walker | 6 | ✅ | Spellcast roll implemented; "Marking Location" note added. |
 | Telekinesis | 6 | ✅ | Proficiency-scaled damage |
-| Arcana-Touched | 7 | ✅ | +1 Spellcast (4+ Arcana cards condition) |
-| Cloaking Blast | 7 | ✅ | Hope cost, roll |
-| Arcane Reflection | 8 | ✅ | Hope cost |
-| Confusing Aura | 8 | ✅ | Roll DC, once per long rest |
-| Earthquake | 9 | ✅ | Damage roll, DC, once per rest |
-| Sensory Projection | 9 | ✅ | Roll DC, once per rest |
+| Arcana-Touched | 7 | ✅ | +1 Spellcast (4+ Arcana cards condition); Once per rest tracking. |
+| Cloaking Blast | 7 | ✅ | Hope cost, roll; Activate button implemented |
+| Arcane Reflection | 8 | ✅ | Hope cost; Spend X Hope and Roll X d6s button implemented. |
+| Confusing Aura | 8 | ✅ | Spellcast roll, variable Stress cost for layers, and d6 roll button based on tokens implemented. |
+| Earthquake | 9 | ✅ | Damage roll, DC, once per rest; Missing the Spellcast roll. |
+| Sensory Projection | 9 | ✅ | Roll DC, once per rest; Needs an Activate button. |
 | Adjust Reality | 10 | ✅ | 5 Hope cost |
-| Falling Sky | 10 | ✅ | Attack + damage |
+| Falling Sky | 10 | ✅ | Attack + damage; Spend "any number" of Stress button missing. |
 
 ### Blood (21 cards) - Playtest Domain
 
@@ -581,21 +581,21 @@ This section tracks the implementation status of all domain cards and class feat
 | Uncanny Disguise | 1 | ✅ | Token tracking (Spellcast), Stress cost |
 | Midnight Spirit | 2 | ✅ | Hope cost, Spellcast-scaled damage |
 | Shadowbind | 2 | ✅ | Roll |
-| Chokehold | 3 | ✅ | Stress cost |
+| Chokehold | 3 | ⚠️ | Stress cost; Missing extra damage button |
 | Veil of Night | 3 | ✅ | Roll DC |
 | Glyph of Nightfall | 4 | ✅ | Hope cost, roll |
 | Stealth Expertise | 4 | ✅ | Stress cost |
 | Hush | 5 | ✅ | Hope cost, roll |
-| Phantom Retreat | 5 | ✅ | Hope cost |
+| Phantom Retreat | 5 | ⚠️ | Hope cost; Needs an Activate button |
 | Dark Whispers | 6 | ✅ | Stress cost, roll |
-| Mass Disguise | 6 | ✅ | Stress cost |
-| Midnight-Touched | 7 | ✅ | Fear Die damage bonus (fear_die formula), Stress cost, loadout_domain_count condition |
+| Mass Disguise | 6 | ✅ | Stress cost; Needs an Activate button variant that can countdown from 8. This could be a token tracker with 8 tokens or we could try to render a 3D d8. |
+| Midnight-Touched | 7 | ⚠️ | Fear Die damage bonus (fear_die formula), Stress cost, loadout_domain_count condition; The activated Modifier shouldn't be there. |
 | Vanishing Dodge | 7 | ✅ | Hope cost |
 | Shadowhunter | 8 | ✅ | +1 Evasion modifier (when_active, darkness-conditional) |
-| Spellcharge | 8 | ✅ | Token tracking (spellcast-based max) |
-| Night Terror | 9 | ✅ | Once per long rest, targets make Reaction Roll (DC 16) |
-| Twilight Toll | 9 | ✅ | Token tracking |
-| Eclipse | 10 | ✅ | Roll DC 16, once per long rest (no player cost - targets mark Stress) |
+| Spellcharge | 8 | ⚠️ | Token tracking (spellcast-based max); Needs a d6 extra damage button. |
+| Night Terror | 9 | ⚠️ | Once per long rest, targets make Reaction Roll (DC 16);Needs a d6 extra damage button. |
+| Twilight Toll | 9 | ⚠️ | Token tracking. Needs a d12 extra damage button. |
+| Eclipse | 10 | ⚠️ | Roll DC 16, once per long rest (no player cost - targets mark Stress). Needs an Activate button. |
 | Specter of the Dark | 10 | ✅ | Stress cost |
 
 ### Sage (21 cards)

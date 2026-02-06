@@ -71,6 +71,8 @@ export interface CardGains {
   hit_points_clear?: number; // Clear X Hit Points (heal)
   armor_slots_clear?: number; // Clear X Armor Slots (restore armor)
   damage_reduction_roll?: string; // Roll for damage reduction (e.g., "1d8")
+  replenish_tokens?: boolean; // If true, provides a button to replenish tokens to max
+  vault?: boolean; // If true, provides a button to return card to vault
 }
 
 /**
@@ -89,10 +91,17 @@ export interface CardAttack {
   combat_category?: CombatCategory; // Determines which buttons to show
   additional_damage?: AdditionalDamage[];
   is_triggered_bonus?: boolean; // True if this is bonus damage on a triggered ability, not a standalone attack
+  variable_cost?: {
+    resource: 'hope' | 'stress';
+    dice: string;
+    modifier_per_die?: number;
+    label?: string;
+  };
 }
 
 export interface AdditionalDamage {
   damage: string;
+  formula?: string;
   damage_type?: DamageType;
   condition?: string;
   label?: string; // Short label for the button, e.g. "Extra", "Hope"
@@ -181,6 +190,7 @@ export interface ThresholdModifiers {
 export interface CardTokens {
   has_tokens: boolean;
   max_tokens?: number | null; // null = dynamic based on trait
+  initial_tokens?: number; // Starting token count
   token_source?: string; // Which trait determines token count (e.g., "Agility")
   token_replenish?: TokenReplenish;
   tokens_per_use?: number; // How many tokens spent per use
@@ -207,6 +217,36 @@ export interface EnhancementBlock {
   modifiers?: CardModifier[];
   threshold_modifiers?: ThresholdModifiers;
   duration?: string;
+  variable_roll?: {
+    source: 'tokens' | 'hope' | 'stress';
+    roll: string;
+    label?: string;
+  };
+  variable_cost?: LinkedCost; // Deprecated, use linked_costs
+  linked_costs?: LinkedCost[];
+  notes?: Array<{
+    label: string;
+    placeholder?: string;
+  }>;
+}
+
+/**
+ * A cost that is explicitly linked to an action or gain.
+ * Can be fixed (amount: number) or variable (amount: 'X').
+ */
+export interface LinkedCost {
+  resource: 'hope' | 'stress' | 'tokens' | 'hit_points' | 'armor_slots' | 'fear' | 'custom';
+  amount: number | 'X';
+  label?: string; // Button/section label
+  cost_label?: string; // Descriptive cost text (e.g. "Mark {n} Stress")
+  benefit_label?: string; // Descriptive benefit text (e.g. "Gain {n} Tokens")
+  action?: {
+    type: 'gain_tokens' | 'variable_roll' | 'replenish_tokens' | 'custom';
+    amount_per_resource?: number;
+    dice?: string;
+    modifier_per_die?: number;
+    target_stat?: string;
+  };
 }
 
 /**
@@ -248,6 +288,7 @@ export interface CharacterCardState {
   is_active: boolean; // For persistent effects
   last_roll_result?: number; // Last roll result for token generation
   active_modifiers?: Record<string, boolean>; // Per-modifier activation state
+  notes?: Record<string, string>; // Persistent notes for the card (e.g., Rift Walker location)
 }
 
 /**
@@ -313,6 +354,7 @@ export interface ActiveEffectCheckboxProps {
 export interface CardTokenTrackProps {
   cardName: string;
   maxTokens: number | null;
+  initialTokens?: number;
   tokenSource?: string;
   currentTokens?: number;
   onTokenChange?: (tokens: number) => void;

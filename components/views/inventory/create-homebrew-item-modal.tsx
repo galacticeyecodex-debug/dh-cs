@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ModifierBuilder from '@/components/views/inventory/modifier-builder';
 import { Modifier } from '@/types/modifiers';
 import ConfirmDialog from '@/components/shared/confirm-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export interface HomebrewItemData {
   name: string;
@@ -408,61 +409,61 @@ export default function CreateHomebrewItemModal({
                     {/* Damage Type */}
                     <div>
                       <label htmlFor="damageType" className="block text-sm text-gray-400 mb-2">Damage Type</label>
-                      <select
-                        id="damageType"
-                        value={damageType}
-                        onChange={(e) => setDamageType(e.target.value)}
-                        className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
-                      >
-                        {DAMAGE_TYPE_OPTIONS.map(({ value, label }) => (
-                          <option key={value} value={value}>{label}</option>
-                        ))}
-                      </select>
+                      <Select value={damageType} onValueChange={setDamageType}>
+                        <SelectTrigger className="w-full h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DAMAGE_TYPE_OPTIONS.map(({ value, label }) => (
+                            <SelectItem key={value} value={value}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {/* Hand */}
                     <div>
                       <label htmlFor="weaponHand" className="block text-sm text-gray-400 mb-2">Hand</label>
-                      <select
-                        id="weaponHand"
-                        value={weaponHand}
-                        onChange={(e) => setWeaponHand(e.target.value)}
-                        className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
-                      >
-                        {WEAPON_HAND_OPTIONS.map(({ value, label }) => (
-                          <option key={value} value={value}>{label}</option>
-                        ))}
-                      </select>
+                      <Select value={weaponHand} onValueChange={setWeaponHand}>
+                        <SelectTrigger className="w-full h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {WEAPON_HAND_OPTIONS.map(({ value, label }) => (
+                            <SelectItem key={value} value={value}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {/* Trait */}
                     <div>
                       <label htmlFor="attackTrait" className="block text-sm text-gray-400 mb-2">Attack Trait</label>
-                      <select
-                        id="attackTrait"
-                        value={trait}
-                        onChange={(e) => setTrait(e.target.value)}
-                        className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
-                      >
-                        {TRAIT_OPTIONS.map(({ value, label }) => (
-                          <option key={value} value={value}>{label}</option>
-                        ))}
-                      </select>
+                      <Select value={trait} onValueChange={setTrait}>
+                        <SelectTrigger className="w-full h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TRAIT_OPTIONS.map(({ value, label }) => (
+                            <SelectItem key={value} value={value}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {/* Range */}
                     <div>
                       <label htmlFor="weaponRange" className="block text-sm text-gray-400 mb-2">Range</label>
-                      <select
-                        id="weaponRange"
-                        value={range}
-                        onChange={(e) => setRange(e.target.value)}
-                        className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
-                      >
-                        {RANGE_OPTIONS.map(({ value, label }) => (
-                          <option key={value} value={value}>{label}</option>
-                        ))}
-                      </select>
+                      <Select value={range} onValueChange={setRange}>
+                        <SelectTrigger className="w-full h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {RANGE_OPTIONS.map(({ value, label }) => (
+                            <SelectItem key={value} value={value}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {/* Damage */}
@@ -482,18 +483,16 @@ export default function CreateHomebrewItemModal({
                     {/* Burden */}
                     <div>
                       <label htmlFor="weaponBurden" className="block text-sm text-gray-400 mb-2">Burden</label>
-                      <select
-                        id="weaponBurden"
-                        value={burden}
-                        onChange={(e) => setBurden(e.target.value)}
-                        className="w-full p-3 rounded-lg bg-black/40 border border-white/20 text-white focus:border-dagger-gold outline-none"
-                      >
-                        {BURDEN_OPTIONS.map(({ value, label }) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
+                      <Select value={burden} onValueChange={setBurden}>
+                        <SelectTrigger className="w-full h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BURDEN_OPTIONS.map(({ value, label }) => (
+                            <SelectItem key={value} value={value}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
