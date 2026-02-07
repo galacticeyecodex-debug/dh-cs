@@ -13,7 +13,7 @@ This app was built to roll digital dice -- we don't all own real dice -- and to 
 
 To my knowledge, there is no other app that attempts to keep track of the modifiers and bonuses that come from your domain cards and other features.
 
-That said, it's a work in progress. We're only level 3, so not everything is implemented yet. Not every domain works yet. That's fine. We're having fun. And every week, I get feedback about how to make our game and this app better. It's open source, so if you want to use and improve it, you can fork it and make it better!
+The app is actively developed and supports full character progression from level 1 to 10 (Tiers 1-4). While most domain cards and class features are fully automated, development is ongoing to implement the remaining complex mechanics. It's open source, so if you want to use and improve it, you can fork it and make it better!
 
 # Daggerheart Dice & Character Creator
 
@@ -88,6 +88,7 @@ You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](ht
 ### Prerequisites
 
 - Node.js 20+ installed
+- npm (Node Package Manager)
 - A Supabase account and project
 - Google OAuth credentials (for authentication)
 
@@ -127,8 +128,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
    *   **Initialize Database**:
        In your Supabase project dashboard, navigate to the **SQL Editor** and execute the following scripts **in this order**:
 
-       1.  `supabase/schema.sql` - Creates core tables (`profiles`, `character_cards`, etc.) and RLS policies.
-       2.  `supabase/seed_library.sql` - Creates `characters` and `library` tables and populates game data.
+       1.  `supabase/schema.sql` - Creates core tables (`profiles`, `character_cards`, `characters`, etc.) and RLS policies.
+       2.  `supabase/seed_library.sql` - Populates the `library` table with game data (Classes, Cards, Items).
        3.  `supabase/storage.sql` - Sets up storage buckets for images.
 
        For each file:
@@ -143,11 +144,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
            npm run enhance-json
            ```
        2.  This updates the enhanced JSON files in `content/public/srd/json/`.
-       3.  To update the database, you can run the SQL seed scripts:
+       3.  Regenerate the SQL seed script:
            ```bash
            npm run seed:public
            ```
-       4.  Re-run the generated `supabase/seed_library.sql` in the Supabase SQL Editor to apply changes.
+       4.  This updates `supabase/seed_library.sql`. Re-run the updated file in the Supabase SQL Editor to apply changes to your database.
 
    *   **Configure Google OAuth (Required for Authentication)**:
 
@@ -244,7 +245,7 @@ dh-cs/
 │   └── ...               # Game logic helpers
 ├── public/               # Static assets
 ├── scripts/              # Node.js data processing scripts
-├── srd/                  # Source of Truth for game data (JSON files)
+├── content/public/srd/json/ # Source of Truth for game data (JSON files)
 ├── store/                # Zustand state management
 │   └── slices/           # Modular store slices (character, inventory, homebrew, etc.)
 ├── __tests__/            # Test suites (Vitest)
@@ -260,6 +261,9 @@ dh-cs/
 
 ### Required Reading
 📖 **[Development Workflow Guide](docs/development-workflow.md)** - MUST READ before contributing
+
+### SRD Research
+Before planning or implementing any changes to game mechanics, you **MUST** research the relevant documentation in the `content/public/srd/markdown/contents/` folder.
 
 ### TDD Cycle
 1. 🔴 **RED** - Write failing tests first
