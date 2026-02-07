@@ -44,6 +44,7 @@
           "keywords": [
             "damage",
             "stress_cost",
+            "attack",
             "ability"
           ]
         }
@@ -94,6 +95,7 @@
           "keywords": [
             "damage",
             "stress_cost",
+            "attack",
             "ability"
           ]
         }
@@ -185,6 +187,7 @@
           "keywords": [
             "stress_cost",
             "movement",
+            "attack",
             "ability"
           ],
           "modifiers": [
@@ -192,7 +195,7 @@
               "stat": "evasion",
               "value": 2,
               "condition": {
-                "type": "always"
+                "type": "when_active"
               },
               "source": "Wings"
             }
@@ -232,6 +235,7 @@
           "keywords": [
             "damage",
             "stress_cost",
+            "attack",
             "ability"
           ],
           "attack": {
@@ -390,6 +394,7 @@
           "timing": "free",
           "frequency": "at_will",
           "keywords": [
+            "attack",
             "ability"
           ]
         }
@@ -437,6 +442,7 @@
           },
           "keywords": [
             "stress_cost",
+            "attack",
             "ability"
           ],
           "attack": {
@@ -606,6 +612,7 @@
           "frequency": "at_will",
           "keywords": [
             "debuff",
+            "attack",
             "ability"
           ]
         }
@@ -622,6 +629,7 @@
           "keywords": [
             "damage",
             "hope_cost",
+            "attack",
             "ability"
           ],
           "attack": {

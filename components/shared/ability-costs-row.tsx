@@ -27,7 +27,7 @@ export function DomainCostsRow({
   className,
   disabled = false,
 }: DomainCostsRowProps) {
-  if (!costs || (!costs.hope && !costs.stress)) {
+  if (!costs || (!costs.hope && !costs.stress && !costs.hit_points)) {
     return null;
   }
 
@@ -51,6 +51,18 @@ export function DomainCostsRow({
           displayName={displayName}
           costType="hope"
           costValue={costs.hope}
+          disabled={disabled}
+          isActiveOverride={isActiveOverride}
+          onActivate={onActivate}
+          onDeactivate={onDeactivate}
+        />
+      )}
+      {costs.hit_points && (
+        <DomainAbilityButton
+          cardName={cardName}
+          displayName={displayName}
+          costType="hit_points"
+          costValue={costs.hit_points}
           disabled={disabled}
           isActiveOverride={isActiveOverride}
           onActivate={onActivate}

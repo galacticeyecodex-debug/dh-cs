@@ -21,6 +21,7 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useCharacterStore, CharacterCard, LibraryItem } from '@/store/character-store';
 import { AppIcons } from '@/lib/icon-utils';
+import { normalizeCardName } from '@/lib/utils';
 import AddItemModal from '@/components/views/inventory/add-item-modal';
 import clsx from 'clsx';
 import { MarkdownText } from '@/components/shared/markdown-text';
@@ -29,7 +30,7 @@ import ViewHeader from '@/components/shared/view-header';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import SRDInfoButton from '@/components/shared/srd-info-button';
 import ConfirmDialog from '@/components/shared/confirm-dialog';
-import { parseCardPassiveModifiers, parseCombatAbility, type PassiveModifier, type ModifierCondition } from '@/lib/card-parser';
+import { parseCardPassiveModifiers, parseCombatAbility, type PassiveModifier } from '@/lib/card-parser';
 import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
 import { uploadCharacterImage } from '@/lib/storage-service';
@@ -37,7 +38,7 @@ import { MAX_IMAGE_FILE_SIZE, MAX_IMAGE_FILE_SIZE_MB } from '@/lib/image-utils';
 import { getStatModifiers, getAllActiveModifiers } from '@/lib/modifier-aggregator';
 import Image from 'next/image';
 import PlaymatCard from './playmat-card';
-import type { EnhancedAbilityCard } from '@/types/cards';
+import type { EnhancedAbilityCard, ModifierCondition } from '@/types/cards';
 import { getAllAbilities, srdAncestries, srdCommunities } from '@/lib/content-loaders';
 import { getAttack, getRoll } from '@/lib/enhancement-utils';
 import useContentAccess from '@/hooks/useContentAccess';
@@ -46,6 +47,7 @@ import { SegmentedControl } from '@/components/ui/segmented-control';
 import { SearchInput } from '@/components/ui/search-input';
 import { Panel } from '@/components/ui/panel';
 import { PillButton } from '@/components/ui/pill-button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type ViewMode = 'loadout' | 'vault';
 
@@ -87,6 +89,8 @@ export default function PlaymatView() {
   }, [cardToRemove, removeCard]);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [domainFilter, setDomainFilter] = useState<string>('all');
+  const [levelFilter, setLevelFilter] = useState<string>('all');
 
   // Memoize enhanced abilities based on playtest setting
   // Also include ancestry and community features as they can appear on the playmat
@@ -123,21 +127,60 @@ export default function PlaymatView() {
     [character?.character_cards]
   );
 
-  // Vault cards can be filtered by search term
-  const vaultCards = useMemo(() => {
-    const allCards = character?.character_cards || [];
-    const vaultOnly = allCards.filter(card => card.location === 'vault');
-    if (!searchTerm) return vaultOnly;
-    const term = searchTerm.toLowerCase();
-    return vaultOnly.filter(card => {
-      const { name, domain, type } = card.library_item || {};
-      return (
-        name?.toLowerCase().includes(term) ||
-        domain?.toLowerCase().includes(term) ||
-        type?.toLowerCase().includes(term)
-      );
+  // Get all vault cards (unfiltered) for extracting available domains/levels
+  const allVaultCards = useMemo(() =>
+    (character?.character_cards || []).filter(card => card.location === 'vault'),
+    [character?.character_cards]
+  );
+
+  // Extract unique domains and levels from vault cards for filter options
+  const { availableDomains, availableLevels } = useMemo(() => {
+    const domains = new Set<string>();
+    const levels = new Set<number>();
+
+    allVaultCards.forEach(card => {
+      if (card.library_item?.domain) domains.add(card.library_item.domain);
+      if (card.library_item?.tier) levels.add(card.library_item.tier);
     });
-  }, [character?.character_cards, searchTerm]);
+
+    return {
+      availableDomains: Array.from(domains).sort(),
+      availableLevels: Array.from(levels).sort((a, b) => a - b)
+    };
+  }, [allVaultCards]);
+
+  // Vault cards filtered by search term, domain, and level
+  const vaultCards = useMemo(() => {
+    let filtered = allVaultCards;
+
+    // Apply domain filter
+    if (domainFilter !== 'all') {
+      filtered = filtered.filter(card =>
+        card.library_item?.domain?.toLowerCase() === domainFilter.toLowerCase()
+      );
+    }
+
+    // Apply level filter
+    if (levelFilter !== 'all') {
+      const level = parseInt(levelFilter, 10);
+      filtered = filtered.filter(card => card.library_item?.tier === level);
+    }
+
+    // Apply search term
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(card => {
+        const { name, domain, type } = card.library_item || {};
+        return (
+          name?.toLowerCase().includes(term) ||
+          domain?.toLowerCase().includes(term) ||
+          type?.toLowerCase().includes(term)
+        );
+      });
+    }
+
+    return filtered;
+  }, [allVaultCards, searchTerm, domainFilter, levelFilter]);
 
   const handleMoveCard = useCallback((cardId: string, destination: 'loadout' | 'vault') => {
     // Basic check for loadout limit
@@ -221,14 +264,43 @@ export default function PlaymatView() {
             </div>
           )}
 
-          {/* Vault Mode: Search Bar */}
+          {/* Vault Mode: Search Bar + Filters */}
           {viewMode === 'vault' && (
-            <div className="mt-2">
+            <div className="mt-2 space-y-2">
               <SearchInput
                 value={searchTerm}
                 onChange={setSearchTerm}
                 placeholder="Search vault cards..."
               />
+              {/* Domain and Level Filters */}
+              {allVaultCards.length > 0 && (
+                <div className="flex gap-2">
+                  {/* Domain Filter */}
+                  <Select value={domainFilter} onValueChange={setDomainFilter}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="All Domains" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Domains</SelectItem>
+                      {availableDomains.map(domain => (
+                        <SelectItem key={domain} value={domain}>{domain}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {/* Level Filter */}
+                  <Select value={levelFilter} onValueChange={setLevelFilter}>
+                    <SelectTrigger className="w-28">
+                      <SelectValue placeholder="All Levels" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      {availableLevels.map(level => (
+                        <SelectItem key={String(level)} value={String(level)}>Level {level}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -289,7 +361,8 @@ export default function PlaymatView() {
             <div className="flex flex-col gap-4">
               {loadoutCards.length > 0 ? (
                 loadoutCards.map((charCard) => {
-                  const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
+                  const normalizedLibraryName = normalizeCardName(charCard.library_item?.name || '');
+                  const enhancedData = enhancedAbilities.find(a => normalizeCardName(a.name) === normalizedLibraryName);
                   // Check if card has attack or roll (which means it has modifiers to manage)
                   const hasModifiers = !!(enhancedData && (getAttack(enhancedData) || getRoll(enhancedData)));
                   return (
@@ -332,10 +405,29 @@ export default function PlaymatView() {
         {/* Vault View */}
         {viewMode === 'vault' && (
           <div className="space-y-4">
+            {/* Card count */}
+            {allVaultCards.length > 0 && (
+              <div className="text-xs text-gray-500 text-center">
+                Showing {vaultCards.length} of {allVaultCards.length} card{allVaultCards.length !== 1 ? 's' : ''}
+                {(domainFilter !== 'all' || levelFilter !== 'all' || searchTerm) && (
+                  <button
+                    onClick={() => {
+                      setDomainFilter('all');
+                      setLevelFilter('all');
+                      setSearchTerm('');
+                    }}
+                    className="ml-2 text-dagger-gold hover:text-yellow-400 underline"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            )}
             {vaultCards.length > 0 ? (
               <div className="flex flex-col items-center gap-4">
                 {vaultCards.map((charCard) => {
-                  const enhancedData = enhancedAbilities.find(a => a.name === charCard.library_item?.name);
+                  const normalizedLibraryName = normalizeCardName(charCard.library_item?.name || '');
+                  const enhancedData = enhancedAbilities.find(a => normalizeCardName(a.name) === normalizedLibraryName);
                   // Check if card has attack or roll (which means it has modifiers to manage)
                   const hasModifiers = !!(enhancedData && (getAttack(enhancedData) || getRoll(enhancedData)));
                   return (
@@ -355,7 +447,9 @@ export default function PlaymatView() {
               </div>
             ) : (
               <div className="text-center text-gray-500 py-12">
-                {searchTerm ? "No cards in vault match your search." : "Your Vault is empty."}
+                {(searchTerm || domainFilter !== 'all' || levelFilter !== 'all')
+                  ? "No cards match your filters."
+                  : "Your Vault is empty."}
               </div>
             )}
           </div>
@@ -369,6 +463,8 @@ export default function PlaymatView() {
           libraryItems={allLibraryItems}
           filterType="cards"
           ownedCards={character?.character_cards}
+          characterDomains={character?.domains}
+          characterLevel={character?.level}
         />
 
         {/* Card Detail Modal */}
@@ -382,7 +478,7 @@ export default function PlaymatView() {
 
         {/* Ability Modifier Sheet */}
         {activeAbilityId && (() => {
-          const ability = enhancedAbilities.find(a => a.name === activeAbilityId);
+          const ability = enhancedAbilities.find(a => normalizeCardName(a.name) === normalizeCardName(activeAbilityId));
           if (!ability) return null;
 
           const tabs = [];

@@ -69,7 +69,8 @@ describe('CreateHomebrewItemModal', () => {
       fireEvent.click(screen.getByText('Weapon'));
       expect(screen.getByText('Weapon Properties')).toBeTruthy();
       expect(screen.getByLabelText(/^Damage$/)).toBeTruthy();
-      expect(screen.getByLabelText(/burden/i)).toBeTruthy();
+      // Burden is now a Radix Select, check for label text instead
+      expect(screen.getByText('Burden')).toBeTruthy();
     });
 
     it('should show armor fields when armor is selected', () => {

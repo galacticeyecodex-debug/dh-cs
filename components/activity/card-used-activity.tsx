@@ -51,6 +51,20 @@ export function CardUsedActivity({ activity, compact = false }: CardUsedActivity
                             <span className="text-xs text-gray-500">
                                 {cardData.cost_paid.hope && `• Spent ${cardData.cost_paid.hope} Hope`}
                                 {cardData.cost_paid.stress && `• +${cardData.cost_paid.stress} Stress`}
+                                {cardData.cost_paid.hit_points && `• Marked ${cardData.cost_paid.hit_points} HP`}
+                            </span>
+                        )}
+                        {cardData.gains && !compact && (
+                            <span className="text-xs text-gray-500">
+                                {cardData.gains.hope && `• Gained ${cardData.gains.hope} Hope`}
+                                {cardData.gains.stress && `• Cleared ${cardData.gains.stress} Stress`}
+                                {cardData.gains.hp && `• Healed ${cardData.gains.hp} HP`}
+                                {cardData.gains.armor && `• Restored ${cardData.gains.armor} Armor`}
+                            </span>
+                        )}
+                        {cardData.hope_gained && !compact && (
+                            <span className="text-xs text-gray-500">
+                                • Gained {cardData.hope_gained} Hope
                             </span>
                         )}
                     </div>

@@ -379,7 +379,8 @@ describe('hasCombatRelevance', () => {
     expect(hasCombatRelevance(card)).toBe(true);
   });
 
-  it('should return false for cards with damage keyword', () => {
+  // Cards with damage keyword ARE combat-relevant
+  it('should return true for cards with damage keyword', () => {
     const card: EnhancedAbilityCard = {
       name: 'Test',
       level: '1',
@@ -389,10 +390,11 @@ describe('hasCombatRelevance', () => {
       text: 'Test spell',
       keywords: ['damage'],
     };
-    expect(hasCombatRelevance(card)).toBe(false);
+    expect(hasCombatRelevance(card)).toBe(true);
   });
 
-  it('should return false for passive abilities without combat relevance', () => {
+  // Cards with buff keyword ARE combat-relevant (buffs affect combat)
+  it('should return true for passive abilities with buff keyword', () => {
     const card: EnhancedAbilityCard = {
       name: 'Test',
       level: '1',
@@ -402,6 +404,20 @@ describe('hasCombatRelevance', () => {
       text: 'Test ability',
       action_type: undefined,
       keywords: ['buff'],
+    };
+    expect(hasCombatRelevance(card)).toBe(true);
+  });
+
+  it('should return false for passive abilities without combat-relevant keywords', () => {
+    const card: EnhancedAbilityCard = {
+      name: 'Test',
+      level: '1',
+      domain: 'Arcana',
+      type: 'Ability',
+      recall: '1',
+      text: 'Test ability',
+      action_type: undefined,
+      keywords: ['spell'],
     };
     expect(hasCombatRelevance(card)).toBe(false);
   });

@@ -26,6 +26,7 @@ interface TemplateDefinition {
   armor: string;
   potion: 'health' | 'stamina';
   companion?: RangerCompanion;
+  stats?: { agility: number; strength: number; finesse: number; instinct: number; presence: number; knowledge: number; };
 }
 
 const DEFAULT_COMPANION: RangerCompanion = {
@@ -257,6 +258,90 @@ const TEMPLATES: Record<string, Record<string, TemplateDefinition>> = {
       armor: 'Robes',
       potion: 'stamina'
     }
+  },
+  // Playtest Classes
+  'Blood Hunter': {
+    'Order of the Ghost Slayer': {
+      subclassKeyword: 'Ghost',
+      ancestry: 'Human',
+      community: 'Ridgeborne',
+      experiences: ['Occult Investigator', 'Monster Hunter'],
+      primaryWeapon: 'Longsword',
+      secondaryWeapon: 'Dagger',
+      armor: 'Leather Armor', // Exact string match for basic armor
+      potion: 'health',
+      stats: { agility: 2, strength: -1, finesse: 1, instinct: 1, presence: 0, knowledge: 0 }
+    },
+    'Order of the Mutant': {
+      subclassKeyword: 'Mutant',
+      ancestry: 'Orc',
+      community: 'Ridgeborne',
+      experiences: ['Alchemist', 'Mutagenic Warrior'],
+      primaryWeapon: 'Longsword',
+      secondaryWeapon: 'Handaxe',
+      armor: 'Leather Armor',
+      potion: 'health',
+      stats: { agility: 2, strength: -1, finesse: 1, instinct: 1, presence: 0, knowledge: 0 }
+    },
+    'Order of the Lycan': {
+      subclassKeyword: 'Lycan',
+      ancestry: 'Simiah',
+      community: 'Wildborne',
+      experiences: ['Cursed Bloodline', 'Primal Hunter'],
+      primaryWeapon: 'Longsword',
+      secondaryWeapon: 'Dagger',
+      armor: 'Leather Armor',
+      potion: 'health',
+      stats: { agility: 2, strength: -1, finesse: 1, instinct: 1, presence: 0, knowledge: 0 }
+    }
+  },
+  'Witch': {
+    'Hedge': {
+      subclassKeyword: 'Hedge',
+      ancestry: 'Elf',
+      community: 'Wildborne',
+      experiences: ['Green Magic', 'Herbalist'],
+      primaryWeapon: 'Staff', // Dualstaff typically not in SRD base weapons
+      secondaryWeapon: 'Dagger',
+      armor: 'Leather Armor',
+      potion: 'stamina',
+      stats: { agility: 0, strength: -1, finesse: 0, instinct: 2, presence: 1, knowledge: 1 }
+    },
+    'Moon': {
+      subclassKeyword: 'Moon',
+      ancestry: 'Faerie',
+      community: 'Loreborne',
+      experiences: ['Lunar Magic', 'Fortune Teller'],
+      primaryWeapon: 'Staff',
+      secondaryWeapon: 'Dagger',
+      armor: 'Leather Armor',
+      potion: 'stamina',
+      stats: { agility: 0, strength: -1, finesse: 0, instinct: 2, presence: 1, knowledge: 1 }
+    }
+  },
+  'Brawler': {
+    'Juggernaut': {
+      subclassKeyword: 'Juggernaut',
+      ancestry: 'Dwarf',
+      community: 'Underborne',
+      experiences: ['Unstoppable Force', 'Tavern Brawler'],
+      primaryWeapon: 'Quarterstaff',
+      secondaryWeapon: 'Dagger',
+      armor: 'Leather Armor',
+      potion: 'health',
+      stats: { agility: 1, strength: 1, finesse: 0, instinct: 2, presence: 0, knowledge: -1 }
+    },
+    'Martial Artist': {
+      subclassKeyword: 'Martial',
+      ancestry: 'Human',
+      community: 'Highborne',
+      experiences: ['Disciplined Mind', 'Flowing Strike'],
+      primaryWeapon: 'Quarterstaff',
+      secondaryWeapon: 'Dagger',
+      armor: 'Leather Armor',
+      potion: 'health',
+      stats: { agility: 1, strength: 1, finesse: 0, instinct: 2, presence: 0, knowledge: -1 }
+    }
   }
 };
 
@@ -311,10 +396,11 @@ export function getTemplateForClass(
   const template = classTemplates[templateKey];
 
   // Get suggested traits from SRD JSON
+  // Get suggested traits from SRD JSON or Template
   const classDataFromSRD = classesData.find((c: any) => c.name === selectedClass.name);
-  const stats = classDataFromSRD?.suggested_traits
+  const stats = template.stats || (classDataFromSRD?.suggested_traits
     ? parseSuggestedTraits(classDataFromSRD.suggested_traits)
-    : { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 };
+    : { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 });
 
   // Find Ancestry
   const ancestry = findItemByName(libraryData.ancestries, template.ancestry);

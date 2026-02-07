@@ -43,7 +43,8 @@
 import type { EnhancedAbilityCard, CardModifier, CardStates } from '@/types/cards';
 import type { Character } from '@/types/character';
 import { getModifiers, isModifierActive } from './enhancement-utils';
-import { calculateDynamicValue, parseCardPassiveModifiers, getBareBonesBonuses, parseStaticModifiers, type PassiveModifier } from './card-parser';
+import { normalizeCardName } from '@/lib/utils';
+import { calculateDynamicValue, calculateTierScaledValue, parseCardPassiveModifiers, getBareBonesBonuses, parseStaticModifiers, type PassiveModifier } from './card-parser';
 import { validateModifierValue } from './modifier-validator';
 
 // ============================================================================
@@ -318,7 +319,7 @@ export function getAllActiveModifiers(
         const isCardActive = cardStates[cardName]?.is_active ?? false;
 
         // Check for enhanced JSON modifiers
-        const enhancedData = cachedEnhancedAbilities.find(a => a.name === cardName);
+        const enhancedData = cachedEnhancedAbilities.find(a => normalizeCardName(a.name) === normalizeCardName(cardName));
         if (enhancedData) {
             const jsonModifiers = getModifiers(enhancedData);
             if (jsonModifiers.length > 0) {
@@ -335,9 +336,8 @@ export function getAllActiveModifiers(
                     }
 
                     if (active) {
-                        const calculatedValue = mod.formula
-                            ? calculateDynamicValue(mod.formula, charForParsing as any)
-                            : mod.value;
+                        // Use tier scaling if available, otherwise formula or static value
+                        const calculatedValue = calculateTierScaledValue(mod, charForParsing as any);
 
                         allModifiers.push({
                             stat: mod.stat,
@@ -593,6 +593,11 @@ function getClassModifiers(character: Character, stat: string): ModifierSource[]
  * Get modifiers from subclass features.
  * Extracts from foundation_features, specialization_features, mastery_features
  * based on character's subclass_progression.
+ *
+ * Priority order:
+ * 1. enhancement.modifiers (from enhanced JSON - most precise)
+ * 2. stat_bonuses (structured data)
+ * 3. text parsing (fallback)
  */
 function getSubclassModifiers(character: Character, stat: string): ModifierSource[] {
     const modifiers: ModifierSource[] = [];
@@ -608,7 +613,45 @@ function getSubclassModifiers(character: Character, stat: string): ModifierSourc
         if (!features || !Array.isArray(features)) return;
 
         features.forEach((feature: any) => {
-            // Check structured stat_bonuses FIRST
+            // Priority 1: Check enhancement.modifiers (from enhanced JSON)
+            const enhancedMods = feature.enhancement?.modifiers;
+            if (enhancedMods && Array.isArray(enhancedMods)) {
+                // Handle "damage_threshold" stat which applies to all three thresholds
+                const matchingMods = enhancedMods.filter((mod: any) => {
+                    if (mod.stat === stat) return true;
+                    // "damage_threshold" applies to minor, major, and severe
+                    if (mod.stat === 'damage_threshold' &&
+                        (stat === 'damage_threshold_minor' ||
+                            stat === 'damage_threshold_major' ||
+                            stat === 'damage_threshold_severe')) {
+                        return true;
+                    }
+                    return false;
+                });
+
+                if (matchingMods.length > 0) {
+                    matchingMods.forEach((mod: any, index: number) => {
+                        // Check if modifier is active (always, when_active, etc.)
+                        const isActive = !mod.condition || mod.condition.type === 'always';
+                        if (isActive) {
+                            const calculatedValue = mod.formula
+                                ? calculateDynamicValue(mod.formula, character)
+                                : mod.value;
+
+                            modifiers.push({
+                                id: `subclass-${tier}-${feature.name}-enhanced-${stat}-${index}`,
+                                name: `${subclassName}: ${feature.name}`,
+                                value: validateModifierValue(calculatedValue),
+                                source: 'subclass',
+                                type: 'subclass'
+                            });
+                        }
+                    });
+                    return; // Skip other extraction methods if we found enhanced modifiers
+                }
+            }
+
+            // Priority 2: Check structured stat_bonuses
             const hasStructuredBonus = feature.stat_bonuses &&
                 Object.keys(feature.stat_bonuses).includes(stat);
 
@@ -621,7 +664,7 @@ function getSubclassModifiers(character: Character, stat: string): ModifierSourc
                     type: 'subclass'
                 });
             } else if (feature.text) {
-                // Fallback to text parsing
+                // Priority 3: Fallback to text parsing
                 const featureSource = `${subclassName}: ${feature.name}`;
                 const textMods = parseStaticModifiers(feature.text, featureSource);
                 textMods.filter(mod => mod.stat === stat).forEach((mod, index) => {
@@ -661,6 +704,43 @@ function getSubclassModifiers(character: Character, stat: string): ModifierSourc
             if (!features || !Array.isArray(features)) return;
 
             features.forEach((feature: any) => {
+                // Priority 1: Check enhancement.modifiers (from enhanced JSON)
+                const enhancedMods = feature.enhancement?.modifiers;
+                if (enhancedMods && Array.isArray(enhancedMods)) {
+                    // Handle "damage_threshold" stat which applies to all three thresholds
+                    const matchingMods = enhancedMods.filter((mod: any) => {
+                        if (mod.stat === stat) return true;
+                        if (mod.stat === 'damage_threshold' &&
+                            (stat === 'damage_threshold_minor' ||
+                                stat === 'damage_threshold_major' ||
+                                stat === 'damage_threshold_severe')) {
+                            return true;
+                        }
+                        return false;
+                    });
+
+                    if (matchingMods.length > 0) {
+                        matchingMods.forEach((mod: any, index: number) => {
+                            const isActive = !mod.condition || mod.condition.type === 'always';
+                            if (isActive) {
+                                const calculatedValue = mod.formula
+                                    ? calculateDynamicValue(mod.formula, character)
+                                    : mod.value;
+
+                                modifiers.push({
+                                    id: `multiclass-${tier}-${feature.name}-enhanced-${stat}-${index}`,
+                                    name: `${multiclassName}: ${feature.name}`,
+                                    value: validateModifierValue(calculatedValue),
+                                    source: 'subclass',
+                                    type: 'multiclass'
+                                });
+                            }
+                        });
+                        return;
+                    }
+                }
+
+                // Priority 2: Check structured stat_bonuses
                 const hasStructuredBonus = feature.stat_bonuses &&
                     Object.keys(feature.stat_bonuses).includes(stat);
 
@@ -673,6 +753,7 @@ function getSubclassModifiers(character: Character, stat: string): ModifierSourc
                         type: 'multiclass'
                     });
                 } else if (feature.text) {
+                    // Priority 3: Fallback to text parsing
                     const featureSource = `${multiclassName}: ${feature.name}`;
                     const textMods = parseStaticModifiers(feature.text, featureSource);
                     textMods.filter(mod => mod.stat === stat).forEach((mod, index) => {
@@ -757,7 +838,10 @@ function getEquipmentModifiers(character: Character, stat: string): ModifierSour
 }
 
 /**
- * Get modifiers from domain cards in loadout
+ * Get modifiers from domain cards in loadout (and vault cards with permanent modifiers)
+ *
+ * Cards with `when_active_permanent` condition apply even from the vault.
+ * This is used for cards like Vitality where you make a permanent choice.
  */
 function getDomainCardModifiers(
     character: any,
@@ -768,16 +852,17 @@ function getDomainCardModifiers(
 
     if (!character.character_cards) return modifiers;
 
-    const loadoutCards = character.character_cards.filter(
-        (card: any) => card.location === 'loadout'
-    );
+    // Process all cards (loadout and vault) - we'll filter based on condition type
+    const allCards = character.character_cards;
 
-    loadoutCards.forEach((card: any) => {
+    allCards.forEach((card: any) => {
         const cardName = card.library_item?.name;
         if (!cardName || !card.library_item?.data) return;
 
-        // Special case: Bare Bones
-        if (cardName === 'Bare Bones') {
+        const isInLoadout = card.location === 'loadout';
+
+        // Special case: Bare Bones (only applies from loadout)
+        if (cardName === 'Bare Bones' && isInLoadout) {
             const bareBonesModifiers = getBareBonesBonuses(character);
             bareBonesModifiers
                 .filter((mod: any) => mod.stat === stat && mod.isActive)
@@ -797,7 +882,7 @@ function getDomainCardModifiers(
 
         // Check enhanced JSON modifiers first
         const enhancedData = cachedEnhancedAbilities.find(
-            (a: EnhancedAbilityCard) => a.name === cardName
+            (a: EnhancedAbilityCard) => normalizeCardName(a.name) === normalizeCardName(cardName)
         );
 
         if (enhancedData) {
@@ -808,9 +893,16 @@ function getDomainCardModifiers(
             jsonModifiers.forEach((mod, absIndex) => {
                 if (mod.stat !== stat) return;
 
+                // For vault cards, only process when_active_permanent modifiers
+                if (!isInLoadout && mod.condition?.type !== 'when_active_permanent') {
+                    return;
+                }
+
                 // Determine activation
                 let isActive: boolean;
-                if (mod.condition?.type === 'when_active' || mod.condition?.type === 'cost_activated') {
+                if (mod.condition?.type === 'when_active' ||
+                    mod.condition?.type === 'when_active_permanent' ||
+                    mod.condition?.type === 'cost_activated') {
                     const modifierKey = `${mod.stat}-${absIndex}`;
                     isActive = cardStates[cardName]?.active_modifiers?.[modifierKey] ?? false;
                 } else {
@@ -818,9 +910,8 @@ function getDomainCardModifiers(
                 }
 
                 if (isActive) {
-                    const calculatedValue = mod.formula
-                        ? calculateDynamicValue(mod.formula, character)
-                        : mod.value;
+                    // Use tier scaling if available, otherwise formula or static value
+                    const calculatedValue = calculateTierScaledValue(mod, character);
 
                     modifiers.push({
                         id: `card-${card.id}-enhanced-${mod.stat}-${absIndex}`,
@@ -838,7 +929,9 @@ function getDomainCardModifiers(
             return;
         }
 
-        // Fallback: Text parsing
+        // Fallback: Text parsing (only for loadout cards)
+        if (!isInLoadout) return;
+
         const cardModifiers = parseCardPassiveModifiers(card, character, isCardActive);
         cardModifiers
             .filter((mod: any) => mod.stat === stat && mod.isActive)
@@ -866,7 +959,7 @@ export function getCardModifiersForDisplay(
 ): PassiveModifier[] {
     if (!character) return [];
 
-    const enhancedData = cachedEnhancedAbilities.find(a => a.name === cardName);
+    const enhancedData = cachedEnhancedAbilities.find(a => normalizeCardName(a.name) === normalizeCardName(cardName));
     if (!enhancedData) return [];
 
     const traitsWithTotals = calculateTraitsWithTotals(character, 'all');
@@ -885,9 +978,8 @@ export function getCardModifiersForDisplay(
             active = isModifierActive(mod, isCardActive, charForParsing as any);
         }
 
-        const calculatedValue = mod.formula
-            ? calculateDynamicValue(mod.formula, charForParsing as any)
-            : mod.value;
+        // Use tier scaling if available, otherwise formula or static value
+        const calculatedValue = calculateTierScaledValue(mod, charForParsing as any);
 
         return {
             stat: mod.stat,

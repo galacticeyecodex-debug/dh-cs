@@ -2,6 +2,19 @@
   <img src="images/logo_transparent.png" alt="Daggerheart Companion Logo" width="200"/>
 </p>
 
+# Why Does This App Exist?
+First, let me say that this repository is 1) free, 2) open source, and 3) available for use by anyone who wants to use it, and 4) very much a work in progress.
+
+I play Daggerheary once a week with my children, brother, and sister for our compaign set in the magical university of Stixhaven. We started out with D&D 5e, but I convinced them to try Daggerheart. I love the system! The family was very generous to let us use this system for our games, which was mostly because I fely that it would be more fun to run than D&D.
+
+There was a problem though. We are all fairly inexperienced with TTRPGs and since we live in different states, we rely on digital tools to play the game. For D&D, we relied heavily on D&D Beyond to keep track of our characters and to help use understand the rules. At the time, there was no such tool for Daggerheart. So I decided to build one.
+
+This app was built to roll digital dice -- we don't all own real dice -- and to keep track of the math behind the game.
+
+To my knowledge, there is no other app that attempts to keep track of the modifiers and bonuses that come from your domain cards and other features.
+
+That said, it's a work in progress. We're only level 3, so not everything is implemented yet. Not every domain works yet. That's fine. We're having fun. And every week, I get feedback about how to make our game and this app better. It's open source, so if you don't want to use and improve it, you can fork it and make it better!
+
 # Daggerheart Dice & Character Creator
 
 A mobile-first, digital character sheet for the [Daggerheart](https://darringtonpress.com/daggerheart/) Tabletop RPG. Built with Next.js 15, TypeScript, and Supabase.
@@ -391,3 +404,369 @@ This application is provided "as-is" without warranty of any kind. While we stri
 - Card layout and design inspiration from [daggerheartbrews.com](https://daggerheartbrews.com)
 - Original authentication boilerplate from [shsfwork/supabase-auth-nextjs-google-boilerplate](https://github.com/shsfwork/supabase-auth-nextjs-google-boilerplate)
 - LLMs were used to generate a lot of the code for this project, so if you have objections to that, you may not want to use this project.
+
+# Release v1.0 - Implementation Status
+
+This section tracks the implementation status of all domain cards and class features. Use this to understand what's fully working vs. what requires manual tracking.
+
+**Legend:**
+- ✅ **Fully Implemented** - All mechanics work automatically (modifiers apply, tokens track, costs deduct, rolls work)
+- ⚠️ **Partial** - Core mechanics work but some features require manual tracking
+- ❌ **Manual Only** - Card text displays but mechanics require manual interpretation
+
+## Domain Cards by Domain
+
+### Arcana (21 cards) ✅
+
+| Card | Tier | Status | Notes |
+|------|------|--------|-------|
+| Rune Ward | 1 | ✅ | Hope cost, damage reduction roll implemented |
+| Unleash Chaos | 1 | ✅ | Token tracking, Spellcast scaling; Stress cost implemented |
+| Wall Walk | 1 | ✅ | Hope cost button |
+| Cinder Grasp | 2 | ✅ | Attack roll, damage, extra damage button implemented |
+| Floating Eye | 2 | ✅ | Hope cost; Activate button implemented |
+| Counterspell | 3 | ✅ | Spellcast roll button; Return to vault cost button implemented |
+| Flight | 3 | ✅ | Token tracking (Agility-based) |
+| Blink Out | 4 | ✅ | Hope cost, roll DC |
+| Preservation Blast | 4 | ✅ | Attack + damage |
+| Chain Lightning | 5 | ✅ | Stress cost, attack + damage button implemented |
+| Premonition | 5 | ✅ | Once per long rest tracking |
+| Rift Walker | 6 | ✅ | Spellcast roll implemented; "Marking Location" note added. |
+| Telekinesis | 6 | ✅ | Proficiency-scaled damage |
+| Arcana-Touched | 7 | ✅ | +1 Spellcast (4+ Arcana cards condition); Once per rest tracking. |
+| Cloaking Blast | 7 | ✅ | Hope cost, roll; Activate button implemented |
+| Arcane Reflection | 8 | ✅ | Hope cost; Spend X Hope and Roll X d6s button implemented. |
+| Confusing Aura | 8 | ✅ | Spellcast roll, variable Stress cost for layers, and d6 roll button based on tokens implemented. |
+| Earthquake | 9 | ✅ | Damage roll, DC, once per rest; Missing the Spellcast roll. |
+| Sensory Projection | 9 | ✅ | Roll DC, once per rest; Needs an Activate button. |
+| Adjust Reality | 10 | ✅ | 5 Hope cost |
+| Falling Sky | 10 | ✅ | Attack + damage; Spend "any number" of Stress button missing. |
+
+### Blood (21 cards) - Playtest Domain ✅
+
+| Card | Tier | Status | Notes |
+|------|------|--------|-------|
+| Blood Spike | 1 | ✅ | Spellcast roll, d10 damage, Stress cost, proficiency scaling |
+| Lifeblood Talisman | 1 | ✅ | HP cost button, Hope cost implemented |
+| Power Through Pain | 1 | ✅ | Damage bonus is dynamic (2× marked HP) |
+| Brand of Castigation | 2 | ✅ | Stress cost implemented |
+| Vitality Manipulation | 2 | ✅ | Stress cost, Spellcast roll, buff/debuff choice |
+| Burning Blood | 3 | ✅ | HP cost button, DC 12 Spellcast roll, AoE |
+| Blood Puppet | 3 | ✅ | Hope cost, Spellcast roll, d10 physical damage |
+| Grisly Harpoon | 4 | ✅ | Stress cost, DC 13, 3d8 magic damage, movement |
+| Weave the Flesh | 4 | ✅ | HP cost button, once per rest, Stress cost for enhanced effect |
+| Mutual Suffering | 5 | ✅ | Reaction timing, Spellcast roll, once per rest frequency |
+| Parasite of the Will | 5 | ✅ | HP cost button, Hope cost, Spellcast roll, advantage buff |
+| Vital Ward | 6 | ✅ | HP cost button, resistance to physical/magic damage |
+| Blood Bind | 6 | ✅ | Stress cost, d10 damage, Restrained + Vulnerable |
+| Blood-Touched | 7 | ✅ | Evasion bonus is dynamic (+1 per 3 HP marked) |
+| Vampiric Strike | 7 | ✅ | Hope cost, Clear HP button, Clear Stress button implemented |
+| Life Leash | 8 | ✅ | Hope cost implemented; rest duration is complicated and should not be implemented |
+| Runic Adrenaline | 8 | ✅ | HP cost button for d8 bonus, advantage die upgrade is narrative |
+| Bloodbath | 9 | ✅ | Once per rest, Hope cost, AoE Spellcast roll |
+| Glyph of Hemorrhaging | 9 | ✅ | HP cost button, Stress cost, Spellcast roll |
+| Crimson Adamance | 10 | ✅ | Hope and Stress costs implemented |
+| Sanguine Feast | 10 | ✅ | 2 Hope cost and Spellcast roll implemented |
+
+### Blade (21 cards) ✅
+
+| Card | Tier | Status | Notes |
+|------|------|--------|-------|
+| Get Back Up | 1 | ✅ | Stress cost implemented |
+| Not Good Enough | 1 | ⚠️ | Damage dice rerolling of 1s and 2s not implemented, but could be added later |
+| Whirlwind | 1 | ✅ | Hope cost implemented |
+| A Soldier's Bond | 2 | ✅ | Gain 3 Hope button implemented |
+| Reckless | 2 | ✅ | Stress cost implemented; User must choose to roll with advantage. Advantage rolls not specifically implemented, but can be configured in the dice roller |
+| Scramble | 3 | ✅ | Once per rest implemented |
+| Versatile Fighter | 3 | ✅ | Stress cost implemented, everything else must be handled by the user |
+| Deadly Focus | 4 | ✅ | +1 Proficiency modifier with when_active condition |
+| Fortified Armor | 4 | ✅ | +2 damage threshold modifier with when_armored condition |
+| Champion's Edge | 5 | ✅ | Hope cost, Heal HP, and Restore Armor buttons implemented |
+| Vitality | 5 | ✅ | 3 activation buttons for modifiers that are still active in the Loadout |
+| Battle-Hardened | 6 | ✅ | Hope cost, once per long rest implemented; effects must be applied by user |
+| Rage Up | 6 | ✅ | Stress cost, +2×Strength damage modifier (when_active) |
+| Blade-Touched | 7 | ✅ | +2 attack, +4 severe threshold (loadout_domain_count: 4+ Blade cards) |
+| Glancing Blow | 7 | ✅ | Stress cost implemented |
+| Battle Cry | 8 | ✅ | Once per long rest implemented |
+| Frenzy | 8 | ✅ | +10 damage, +8 severe threshold (when_active) |
+| Gore and Glory | 9 | ✅ | Gain Hope and Clear Stress buttons implemented |
+| Reaper's Strike | 9 | ✅ | Hope cost, once per long rest implemented |
+| Battle Monster | 10 | ✅ | 4 Stress cost, HP modifier |
+| Onslaught | 10 | ✅ | Stress cost implemented |
+
+### Bone (21 cards) ⚠️
+
+| Card | Tier | Status | Notes |
+|------|------|--------|-------|
+| Deft Maneuvers | 1 | ✅ | +1 attack modifier, Stress cost |
+| I See It Coming | 1 | ✅ | Evasion bonus from d4 roll (roll_result formula) |
+| Untouchable | 1 | ✅ | Evasion = half Agility formula |
+| Ferocity | 2 | ✅ | 2 Hope cost |
+| Strategic Approach | 2 | ✅ | Token tracking (Knowledge-based) |
+| Brace | 3 | ✅ | Stress cost |
+| Tactician | 3 | ✅ | Hope cost |
+| Boost | 4 | ✅ | Stress cost, attack |
+| Redirect | 4 | ✅ | Stress cost, attack |
+| Know Thy Enemy | 5 | ✅ | Hope + Stress cost, roll |
+| Signature Move | 5 | ✅ | Once per rest |
+| Rapid Riposte | 6 | ✅ | Stress cost, attack |
+| Recovery | 6 | ✅ | Hope cost |
+| Bone-Touched | 7 | ✅ | +1 Agility (4+ Bone cards), 3 Hope cost |
+| Cruel Precision | 7 | ✅ | Damage = Finesse OR Agility (dual when_active modifiers) |
+| Breaking Blow | 8 | ✅ | Stress cost |
+| Wrangle | 8 | ✅ | Hope cost, roll |
+| On the Brink | 9 | ⚠️ | Utility - conditional Hope gain |
+| Splintering Strike | 9 | ✅ | Hope cost, once per long rest |
+| Deathrun | 10 | ✅ | +1 Proficiency, 3 Hope cost |
+| Swift Step | 10 | ⚠️ | Utility - movement |
+
+### Codex (21 cards) ⚠️
+
+| Card | Tier | Status | Notes |
+|------|------|--------|-------|
+| Book of Ava | 1 | ✅ | +1 Armor Score, Hope cost, attack |
+| Book of Illiat | 1 | ✅ | Hope cost, token-scaled damage |
+| Book of Tyfar | 1 | ✅ | Stress cost, attack + damage |
+| Book of Sitil | 2 | ✅ | 2 Hope cost, roll DC |
+| Book of Vagras | 2 | ✅ | Hope cost, roll DC, once per rest |
+| Book of Korvax | 3 | ✅ | Hope + Stress cost, damage, roll DC |
+| Book of Norai | 3 | ✅ | Stress cost, high damage |
+| Book of Exota | 4 | ✅ | Hope cost, damage, once per rest |
+| Book of Grynn | 4 | ✅ | Hope cost, damage, roll DC, once per long rest |
+| Manifest Wall | 5 | ✅ | Hope cost, roll DC, once per rest |
+| Teleport | 5 | ✅ | Roll DC, once per long rest |
+| Banish | 6 | ✅ | Stress cost, roll, once per rest |
+| Sigil of Retribution | 6 | ✅ | Token tracking |
+| Book of Homet | 7 | ✅ | Roll DC, once per long rest |
+| Codex-Touched | 7 | ✅ | Spellcast = Proficiency (4+ Codex cards) |
+| Book of Vyola | 8 | ✅ | Hope cost, roll, once per long rest |
+| Safe Haven | 8 | ✅ | 2 Hope cost |
+| Book of Ronin | 9 | ✅ | Roll DC, once per long rest |
+| Disintegration Wave | 9 | ✅ | Stress cost, roll DC, once per long rest |
+| Book of Yarrow | 10 | ✅ | 5 Hope cost, roll DC |
+| Transcendent Union | 10 | ✅ | 5 Hope cost, once per long rest |
+
+### Dread (21 cards) - Playtest Domain ⚠️
+
+| Card | Tier | Status | Notes |
+|------|------|--------|-------|
+| Blighting Strike | 1 | ✅ | Spellcast roll, d6+1/d10+1 magic damage, Proficiency scaling |
+| Voice of Dread | 1 | ✅ | Spellcast roll, mark a Stress, Vulnerable debuff |
+| Umbral Veil | 1 | ✅ | Frequency once_per_rest, token tracking (Hope-based) |
+| Hideous Retribution | 2 | ✅ | Reaction timing, Spellcast roll, d6 magic damage, Stress cost |
+| Siphon Essence | 2 | ✅ | Frequency once_per_long_rest, d20 magic damage, healing, Proficiency bonus |
+| Shared Trauma | 3 | ✅ | Frequency once_per_rest, Melee range, healing keyword |
+| Terrify | 3 | ✅ | Spellcast roll, 1d4 Stress damage, movement effect, Vulnerable debuff |
+| Chains of Affliction | 4 | ✅ | Stress cost, Close range, damage reduction effect |
+| Summon Horror | 4 | ✅ | Spellcast roll, Hope cost, d10 magic damage, Reaction Roll (12) for Stress |
+| Spectral Mist | 5 | ✅ | Stress cost, Close range, incorporeal effect, movement keyword |
+| Dire Strike | 5 | ✅ | Hope cost, leach power (GM loses Fear) |
+| Darkfire | 6 | ✅ | AoE Spellcast roll, Hope cost, d8+6 magic damage, Reaction Roll (14) |
+| Jump Scare | 6 | ✅ | Stress cost, teleport (movement), Vulnerable debuff |
+| Dread-Touched | 7 | ✅ | Frequency once_per_rest, Stress cost, loadout condition |
+| Wall of Hunger | 7 | ✅ | Spellcast Roll (13), Restrained debuff, control keyword |
+| Dark Army | 8 | ✅ | Frequency once_per_long_rest, token tracking (8 tokens), d8 damage/reduction |
+| Eldritch Flesh | 8 | ✅ | Damage threshold modifier (Stress-scaled), Hope cost |
+| Damnation | 9 | ✅ | Spellcast roll, Stress-scaled d20s damage, AoE debuff |
+| Savor the Anguish | 9 | ✅ | Hope cost, Stress relief / GM Fear loss |
+| Avatar of Terror | 10 | ✅ | Transformation (utility), Stress cost, damage bonus (Fear-scaled), Hope gain |
+| Invoke Torment | 10 | ✅ | Passive damage bonus, Stress relief |
+
+### Grace (21 cards) ⚠️
+
+| Card | Tier | Status | Notes |
+|------|------|--------|-------|
+| Deft Deceiver | 1 | ✅ | Hope cost |
+| Enrapture | 1 | ✅ | Stress cost, roll, once per rest |
+| Inspirational Words | 1 | ✅ | Token tracking (Presence-based) |
+| Tell No Lies | 2 | ✅ | Stress cost, roll |
+| Troublemaker | 2 | ✅ | Roll, once per rest |
+| Hypnotic Shimmer | 3 | ✅ | Stress cost, roll, once per rest |
+| Invisibility | 3 | ✅ | Token tracking (Spellcast), Stress cost |
+| Soothing Speech | 4 | ⚠️ | Utility - narrative |
+| Through Your Eyes | 4 | ⚠️ | Utility - narrative |
+| Thought Delver | 5 | ✅ | Hope cost, roll |
+| Words of Discord | 5 | ✅ | Stress cost, roll DC |
+| Never Upstaged | 6 | ✅ | Token tracking, +5 damage modifier |
+| Share the Burden | 6 | ✅ | Once per rest |
+| Endless Charisma | 7 | ✅ | Hope cost |
+| Grace-Touched | 7 | ⚠️ | Utility - advantage mechanic |
+| Astral Projection | 8 | ✅ | Stress cost, once per long rest |
+| Mass Enrapture | 8 | ✅ | Stress cost, roll |
+| Copycat | 9 | ⚠️ | Complex - copy another card |
+| Master of the Craft | 9 | ⚠️ | Utility - narrative |
+| Encore | 10 | ✅ | Roll |
+| Notorious | 10 | ✅ | Stress cost |
+
+### Midnight (21 cards) ✅
+
+| Card | Tier | Status | Notes |
+|------|------|--------|-------|
+| Pick and Pull | 1 | ✅ | Utility - narrative |
+| Rain of Blades | 1 | ✅ | Hope cost, attack + damage |
+| Uncanny Disguise | 1 | ✅ | Token tracking (Spellcast), Stress cost |
+| Midnight Spirit | 2 | ✅ | Hope cost, Spellcast-scaled damage |
+| Shadowbind | 2 | ✅ | Roll |
+| Chokehold | 3 | ✅ | Stress cost; Extra damage button implemented |
+| Veil of Night | 3 | ✅ | Roll Spellcast implemented |
+| Glyph of Nightfall | 4 | ✅ | Hope cost, roll |
+| Stealth Expertise | 4 | ✅ | Stress cost |
+| Hush | 5 | ✅ | Hope cost, roll |
+| Phantom Retreat | 5 | ✅ | Hope cost; Note section implemented |
+| Dark Whispers | 6 | ✅ | Stress cost, roll |
+| Mass Disguise | 6 | ✅ | Stress cost; Needs an Activate button variant that can countdown from 8. This could be a token tracker with 8 tokens or we could try to render a 3D d8. |
+| Midnight-Touched | 7 | ✅ | Stress cost, loadout_domain_count condition |
+| Vanishing Dodge | 7 | ✅ | Hope cost |
+| Shadowhunter | 8 | ✅ | +1 Evasion modifier (when_active, darkness-conditional) |
+| Spellcharge | 8 | ✅ | Token tracking linked to d6 extra damage button implemented. |
+| Night Terror | 9 | ✅ | Once per long rest, d6 extra damage button |
+| Twilight Toll | 9 | ✅ | Token tracking linked to d12 extra damage button implemented|
+| Eclipse | 10 | ✅ | Roll DC 16, once per long rest (no player cost - targets mark Stress). Activate button implemented. |
+| Specter of the Dark | 10 | ✅ | Stress cost |
+
+### Sage (21 cards) ⚠️
+
+| Card | Tier | Status | Notes |
+|------|------|--------|-------|
+| Gifted Tracker | 1 | ✅ | +1 Evasion modifier, Hope cost |
+| Nature's Tongue | 1 | ✅ | Hope cost, roll DC |
+| Vicious Entangle | 1 | ✅ | Hope cost, attack + damage |
+| Conjure Swarm | 2 | ✅ | Hope + Stress cost, damage |
+| Natural Familiar | 2 | ✅ | Hope + Stress cost, roll |
+| Corrosive Projectile | 3 | ✅ | Attack + damage |
+| Towering Stalk | 3 | ✅ | Stress cost, Proficiency-scaled damage |
+| Death Grip | 4 | ✅ | 2 Stress cost, damage, roll DC |
+| Healing Field | 4 | ✅ | 2 Hope cost, once per long rest |
+| Thorn Skin | 5 | ✅ | Token tracking (Spellcast), Hope cost |
+| Wild Fortress | 5 | ✅ | Token tracking, Hope cost, roll DC |
+| Conjured Steeds | 6 | ✅ | +2 damage modifier, Hope cost |
+| Forager | 6 | ✅ | Roll |
+| Sage-Touched | 7 | ✅ | +2 Spellcast (4+ Sage cards, natural environment) |
+| Wild Surge | 7 | ✅ | Token tracking, Stress cost, once per long rest |
+| Forest Sprites | 8 | ✅ | +3 attack modifier, Hope cost |
+| Rejuvenation Barrier | 8 | ✅ | Roll DC, once per rest |
+| Fane of the Wilds | 9 | ✅ | Token tracking, roll |
+| Plant Dominion | 9 | ✅ | Roll DC, once per long rest |
+| Force of Nature | 10 | ✅ | +10 damage (when_active), Hope + Stress cost |
+| Tempest | 10 | ✅ | High damage roll |
+
+### Splendor (21 cards) ⚠️
+
+| Card | Tier | Status | Notes |
+|------|------|--------|-------|
+| Bolt Beacon | 1 | ✅ | Hope cost, Proficiency-scaled damage |
+| Mending Touch | 1 | ✅ | 2 Hope cost, once per long rest |
+| Reassurance | 1 | ✅ | Once per rest |
+| Final Words | 2 | ✅ | Roll DC |
+| Healing Hands | 2 | ✅ | Stress cost, roll DC |
+| Second Wind | 3 | ✅ | Once per rest |
+| Voice of Reason | 3 | ✅ | +1 Proficiency modifier |
+| Divination | 4 | ✅ | 3 Hope cost, once per long rest |
+| Life Ward | 4 | ✅ | 3 Hope cost |
+| Shape Material | 5 | ✅ | Hope cost |
+| Smite | 5 | ✅ | 3 Hope cost, once per rest |
+| Restoration | 6 | ✅ | Token tracking (Spellcast) |
+| Zone of Protection | 6 | ✅ | Token tracking, roll DC, once per long rest |
+| Healing Strike | 7 | ✅ | 2 Hope cost |
+| Splendor-Touched | 7 | ✅ | +3 severe threshold (loadout_domain_count: 4+ Splendor cards) |
+| Shield Aura | 8 | ✅ | Stress cost |
+| Stunning Sunlight | 8 | ✅ | Hope cost, high damage |
+| Overwhelming Aura | 9 | ✅ | Presence = Spellcast modifier, 2 Hope + Stress cost |
+| Salvation Beam | 9 | ✅ | Roll DC |
+| Invigoration | 10 | ✅ | Hope cost, once per session |
+| Resurrection | 10 | ✅ | Roll DC 20 |
+
+### Valor (21 cards) ⚠️
+
+| Card | Tier | Status | Notes |
+|------|------|--------|-------|
+| Bare Bones | 1 | ✅ | Armor Score = 3 + Strength when unarmored, tier-based damage thresholds |
+| Forceful Push | 1 | ✅ | Hope cost, attack, d6 Hope bonus |
+| I Am Your Shield | 1 | ✅ | Stress cost, reaction |
+| Body Basher | 2 | ✅ | Damage = Strength modifier |
+| Bold Presence | 2 | ✅ | Hope cost, roll, once per rest |
+| Critical Inspiration | 3 | ✅ | Once per rest |
+| Lean on Me | 3 | ✅ | Once per long rest |
+| Goad Them On | 4 | ✅ | Stress cost, roll |
+| Support Tank | 4 | ✅ | 2 Hope cost |
+| Armorer | 5 | ✅ | +1 Armor Score (when_armored condition) |
+| Rousing Strike | 5 | ✅ | Once per rest |
+| Inevitable | 6 | ⚠️ | Utility - auto-success mechanic |
+| Rise Up | 6 | ⚠️ | Utility - narrative |
+| Shrug It Off | 7 | ✅ | Stress cost |
+| Valor-Touched | 7 | ✅ | +1 Armor Score (4+ Valor cards) |
+| Full Surge | 8 | ✅ | 3 Stress cost, once per long rest |
+| Ground Pound | 8 | ✅ | 2 Hope cost, high damage, roll DC |
+| Hold the Line | 9 | ✅ | Hope cost |
+| Lead by Example | 9 | ✅ | Stress cost |
+| Unbreakable | 10 | ⚠️ | Utility - death-defying mechanic |
+| Unyielding Armor | 10 | ⚠️ | Utility - armor restoration mechanic |
+
+---
+
+## Class Features Status
+
+### Implemented Class Mechanics (✅ Complete)
+
+| Class | Feature | Description |
+|-------|---------|-------------|
+| Bard | Rally Die | d6/d8 die tracker for party members |
+| Druid | Beastform | 35+ creature forms with stats, Evasion, advantages |
+| Druid (Warden of Elements) | Elemental Incarnation | Fire/Earth/Water/Air channel selection |
+| Guardian | Unstoppable Die | d4/d6 escalating die tracker |
+| Ranger (Beastbound) | Companion | Full companion sheet with stats, training, level-up |
+| Seraph | Prayer Dice | d4 pool equal to Spellcast trait |
+| Sorcerer (Elemental) | Element Selection | Air/Earth/Fire/Lightning/Water choice |
+| Warrior (Slayer) | Slayer Dice | d6 pool up to Proficiency |
+| Wizard | Strange Patterns | 1-12 number selector |
+
+### Class Features Requiring Manual Tracking ⚠️
+
+| Class | Subclass | Feature | Why Manual |
+|-------|----------|---------|------------|
+| Bard | Troubadour | Song effects | Song-specific buffs (Relaxing/Epic/Heartbreaking) need manual application |
+| Bard | Wordsmith | Heart of a Poet | d4 bonus to persuasion not auto-applied |
+| Druid | Warden of Renewal | Regeneration | 3 Hope → clear 1d4 HP healing not automated |
+| Guardian | Stalwart | Unwavering/Unrelenting/Undaunted | ✅ Implemented - +1/+2/+3 damage thresholds via enhancement.modifiers |
+| Guardian | Vengeance | Revenge | Counter damage mechanic requires manual tracking |
+| Ranger | All | Ranger's Focus | Focus target tracking not implemented |
+| Ranger | Wayfinder | Ruthless Predator | +1 Proficiency on damage roll not automated |
+| Rogue | All | Sneak Attack | Tier-scaled d6s not auto-calculated |
+| Rogue | Nightwalker | Shadow Stepper | Stress-based teleport utility |
+| Rogue | Syndicate | Contacts | Narrative-based contact generation |
+| Seraph | Divine Wielder | Spirit Weapon | Thrown weapon mechanic |
+| Seraph | Winged Sentinel | Wings of Light | Flight + Hope damage bonus |
+| Sorcerer | Elemental | Natural Evasion | d6 + Evasion reactive defense |
+| Sorcerer | Primal | Manipulate Magic | Post-roll spell modification |
+| Warrior | Brave | Courage | Hope gain on Fear fail |
+| Warrior | Brave | Battle Ritual | 2 Stress clear + 2 Hope gain |
+| Wizard | Knowledge | Adept | Stress-for-Hope Experience doubling |
+| Wizard | War | Face Your Fear | d10/d12/d13 Fear damage bonus |
+
+---
+
+## Summary
+
+**Domain Cards:** 231 total (189 SRD + 21 Blood playtest + 21 Dread playtest)
+- ✅ Fully Implemented: ~221 cards (95%)
+- ⚠️ Partial: ~8 cards (4%)
+- ❌ Manual Only: 2 cards (1%)
+
+**Playtest Content:**
+- Blood domain (21 cards) - 21 fully implemented (including Power Through Pain and Blood-Touched dynamic formulas)
+- Dread domain (21 cards) - 21 fully implemented (including Stress-scaled thresholds and Fear-scaled damage)
+
+**Newly Supported Formula Types:**
+1. **Either/Or choices** - Cards like Cruel Precision (Finesse OR Agility) now parse as dual `when_active` modifiers
+2. **Dice roll bonuses** - Cards like I See It Coming (`roll_result_d4` formula)
+3. **Fear Die bonuses** - Cards like Midnight-Touched (`fear_die` formula)
+4. **Multiplier formulas** - Cards like Rage Up (`2_times_strength` for "twice your Strength")
+5. **HP cost buttons** - Blood domain cards with "mark a Hit Point" costs now have interactive buttons
+6. **Stress/Fear-scaled bonuses** - Dread domain cards with thresholds scaled by Stress or damage by GM Fear tokens.
+
+**Known Gaps:**
+1. **Conditional environment** - Sage-Touched "natural environment" condition is not auto-detected
+2. **Substitution mechanics** - Grace-Touched (HP → Stress swap) requires manual tracking
+
+
+**Class Features:** 9 major mechanics fully implemented, ~20 subclass features require manual tracking

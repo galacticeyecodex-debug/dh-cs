@@ -202,9 +202,13 @@ const AttackCard = React.memo(function AttackCard({
         const hasDuration = !!enhancement.duration;
         // Check for costs
         const hasEnhancedCosts = !!(enhancement.costs?.stress || enhancement.costs?.hope);
-        // Check for when_active modifiers
+        // Check for when_active or when_active_permanent modifiers
         const modifiers = getModifiers(enhancedData);
-        const hasWhenActiveModifiers = modifiers.some(mod => mod.condition?.type === 'when_active');
+        const hasWhenActiveModifiers = modifiers.some(mod =>
+            mod.condition?.type === 'when_active' ||
+            mod.condition?.type === 'when_active_permanent' ||
+            mod.condition?.type === 'loadout_domain_count'
+        );
 
         return hasTokens || hasFrequency || hasDuration || hasEnhancedCosts || hasWhenActiveModifiers;
     })();
@@ -443,12 +447,13 @@ const AttackCard = React.memo(function AttackCard({
                                             {additionalDamage?.map((extra, idx) => (
                                                 <RollButton
                                                     key={idx}
-                                                    label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
+                                                    label={`Extra ${extra.damage}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra');
+                                                        onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra Damage');
                                                     }}
                                                     variant="damage"
+                                                    icon={AppIcons.combat.damage}
                                                     disabled={isUsed || !canRoll}
                                                     className="opacity-90 py-2 px-3 text-xs"
                                                 />
@@ -559,12 +564,13 @@ const AttackCard = React.memo(function AttackCard({
                                             {additionalDamage?.map((extra, idx) => (
                                                 <RollButton
                                                     key={idx}
-                                                    label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
+                                                    label={`Extra ${extra.damage}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra');
+                                                        onAdditionalDamageRoll?.(extra.damage, extra.label || 'Extra Damage');
                                                     }}
                                                     variant="damage"
+                                                    icon={AppIcons.combat.damage}
                                                     disabled={isUsed || !canRoll}
                                                     className="opacity-90 py-2 px-3 text-xs"
                                                 />

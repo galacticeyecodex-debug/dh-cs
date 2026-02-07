@@ -203,11 +203,17 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
                         // Formula should be in expected format:
                         // - "half_agility" (dynamic stat)
                         // - "3_plus_strength" (complex formula)
+                        // - "2_times_strength" (multiplier formula)
                         // - "agility" (simple stat reference)
                         // - "1d8" (dice notation for damage reduction)
+                        // - "roll_result_d4" (user rolls dice, enters result)
+                        // - "fear_die" (user enters Fear Die result)
                         expect(
                             modifier.formula.includes('half_') ||
                             modifier.formula.includes('_plus_') ||
+                            modifier.formula.includes('_times_') ||
+                            modifier.formula.startsWith('roll_result_') ||
+                            modifier.formula === 'fear_die' ||
                             /^[a-z]+$/.test(modifier.formula) ||
                             /^\d*d\d+(?:\+\d+)?$/.test(modifier.formula) // Dice notation
                         ).toBe(true);

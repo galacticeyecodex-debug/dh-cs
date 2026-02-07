@@ -7,8 +7,11 @@
 import { describe, it, expect } from 'vitest';
 import {
   parseCardPassiveModifiers,
+  parseStaticModifiers,
   evaluateModifierCondition,
   calculateTier,
+  calculateTierScaledValue,
+  calculateDynamicValue,
   getBareBonesBonuses,
   parseCombatCategory,
   parseUsesProficiency,
@@ -370,6 +373,155 @@ describe('calculateTier', () => {
   });
 });
 
+describe('calculateTierScaledValue', () => {
+  it('should use tier_scaling when present (tier 1)', () => {
+    const modifier = {
+      value: 9,
+      tier_scaling: { 1: 9, 2: 11, 3: 13, 4: 15 }
+    };
+    const character = createMockCharacter({ level: 1 });
+
+    expect(calculateTierScaledValue(modifier, character)).toBe(9);
+  });
+
+  it('should use tier_scaling when present (tier 2)', () => {
+    const modifier = {
+      value: 9,
+      tier_scaling: { 1: 9, 2: 11, 3: 13, 4: 15 }
+    };
+    const character = createMockCharacter({ level: 3 }); // level 3 = tier 2
+
+    expect(calculateTierScaledValue(modifier, character)).toBe(11);
+  });
+
+  it('should use tier_scaling when present (tier 3)', () => {
+    const modifier = {
+      value: 19,
+      tier_scaling: { 1: 19, 2: 24, 3: 31, 4: 35 }
+    };
+    const character = createMockCharacter({ level: 6 }); // level 6 = tier 3
+
+    expect(calculateTierScaledValue(modifier, character)).toBe(31);
+  });
+
+  it('should use tier_scaling when present (tier 4)', () => {
+    const modifier = {
+      value: 19,
+      tier_scaling: { 1: 19, 2: 24, 3: 31, 4: 35 }
+    };
+    const character = createMockCharacter({ level: 10 }); // level 10 = tier 4
+
+    expect(calculateTierScaledValue(modifier, character)).toBe(35);
+  });
+
+  it('should fall back to formula when no tier_scaling', () => {
+    const modifier = {
+      value: 0,
+      formula: '3_plus_strength'
+    };
+    const character = createMockCharacter({
+      stats: { strength: 2, agility: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }
+    });
+
+    expect(calculateTierScaledValue(modifier, character)).toBe(5); // 3 + 2
+  });
+
+  it('should fall back to value when no tier_scaling or formula', () => {
+    const modifier = {
+      value: 7
+    };
+    const character = createMockCharacter();
+
+    expect(calculateTierScaledValue(modifier, character)).toBe(7);
+  });
+});
+
+describe('calculateDynamicValue', () => {
+  it('should calculate proficiency formula', () => {
+    const character = createMockCharacter({ proficiency: 3 } as any);
+    expect(calculateDynamicValue('proficiency', character)).toBe(3);
+  });
+
+  it('should calculate half_agility formula', () => {
+    const character = createMockCharacter({
+      stats: { agility: 4, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }
+    });
+    expect(calculateDynamicValue('half_agility', character)).toBe(2);
+  });
+
+  it('should calculate 3_plus_strength formula', () => {
+    const character = createMockCharacter({
+      stats: { agility: 0, strength: 3, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }
+    });
+    expect(calculateDynamicValue('3_plus_strength', character)).toBe(6);
+  });
+
+  it('should calculate 2_times_strength formula (Rage Up)', () => {
+    const character = createMockCharacter({
+      stats: { agility: 0, strength: 4, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }
+    });
+    expect(calculateDynamicValue('2_times_strength', character)).toBe(8); // 2 * 4
+  });
+
+  it('should calculate 3_times_agility formula', () => {
+    const character = createMockCharacter({
+      stats: { agility: 3, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 }
+    });
+    expect(calculateDynamicValue('3_times_agility', character)).toBe(9); // 3 * 3
+  });
+
+  it('should calculate direct trait reference', () => {
+    const character = createMockCharacter({
+      stats: { agility: 0, strength: 0, finesse: 4, instinct: 0, presence: 0, knowledge: 0 }
+    });
+    expect(calculateDynamicValue('finesse', character)).toBe(4);
+  });
+
+  it('should calculate marked_hp formula', () => {
+    const character = createMockCharacter({
+      vitals: {
+        hit_points_max: 6,
+        hit_points_current: 4, // 2 HP marked
+        stress_max: 6,
+        stress_current: 0,
+        armor_score: 0,
+        armor_slots: 0
+      }
+    } as any);
+    expect(calculateDynamicValue('marked_hp', character)).toBe(2);
+  });
+
+  it('should calculate 2_times_marked_hp formula (Power Through Pain)', () => {
+    const character = createMockCharacter({
+      vitals: {
+        hit_points_max: 6,
+        hit_points_current: 3, // 3 HP marked
+        stress_max: 6,
+        stress_current: 0,
+        armor_score: 0,
+        armor_slots: 0
+      }
+    } as any);
+    // Power Through Pain: bonus = 2 * marked HP = 2 * 3 = 6
+    expect(calculateDynamicValue('2_times_marked_hp', character)).toBe(6);
+  });
+
+  it('should return 0 for marked_hp when no HP marked', () => {
+    const character = createMockCharacter({
+      vitals: {
+        hit_points_max: 6,
+        hit_points_current: 6, // 0 HP marked
+        stress_max: 6,
+        stress_current: 0,
+        armor_score: 0,
+        armor_slots: 0
+      }
+    } as any);
+    expect(calculateDynamicValue('marked_hp', character)).toBe(0);
+    expect(calculateDynamicValue('2_times_marked_hp', character)).toBe(0);
+  });
+});
+
 describe('getBareBonesBonuses', () => {
   it('should return empty array when armored', () => {
     const character = createMockCharacter({
@@ -582,6 +734,103 @@ describe('parseCombatCategory', () => {
 
     it('should return false for empty text', () => {
       expect(parseUsesProficiency('')).toBe(false);
+    });
+  });
+});
+
+// ===========================================================================
+// parseStaticModifiers - Advanced Pattern Tests
+// ===========================================================================
+describe('parseStaticModifiers - advanced patterns', () => {
+  describe('either/or stat choice (Pattern 5)', () => {
+    it('should parse "either Finesse or Agility" as two separate modifiers', () => {
+      // Cruel Precision pattern
+      const text = 'When you make a successful attack with a weapon, gain a bonus to your damage roll equal to either your Finesse or Agility.';
+      const modifiers = parseStaticModifiers(text, 'Cruel Precision');
+
+      expect(modifiers).toHaveLength(2);
+
+      // First option: Finesse
+      expect(modifiers[0]).toMatchObject({
+        stat: 'damage',
+        formula: 'finesse',
+        condition: { type: 'when_active' },
+        source: 'Cruel Precision'
+      });
+
+      // Second option: Agility
+      expect(modifiers[1]).toMatchObject({
+        stat: 'damage',
+        formula: 'agility',
+        condition: { type: 'when_active' },
+        source: 'Cruel Precision'
+      });
+    });
+
+    it('should parse "either Strength or Presence" choice', () => {
+      const text = 'Gain a bonus to your attack roll equal to either your Strength or Presence.';
+      const modifiers = parseStaticModifiers(text, 'Test Card');
+
+      expect(modifiers).toHaveLength(2);
+      expect(modifiers[0].formula).toBe('strength');
+      expect(modifiers[1].formula).toBe('presence');
+    });
+  });
+
+  describe('dice roll bonus (Pattern 6)', () => {
+    it('should parse "roll a d4 and gain a bonus to Evasion equal to the result"', () => {
+      // I See It Coming pattern
+      const text = 'When you\'re targeted by an attack made from beyond Melee range, you can mark a Stress to roll a d4 and gain a bonus to your Evasion equal to the result against the attack.';
+      const modifiers = parseStaticModifiers(text, 'I See It Coming');
+
+      expect(modifiers).toHaveLength(1);
+      expect(modifiers[0]).toMatchObject({
+        stat: 'evasion',
+        value: 0,
+        formula: 'roll_result_d4',
+        condition: { type: 'when_active' },
+        source: 'I See It Coming'
+      });
+    });
+
+    it('should parse "roll a d6 and gain a bonus to damage equal to the result"', () => {
+      const text = 'Roll a d6 and gain a bonus to your damage equal to the result.';
+      const modifiers = parseStaticModifiers(text, 'Test Card');
+
+      expect(modifiers).toHaveLength(1);
+      expect(modifiers[0]).toMatchObject({
+        stat: 'damage',
+        formula: 'roll_result_d6',
+        condition: { type: 'when_active' }
+      });
+    });
+  });
+
+  describe('Fear Die bonus (Pattern 7)', () => {
+    it('should parse "add the result of your Fear Die to your damage roll"', () => {
+      // Midnight-Touched pattern
+      const text = 'When you make a successful attack, you can mark a Stress to add the result of your Fear Die to your damage roll.';
+      const modifiers = parseStaticModifiers(text, 'Midnight-Touched');
+
+      expect(modifiers).toHaveLength(1);
+      expect(modifiers[0]).toMatchObject({
+        stat: 'damage',
+        value: 0,
+        formula: 'fear_die',
+        condition: { type: 'when_active' },
+        source: 'Midnight-Touched'
+      });
+    });
+
+    it('should parse "add your Fear Die to your attack"', () => {
+      const text = 'You can add your Fear Die to your attack roll.';
+      const modifiers = parseStaticModifiers(text, 'Test Card');
+
+      expect(modifiers).toHaveLength(1);
+      expect(modifiers[0]).toMatchObject({
+        stat: 'attack',
+        formula: 'fear_die'
+      });
     });
   });
 });

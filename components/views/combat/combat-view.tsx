@@ -446,7 +446,7 @@ export default function CombatView() {
                     const totalAttackBonus = totalTraitValue + attackModifier;
 
                     // Scale damage by proficiency, spellcast, or not at all based on damage_scaling
-                    const scalingValue = getScalingValue(attack?.damage_scaling, totalProficiency, spellcastDetails.totalSpellcastBonus);
+                    const scalingValue = getScalingValue(attack?.damage_scaling, totalProficiency, spellcastDetails.totalSpellcastBonus, 0);
                     const calculatedDamage = calculateWeaponDamage(attack.damage, scalingValue, damageModifier);
 
                     return (
@@ -510,9 +510,11 @@ export default function CombatView() {
                   const damageModifier = calculateDamageBonus(character, cardStates);
                   const totalAttackBonus = totalTraitValue + attackModifier;
 
-                  // Calculate damage - scale by proficiency, spellcast, or not at all
+                  // Calculate damage - scale by proficiency, spellcast, or resource
                   const baseDamage = attack?.damage;
-                  const scalingValue = getScalingValue(attack?.damage_scaling, totalProficiency, spellcastDetails.totalSpellcastBonus);
+                  const featureCardName = `heritage-${feature.source}-${feature.name}`;
+                  const tokenCount = cardStates[featureCardName]?.current_tokens || 0;
+                  const scalingValue = getScalingValue(attack?.damage_scaling, totalProficiency, spellcastDetails.totalSpellcastBonus, tokenCount);
                   const calculatedDamage = baseDamage ? calculateWeaponDamage(baseDamage, scalingValue, damageModifier) : undefined;
 
                   // Color mapping for badges
@@ -656,7 +658,13 @@ export default function CombatView() {
                   const finalAttackBonus = rollBonus + attackModifier;
 
                   const baseDamage = enhancement.attack?.damage || (enhancement as any).damage;
-                  const scalingValue = getScalingValue(enhancement.attack?.damage_scaling || (enhancement as any).damage_scaling, totalProficiency, spellcastDetails.totalSpellcastBonus);
+                  const tokenCount = cardStates[ability.name]?.current_tokens || 0;
+                  const scalingValue = getScalingValue(
+                    enhancement.attack?.damage_scaling || (enhancement as any).damage_scaling,
+                    totalProficiency,
+                    spellcastDetails.totalSpellcastBonus,
+                    tokenCount
+                  );
                   const finalDamage = baseDamage ? calculateWeaponDamage(baseDamage, scalingValue, damageModifier) : undefined;
 
                   const cardState = cardStates?.[ability.name];
