@@ -73,46 +73,6 @@ You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](ht
 - [x] **Tier System** - Proper Tier 1-4 progression with level mapping
 - [x] **Advancement History** - Full tracking with de-leveling support
 
-## Development Roadmap
-
-### In Progress / Planned
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Homebrew Sharing | 📋 Planned | Share custom items with campaign members (Phase 6) |
-
-### Class & Subclass Interactive Features
-
-| Class | Subclass | Feature | Status | Description |
-|-------|----------|---------|--------|-------------|
-| Ranger | Beastbound | Companion Card | ✅ Done | Interactive companion sheet with image upload, training options, and companion level-up |
-| Bard | All | Rally Die | ✅ Done | d6 die tracker (upgrades to d8 at level 5) to give to party members |
-| Druid | All | Beastform | ✅ Done | Creature form selector with stats from Beastform creature list (Tiers 1-4) |
-| Druid | Warden of the Elements | Elemental Incarnation | ✅ Done | Element selection (Fire, Earth, Water, Air) with active channeling state |
-| Guardian | All | Unstoppable Die | ✅ Done | d4 escalating die tracker (upgrades to d6 at level 5) for damage bonus |
-| Seraph | All | Prayer Dice | ✅ Done | d4 roller with prayer dice result tracker (dice equal to Spellcast trait) |
-| Sorcerer | Elemental Origin | Element Selection | ✅ Done | Choose element (air, earth, fire, lightning, water) at character creation |
-| Warrior | Call of the Slayer | Slayer Dice | ✅ Done | d6 dice pool tracker (up to Proficiency dice) for Slayer abilities |
-| Wizard | All | Strange Patterns | ✅ Done | Number selector (1-12) for Strange Patterns class feature |
-
-## UI Design Standards
-
-This project follows consistent design patterns for a polished, cohesive interface:
-
-### Icon Sizing
-- **Utility Icons** (Info, Settings, Art, Delete): 12px - Used on card action buttons
-- **Navigation Icons** (Activity, Grid, Book): 14px - Used in tab bars
-- **Header Icons** (Sword, Layers): 16px - Used in section headers
-- **Feature Icons**: 24-28px - Used in ViewHeaders and FAB buttons
-
-### Card Components
-All interactive cards share a common pattern:
-- **Top-right action overlay**: Contains utility buttons (Info, Art, Settings) with consistent 12px icons
-- **Panel styling**: `bg-dagger-panel border border-white/10 rounded-xl`
-- **Hover states**: Subtle `hover:bg-white/10` transitions
-
-For detailed component specifications, see `.claude/rules/UI_CARD_REFERENCE.md`.
-
 ## Tech Stack
 
 - **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
@@ -314,32 +274,6 @@ npm test -- __tests__/store/my-feature.test.ts
 npm test
 ```
 
-**Pull requests without tests WILL be rejected.** See [Development Workflow](docs/development-workflow.md) for detailed guidelines.
-
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for testing with comprehensive coverage of game logic and UI components.
-
-```bash
-npm run test:run      # Run all tests once
-npm run test          # Watch mode
-npm run test:ui       # Interactive dashboard
-npm run test:coverage # Coverage report
-```
-
-### Test Structure
-- **`__tests__/lib/`** - Game logic tests (dice, vitals, modifiers, armor calculations)
-- **`__tests__/content/`** - NLU-based domain card parser tests (9 domains + ancestries, communities, classes)
-- **`__tests__/components/`** - UI component tests
-- **`__tests__/config/`** - Configuration tests (CSP headers for dice roller)
-
-### E2E Testing (Playwright)
-```bash
-npm run e2e              # Run all E2E tests
-npm run e2e:screenshot   # Visual verification tests
-npm run e2e:headed       # Run with visible browser
-```
-
 ## Deployment
 
 This application can be easily deployed to [Render](https://render.com), a unified platform for cloud applications.
@@ -413,6 +347,27 @@ This section tracks the implementation status of all domain cards and class feat
 - ✅ **Fully Implemented** - All mechanics work automatically (modifiers apply, tokens track, costs deduct, rolls work)
 - ⚠️ **Partial** - Core mechanics work but some features require manual tracking
 - ❌ **Manual Only** - Card text displays but mechanics require manual interpretation
+
+### In Progress / Planned
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Homebrew Sharing | 📋 Planned | Share custom items with campaign members (Phase 6) |
+
+### Class & Subclass Interactive Features
+
+| Class | Subclass | Feature | Status | Description |
+|-------|----------|---------|--------|-------------|
+| Ranger | Beastbound | Companion Card | ✅ Done | Interactive companion sheet with image upload, training options, and companion level-up |
+| Bard | All | Rally Die | ✅ Done | d6 die tracker (upgrades to d8 at level 5) to give to party members |
+| Druid | All | Beastform | ✅ Done | Creature form selector with stats from Beastform creature list (Tiers 1-4) |
+| Druid | Warden of the Elements | Elemental Incarnation | ✅ Done | Element selection (Fire, Earth, Water, Air) with active channeling state |
+| Guardian | All | Unstoppable Die | ✅ Done | d4 escalating die tracker (upgrades to d6 at level 5) for damage bonus |
+| Seraph | All | Prayer Dice | ✅ Done | d4 roller with prayer dice result tracker (dice equal to Spellcast trait) |
+| Sorcerer | Elemental Origin | Element Selection | ✅ Done | Choose element (air, earth, fire, lightning, water) at character creation |
+| Warrior | Call of the Slayer | Slayer Dice | ✅ Done | d6 dice pool tracker (up to Proficiency dice) for Slayer abilities |
+| Wizard | All | Strange Patterns | ✅ Done | Number selector (1-12) for Strange Patterns class feature |
+
 
 ## Domain Cards by Domain
 
