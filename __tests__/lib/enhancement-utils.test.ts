@@ -642,6 +642,105 @@ describe('Enhancement Utils', () => {
             });
         });
 
+        describe('condition: when_hp_marked', () => {
+            it('should return true when character has HP marked (Power Through Pain)', () => {
+                const modifier: CardModifier = {
+                    stat: 'damage',
+                    value: 0,
+                    formula: '2_times_marked_hp',
+                    condition: { type: 'when_hp_marked', minMarked: 1 },
+                };
+
+                const character = {
+                    vitals: {
+                        hit_points_max: 6,
+                        hit_points_current: 4, // 2 HP marked
+                    },
+                };
+
+                expect(isModifierActive(modifier, false, character)).toBe(true);
+            });
+
+            it('should return false when no HP marked', () => {
+                const modifier: CardModifier = {
+                    stat: 'damage',
+                    value: 0,
+                    formula: '2_times_marked_hp',
+                    condition: { type: 'when_hp_marked', minMarked: 1 },
+                };
+
+                const character = {
+                    vitals: {
+                        hit_points_max: 6,
+                        hit_points_current: 6, // 0 HP marked
+                    },
+                };
+
+                expect(isModifierActive(modifier, false, character)).toBe(false);
+            });
+
+            it('should respect minMarked threshold', () => {
+                const modifier: CardModifier = {
+                    stat: 'damage',
+                    value: 0,
+                    condition: { type: 'when_hp_marked', minMarked: 3 },
+                };
+
+                const characterWith2Marked = {
+                    vitals: {
+                        hit_points_max: 6,
+                        hit_points_current: 4, // 2 HP marked
+                    },
+                };
+
+                const characterWith3Marked = {
+                    vitals: {
+                        hit_points_max: 6,
+                        hit_points_current: 3, // 3 HP marked
+                    },
+                };
+
+                expect(isModifierActive(modifier, false, characterWith2Marked)).toBe(false);
+                expect(isModifierActive(modifier, false, characterWith3Marked)).toBe(true);
+            });
+
+            it('should default minMarked to 1 when not specified', () => {
+                const modifier: CardModifier = {
+                    stat: 'damage',
+                    value: 0,
+                    condition: { type: 'when_hp_marked' },
+                };
+
+                const characterWithNoMarked = {
+                    vitals: {
+                        hit_points_max: 6,
+                        hit_points_current: 6,
+                    },
+                };
+
+                const characterWith1Marked = {
+                    vitals: {
+                        hit_points_max: 6,
+                        hit_points_current: 5,
+                    },
+                };
+
+                expect(isModifierActive(modifier, false, characterWithNoMarked)).toBe(false);
+                expect(isModifierActive(modifier, false, characterWith1Marked)).toBe(true);
+            });
+
+            it('should return false when no character vitals provided', () => {
+                const modifier: CardModifier = {
+                    stat: 'damage',
+                    value: 0,
+                    condition: { type: 'when_hp_marked', minMarked: 1 },
+                };
+
+                expect(isModifierActive(modifier, false)).toBe(false);
+                expect(isModifierActive(modifier, false, {})).toBe(false);
+            });
+        });
+
         describe('condition: environment', () => {
             it('should return false (not implemented)', () => {
                 const modifier: CardModifier = {

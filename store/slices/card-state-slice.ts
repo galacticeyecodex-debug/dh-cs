@@ -23,6 +23,8 @@ export interface CardState {
   is_active: boolean;
   /** Per-modifier activation state, keyed by modifier identifier (stat name or index) */
   active_modifiers?: Record<string, boolean>;
+  /** Per-card persistent notes, keyed by note label or index */
+  notes?: Record<string, string>;
 }
 
 export interface CardStateSlice {
@@ -43,6 +45,9 @@ export interface CardStateSlice {
   toggleModifierActive: (cardName: string, modifierKey: string) => Promise<void>;
   isModifierActive: (cardName: string, modifierKey: string) => boolean;
 
+  // Note management
+  setCardNote: (cardName: string, noteKey: string, text: string) => Promise<void>;
+
   // State helpers
   initializeCardState: (cardName: string) => void;
 }
@@ -54,6 +59,7 @@ const defaultCardState: CardState = {
   used_this_session: false,
   is_active: false,
   active_modifiers: {},
+  notes: {},
 };
 
 export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStateSlice> = (set, get) => ({
@@ -246,6 +252,32 @@ export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStat
     if (success) {
       await state.recalculateDerivedStats();
     }
+  },
+
+  setCardNote: async (cardName: string, noteKey: string, text: string) => {
+    const state = get() as CharacterStore;
+    if (!state.character) return;
+
+    const characterId = state.character.id;
+    const currentCardStates = state.cardStates || {};
+    const cardState = currentCardStates[cardName] || { ...defaultCardState };
+    const currentNotes = cardState.notes || {};
+
+    const newNotes = { ...currentNotes, [noteKey]: text };
+    const newCardState = { ...cardState, notes: newNotes };
+    const newCardStates = { ...currentCardStates, [cardName]: newCardState };
+
+    await withOptimisticUpdate(
+      () => {
+        const previousStates = { ...((get() as CharacterStore).cardStates || {}) };
+        set({ cardStates: newCardStates });
+        return () => {
+          set({ cardStates: previousStates });
+        };
+      },
+      async () => dataService.character.update(characterId, { card_states: newCardStates }),
+      'Failed to update card note'
+    );
   },
 
   toggleModifierActive: async (cardName: string, modifierKey: string) => {

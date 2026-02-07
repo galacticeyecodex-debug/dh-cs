@@ -74,7 +74,7 @@ export default function PlaymatCard({
   const enhancement = enhancedData ? getEnhancement(enhancedData) : undefined;
 
   // --- Shared Mechanics Calculations ---
-  const mechanics = useCardMechanics(enhancement);
+  const mechanics = useCardMechanics(enhancement, libraryItem?.name);
 
   if (!libraryItem) return null;
 

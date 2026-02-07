@@ -25,6 +25,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Normalizes card names for consistent matching.
+ * Replaces curly quotes with straight quotes.
+ */
+export function normalizeCardName(name: string): string {
+  if (!name) return name;
+  return name.replace(/[’‘]/g, "'");
+}
+
 export function parseDamageRoll(input: string): { dice: string; modifier: number } {
   // Remove markdown bold syntax (**), text like "phy", "mag", "physical", "magic" (case insensitive) and whitespace
   const cleanInput = input.replace(/\*\*/g, '').replace(/(phy|mag|physical|magic)/gi, '').replace(/\s/g, '');
@@ -384,13 +393,16 @@ export function calculateWeaponDamage(
 export function getScalingValue(
   damageScaling: string | undefined,
   proficiency: number,
-  spellcastValue: number
+  spellcastValue: number,
+  tokenCount: number = 0
 ): number | false {
   switch (damageScaling) {
     case 'proficiency':
       return proficiency;
     case 'spellcast':
       return Math.max(1, spellcastValue);
+    case 'resource':
+      return tokenCount;
     default:
       return false;
   }

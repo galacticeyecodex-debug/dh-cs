@@ -21,22 +21,33 @@ import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
 import { DomainCostsRow } from '@/components/shared/ability-costs-row';
 import ModifierActivationRow from '@/components/shared/modifier-activation-row';
 import { RollButton } from '@/components/shared/roll-button';
-import { AppIcons } from '@/lib/icon-utils';
+import { VariableCostButton } from '@/components/shared/variable-cost-button';
+import { LinkedCostButton } from '@/components/shared/linked-cost-button';
+import { CardNote } from '@/components/shared/card-note';
+import { AppIcons, getIconByName } from '@/lib/icon-utils';
 import { parseDamageRoll } from '@/lib/utils';
-import { getModifiers } from '@/lib/enhancement-utils';
-import type { EnhancedAbilityCard, EnhancementBlock, CardCosts } from '@/types/cards';
+import { getModifiers, isModifierActive } from '@/lib/enhancement-utils';
+import { calculateDynamicValue } from '@/lib/card-parser';
+import type { EnhancedAbilityCard, EnhancementBlock, CardCosts, ModifierCondition } from '@/types/cards';
 import { useCharacterStore } from '@/store/character-store';
+import { useCardMechanics } from '@/hooks/useCardMechanics';
 
 /** Helper to generate condition text from a modifier condition */
-function getConditionText(condition?: { type: string; domain?: string; minCount?: number }): string | undefined {
+function getConditionText(condition?: ModifierCondition): string | undefined {
   if (!condition) return undefined;
   switch (condition.type) {
     case 'when_active':
       return 'Activate to apply this bonus';
+    case 'when_active_permanent':
+      return 'Permanent bonus (choose to apply)';
     case 'when_armored':
       return 'While wearing armor';
     case 'when_unarmored':
       return 'While not wearing armor';
+    case 'when_hp_marked':
+      return condition.minMarked && condition.minMarked > 1
+        ? `With ${condition.minMarked}+ HP marked`
+        : 'While HP is marked';
     case 'loadout_domain_count':
       return `With ${condition.minCount}+ ${condition.domain} cards`;
     case 'always':
@@ -71,7 +82,7 @@ export interface MechanicsTrayProps {
   onDamageRoll?: () => void;
 
   // --- Additional damage ---
-  additionalDamage?: Array<{ damage: string; label?: string }>;
+  additionalDamage?: Array<{ damage: string; formula?: string; label?: string }>;
   onAdditionalDamageRoll?: (damage: string, label: string) => void;
 
   // --- Cost mode ---
@@ -92,6 +103,8 @@ export interface MechanicsTrayProps {
   variant?: 'default' | 'nested';
   /** Whether to render costs (default true). Set false if parent handles costs. */
   showCosts?: boolean;
+  /** Whether to render gains (default true). Set false if parent handles gains. */
+  showGains?: boolean;
   /** Whether to render frequency (default true). Set false if parent handles frequency. */
   showFrequency?: boolean;
   /** Whether to show the 'Modifiers' section label (default false) */
@@ -119,57 +132,96 @@ export default function MechanicsTray({
   className,
   variant = 'default',
   showCosts = true,
+  showGains = true,
   showFrequency = true,
-  showModifierLabel = false,
+  showModifierLabel = true,
 }: MechanicsTrayProps) {
-  const { prepareRoll } = useCharacterStore();
+  const { prepareRoll, character, cardStates, gainCardToken, setCardTokens } = useCharacterStore();
+  const { totalSpellcast, totalProficiency } = useCardMechanics(enhancement, cardName);
 
   const costs = enhancement.costs;
+  const gains = enhancement.gains;
   const tokens = enhancement.tokens;
 
-  // Only show token track if we have valid data (max > 0 or source)
-  // This prevents "ghost" tracks from creating empty dividers
-  const showTokenTrack = !!tokens?.has_tokens && (
-    ((tokens.max_tokens ?? 0) > 0) ||
+  // 1. Data Analysis (Determine what we HAVE)
+  const hasTokenTrack = !!tokens?.has_tokens && (
+    ((tokens.max_tokens ?? 12) > 0) ||
     !!tokens.token_source
   );
 
-  const shouldShowFrequency = showFrequency && enhancement.frequency && enhancement.frequency !== 'at_will';
-  const showDuration = !!enhancement.duration;
+  const hasFrequency = !!enhancement.frequency && enhancement.frequency !== 'at_will';
+  const hasDuration = !!enhancement.duration;
 
-  // Extract when_active modifiers
   const modifiers = enhancedData ? getModifiers(enhancedData) : [];
-  const whenActiveModifiers = modifiers.filter(mod => mod.condition?.type === 'when_active');
-  const hasWhenActiveModifiers = whenActiveModifiers.length > 0;
+  const whenActiveModifiers = modifiers.filter(mod =>
+    mod.condition?.type === 'when_active' ||
+    mod.condition?.type === 'when_active_permanent' ||
+    mod.condition?.type === 'when_hp_marked' ||
+    mod.condition?.type === 'loadout_domain_count'
+  );
+  const hasModifiers = whenActiveModifiers.length > 0;
 
-  // Determine if anything should render
-  const hasCosts = showCosts && !!(costs?.stress || costs?.hope);
-  const showMechanics = showTokenTrack || shouldShowFrequency || hasAttackOrRoll || showDuration || hasWhenActiveModifiers || hasCosts;
+  const hasCosts = !!(
+    costs?.stress ||
+    costs?.hope ||
+    costs?.hit_points ||
+    costs?.tokens ||
+    costs?.armor_slots ||
+    gains?.vault ||
+    enhancement.variable_cost ||
+    (enhancement.linked_costs && enhancement.linked_costs.length > 0)
+  );
+  const hasGainsData = !!(gains?.hope || gains?.stress_clear || gains?.hit_points_clear || gains?.armor_slots_clear || gains?.damage_reduction_roll);
+  const hasNotes = !!(enhancement.notes && enhancement.notes.length > 0);
 
-  if (!showMechanics) return null;
+  // 2. Logic (Determine what to SHOW)
+  const showTokenTrack = hasTokenTrack;
+  const shouldShowFrequency = showFrequency && hasFrequency;
+  const showDuration = hasDuration;
+  const showCostsInTray = showCosts && hasCosts;
+  const showGainsInTray = showGains && hasGainsData;
 
-  // For controlled mode, costs gate rolls
-  const needsActivation = costMode === 'controlled' && hasCosts;
+  // Controllers
+  const needsActivation = costMode === 'controlled' && showCostsInTray;
   const canRoll = !needsActivation || isCostPaid;
 
-  // Default roll handler
+  // Default handlers
   const handleRoll = onRoll || (rollLabel ? () => {
     prepareRoll(`${cardName} ${rollLabel}`, rollBonus);
   } : undefined);
 
-  // Default damage handler
   const handleDamageRoll = onDamageRoll || (finalDamage ? () => {
     const { dice, modifier } = parseDamageRoll(finalDamage);
     prepareRoll(`${cardName} Damage`, modifier, dice);
   } : undefined);
 
+  // Determine if there are actual rolls to display
+  const hasActualRolls = hasAttackOrRoll && (
+    (showAttackButton && !!handleRoll) ||
+    (!!finalDamage) ||
+    (additionalDamage && additionalDamage.length > 0) ||
+    (!!enhancement.attack?.variable_cost) ||
+    (!!enhancement.variable_roll)
+  );
+
+  // Final visibility check
+  const showMechanics = showTokenTrack || shouldShowFrequency || hasActualRolls || showDuration || hasModifiers || showCostsInTray || showGainsInTray || hasNotes;
+
   const paddingX = variant === 'default' ? 'px-4' : 'px-0';
 
-  // Determine if there are management actions (Costs, Duration, Frequency)
-  const hasManagementActions = (showDuration && enhancement.duration && !hasWhenActiveModifiers) ||
-    (costMode === 'uncontrolled' && costs && showCosts) ||
-    (costMode === 'controlled' && needsActivation && showCosts) ||
-    (shouldShowFrequency && enhancement.frequency);
+  if (!showMechanics) {
+    return (
+      <div className={clsx("text-xs italic text-white/30 py-1", paddingX)}>
+        This card has abilities that are not yet supported.
+      </div>
+    );
+  }
+
+  // Management actions aggregate check for dividers
+  const hasManagementActions = (showDuration && !hasModifiers) ||
+    showCostsInTray ||
+    showGainsInTray ||
+    shouldShowFrequency;
 
   return (
     <div
@@ -180,25 +232,33 @@ export default function MechanicsTray({
       aria-label={`mechanics-tray-${cardName}`}
       data-card-name={cardName}
     >
-      {/* Token Track */}
+      {/* Token Track Section */}
       {showTokenTrack && (
-        <div className={paddingX} aria-label="token-track-container">
+        <div className={clsx("space-y-1.5", paddingX)} aria-label="token-track-container">
+          <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
+            Tokens
+          </h4>
           <CardTokenTrack
             cardName={cardName}
             maxTokens={tokens?.max_tokens ?? null}
+            initialTokens={tokens?.initial_tokens}
             tokenSource={tokens?.token_source}
           />
         </div>
       )}
 
-      {/* Modifier Activation Rows */}
-      {hasWhenActiveModifiers && (
+      {/* Modifier Section */}
+      {hasModifiers && (
         <div
-          className={clsx("space-y-1.5", paddingX)}
+          className={clsx(
+            "space-y-1.5",
+            paddingX,
+            (showModifierLabel && showTokenTrack) && "pt-3 border-t border-white/10 mt-2"
+          )}
           aria-label="modifiers-container"
         >
           {showModifierLabel && (
-            <h4 className="text-[10px] font-bold uppercase text-purple-400 tracking-wider text-left">
+            <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
               Modifiers
             </h4>
           )}
@@ -211,6 +271,7 @@ export default function MechanicsTray({
                 modifier={mod}
                 modifierKey={modifierKey}
                 conditionText={getConditionText(mod.condition)}
+                domain={enhancedData?.domain}
                 className="text-sm"
               />
             );
@@ -218,110 +279,318 @@ export default function MechanicsTray({
         </div>
       )}
 
-      {/* 2) Management Row: Spend costs + Activate + Duration + Frequency */}
-      {hasManagementActions && (
-        <div
-          className={clsx(
-            "flex flex-wrap gap-2 items-center justify-start",
-            (showTokenTrack || hasWhenActiveModifiers) && "pt-3 border-t border-white/10 mt-2",
-            paddingX
-          )}
-          aria-label="management-row"
-          data-border-trigger={showTokenTrack ? 'tokens' : hasWhenActiveModifiers ? 'modifiers' : 'none'}
-        >
-          {/* Costs - uncontrolled mode */}
-          {costMode === 'uncontrolled' && costs && showCosts && (
-            <DomainCostsRow
-              cardName={cardName}
-              displayName={cardName}
-              costs={costs}
-              className="flex flex-wrap gap-2 items-center"
-            />
-          )}
+      {/* Section Order: Cost → Benefit → Rolls → Notes → Frequency → Duration */}
 
-          {/* Costs - controlled mode */}
-          {costMode === 'controlled' && needsActivation && showCosts && (
+      {/* Cost Section */}
+      {showCostsInTray && (
+        <div className={clsx(
+          "space-y-1.5",
+          paddingX,
+          (showTokenTrack || hasModifiers) && "pt-3 border-t border-white/10 mt-2"
+        )}>
+          <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
+            Cost
+          </h4>
+          <div className="flex flex-wrap gap-2 items-center justify-start">
             <DomainCostsRow
               cardName={cardName}
               displayName={cardName}
               costs={costs as CardCosts}
-              isActiveOverride={isCostPaid}
-              onActivate={onCostActivate}
-              onDeactivate={onCostDeactivate}
-              disabled={costDisabled}
+              isActiveOverride={costMode === 'controlled' ? isCostPaid : undefined}
+              onActivate={costMode === 'controlled' ? onCostActivate : undefined}
+              onDeactivate={costMode === 'controlled' ? onCostDeactivate : undefined}
+              disabled={costMode === 'controlled' ? costDisabled : false}
               className="flex flex-wrap gap-2 items-center"
             />
-          )}
+            {gains?.vault && (
+              <DomainAbilityButton
+                cardName={cardName}
+                displayName={cardName}
+                costType="vault"
+              />
+            )}
+            {/* New Array-based Linked Costs */}
+            {enhancement.linked_costs?.map((linked, idx) => (
+              <LinkedCostButton
+                key={idx}
+                cardName={cardName}
+                displayName={cardName}
+                costType={linked.resource}
+                amount={linked.amount}
+                costLabel={linked.cost_label || linked.label}
+                benefitLabel={linked.benefit_label || linked.label}
+                dice={linked.action?.dice}
+                modifierPerDie={linked.action?.modifier_per_die}
+                onPaySuccess={(qty) => {
+                  if (linked.action?.type === 'gain_tokens') {
+                    gainCardToken(cardName, qty * (linked.action.amount_per_resource || 1));
+                  } else if (linked.action?.type === 'replenish_tokens') {
+                    // Logic to find max tokens
+                    let maxVal = enhancement.tokens?.max_tokens || 0;
+                    if (maxVal === 0 && enhancement.tokens?.token_source && character) {
+                      const source = enhancement.tokens.token_source.toLowerCase();
+                      if (source === 'spellcast') {
+                        maxVal = totalSpellcast;
+                      } else if (source === 'proficiency') {
+                        maxVal = totalProficiency;
+                      } else {
+                        // Trait-based fallback
+                        maxVal = character.stats?.[source as keyof typeof character.stats] || 0;
+                      }
+                    }
+                    if (maxVal > 0) setCardTokens(cardName, maxVal);
+                  }
+                }}
+              />
+            ))}
+            {/* Deprecated Single Variable Cost */}
+            {enhancement.variable_cost && !enhancement.linked_costs && (
+              <LinkedCostButton
+                cardName={cardName}
+                displayName={cardName}
+                costType={enhancement.variable_cost.resource}
+                amount={enhancement.variable_cost.amount}
+                costLabel={enhancement.variable_cost.cost_label || enhancement.variable_cost.label}
+                benefitLabel={enhancement.variable_cost.benefit_label || enhancement.variable_cost.label}
+                dice={enhancement.variable_cost.action?.dice}
+                modifierPerDie={enhancement.variable_cost.action?.modifier_per_die}
+                onPaySuccess={(qty) => {
+                  if (enhancement.variable_cost?.action?.type === 'gain_tokens') {
+                    gainCardToken(cardName, qty * (enhancement.variable_cost.action.amount_per_resource || 1));
+                  }
+                }}
+              />
+            )}
+          </div>
+        </div>
+      )}
 
-          {/* Duration toggle */}
-          {showDuration && enhancement.duration && !hasWhenActiveModifiers && (
+      {/* Benefit Section - only for actual resource gains */}
+      {showGainsInTray && (
+        <div className={clsx(
+          "space-y-1.5",
+          paddingX,
+          (showTokenTrack || hasModifiers || showCostsInTray) && "pt-3 border-t border-white/10 mt-2"
+        )}>
+          <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
+            Benefit
+          </h4>
+          <div className="flex flex-wrap gap-2 items-center justify-start">
+            {gains?.hope && (
+              <DomainAbilityButton
+                cardName={cardName}
+                displayName={cardName}
+                costType="hope_gain"
+                costValue={gains.hope}
+              />
+            )}
+            {gains?.stress_clear && (
+              <DomainAbilityButton
+                cardName={cardName}
+                displayName={cardName}
+                costType="stress_clear"
+                costValue={gains.stress_clear}
+              />
+            )}
+            {gains?.hit_points_clear && (
+              <DomainAbilityButton
+                cardName={cardName}
+                displayName={cardName}
+                costType="hit_points_clear"
+                costValue={gains.hit_points_clear}
+              />
+            )}
+            {gains?.armor_slots_clear && (
+              <DomainAbilityButton
+                cardName={cardName}
+                displayName={cardName}
+                costType="armor_slots_clear"
+                costValue={gains.armor_slots_clear}
+              />
+            )}
+            {gains?.damage_reduction_roll && (
+              <RollButton
+                label={`Reduce Damage (${gains.damage_reduction_roll})`}
+                onClick={() => {
+                  const { dice, modifier } = parseDamageRoll(gains.damage_reduction_roll!);
+                  prepareRoll(`${cardName} Damage Reduction`, modifier, dice);
+                }}
+                disabled={!canRoll}
+                variant="secondary"
+                icon={AppIcons.vitals.armor}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Rolls Section */}
+      {hasActualRolls && (
+        <div
+          className={clsx(
+            "space-y-1.5",
+            paddingX,
+            (showTokenTrack || hasModifiers || showCostsInTray || showGainsInTray) && "pt-3 border-t border-white/10 mt-2"
+          )}
+          aria-label="rolls-row"
+        >
+          <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
+            Rolls
+          </h4>
+          <div className="flex flex-wrap gap-2 items-center justify-start">
+            {showAttackButton && handleRoll && (
+              <RollButton
+                label={rollLabel || 'Attack'}
+                onClick={handleRoll}
+                bonus={rollBonus}
+                disabled={!canRoll}
+                variant="primary"
+              />
+            )}
+
+            {finalDamage && handleDamageRoll && (
+              <RollButton
+                label={`Damage (${finalDamage})`}
+                onClick={handleDamageRoll}
+                disabled={!canRoll}
+                variant="damage"
+                icon={AppIcons.combat.damage}
+              />
+            )}
+
+            {additionalDamage?.map((extra, idx) => {
+              const damageStr = extra.formula === 'fear_die' ? 'Fear' : extra.damage;
+              return (
+                <RollButton
+                  key={idx}
+                  label={extra.label ? `${extra.label} (${damageStr})` : `Extra (${damageStr})`}
+                  onClick={() => {
+                    if (onAdditionalDamageRoll) {
+                      onAdditionalDamageRoll(extra.damage, extra.label || 'Extra');
+                    } else {
+                      if (extra.formula === 'fear_die') {
+                        prepareRoll(`${cardName} Fear Damage`, 0, 'd6');
+                      } else {
+                        const { dice, modifier } = parseDamageRoll(extra.damage);
+                        prepareRoll(`${cardName} ${extra.label || 'Extra Damage'}`, modifier, dice);
+                      }
+                    }
+                  }}
+                  disabled={!canRoll}
+                  variant="damage"
+                  icon={AppIcons.combat.damage}
+                  className="opacity-90"
+                />
+              );
+            })}
+
+            {enhancement.variable_roll && (
+              <RollButton
+                label={enhancement.variable_roll.label || `Roll ${enhancement.variable_roll.roll} x ${enhancement.variable_roll.source === 'tokens' ? 'Layers' : enhancement.variable_roll.source.charAt(0).toUpperCase() + enhancement.variable_roll.source.slice(1)}`}
+                onClick={() => {
+                  let multiplier = 0;
+                  if (enhancement.variable_roll?.source === 'tokens') {
+                    multiplier = cardStates[cardName]?.current_tokens || 0;
+                  } else if (enhancement.variable_roll?.source === 'hope' && character) {
+                    multiplier = character.hope;
+                  } else if (enhancement.variable_roll?.source === 'stress' && character) {
+                    multiplier = character.vitals.stress_current;
+                  }
+
+                  if (multiplier > 0) {
+                    prepareRoll(`${cardName} ${enhancement.variable_roll?.label || 'Roll'}`, 0, `${multiplier}${enhancement.variable_roll?.roll}`);
+                  }
+                }}
+                disabled={!canRoll || (
+                  enhancement.variable_roll.source === 'tokens'
+                    ? (cardStates[cardName]?.current_tokens || 0) === 0
+                    : enhancement.variable_roll.source === 'hope'
+                      ? (character?.hope || 0) === 0
+                      : (character?.vitals.stress_current || 0) === 0
+                )}
+                variant="primary"
+                icon={getIconByName(tokens?.token_source === 'layers' ? 'layers' : 'dice', AppIcons.ui.settings)}
+              />
+            )}
+
+            {enhancement.attack?.variable_cost && (
+              <VariableCostButton
+                cardName={cardName}
+                costType={enhancement.attack.variable_cost.resource}
+                dicePerCost={enhancement.attack.variable_cost.dice}
+                damageModifierPerCost={enhancement.attack.variable_cost.modifier_per_die}
+                damageLabel={enhancement.attack.variable_cost.label || 'Damage'}
+                disabled={!canRoll}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Notes Section */}
+      {hasNotes && (
+        <div
+          className={clsx(
+            "space-y-1.5",
+            paddingX,
+            (showTokenTrack || hasModifiers || showCostsInTray || showGainsInTray || hasActualRolls) && "pt-3 border-t border-white/10 mt-2"
+          )}
+          aria-label="notes-row"
+        >
+          <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
+            Notes
+          </h4>
+          <div className="flex flex-col gap-2">
+            {enhancement.notes?.map((note, idx) => (
+              <CardNote
+                key={idx}
+                cardName={cardName}
+                noteKey={note.label}
+                label={note.label}
+                placeholder={note.placeholder}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Frequency Section (last) - includes frequency checkbox AND activation buttons */}
+      {shouldShowFrequency && (
+        <div className={clsx(
+          "space-y-1.5",
+          paddingX,
+          (showTokenTrack || hasModifiers || showCostsInTray || showGainsInTray || hasActualRolls || hasNotes) && "pt-3 border-t border-white/10 mt-2"
+        )}>
+          <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
+            Frequency
+          </h4>
+          <div className="flex flex-wrap gap-2 items-center justify-start">
+            <FrequencyCheckbox
+              cardName={cardName}
+              frequency={enhancement.frequency!}
+              className="bg-white/5 py-1.5 justify-start"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Duration Section (Activated spells/effects) */}
+      {showDuration && (
+        <div className={clsx(
+          "space-y-1.5",
+          paddingX,
+          (showTokenTrack || hasModifiers || showCostsInTray || showGainsInTray || hasActualRolls || hasNotes || shouldShowFrequency) && "pt-3 border-t border-white/10 mt-2"
+        )}>
+          <h4 className="text-[10px] font-bold uppercase text-white/40 tracking-wider text-left">
+            Duration
+          </h4>
+          <div className="flex flex-wrap gap-2 items-center justify-start">
             <DomainAbilityButton
               cardName={cardName}
               costType="duration"
               className="justify-start focus:ring-0"
             />
-          )}
-
-          {/* Frequency */}
-          {shouldShowFrequency && enhancement.frequency && (
-            <FrequencyCheckbox
-              cardName={cardName}
-              frequency={enhancement.frequency}
-              className="bg-white/5 py-1.5 justify-start"
-            />
-          )}
-        </div>
-      )}
-
-      {/* 3) Rolls Row: Attack/Spellcast + Damage rolls */}
-      {hasAttackOrRoll && (
-        <div
-          className={clsx(
-            "flex flex-wrap gap-2 items-center justify-start",
-            // Add border if there were items above (Tokens, Modifiers, or Management)
-            (showTokenTrack || hasWhenActiveModifiers || hasManagementActions) && "pt-3 border-t border-white/10 mt-2",
-            // If no items above, no border needed (though unlikely in this flow)
-            paddingX
-          )}
-          aria-label="rolls-row"
-        >
-          {showAttackButton && handleRoll && (
-            <RollButton
-              label={rollLabel || 'Attack'}
-              onClick={handleRoll}
-              bonus={rollBonus}
-              disabled={!canRoll}
-              variant="primary"
-            />
-          )}
-
-          {finalDamage && handleDamageRoll && (
-            <RollButton
-              label={`Damage (${finalDamage})`}
-              onClick={handleDamageRoll}
-              disabled={!canRoll}
-              variant="damage"
-              icon={AppIcons.combat.damage}
-            />
-          )}
-
-          {additionalDamage?.map((extra, idx) => (
-            <RollButton
-              key={idx}
-              label={`${extra.damage}${extra.label ? ` ${extra.label}` : ''}`}
-              onClick={() => {
-                if (onAdditionalDamageRoll) {
-                  onAdditionalDamageRoll(extra.damage, extra.label || 'Extra');
-                } else {
-                  const { dice, modifier } = parseDamageRoll(extra.damage);
-                  prepareRoll(`${cardName} ${extra.label || 'Extra'}`, modifier, dice);
-                }
-              }}
-              disabled={!canRoll}
-              variant="damage"
-              className="opacity-90"
-            />
-          ))}
+          </div>
         </div>
       )}
     </div>

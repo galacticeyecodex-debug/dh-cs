@@ -28,6 +28,22 @@
           "source": "Rune Ward"
         }
       ]
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
+      "gains": {
+        "damage_reduction_roll": "1d8"
+      },
+      "duration": "active",
+      "keywords": [
+        "damage_reduction",
+        "hope_cost",
+        "spell"
+      ]
     }
   },
   {
@@ -63,6 +79,61 @@
         "damage_scaling": "resource",
         "resource_type": "tokens"
       },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false
+      }
+    },
+    "enhancement_override": {
+      "action_type": "attack",
+      "timing": "free",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "magic",
+        "stress_cost",
+        "tokens",
+        "spell"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "spellcast"
+      },
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Far",
+        "combat_category": "standalone_attack",
+        "damage": "d10",
+        "damage_type": "magic",
+        "targets": "single",
+        "damage_scaling": "resource",
+        "resource_type": "tokens"
+      },
+      "linked_costs": [
+        {
+          "resource": "tokens",
+          "amount": "X",
+          "label": "Damage",
+          "cost_label": "Spend {n} Tokens",
+          "benefit_label": "Roll {n}d10 Damage",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d10"
+          }
+        },
+        {
+          "resource": "stress",
+          "amount": 1,
+          "label": "Replenish Tokens",
+          "cost_label": "Mark Stress",
+          "benefit_label": "Replenish Tokens",
+          "action": {
+            "type": "replenish_tokens"
+          }
+        }
+      ],
       "roll": {
         "type": "Spellcast Roll",
         "trait": "Spellcast",
@@ -115,7 +186,7 @@
             "damage": "2d6",
             "damage_type": "magic",
             "condition": "When a creature acts while On Fire",
-            "label": "Fire"
+            "label": "On Fire"
           }
         ],
         "damage": "1d20+3",
@@ -152,6 +223,23 @@
       "attack": {
         "range": "Very Far"
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
+      "keywords": [
+        "damage",
+        "hope_cost",
+        "movement",
+        "spell"
+      ],
+      "attack": {
+        "range": "Very Far"
+      },
+      "duration": "active"
     }
   },
   {
@@ -171,6 +259,21 @@
         "type": "Spellcast Roll",
         "trait": "Spellcast",
         "target_reaction": true
+      }
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "keywords": [
+        "spell"
+      ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false
+      },
+      "gains": {
+        "vault": true
       }
     }
   },
@@ -300,6 +403,36 @@
         "requires_cost_for_roll": true
       },
       "duration": "conditional"
+    },
+    "enhancement_override": {
+      "action_type": "attack",
+      "timing": "action",
+      "frequency": "at_will",
+      "costs": {
+        "stress": 2
+      },
+      "keywords": [
+        "damage",
+        "magic",
+        "aoe",
+        "stress_cost",
+        "spell"
+      ],
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Close",
+        "combat_category": "standalone_attack",
+        "damage": "2d8+4",
+        "damage_type": "magic",
+        "targets": "all_in_range",
+        "damage_scaling": "none"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false,
+        "requires_cost_for_roll": true
+      }
     }
   },
   {
@@ -337,6 +470,25 @@
         "difficulty": 15,
         "target_reaction": false
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "spell"
+      ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 15,
+        "target_reaction": false
+      },
+      "notes": [
+        {
+          "label": "Marking Location",
+          "placeholder": "Where did you leave the rift?"
+        }
+      ]
     }
   },
   {
@@ -354,6 +506,7 @@
         "damage",
         "physical",
         "movement",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -416,6 +569,7 @@
       "keywords": [
         "hope_cost",
         "movement",
+        "attack",
         "spell"
       ],
       "roll": {
@@ -423,6 +577,25 @@
         "trait": "Spellcast",
         "target_reaction": false
       }
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
+      "keywords": [
+        "hope_cost",
+        "movement",
+        "attack",
+        "spell"
+      ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false
+      },
+      "duration": "active"
     }
   },
   {
@@ -442,8 +615,37 @@
         "damage",
         "magic",
         "hope_cost",
+        "attack",
         "spell"
       ]
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "magic",
+        "hope_cost",
+        "attack",
+        "spell"
+      ],
+      "linked_costs": [
+        {
+          "resource": "hope",
+          "amount": "X",
+          "label": "Reflect Roll",
+          "cost_label": "Spend {n} Hope",
+          "benefit_label": "Roll {n}d6",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d6"
+          }
+        }
+      ],
+      "attack": {
+        "range": "Close",
+        "combat_category": "standalone_attack"
+      }
     }
   },
   {
@@ -459,6 +661,7 @@
       "keywords": [
         "damage",
         "stress_cost",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -467,6 +670,53 @@
         "combat_category": "standalone_attack",
         "difficulty": 14,
         "damage_scaling": "none"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 14,
+        "target_reaction": false
+      }
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "once_per_long_rest",
+      "keywords": [
+        "damage",
+        "stress_cost",
+        "attack",
+        "spell",
+        "tokens"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": 12,
+        "initial_tokens": 1,
+        "token_source": "layers"
+      },
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Close",
+        "combat_category": "standalone_attack",
+        "difficulty": 14,
+        "damage_scaling": "none"
+      },
+      "linked_costs": [
+        {
+          "resource": "stress",
+          "amount": "X",
+          "label": "Mark Stress for Layers",
+          "cost_label": "Mark Stress",
+          "benefit_label": "Gain Layers",
+          "action": {
+            "type": "gain_tokens",
+            "amount_per_resource": 1
+          }
+        }
+      ],
+      "variable_roll": {
+        "source": "tokens",
+        "roll": "d6"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -513,6 +763,36 @@
         "difficulty": 16,
         "target_reaction": true
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_rest",
+      "keywords": [
+        "damage",
+        "physical",
+        "aoe",
+        "debuff",
+        "spell"
+      ],
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Very Far",
+        "combat_category": "standalone_attack",
+        "damage": "3d10+8",
+        "damage_type": "physical",
+        "targets": "all_in_range",
+        "difficulty": 16,
+        "secondary_effects": [
+          "vulnerable"
+        ],
+        "damage_scaling": "none"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 16,
+        "target_reaction": false
+      }
     }
   },
   {
@@ -536,6 +816,22 @@
         "difficulty": 15,
         "target_reaction": false
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_rest",
+      "keywords": [
+        "damage",
+        "movement",
+        "spell"
+      ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 15,
+        "target_reaction": false
+      },
+      "duration": "active"
     }
   },
   {
@@ -583,6 +879,47 @@
         "damage_type": "magic",
         "targets": "all_in_range",
         "damage_scaling": "none"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false
+      }
+    },
+    "enhancement_override": {
+      "action_type": "attack",
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "magic",
+        "aoe",
+        "stress_cost",
+        "spell"
+      ],
+      "linked_costs": [
+        {
+          "resource": "stress",
+          "amount": "X",
+          "label": "Damage Roll",
+          "cost_label": "Mark {n} Stress",
+          "benefit_label": "Roll {n}d20+{multiplier}",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d20",
+            "modifier_per_die": 2
+          }
+        }
+      ],
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Far",
+        "combat_category": "standalone_attack",
+        "damage": "1d20+2",
+        "damage_type": "magic",
+        "targets": "all_in_range",
+        "damage_scaling": "resource",
+        "resource_type": "stress"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -644,6 +981,7 @@
       "keywords": [
         "damage",
         "hope_cost",
+        "attack",
         "ability"
       ],
       "attack": {
@@ -683,6 +1021,7 @@
       "keywords": [
         "stress_cost",
         "buff",
+        "attack",
         "ability"
       ]
     }
@@ -700,6 +1039,7 @@
       "keywords": [
         "damage",
         "movement",
+        "attack",
         "ability"
       ],
       "attack": {
@@ -738,6 +1078,7 @@
       "timing": "action",
       "frequency": "once_per_rest",
       "keywords": [
+        "attack",
         "ability"
       ],
       "modifiers": [
@@ -745,11 +1086,30 @@
           "stat": "proficiency",
           "value": 1,
           "condition": {
-            "type": "always"
+            "type": "when_active"
           },
           "source": "Deadly Focus"
         }
-      ]
+      ],
+      "duration": "conditional"
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_rest",
+      "keywords": [
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "proficiency",
+          "value": 1,
+          "condition": {
+            "type": "when_active"
+          },
+          "source": "Deadly Focus"
+        }
+      ],
+      "duration": "conditional"
     }
   },
   {
@@ -771,7 +1131,25 @@
           "stat": "damage_threshold",
           "value": 2,
           "condition": {
-            "type": "always"
+            "type": "when_armored"
+          },
+          "source": "Fortified Armor"
+        }
+      ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "damage_threshold",
+          "value": 2,
+          "condition": {
+            "type": "when_active"
           },
           "source": "Fortified Armor"
         }
@@ -795,21 +1173,9 @@
         "healing",
         "healing",
         "hope_cost",
+        "attack",
         "ability"
       ]
-    },
-    "enhancement_override": {
-      "action_type": "reaction",
-      "timing": "action",
-      "frequency": "at_will",
-      "keywords": [
-        "healing",
-        "hope_cost",
-        "ability"
-      ],
-      "costs": {
-        "hope": 3
-      }
     }
   },
   {
@@ -824,6 +1190,7 @@
       "frequency": "at_will",
       "keywords": [
         "damage",
+        "attack",
         "ability"
       ],
       "modifiers": [
@@ -834,6 +1201,40 @@
             "type": "always"
           },
           "source": "Vitality"
+        }
+      ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "stress",
+          "value": 1,
+          "condition": {
+            "type": "when_active_permanent"
+          },
+          "source": "Vitality (+1 Stress Slot)"
+        },
+        {
+          "stat": "hit_points",
+          "value": 1,
+          "condition": {
+            "type": "when_active_permanent"
+          },
+          "source": "Vitality (+1 HP Slot)"
+        },
+        {
+          "stat": "damage_thresholds",
+          "value": 2,
+          "condition": {
+            "type": "when_active_permanent"
+          },
+          "source": "Vitality (+2 Thresholds)"
         }
       ]
     }
@@ -856,6 +1257,22 @@
         "healing",
         "hope_cost",
         "movement",
+        "attack",
+        "ability"
+      ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_long_rest",
+      "costs": {
+        "hope": 1
+      },
+      "gains": {
+        "hit_points_clear": 1
+      },
+      "keywords": [
+        "healing",
+        "hope_cost",
         "ability"
       ]
     }
@@ -876,15 +1293,39 @@
       "keywords": [
         "damage",
         "stress_cost",
+        "attack",
         "ability"
       ],
       "modifiers": [
         {
           "stat": "damage",
           "value": 0,
-          "formula": "twice",
+          "formula": "2_times_strength",
           "condition": {
-            "type": "always"
+            "type": "when_active"
+          },
+          "source": "Rage Up"
+        }
+      ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "costs": {
+        "stress": 1
+      },
+      "keywords": [
+        "damage",
+        "stress_cost",
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "damage",
+          "value": 0,
+          "formula": "2_times_strength",
+          "condition": {
+            "type": "when_active"
           },
           "source": "Rage Up"
         }
@@ -903,6 +1344,7 @@
       "frequency": "at_will",
       "keywords": [
         "damage",
+        "attack",
         "ability"
       ],
       "modifiers": [
@@ -945,6 +1387,7 @@
       "keywords": [
         "damage",
         "stress_cost",
+        "attack",
         "ability"
       ]
     }
@@ -964,6 +1407,7 @@
         "stress_relief",
         "hope_gain",
         "buff",
+        "attack",
         "ability"
       ]
     }
@@ -1018,6 +1462,21 @@
         "stress_relief",
         "stress_relief",
         "hope_gain",
+        "attack",
+        "ability"
+      ]
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "gains": {
+        "hope": 1,
+        "stress_clear": 1
+      },
+      "keywords": [
+        "damage",
+        "stress_relief",
+        "hope_gain",
         "ability"
       ]
     }
@@ -1039,6 +1498,7 @@
       },
       "keywords": [
         "hope_cost",
+        "attack",
         "ability"
       ]
     }
@@ -1059,42 +1519,8 @@
       "keywords": [
         "damage",
         "stress_cost",
+        "attack",
         "ability"
-      ],
-      "modifiers": [
-        {
-          "stat": "hit_points",
-          "value": 0,
-          "formula": "the",
-          "condition": {
-            "type": "always"
-          },
-          "source": "Battle Monster"
-        }
-      ]
-    },
-    "enhancement_override": {
-      "action_type": "reaction",
-      "timing": "free",
-      "frequency": "at_will",
-      "costs": {
-        "stress": 4
-      },
-      "keywords": [
-        "damage",
-        "stress_cost",
-        "ability"
-      ],
-      "modifiers": [
-        {
-          "stat": "hit_points",
-          "value": 0,
-          "formula": "the",
-          "condition": {
-            "type": "always"
-          },
-          "source": "Battle Monster"
-        }
       ]
     }
   },
@@ -1115,6 +1541,7 @@
       "keywords": [
         "damage",
         "stress_cost",
+        "attack",
         "ability"
       ],
       "roll": {
@@ -1140,6 +1567,7 @@
       },
       "keywords": [
         "stress_cost",
+        "attack",
         "ability"
       ],
       "modifiers": [
@@ -1208,15 +1636,16 @@
       },
       "keywords": [
         "stress_cost",
+        "attack",
         "ability"
       ],
       "modifiers": [
         {
           "stat": "evasion",
           "value": 0,
-          "formula": "the",
+          "formula": "roll_result_d4",
           "condition": {
-            "type": "always"
+            "type": "when_active"
           },
           "source": "I See It Coming"
         }
@@ -1267,6 +1696,7 @@
       },
       "keywords": [
         "hope_cost",
+        "attack",
         "ability"
       ]
     }
@@ -1288,6 +1718,7 @@
         "buff",
         "movement",
         "tokens",
+        "attack",
         "ability"
       ],
       "tokens": {
@@ -1359,6 +1790,7 @@
         "stress_cost",
         "buff",
         "movement",
+        "attack",
         "ability"
       ],
       "attack": {
@@ -1382,6 +1814,7 @@
       "keywords": [
         "damage",
         "stress_cost",
+        "attack",
         "ability"
       ],
       "attack": {
@@ -1408,6 +1841,7 @@
         "damage",
         "stress_cost",
         "hope_cost",
+        "attack",
         "ability"
       ],
       "attack": {
@@ -1457,6 +1891,7 @@
       "keywords": [
         "damage",
         "stress_cost",
+        "attack",
         "ability"
       ],
       "attack": {
@@ -1500,6 +1935,7 @@
       "keywords": [
         "hope_gain",
         "hope_cost",
+        "attack",
         "ability"
       ],
       "modifiers": [
@@ -1528,15 +1964,25 @@
       "frequency": "at_will",
       "keywords": [
         "damage",
+        "attack",
         "ability"
       ],
       "modifiers": [
         {
           "stat": "damage",
           "value": 0,
-          "formula": "either",
+          "formula": "finesse",
           "condition": {
-            "type": "always"
+            "type": "when_active"
+          },
+          "source": "Cruel Precision"
+        },
+        {
+          "stat": "damage",
+          "value": 0,
+          "formula": "agility",
+          "condition": {
+            "type": "when_active"
           },
           "source": "Cruel Precision"
         }
@@ -1559,6 +2005,7 @@
       "keywords": [
         "damage",
         "stress_cost",
+        "attack",
         "ability"
       ]
     }
@@ -1609,6 +2056,7 @@
       "frequency": "at_will",
       "keywords": [
         "damage",
+        "attack",
         "ability"
       ]
     }
@@ -1631,6 +2079,7 @@
         "damage",
         "aoe",
         "hope_cost",
+        "attack",
         "ability"
       ]
     }
@@ -1652,6 +2101,7 @@
         "damage",
         "aoe",
         "hope_cost",
+        "attack",
         "ability"
       ],
       "modifiers": [
@@ -1683,6 +2133,7 @@
         "stress_relief",
         "stress_relief",
         "hope_gain",
+        "attack",
         "ability"
       ]
     }
@@ -1822,7 +2273,8 @@
         "hope": 2
       },
       "keywords": [
-        "hope_cost"
+        "hope_cost",
+        "attack"
       ],
       "attack": {
         "trait": "Spellcast",
@@ -1997,7 +2449,8 @@
         "damage",
         "magic",
         "hope_cost",
-        "movement"
+        "movement",
+        "attack"
       ],
       "attack": {
         "trait": "Spellcast",
@@ -2116,6 +2569,7 @@
       "keywords": [
         "damage",
         "tokens",
+        "attack",
         "spell"
       ],
       "tokens": {
@@ -2272,7 +2726,8 @@
         "trait": "Spellcast",
         "difficulty": 15,
         "target_reaction": false
-      }
+      },
+      "duration": "conditional"
     }
   },
   {
@@ -2290,6 +2745,7 @@
       },
       "keywords": [
         "stress_cost",
+        "attack",
         "spell"
       ],
       "roll": {
@@ -2349,6 +2805,7 @@
       "keywords": [
         "stress_cost",
         "hope_cost",
+        "attack",
         "spell"
       ],
       "duration": "rest"
@@ -2423,6 +2880,7 @@
         "hope_gain",
         "hope_cost",
         "tokens",
+        "attack",
         "ability"
       ],
       "tokens": {
@@ -2544,6 +3002,7 @@
         "stress_cost",
         "debuff",
         "tokens",
+        "attack",
         "spell"
       ],
       "tokens": {
@@ -2581,6 +3040,7 @@
         "healing",
         "healing",
         "movement",
+        "attack",
         "ability"
       ]
     }
@@ -2652,6 +3112,7 @@
       },
       "keywords": [
         "stress_cost",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -2688,6 +3149,7 @@
         "stress_relief",
         "stress_cost",
         "tokens",
+        "attack",
         "ability"
       ],
       "modifiers": [
@@ -2764,6 +3226,7 @@
       "frequency": "at_will",
       "keywords": [
         "stress_cost",
+        "attack",
         "ability"
       ]
     }
@@ -2938,6 +3401,7 @@
         "aoe",
         "hope_cost",
         "debuff",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -3012,6 +3476,7 @@
         "magic",
         "hope_cost",
         "movement",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -3081,6 +3546,28 @@
         "movement",
         "ability"
       ]
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "costs": {
+        "stress": 1
+      },
+      "keywords": [
+        "damage",
+        "stress_cost",
+        "debuff",
+        "ability"
+      ],
+      "attack": {
+        "additional_damage": [
+          {
+            "damage": "2d6",
+            "condition": "When attacking a Vulnerable target",
+            "label": "Extra"
+          }
+        ]
+      }
     }
   },
   {
@@ -3215,6 +3702,24 @@
         "movement",
         "spell"
       ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "hope_cost",
+        "movement",
+        "spell"
+      ],
+      "costs": {
+        "hope": 1
+      },
+      "notes": [
+        {
+          "label": "Retreat Location",
+          "placeholder": "Where did you activate Phantom Retreat?"
+        }
+      ]
     }
   },
   {
@@ -3270,6 +3775,26 @@
       "attack": {
         "range": "Close"
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "costs": {
+        "stress": 1
+      },
+      "keywords": [
+        "stress_cost",
+        "buff",
+        "spell"
+      ],
+      "attack": {
+        "range": "Close"
+      },
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": 8,
+        "token_source": "Countdown"
+      }
     }
   },
   {
@@ -3289,8 +3814,36 @@
         "damage",
         "hope_gain",
         "stress_cost",
+        "attack",
         "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "damage",
+          "value": 0,
+          "formula": "fear_die",
+          "condition": {
+            "type": "when_active"
+          },
+          "source": "Midnight-Touched"
+        }
       ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_rest",
+      "costs": {
+        "stress": 1
+      },
+      "keywords": [
+        "damage",
+        "hope_gain",
+        "stress_cost",
+        "ability"
+      ],
+      "gains": {
+        "hope": 1
+      }
     }
   },
   {
@@ -3310,11 +3863,13 @@
         "damage",
         "physical",
         "hope_cost",
+        "attack",
         "spell"
       ],
       "attack": {
         "range": "Close"
-      }
+      },
+      "duration": "conditional"
     }
   },
   {
@@ -3329,6 +3884,7 @@
       "frequency": "at_will",
       "keywords": [
         "buff",
+        "attack",
         "ability"
       ],
       "modifiers": [
@@ -3337,6 +3893,24 @@
           "value": 1,
           "condition": {
             "type": "always"
+          },
+          "source": "Shadowhunter"
+        }
+      ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "buff",
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "evasion",
+          "value": 1,
+          "condition": {
+            "type": "when_active"
           },
           "source": "Shadowhunter"
         }
@@ -3357,6 +3931,7 @@
         "damage",
         "magic",
         "tokens",
+        "attack",
         "spell"
       ],
       "tokens": {
@@ -3364,6 +3939,34 @@
         "max_tokens": null,
         "token_source": "the"
       }
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "magic",
+        "tokens",
+        "spell"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "spellcast"
+      },
+      "linked_costs": [
+        {
+          "resource": "tokens",
+          "amount": "X",
+          "label": "Damage",
+          "cost_label": "Spend {n} Tokens",
+          "benefit_label": "Add {n}d6 Damage",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d6"
+          }
+        }
+      ]
     }
   },
   {
@@ -3387,6 +3990,37 @@
         "difficulty": 16,
         "target_reaction": true
       },
+      "attack": {
+        "range": "Very Close"
+      }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_long_rest",
+      "keywords": [
+        "damage",
+        "debuff",
+        "spell"
+      ],
+      "roll": {
+        "type": "Reaction Roll",
+        "trait": "Spellcast",
+        "difficulty": 16,
+        "target_reaction": true
+      },
+      "linked_costs": [
+        {
+          "resource": "fear",
+          "amount": "X",
+          "label": "Damage",
+          "cost_label": "Spend {n} Fear",
+          "benefit_label": "Roll {n}d6 Damage",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d6"
+          }
+        }
+      ],
       "attack": {
         "range": "Very Close"
       }
@@ -3414,6 +4048,35 @@
       "attack": {
         "range": "Far"
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "tokens",
+        "ability"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null
+      },
+      "linked_costs": [
+        {
+          "resource": "tokens",
+          "amount": "X",
+          "label": "Damage",
+          "cost_label": "Spend {n} Tokens",
+          "benefit_label": "Roll {n}d12 Damage",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d12"
+          }
+        }
+      ],
+      "attack": {
+        "range": "Far"
+      }
     }
   },
   {
@@ -3434,6 +4097,7 @@
         "damage",
         "stress_cost",
         "debuff",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -3449,6 +4113,28 @@
         "difficulty": 16,
         "target_reaction": false
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_long_rest",
+      "keywords": [
+        "debuff",
+        "spell"
+      ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 16,
+        "target_reaction": false
+      },
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Far",
+        "combat_category": "roll_only",
+        "difficulty": 16,
+        "damage_scaling": "none"
+      },
+      "duration": "active"
     }
   },
   {
@@ -3469,7 +4155,8 @@
         "physical",
         "stress_cost",
         "spell"
-      ]
+      ],
+      "duration": "conditional"
     }
   },
   {
@@ -3621,6 +4308,7 @@
         "damage",
         "stress_cost",
         "hope_cost",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -3695,6 +4383,7 @@
         "damage",
         "physical",
         "stress_cost",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -3732,6 +4421,7 @@
         "aoe",
         "stress_cost",
         "movement",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -3769,6 +4459,7 @@
         "healing",
         "healing",
         "hope_cost",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -3823,6 +4514,7 @@
         "damage",
         "hope_cost",
         "tokens",
+        "attack",
         "spell"
       ],
       "tokens": {
@@ -3862,6 +4554,7 @@
         "hope_gain",
         "hope_cost",
         "movement",
+        "attack",
         "spell"
       ],
       "modifiers": [
@@ -3896,6 +4589,7 @@
         "stress_relief",
         "hope_gain",
         "movement",
+        "attack",
         "ability"
       ],
       "roll": {
@@ -3973,6 +4667,7 @@
         "damage",
         "hope_gain",
         "hope_cost",
+        "attack",
         "spell"
       ],
       "modifiers": [
@@ -4016,6 +4711,7 @@
         "healing",
         "healing",
         "movement",
+        "attack",
         "spell"
       ],
       "roll": {
@@ -4099,6 +4795,7 @@
         "stress_cost",
         "hope_cost",
         "control",
+        "attack",
         "spell"
       ],
       "modifiers": [
@@ -4254,6 +4951,7 @@
         "healing",
         "stress_relief",
         "hope_cost",
+        "attack",
         "spell"
       ]
     }
@@ -4312,6 +5010,7 @@
         "healing",
         "stress_relief",
         "stress_cost",
+        "attack",
         "spell"
       ],
       "roll": {
@@ -4339,6 +5038,7 @@
         "healing",
         "stress_relief",
         "stress_relief",
+        "attack",
         "ability"
       ],
       "attack": {
@@ -4410,6 +5110,7 @@
         "healing",
         "hope_cost",
         "movement",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -4456,6 +5157,7 @@
         "damage",
         "magic",
         "hope_cost",
+        "attack",
         "spell"
       ]
     }
@@ -4476,6 +5178,7 @@
         "stress_relief",
         "debuff",
         "tokens",
+        "attack",
         "spell"
       ],
       "tokens": {
@@ -4533,6 +5236,7 @@
         "healing",
         "healing",
         "hope_cost",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -4555,6 +5259,7 @@
         "hope_gain",
         "stress_cost",
         "hope_cost",
+        "attack",
         "ability"
       ],
       "modifiers": [
@@ -4586,6 +5291,7 @@
       },
       "keywords": [
         "stress_cost",
+        "attack",
         "spell"
       ],
       "attack": {
@@ -4649,6 +5355,7 @@
       "keywords": [
         "stress_cost",
         "hope_cost",
+        "attack",
         "spell"
       ],
       "modifiers": [
@@ -4686,6 +5393,7 @@
         "healing",
         "stress_relief",
         "stress_cost",
+        "attack",
         "spell"
       ],
       "roll": {
@@ -4776,6 +5484,7 @@
         "damage",
         "hope_cost",
         "debuff",
+        "attack",
         "ability"
       ],
       "attack": {
@@ -4813,6 +5522,7 @@
       "keywords": [
         "damage",
         "stress_cost",
+        "attack",
         "ability"
       ],
       "attack": {
@@ -4832,6 +5542,7 @@
       "frequency": "at_will",
       "keywords": [
         "damage",
+        "attack",
         "ability"
       ],
       "modifiers": [
@@ -4889,6 +5600,7 @@
         "stress_relief",
         "stress_relief",
         "hope_gain",
+        "attack",
         "ability"
       ],
       "attack": {
@@ -4930,6 +5642,7 @@
       "keywords": [
         "stress_cost",
         "debuff",
+        "attack",
         "ability"
       ],
       "attack": {
@@ -5008,6 +5721,7 @@
         "healing",
         "healing",
         "stress_relief",
+        "attack",
         "ability"
       ]
     }
@@ -5043,6 +5757,7 @@
         "stress_relief",
         "stress_relief",
         "stress_cost",
+        "attack",
         "ability"
       ]
     }
@@ -5079,6 +5794,7 @@
       "frequency": "at_will",
       "keywords": [
         "healing",
+        "attack",
         "ability"
       ],
       "modifiers": [
@@ -5173,7 +5889,8 @@
       ],
       "attack": {
         "range": "Very Close"
-      }
+      },
+      "duration": "conditional"
     }
   },
   {
@@ -5196,6 +5913,7 @@
         "stress_relief",
         "hope_gain",
         "stress_cost",
+        "attack",
         "ability"
       ]
     }
@@ -5213,6 +5931,7 @@
       "keywords": [
         "healing",
         "movement",
+        "attack",
         "ability"
       ]
     }

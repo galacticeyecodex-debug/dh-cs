@@ -159,16 +159,20 @@ export function getModifiers<T extends WithEnhancement>(item: T): CardModifier[]
 
 /**
  * Evaluate whether a CardModifier is currently active based on its condition
- * 
+ *
  * @param modifier - The modifier with a condition to evaluate
  * @param isCardActive - Whether the card is currently activated (via UI toggle)
- * @param character - The character for armor/loadout checks (optional)
+ * @param character - The character for armor/loadout/HP checks (optional)
  * @returns true if the modifier should be applied
  */
 export function isModifierActive(
     modifier: CardModifier,
     isCardActive: boolean,
-    character?: { character_inventory?: Array<{ location: string }>; character_cards?: Array<{ location: string; library_item?: { domain?: string; data?: { domain?: string } } }> }
+    character?: {
+        character_inventory?: Array<{ location: string }>;
+        character_cards?: Array<{ location: string; library_item?: { domain?: string; data?: { domain?: string } } }>;
+        vitals?: { hit_points_max?: number; hit_points_current?: number };
+    }
 ): boolean {
     const condition = modifier.condition;
 
@@ -180,8 +184,10 @@ export function isModifierActive(
             return true;
 
         case 'when_active':
+        case 'when_active_permanent':
         case 'cost_activated':
             // Only active when user has toggled the ability on
+            // when_active_permanent works the same but also applies from vault
             return isCardActive;
 
         case 'when_armored':
@@ -189,6 +195,15 @@ export function isModifierActive(
 
         case 'when_unarmored':
             return !character?.character_inventory?.find(i => i.location === 'equipped_armor');
+
+        case 'when_hp_marked':
+            // Active when character has at least 1 HP marked
+            // Marked HP = max HP - current HP (HP uses "mark-bad" semantics)
+            if (!character?.vitals) return false;
+            const maxHp = character.vitals.hit_points_max || 0;
+            const currentHp = character.vitals.hit_points_current || 0;
+            const markedHp = maxHp - currentHp;
+            return markedHp >= (condition.minMarked || 1);
 
         case 'loadout_domain_count':
             if (!character?.character_cards) return false;

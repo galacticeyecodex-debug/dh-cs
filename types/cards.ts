@@ -1,5 +1,5 @@
 /**
- * ENHANCED CARD TYPES
+ * ENHANCED CARD TYPES [FORCED REFRESH]
  * ----------------------------------------------------------------------------
  * Extended TypeScript interfaces for domain cards (abilities/spells) with
  * structured metadata for interactive UI components.
@@ -63,6 +63,19 @@ export interface CardCosts {
 }
 
 /**
+ * Structured gains from using an ability (e.g., "gain 3 Hope", "clear a Hit Point")
+ */
+export interface CardGains {
+  hope?: number;
+  stress_clear?: number;    // Clear X Stress
+  hit_points_clear?: number; // Clear X Hit Points (heal)
+  armor_slots_clear?: number; // Clear X Armor Slots (restore armor)
+  damage_reduction_roll?: string; // Roll for damage reduction (e.g., "1d8")
+  replenish_tokens?: boolean; // If true, provides a button to replenish tokens to max
+  vault?: boolean; // If true, provides a button to return card to vault
+}
+
+/**
  * Attack mechanics for combat abilities
  */
 export interface CardAttack {
@@ -78,10 +91,17 @@ export interface CardAttack {
   combat_category?: CombatCategory; // Determines which buttons to show
   additional_damage?: AdditionalDamage[];
   is_triggered_bonus?: boolean; // True if this is bonus damage on a triggered ability, not a standalone attack
+  variable_cost?: {
+    resource: 'hope' | 'stress';
+    dice: string;
+    modifier_per_die?: number;
+    label?: string;
+  };
 }
 
 export interface AdditionalDamage {
   damage: string;
+  formula?: string;
   damage_type?: DamageType;
   condition?: string;
   label?: string; // Short label for the button, e.g. "Extra", "Hope"
@@ -103,10 +123,23 @@ export interface CardRoll {
  */
 export interface CardModifier {
   stat: string;           // Target stat: "agility", "evasion", "damage", etc.
-  value: number;          // Calculated numeric value
+  value: number;          // Calculated numeric value (or base value for tier_scaling)
   formula?: string;       // Dynamic formula if applicable: "half_agility", "3_plus_strength"
   condition?: ModifierCondition; // Activation condition
   source?: string;        // Card name (for debugging)
+  tier_scaling?: TierScaling; // Tier-based value scaling (e.g., Bare Bones thresholds)
+}
+
+/**
+ * Tier-based value scaling for modifiers
+ * Maps character tier (1-4) to modifier values
+ * Used by cards like Bare Bones that have different thresholds per tier
+ */
+export interface TierScaling {
+  1: number;
+  2: number;
+  3: number;
+  4: number;
 }
 
 /**
@@ -114,15 +147,17 @@ export interface CardModifier {
  * ============================================================================
  * These conditions determine WHEN a modifier is active. The UI component
  * (DomainAbilityButton) handles the activation flow for most types.
- * 
+ *
  * See lib/card-parser.ts for full documentation on each condition type.
- * 
+ *
  * Quick Reference:
  * - 'always': Active when card is in loadout
  * - 'when_armored': Active when armor is equipped
  * - 'when_unarmored': Active when NO armor is equipped
  * - 'when_active': Requires user to click activation button (Mark Stress/Spend Hope/Activate)
+ * - 'when_active_permanent': Like when_active, but applies even from vault (e.g., Vitality)
  * - 'cost_activated': DEPRECATED - use 'when_active' instead
+ * - 'when_hp_marked': Active when HP is marked (Power Through Pain); minMarked defaults to 1
  * - 'loadout_domain_count': Active when loadout has enough cards from a domain
  * - 'environment': Active based on environment (future feature)
  */
@@ -131,7 +166,9 @@ export type ModifierCondition =
   | { type: 'when_armored' }
   | { type: 'when_unarmored' }
   | { type: 'when_active' }
+  | { type: 'when_active_permanent' }  // Applies even from vault once activated (e.g., Vitality)
   | { type: 'cost_activated' }  // DEPRECATED: Use 'when_active' instead
+  | { type: 'when_hp_marked'; minMarked?: number }  // Active when HP is marked (e.g., Power Through Pain)
   | { type: 'loadout_domain_count'; domain: string; minCount: number }
   | { type: 'environment'; requirement: string };
 
@@ -153,6 +190,7 @@ export interface ThresholdModifiers {
 export interface CardTokens {
   has_tokens: boolean;
   max_tokens?: number | null; // null = dynamic based on trait
+  initial_tokens?: number; // Starting token count
   token_source?: string; // Which trait determines token count (e.g., "Agility")
   token_replenish?: TokenReplenish;
   tokens_per_use?: number; // How many tokens spent per use
@@ -170,6 +208,7 @@ export interface EnhancementBlock {
   timing: Timing;
   frequency: Frequency;
   costs?: CardCosts | null;
+  gains?: CardGains | null;
   keywords?: string[];
   tokens?: CardTokens;
   attack?: CardAttack | null;
@@ -178,6 +217,36 @@ export interface EnhancementBlock {
   modifiers?: CardModifier[];
   threshold_modifiers?: ThresholdModifiers;
   duration?: string;
+  variable_roll?: {
+    source: 'tokens' | 'hope' | 'stress';
+    roll: string;
+    label?: string;
+  };
+  variable_cost?: LinkedCost; // Deprecated, use linked_costs
+  linked_costs?: LinkedCost[];
+  notes?: Array<{
+    label: string;
+    placeholder?: string;
+  }>;
+}
+
+/**
+ * A cost that is explicitly linked to an action or gain.
+ * Can be fixed (amount: number) or variable (amount: 'X').
+ */
+export interface LinkedCost {
+  resource: 'hope' | 'stress' | 'tokens' | 'hit_points' | 'armor_slots' | 'fear' | 'custom';
+  amount: number | 'X';
+  label?: string; // Button/section label
+  cost_label?: string; // Descriptive cost text (e.g. "Mark {n} Stress")
+  benefit_label?: string; // Descriptive benefit text (e.g. "Gain {n} Tokens")
+  action?: {
+    type: 'gain_tokens' | 'variable_roll' | 'replenish_tokens' | 'custom';
+    amount_per_resource?: number;
+    dice?: string;
+    modifier_per_die?: number;
+    target_stat?: string;
+  };
 }
 
 /**
@@ -219,6 +288,7 @@ export interface CharacterCardState {
   is_active: boolean; // For persistent effects
   last_roll_result?: number; // Last roll result for token generation
   active_modifiers?: Record<string, boolean>; // Per-modifier activation state
+  notes?: Record<string, string>; // Persistent notes for the card (e.g., Rift Walker location)
 }
 
 /**
@@ -284,6 +354,7 @@ export interface ActiveEffectCheckboxProps {
 export interface CardTokenTrackProps {
   cardName: string;
   maxTokens: number | null;
+  initialTokens?: number;
   tokenSource?: string;
   currentTokens?: number;
   onTokenChange?: (tokens: number) => void;

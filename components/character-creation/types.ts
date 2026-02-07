@@ -36,7 +36,7 @@ export interface LibraryLookupItem {
   name: string;
   domain?: string;
   tier?: number;
-  source?: 'srd' | 'playtest' | 'homebrew';
+  source?: string;
   data: Record<string, any>;
 }
 

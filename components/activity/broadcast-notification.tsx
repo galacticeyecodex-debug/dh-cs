@@ -143,14 +143,17 @@ export function BroadcastNotification({
         const data = activity.data as CardUsedActivityData;
         const hasHope = !!data.cost_paid?.hope;
         const hasStress = !!data.cost_paid?.stress;
+        const isGain = !!data.gains || !!data.hope_gained;
+        const isSpend = !!data.cost_paid;
 
         const containerClasses = clsx(
             'relative overflow-hidden rounded-2xl shadow-2xl border backdrop-blur-md',
             {
-                'bg-gradient-to-br from-amber-500/20 to-amber-900/30 border-amber-500/40': hasHope && !hasStress,
-                'bg-gradient-to-br from-purple-500/20 to-purple-900/30 border-purple-500/40': hasStress && !hasHope,
-                'bg-gradient-to-br from-purple-500/20 to-amber-900/30 border-dagger-gold/40': hasHope && hasStress,
-                'bg-gradient-to-br from-gray-500/20 to-gray-900/30 border-gray-500/40': !hasHope && !hasStress,
+                'bg-gradient-to-br from-emerald-500/20 to-emerald-900/30 border-emerald-500/40': isGain && !isSpend,
+                'bg-gradient-to-br from-amber-500/20 to-amber-900/30 border-amber-500/40': isSpend && hasHope && !hasStress,
+                'bg-gradient-to-br from-purple-500/20 to-purple-900/30 border-purple-500/40': isSpend && hasStress && !hasHope,
+                'bg-gradient-to-br from-purple-500/20 to-amber-900/30 border-dagger-gold/40': isSpend && hasHope && hasStress,
+                'bg-gradient-to-br from-gray-500/20 to-gray-900/30 border-gray-500/40': !isSpend && !isGain,
             }
         );
 
@@ -179,22 +182,43 @@ export function BroadcastNotification({
                                     {data.card_name}
                                 </h3>
                                 <div className="flex gap-2 mt-1">
-                                    {hasHope && (
-                                        <div className="flex items-center gap-1 text-dagger-gold text-xs font-bold uppercase">
+                                    {data.gains?.hope && (
+                                        <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold uppercase">
                                             <Sparkles size={10} />
-                                            Spent {data.cost_paid?.hope} Hope
+                                            Gained {data.gains.hope} Hope
                                         </div>
                                     )}
-                                    {hasStress && (
-                                        <div className="flex items-center gap-1 text-purple-400 text-xs font-bold uppercase">
+                                    {data.hope_gained && ( // Handle legacy field
+                                        <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold uppercase">
+                                            <Sparkles size={10} />
+                                            Gained {data.hope_gained} Hope
+                                        </div>
+                                    )}
+                                    {data.gains?.stress && (
+                                        <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold uppercase">
                                             <Zap size={10} />
-                                            Marked {data.cost_paid?.stress} Stress
+                                            Cleared {data.gains.stress} Stress
+                                        </div>
+                                    )}
+                                    {data.gains?.hp && (
+                                        <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold uppercase">
+                                            <AppIcons.vitals.hitPoints size={10} />
+                                            Healed {data.gains.hp} HP
+                                        </div>
+                                    )}
+                                    {data.gains?.armor && (
+                                        <div className="flex items-center gap-1 text-sky-400 text-xs font-bold uppercase">
+                                            <AppIcons.vitals.armor size={10} />
+                                            Restored {data.gains.armor} Armor
                                         </div>
                                     )}
                                 </div>
                             </div>
-                            <div className="px-3 py-1 rounded-full bg-white/10 text-gray-300 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">
-                                Resource Spent
+                            <div className={clsx(
+                                "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap",
+                                isGain ? "bg-emerald-500/30 text-emerald-300" : "bg-white/10 text-gray-300"
+                            )}>
+                                {isGain ? "Resource Gained" : isSpend ? "Resource Spent" : "Ability Used"}
                             </div>
                         </div>
                     </div>

@@ -18,6 +18,7 @@ import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { Modifier, ModifierOperator, CharacterStat } from '@/types/modifiers';
 import { parseModifiers } from '@/lib/modifier-parser';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface ModifierBuilderProps {
   modifiers: Modifier[];
@@ -328,37 +329,35 @@ export default function ModifierBuilder({ modifiers, onChange }: ModifierBuilder
           {/* Target Stat */}
           <div>
             <label htmlFor={`${id}-target`} className="block text-xs text-gray-400 mb-1">Target Stat</label>
-            <select
-              id={`${id}-target`}
-              aria-label="Target Stat"
-              value={target}
-              onChange={(e) => setTarget(e.target.value)}
-              className="w-full p-2 rounded bg-black/40 border border-white/20 text-white text-sm focus:border-dagger-gold outline-none"
-            >
-              {STAT_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            <Select value={target} onValueChange={setTarget}>
+              <SelectTrigger className="w-full text-sm" aria-label="Target Stat">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STAT_OPTIONS.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Operator */}
           <div>
             <label htmlFor={`${id}-operator`} className="block text-xs text-gray-400 mb-1">Operator</label>
-            <select
-              id={`${id}-operator`}
-              aria-label="Operator"
-              value={operator}
-              onChange={(e) => setOperator(e.target.value as ModifierOperator)}
-              className="w-full p-2 rounded bg-black/40 border border-white/20 text-white text-sm focus:border-dagger-gold outline-none"
-            >
-              {OPERATOR_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            <Select value={operator} onValueChange={(val) => setOperator(val as ModifierOperator)}>
+              <SelectTrigger className="w-full text-sm" aria-label="Operator">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {OPERATOR_OPTIONS.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Value */}

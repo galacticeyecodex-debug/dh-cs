@@ -43,7 +43,7 @@ export interface LibraryItem {
   name: string;
   domain?: string;
   tier?: number;
-  source?: 'srd' | 'playtest' | 'homebrew'; // Content source for access control
+  source?: string; // Content source for access control (e.g. 'srd', 'playtest-void-1-5', 'homebrew-strixhaven')
   data: HomebrewItemData | any; // JSONB column content - typed for homebrew, flexible for library
   _isHomebrew?: boolean; // UI marker for homebrew items
   _homebrewId?: string; // Original homebrew ID for UI
