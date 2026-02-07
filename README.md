@@ -3,17 +3,17 @@
 </p>
 
 # Why Does This App Exist?
-First, let me say that this repository is 1) free, 2) open source, and 3) available for use by anyone who wants to use it, and 4) very much a work in progress.
+First, let me say that this repository is 1) free, 2) open source, 3) available for use by anyone who wants to use it, and 4) very much a work in progress.
 
-I play Daggerheary once a week with my children, brother, and sister for our compaign set in the magical university of Stixhaven. We started out with D&D 5e, but I convinced them to try Daggerheart. I love the system! The family was very generous to let us use this system for our games, which was mostly because I fely that it would be more fun to run than D&D.
+I play Daggerheart once a week with my children, brother, and sister for our campaign set in the magical university of Strixhaven. We started out with D&D 5e, but I convinced them to try Daggerheart. I love the system! The family was very generous to let us use this system for our games, which was mostly because I felt that it would be more fun to run than D&D.
 
-There was a problem though. We are all fairly inexperienced with TTRPGs and since we live in different states, we rely on digital tools to play the game. For D&D, we relied heavily on D&D Beyond to keep track of our characters and to help use understand the rules. At the time, there was no such tool for Daggerheart. So I decided to build one.
+There was a problem though. We are all fairly inexperienced with TTRPGs and since we live in different states, we rely on digital tools to play the game. For D&D, we relied heavily on D&D Beyond to keep track of our characters and to help us understand the rules. At the time, there was no such tool for Daggerheart. So I decided to build one.
 
 This app was built to roll digital dice -- we don't all own real dice -- and to keep track of the math behind the game.
 
 To my knowledge, there is no other app that attempts to keep track of the modifiers and bonuses that come from your domain cards and other features.
 
-That said, it's a work in progress. We're only level 3, so not everything is implemented yet. Not every domain works yet. That's fine. We're having fun. And every week, I get feedback about how to make our game and this app better. It's open source, so if you don't want to use and improve it, you can fork it and make it better!
+That said, it's a work in progress. We're only level 3, so not everything is implemented yet. Not every domain works yet. That's fine. We're having fun. And every week, I get feedback about how to make our game and this app better. It's open source, so if you want to use and improve it, you can fork it and make it better!
 
 # Daggerheart Dice & Character Creator
 
@@ -138,12 +138,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 
    *   **Regenerate Game Data (Optional)**:
        The `seed_library.sql` file comes pre-generated. If you need to update game data from the SRD JSON files:
-       1.  Run the parser script:
+       1.  Run the enhancement script:
            ```bash
-           node scripts/parse_json_srd.js
+           npm run enhance-json
            ```
-       2.  This updates `supabase/seed_library.sql`.
-       3.  Re-run `supabase/seed_library.sql` in the Supabase SQL Editor to apply changes.
+       2.  This updates the enhanced JSON files in `content/public/srd/json/`.
+       3.  To update the database, you can run the SQL seed scripts:
+           ```bash
+           npm run seed:public
+           ```
+       4.  Re-run the generated `supabase/seed_library.sql` in the Supabase SQL Editor to apply changes.
 
    *   **Configure Google OAuth (Required for Authentication)**:
 
@@ -220,6 +224,7 @@ dh-cs/
 │   ├── auth/             # Authentication routes
 │   └── create-character/ # Character creation wizard
 ├── components/           # Reusable UI components
+│   ├── core/             # Base UI primitives (icons, buttons, panels)
 │   ├── ui/               # Shadcn/ui primitives
 │   ├── views/            # Feature-specific views
 │   │   ├── character/    # Character sheet view
@@ -227,7 +232,9 @@ dh-cs/
 │   │   ├── downtime/     # Downtime activities & projects
 │   │   ├── inventory/    # Equipment & homebrew management
 │   │   ├── journal/      # Relationships & reputation
-│   │   └── playmat/      # Domain card management
+│   │   ├── playmat/      # Domain card management
+│   │   ├── profile/      # User profile view
+│   │   └── settings/     # App settings view
 │   └── ...               # Various logic-heavy components
 ├── constants/            # Global constants and config
 ├── hooks/                # Custom React hooks
