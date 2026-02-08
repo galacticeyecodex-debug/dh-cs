@@ -22,6 +22,7 @@ import { RangerCompanion, CompanionExperience } from '@/types/character';
 import { uploadCharacterImage } from '@/lib/storage-service';
 import { toast } from 'sonner';
 import { VALUE_COLORS } from '@/lib/styles';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface CompanionSheetProps {
   isOpen: boolean;
@@ -236,7 +237,8 @@ export default function CompanionSheet({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            style={{ zIndex: Z_INDEX.DRAWER }}
           />
 
           {/* Sheet */}
@@ -245,7 +247,8 @@ export default function CompanionSheet({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col"
+            style={{ zIndex: Z_INDEX.DRAWER }}
           >
             {/* Handle */}
             <div className="flex justify-center p-3 cursor-pointer" onClick={onClose}>

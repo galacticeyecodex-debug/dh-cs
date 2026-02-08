@@ -21,6 +21,7 @@ import { AppIcons } from '@/lib/icon-utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/core/error-boundary';
+import { Z_INDEX } from '@/constants/z-index';
 import clsx from 'clsx';
 import useContentAccess from '@/hooks/useContentAccess';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -86,7 +87,7 @@ export default function ManageCharacterModal({
   const [name, setName] = useState<string>(currentName);
   const [level, setLevel] = useState<number>(currentLevel);
   const [community, setCommunity] = useState<string>(currentCommunity);
-  const [transformation, setTransformation] = useState<string>(currentTransformation);
+  const [transformation, setTransformation] = useState<string>(currentTransformation || 'none');
   const [spellcastTrait, setSpellcastTrait] = useState<string>(currentSpellcastTrait);
   const [error, setError] = useState<string>('');
   const [confirmDeLevelOpen, setConfirmDeLevelOpen] = useState(false);
@@ -274,7 +275,7 @@ export default function ManageCharacterModal({
     level !== currentLevel ||
     getEffectiveAncestry() !== currentAncestry ||
     community !== currentCommunity ||
-    transformation !== currentTransformation ||
+    (transformation === 'none' ? '' : transformation) !== currentTransformation ||
     spellcastTrait !== currentSpellcastTrait ||
     JSON.stringify(getAncestryFeatures()) !== JSON.stringify(currentAncestryFeatures);
 
@@ -338,6 +339,7 @@ export default function ManageCharacterModal({
       try {
         const effectiveAncestry = getEffectiveAncestry();
         const ancestryFeatures = getAncestryFeatures();
+        const effectiveTransformation = transformation === 'none' ? '' : transformation;
 
         await onUpdate({
           name: name !== currentName ? name : undefined,
@@ -345,7 +347,7 @@ export default function ManageCharacterModal({
           ancestry: effectiveAncestry !== currentAncestry ? effectiveAncestry : undefined,
           ancestry_features: JSON.stringify(ancestryFeatures) !== JSON.stringify(currentAncestryFeatures) ? ancestryFeatures : undefined,
           community: community !== currentCommunity ? community : undefined,
-          transformation: transformation !== currentTransformation ? transformation : undefined,
+          transformation: effectiveTransformation !== currentTransformation ? effectiveTransformation : undefined,
           spellcast_trait: spellcastTrait !== currentSpellcastTrait ? spellcastTrait : undefined,
         });
         onClose();
@@ -396,7 +398,8 @@ export default function ManageCharacterModal({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setConfirmDeLevelOpen(false)}
-              className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+              style={{ zIndex: Z_INDEX.MODAL }}
             />
 
             {/* Bottom Sheet */}
@@ -405,7 +408,8 @@ export default function ManageCharacterModal({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-dagger-panel border-t border-red-700/30 rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col"
+              className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-red-700/30 rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col"
+              style={{ zIndex: Z_INDEX.MODAL }}
             >
               {/* Drag Handle */}
               <div className="flex justify-center p-3" onClick={() => setConfirmDeLevelOpen(false)}>
@@ -485,7 +489,8 @@ export default function ManageCharacterModal({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={onClose}
-              className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+              style={{ zIndex: Z_INDEX.MODAL }}
             />
 
             {/* Bottom Sheet */}
@@ -494,7 +499,8 @@ export default function ManageCharacterModal({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col"
+              className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col"
+              style={{ zIndex: Z_INDEX.MODAL }}
             >
               {/* Drag Handle */}
               <div className="flex justify-center p-3" onClick={onClose}>
@@ -729,7 +735,7 @@ export default function ManageCharacterModal({
                         <SelectValue placeholder="None (no transformation)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">None (no transformation)</SelectItem>
+                        <SelectItem value="none">None (no transformation)</SelectItem>
                         {availableTransformations.map((t) => (
                           <SelectItem key={t.name} value={t.name}>
                             {t.name}

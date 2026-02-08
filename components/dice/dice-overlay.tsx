@@ -25,6 +25,7 @@ import { X, RotateCcw, Plus, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import { toast } from 'sonner';
 import { parseDiceNotation } from '@/lib/dice';
+import { Z_INDEX } from '@/constants/z-index';
 
 type DiceRole = 'hope' | 'fear' | 'plus' | 'minus' | 'damage';
 
@@ -413,9 +414,10 @@ export default function DiceOverlay() {
     <>
       <div
         className={clsx(
-          "fixed inset-0 z-[60] transition-opacity duration-300",
+          "fixed inset-0 transition-opacity duration-300",
           isDiceOverlayOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
+        style={{ zIndex: Z_INDEX.DICE_OVERLAY }}
       >
         <div className={clsx(
           "absolute inset-0 bg-dagger-dark transition-opacity duration-300",
@@ -424,8 +426,11 @@ export default function DiceOverlay() {
         <div
           id="dice-tray-overlay"
           ref={containerRef}
-          className="absolute inset-0 w-screen h-screen z-[65]"
-          style={{ pointerEvents: isDiceOverlayOpen && !hasRolled ? 'auto' : 'none' }}
+          className="absolute inset-0 w-screen h-screen"
+          style={{ 
+            pointerEvents: isDiceOverlayOpen && !hasRolled ? 'auto' : 'none',
+            zIndex: 1 // Relative to parent
+          }}
           data-testid="dice-tray"
           data-ready={isReady}
         />
@@ -435,7 +440,10 @@ export default function DiceOverlay() {
 
       <AnimatePresence>
         {isDiceOverlayOpen && (
-          <div className="fixed inset-0 z-[70] pointer-events-none">
+          <div 
+            className="fixed inset-0 pointer-events-none"
+            style={{ zIndex: Z_INDEX.DICE_OVERLAY + 1 }}
+          >
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -443,13 +451,13 @@ export default function DiceOverlay() {
               className="w-full h-full flex flex-col"
             >
               <motion.div
-                className="absolute top-0 left-0 right-0 p-4 flex flex-col gap-4 z-20"
+                className="absolute top-0 left-0 right-0 p-4 flex flex-col gap-4"
+                style={{ zIndex: Z_INDEX.BASE + 1 }}
                 animate={{
                   opacity: hasRolled ? 0 : 1,
                   pointerEvents: hasRolled ? 'none' : 'auto'
                 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                style={{ pointerEvents: hasRolled ? 'none' : 'auto' }}
               >
                 <div className="flex justify-between items-start pointer-events-auto">
                   <button
@@ -457,7 +465,8 @@ export default function DiceOverlay() {
                       e.stopPropagation();
                       closeDiceOverlay();
                     }}
-                    className="p-2 bg-black/40 rounded-full text-white hover:bg-black/60 transition-colors touch-auto pointer-events-auto cursor-pointer z-50"
+                    className="p-2 bg-black/40 rounded-full text-white hover:bg-black/60 transition-colors touch-auto pointer-events-auto cursor-pointer"
+                    style={{ zIndex: Z_INDEX.MODAL }}
                     aria-label="Close"
                   >
                     <X size={24} />
@@ -595,7 +604,8 @@ export default function DiceOverlay() {
               {/* Tap-to-close backdrop when showing results */}
               {hasRolled && (
                 <div
-                  className="absolute inset-0 z-10 pointer-events-auto touch-auto"
+                  className="absolute inset-0 pointer-events-auto touch-auto"
+                  style={{ zIndex: Z_INDEX.BASE + 1 }}
                   onClick={closeDiceOverlay}
                   onTouchEnd={(e) => {
                     e.preventDefault();
@@ -608,7 +618,8 @@ export default function DiceOverlay() {
                 <motion.div
                   initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-md pointer-events-auto z-20"
+                  className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-md pointer-events-auto"
+                  style={{ zIndex: Z_INDEX.CARD_CONTENT }}
                   data-testid="roll-result"
                 >
                   <div

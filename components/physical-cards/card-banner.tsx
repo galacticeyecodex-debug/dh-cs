@@ -7,6 +7,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { getDomainTheme } from '@/lib/domain-colors';
+import { Z_INDEX } from '@/constants/z-index';
 import {
   ArcanaDomainIcon,
   BladeDomainIcon,
@@ -144,14 +145,15 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
         alt=""
         width={dimensions.bannerWidth}
         height={dimensions.bannerHeight}
-        className="absolute z-40"
-        style={{ top: 0, left: 0 }}
+        className="absolute w-full h-full"
+        style={{ top: 0, left: 0, zIndex: Z_INDEX.CARD_DECORATION }}
       />
 
-      {/* Foreground clip (primary color) - z-30, narrower and offset */}
+      {/* Foreground clip (primary color) - narrowly offset */}
       <div
-        className="absolute z-30"
+        className="absolute"
         style={{
+          zIndex: Z_INDEX.CARD_DECORATION - 1,
           top: 0,
           left: `${dimensions.clipOffset}px`,
           width: `${dimensions.clipWidth}px`,
@@ -161,10 +163,11 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
         }}
       />
 
-      {/* Background clip (secondary color) - z-20, narrower and offset */}
+      {/* Background clip (secondary color) - narrowly offset */}
       <div
-        className="absolute z-20"
+        className="absolute"
         style={{
+          zIndex: Z_INDEX.CARD_DECORATION - 2,
           top: 0,
           left: `${dimensions.clipOffset}px`,
           width: `${dimensions.clipWidth}px`,
@@ -175,8 +178,9 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
       />
       {/* Level number - centered horizontally at top */}
       <div
-        className="absolute z-50 font-bold"
+        className="absolute font-bold"
         style={{
+          zIndex: Z_INDEX.CARD_DECORATION + 1,
           top: dimensions.textTop,
           left: '50%',
           transform: 'translateX(-50%)',
@@ -190,8 +194,9 @@ export function CardBanner({ domain, level, size = 'small' }: CardBannerProps) {
       {/* Domain icon - centered below level number */}
       {DomainIcon && (
         <div
-          className="absolute z-50"
+          className="absolute"
           style={{
+            zIndex: Z_INDEX.CARD_DECORATION + 1,
             top: dimensions.iconTop,
             left: '50%',
             transform: 'translateX(-50%)',

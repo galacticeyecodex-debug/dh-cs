@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Dices, X, Sparkles, Skull, Wand2, Zap } from 'lucide-react';
 import clsx from 'clsx';
 import { AppIcons } from '@/lib/icon-utils';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface BroadcastNotificationProps {
     activity: CampaignActivity | null;
@@ -242,7 +243,8 @@ function NotificationPortal({ children, onDismiss }: { children: React.ReactNode
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.95 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-sm"
+                className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm"
+                style={{ zIndex: Z_INDEX.TOAST }}
                 role="alert"
                 aria-live="polite"
             >
@@ -256,7 +258,8 @@ function DismissButton({ onDismiss }: { onDismiss: () => void }) {
     return (
         <button
             onClick={onDismiss}
-            className="absolute top-2 right-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            style={{ zIndex: Z_INDEX.DECORATIVE }}
             aria-label="Dismiss notification"
         >
             <X size={14} className="text-white/70" />

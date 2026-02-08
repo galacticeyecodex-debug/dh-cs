@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCharacterStore } from '@/store/character-store';
 import SRDInfoButton from './srd-info-button';
 import type { ModifierCondition } from '@/types/cards';
+import { Z_INDEX } from '@/constants/z-index';
 
 type ModifierSourceType = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
 
@@ -177,7 +178,8 @@ export default function ModifierSheet({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            style={{ zIndex: Z_INDEX.MODIFIER_SHEET }}
           />
 
           {/* Sheet */}
@@ -186,7 +188,8 @@ export default function ModifierSheet({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 z-60 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col"
+            style={{ zIndex: Z_INDEX.MODIFIER_SHEET }}
           >
             {/* Handle */}
             <div className="flex justify-center p-3" onClick={onClose}>

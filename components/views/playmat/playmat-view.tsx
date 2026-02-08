@@ -30,6 +30,7 @@ import ViewHeader from '@/components/shared/view-header';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import SRDInfoButton from '@/components/shared/srd-info-button';
 import ConfirmDialog from '@/components/shared/confirm-dialog';
+import { Z_INDEX } from '@/constants/z-index';
 import { parseCardPassiveModifiers, parseCombatAbility, type PassiveModifier } from '@/lib/card-parser';
 import { toast } from 'react-hot-toast';
 import { getDomainTheme } from '@/lib/domain-colors';
@@ -210,7 +211,10 @@ export default function PlaymatView() {
         />
 
         {/* Sticky Toggle Bar - Compact Design */}
-        <div className="sticky top-0 z-20 bg-dagger-dark/95 backdrop-blur border-b border-white/10 -mx-4 px-4 py-2 shadow-sm">
+        <div 
+          className="sticky top-0 bg-dagger-dark/95 backdrop-blur border-b border-white/10 -mx-4 px-4 py-2 shadow-sm"
+          style={{ zIndex: Z_INDEX.VIEW_CONTROLS }}
+        >
           {/* Top row: Loadout/Vault toggle + Add Card button */}
           <div className="flex justify-between items-center gap-2">
             <div className="flex items-center gap-2">
@@ -698,7 +702,11 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
   const isFull = mode === 'full';
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
+    <div 
+      className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm" 
+      onClick={onClose}
+      style={{ zIndex: Z_INDEX.MODAL }}
+    >
       <div
         className="bg-zinc-800 text-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh] relative"
         style={{ borderTop: `4px solid ${theme.primary}` }}
@@ -707,7 +715,10 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
         {isFull && (
           <>
             {/* Top Header Section */}
-            <div className="absolute top-0 left-0 w-full flex justify-between items-center p-3 z-10">
+            <div 
+              className="absolute top-0 left-0 w-full flex justify-between items-center p-3"
+              style={{ zIndex: Z_INDEX.BASE + 1 }}
+            >
               {/* Top Left: Level */}
               <div
                 className="relative w-12 h-16 flex items-center justify-center text-white font-eveleth font-bold text-xl"
@@ -736,7 +747,10 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
             </div>
 
             {/* Card Type Banner */}
-            <div className="mt-16 pt-2 pb-1 text-center z-10">
+            <div 
+              className="mt-16 pt-2 pb-1 text-center"
+              style={{ zIndex: Z_INDEX.BASE + 1 }}
+            >
               <span
                 className="uppercase font-bold text-xs text-white px-3 py-1 rounded-full tracking-wider shadow-sm border"
                 style={{
@@ -765,7 +779,12 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
         )}
 
         {isFull && (
-          <button onClick={onClose} aria-label="Close" className="absolute top-2 right-2 text-white/70 hover:text-white bg-black/50 rounded-full p-1 z-20">
+          <button 
+            onClick={onClose} 
+            aria-label="Close" 
+            className="absolute top-2 right-2 text-white/70 hover:text-white bg-black/50 rounded-full p-1"
+            style={{ zIndex: Z_INDEX.DECORATIVE }}
+          >
             <AppIcons.ui.close size={20} />
           </button>
         )}

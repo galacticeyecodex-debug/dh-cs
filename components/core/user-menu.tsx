@@ -19,6 +19,7 @@ import { AppIcons } from '@/lib/icon-utils';
 import useUser from '@/hooks/useUser';
 import HeaderMenuButton from './header-menu-button';
 import clsx from 'clsx';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface UserMenuProps {
     /** Optional: Navigate to a tab within the app (for use in MobileLayout) */
@@ -105,7 +106,8 @@ export default function UserMenu({ onNavigateToTab }: UserMenuProps) {
             {/* Dropdown Menu */}
             {isOpen && (
                 <div
-                    className="absolute right-0 top-full mt-2 w-56 bg-dagger-panel border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50"
+                    className="absolute right-0 top-full mt-2 w-56 bg-dagger-panel border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden"
+                    style={{ zIndex: Z_INDEX.MODAL }}
                     role="menu"
                     aria-orientation="vertical"
                 >

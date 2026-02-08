@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Clock, AlertCircle } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Project, CreateProjectInput, ProjectType } from '@/types/downtime';
+import { Z_INDEX } from '@/constants/z-index';
 
 // ============================================================================
 // SHARED MODAL COMPONENT
@@ -20,7 +21,10 @@ function Modal({ isOpen, onClose, title, children }: ModalProps) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div 
+            className="fixed inset-0 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            style={{ zIndex: Z_INDEX.MODAL }}
+        >
             <div className="w-full max-w-lg bg-dagger-panel border border-white/10 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <div className="flex items-center justify-between p-4 border-b border-white/10">
                     <h2 className="text-xl font-serif font-bold text-white">{title}</h2>

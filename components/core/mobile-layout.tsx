@@ -28,6 +28,7 @@ import HeaderMenuButton from './header-menu-button';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import { useTabPersistence } from '@/hooks/useTabPersistence';
+import { Z_INDEX } from '@/constants/z-index';
 
 // Fix for no-explicit-any on NavButton props
 interface NavButtonProps {
@@ -109,7 +110,8 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
           {/* Context Dropdown Menu */}
           {isContextMenuOpen && (
             <div
-              className="absolute left-0 top-full mt-2 w-64 bg-dagger-panel border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50"
+              className="absolute left-0 top-full mt-2 w-64 bg-dagger-panel border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden"
+              style={{ zIndex: Z_INDEX.MODAL }}
               role="menu"
               aria-orientation="vertical"
             >
@@ -199,7 +201,10 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
 
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 pb-safe pt-2 px-6 z-50 backdrop-blur-lg">
+      <nav 
+        className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 pb-safe pt-2 px-6 backdrop-blur-lg"
+        style={{ zIndex: Z_INDEX.NAV_BAR }}
+      >
         <div className="flex justify-between items-center h-16">
           <NavButton
             active={activeTab === 'character'}

@@ -17,6 +17,7 @@ import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CreateRelationshipInput } from '@/types/journal';
 import { getRelationshipTier, getRelationshipTierInfo } from '@/types/journal';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface AddNPCModalProps {
     isOpen: boolean;
@@ -91,7 +92,8 @@ export default function AddNPCModal({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={handleCancel}
-                        className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+                        style={{ zIndex: Z_INDEX.MODAL }}
                     />
 
                     {/* Modal */}
@@ -100,7 +102,8 @@ export default function AddNPCModal({
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md mx-4 max-h-[90vh] overflow-hidden"
+                        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md mx-4 max-h-[90vh] overflow-hidden"
+                        style={{ zIndex: Z_INDEX.MODAL }}
                     >
                         <div className="bg-dagger-panel border border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                             {/* Header */}

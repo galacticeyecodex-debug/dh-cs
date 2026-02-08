@@ -5,6 +5,7 @@ import { AppIcons } from '@/lib/icon-utils';
 import { DruidBeastform } from '@/types/character';
 import { toast } from 'sonner';
 import clsx from 'clsx';
+import { Z_INDEX } from '@/constants/z-index';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'; // Assuming this exists or using simple modal div if not
 // Checking project structure: uses 'components/ui/sheet' or similar? 
 // Project uses 'modals'. 'components/ui' might not exist or be Shadcn.
@@ -77,7 +78,10 @@ export default function BeastformSheet({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
+        <div 
+            className="fixed inset-0 flex items-end sm:items-center justify-center pointer-events-none"
+            style={{ zIndex: Z_INDEX.MODAL }}
+        >
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm pointer-events-auto" onClick={onClose} />
 

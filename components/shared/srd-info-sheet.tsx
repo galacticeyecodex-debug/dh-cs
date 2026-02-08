@@ -26,6 +26,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Loader2 } from 'lucide-react';
 import { useSRDRule } from '@/hooks/useSRDRule';
 import { MarkdownText } from '@/components/shared/markdown-text';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface SRDInfoSheetProps {
   isOpen: boolean;
@@ -51,24 +52,25 @@ export default function SRDInfoSheet({ isOpen, onClose, ruleKey, title }: SRDInf
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm"
-          />
-
-          {/* Sheet */}
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 z-[60] bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col font-sans normal-case"
-          >
-            {/* Handle */}
+                      {/* Backdrop */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+                        style={{ zIndex: Z_INDEX.DRAWER }}
+                      />
+          
+                      {/* Sheet */}
+                      <motion.div
+                        initial={{ y: '100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                        className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col font-sans normal-case"
+                        style={{ zIndex: Z_INDEX.DRAWER }}
+                      >            {/* Handle */}
             <div className="flex justify-center p-3 cursor-pointer" onClick={onClose}>
               <div className="w-12 h-1.5 bg-white/20 rounded-full" />
             </div>

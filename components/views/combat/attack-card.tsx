@@ -31,6 +31,7 @@ import { AdditionalDamage, EnhancedAbilityCard } from '@/types/cards';
 import MechanicsTray from '@/components/shared/mechanics-tray';
 import { getEnhancement, getModifiers } from '@/lib/enhancement-utils';
 import { useCardMechanics } from '@/hooks/useCardMechanics';
+import { Z_INDEX } from '@/constants/z-index';
 
 export interface AttackCardCosts {
     stress?: number;
@@ -243,7 +244,10 @@ const AttackCard = React.memo(function AttackCard({
                 variant === 'standalone' ? 'p-4' : 'mb-2'
             )}>
                 {/* Action buttons - top right corner of header */}
-                <div className="absolute top-1 right-1 z-10 flex items-center gap-0.5">
+                <div 
+                    className="absolute top-1 right-1 flex items-center gap-0.5"
+                    style={{ zIndex: Z_INDEX.DECORATIVE }}
+                >
                     {/* Info button - toggle description visibility */}
                     {description && (
                         <button

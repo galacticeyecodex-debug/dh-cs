@@ -25,6 +25,7 @@ import CreateHomebrewItemModal, { HomebrewItemData } from './create-homebrew-ite
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { DomainCard } from '@/components/physical-cards/domain-card';
 import { DOMAIN_COLORS } from '@/lib/domain-colors';
+import { Z_INDEX } from '@/constants/z-index';
 interface AddItemModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -58,6 +59,7 @@ export default function AddItemModal({
   const initializedFilterContext = useRef<string | null>(null);
 
   const { homebrewItems, fetchHomebrewItems, addHomebrewItem } = useCharacterStore();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Extract domain names from library items and supported domains
   const domains = useMemo(() => {
@@ -116,6 +118,7 @@ export default function AddItemModal({
   }, [filterType, characterDomains, characterLevel]);
 
   const filteredItems = useMemo(() => {
+    // ... existing filtering logic ... (omitted for brevity in instruction, but I will include it in the real call)
     // Convert homebrew items to LibraryItem format
     const homebrewAsLibraryItems: LibraryItem[] = homebrewItems.map(item => ({
       id: `homebrew-${item.id}`,
@@ -197,6 +200,29 @@ export default function AddItemModal({
     });
   }, [libraryItems, homebrewItems, searchTerm, selectedCategory, selectedDomains, minLevel, maxLevel, showHomebrewOnly, filterType, ownedCards]);
 
+  const groupedItems = useMemo(() => {
+    const groups: { title: string; items: LibraryItem[] }[] = [];
+    const currentGroups: Record<string, LibraryItem[]> = {};
+
+    filteredItems.forEach(item => {
+      let groupTitle = 'Other';
+      if (filterType === 'cards' || selectedCategory === 'card') {
+        groupTitle = item.domain || 'No Domain';
+      } else {
+        groupTitle = item.name.charAt(0).toUpperCase();
+        if (!/[A-Z]/.test(groupTitle)) groupTitle = '#';
+      }
+
+      if (!currentGroups[groupTitle]) {
+        currentGroups[groupTitle] = [];
+        groups.push({ title: groupTitle, items: currentGroups[groupTitle] });
+      }
+      currentGroups[groupTitle].push(item);
+    });
+
+    return groups;
+  }, [filteredItems, filterType, selectedCategory]);
+
   if (!isOpen) return null;
 
   const handleAddItemClick = (item: LibraryItem) => {
@@ -216,7 +242,10 @@ export default function AddItemModal({
 
   return (
     <ErrorBoundary>
-      <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+      <div 
+      className="fixed inset-0 bg-black/70 flex items-center justify-center p-4"
+      style={{ zIndex: Z_INDEX.MODAL }}
+    >
         <div className="bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full max-w-lg h-[80vh] flex flex-col">
           {/* Header */}
           <div className="flex justify-between items-center p-4 border-b border-white/10">
@@ -364,93 +393,139 @@ export default function AddItemModal({
           </div>
 
           {/* Results List */}
-          <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
-                <AppIcons.ui.loading className="animate-spin" size={24} />
-                <span className="text-sm">Loading library items...</span>
-              </div>
-            ) : filteredItems.length > 0 ? (
-              <div className={clsx(
-                "space-y-4",
-                filterType === 'cards' && "flex flex-col items-center"
-              )}>
-                {filteredItems.map(item => {
-                  const isCard = ['ability', 'spell', 'grimoire', 'class', 'subclass'].includes(item.type);
-
-                  if (isCard) {
-                    return (
-                      <div key={item.id} className="w-full flex justify-center">
-                        <DomainCard
-                          name={item.name}
-                          domain={item.domain}
-                          tier={item.tier || 0}
-                          type={item.type}
-                          description={item.data?.description || item.data?.text}
-                          recallCost={item.data?.recall_cost}
-                          size="thumbnail"
-                          onClick={() => handleAddItemClick(item)}
-                        />
+          <div className="flex-1 overflow-hidden flex relative">
+            <div
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 scroll-smooth"
+            >
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
+                  <AppIcons.ui.loading className="animate-spin" size={24} />
+                  <span className="text-sm">Loading library items...</span>
+                </div>
+              ) : groupedItems.length > 0 ? (
+                <div className="space-y-8">
+                  {groupedItems.map((group) => (
+                    <div key={group.title} id={`group-${group.title}`} className="space-y-4">
+                      <div 
+                        className="sticky top-0 py-2 bg-dagger-panel/95 backdrop-blur-sm border-b border-white/5"
+                        style={{ zIndex: Z_INDEX.BASE + 1 }}
+                      >
+                        <h3 className="text-xs font-black uppercase text-dagger-gold tracking-[0.2em]">
+                          {group.title}
+                        </h3>
                       </div>
-                    );
-                  }
 
-                  return (
-                    <div
-                      key={item.id}
-                      className="w-full bg-black/20 p-3 rounded-lg border border-white/10 hover:border-dagger-gold cursor-pointer transition-colors"
-                      onClick={() => handleAddItemClick(item)}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="font-bold text-white">{item.name}</div>
-                        {(item as any)._isHomebrew && (
-                          <span className="text-[10px] px-2 py-0.5 bg-purple-500/20 border border-purple-500/40 text-purple-300 rounded-full font-bold uppercase">
-                            Custom
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-400 uppercase">{item.type} {item.tier ? `(Level ${item.tier})` : ''} {item.domain ? `- ${item.domain}` : ''}</div>
-                      {item.type === 'weapon' && item.data && (
-                        <div className="text-xs text-gray-500">
-                          {item.data.trait} {item.data.range} {item.data.damage} {item.data.type === 'Physical' ? 'Phy' : item.data.type === 'Magic' ? 'Mag' : item.data.type}
-                        </div>
-                      )}
-                      {item.type === 'armor' && item.data && (
-                        <div className="text-xs text-gray-500">
-                          Thresholds: {item.data.base_thresholds}, Score: {item.data.base_score}
-                        </div>
-                      )}
+                      <div className={clsx(
+                        "space-y-4",
+                        (filterType === 'cards' || selectedCategory === 'card') && "flex flex-col items-center"
+                      )}>
+                        {group.items.map(item => {
+                          const isCard = ['ability', 'spell', 'grimoire', 'class', 'subclass'].includes(item.type);
 
-                      {/* Modifiers Tags */}
-                      {item.data?.modifiers && Array.isArray(item.data.modifiers) && item.data.modifiers.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1.5">
-                          {item.data.modifiers.map((mod: any, idx: number) => {
-                            const isPositive = mod.value > 0;
-                            const sign = mod.value > 0 ? '+' : '';
-                            const label = `${sign}${mod.value} ${mod.target.charAt(0).toUpperCase() + mod.target.slice(1)}`;
-
+                          if (isCard) {
                             return (
-                              <span
-                                key={idx}
-                                className={clsx(
-                                  "text-[10px] px-1.5 py-0.5 rounded border uppercase font-bold",
-                                  isPositive
-                                    ? "bg-green-500/10 border-green-500/30 text-green-400"
-                                    : "bg-red-500/10 border-red-500/30 text-red-400"
-                                )}
-                              >
-                                {label}
-                              </span>
+                              <div key={item.id} className="w-full flex justify-center">
+                                <DomainCard
+                                  name={item.name}
+                                  domain={item.domain}
+                                  tier={item.tier || 0}
+                                  type={item.type}
+                                  description={item.data?.description || item.data?.text}
+                                  recallCost={item.data?.recall_cost}
+                                  size="thumbnail"
+                                  onClick={() => handleAddItemClick(item)}
+                                />
+                              </div>
                             );
-                          })}
-                        </div>
-                      )}
+                          }
+
+                          return (
+                            <div
+                              key={item.id}
+                              className="w-full bg-black/20 p-3 rounded-lg border border-white/10 hover:border-dagger-gold cursor-pointer transition-colors group"
+                              onClick={() => handleAddItemClick(item)}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="font-bold text-white group-hover:text-dagger-gold transition-colors">{item.name}</div>
+                                {(item as any)._isHomebrew && (
+                                  <span className="text-[10px] px-2 py-0.5 bg-purple-500/20 border border-purple-500/40 text-purple-300 rounded-full font-bold uppercase">
+                                    Custom
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-400 uppercase">{item.type} {item.tier ? `(Level ${item.tier})` : ''} {item.domain ? `- ${item.domain}` : ''}</div>
+                              {item.type === 'weapon' && item.data && (
+                                <div className="text-xs text-gray-500">
+                                  {item.data.trait} {item.data.range} {item.data.damage} {item.data.type === 'Physical' ? 'Phy' : item.data.type === 'Magic' ? 'Mag' : item.data.type}
+                                </div>
+                              )}
+                              {item.type === 'armor' && item.data && (
+                                <div className="text-xs text-gray-500">
+                                  Thresholds: {item.data.base_thresholds}, Score: {item.data.base_score}
+                                </div>
+                              )}
+
+                              {/* Modifiers Tags */}
+                              {item.data?.modifiers && Array.isArray(item.data.modifiers) && item.data.modifiers.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {item.data.modifiers.map((mod: any, idx: number) => {
+                                    const isPositive = mod.value > 0;
+                                    const sign = mod.value > 0 ? '+' : '';
+                                    const label = `${sign}${mod.value} ${mod.target.charAt(0).toUpperCase() + mod.target.slice(1)}`;
+
+                                    return (
+                                      <span
+                                        key={idx}
+                                        className={clsx(
+                                          "text-[10px] px-1.5 py-0.5 rounded border uppercase font-bold",
+                                          isPositive
+                                            ? "bg-green-500/10 border-green-500/30 text-green-400"
+                                            : "bg-red-500/10 border-red-500/30 text-red-400"
+                                        )}
+                                      >
+                                        {label}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-gray-500 py-8">No items found.</div>
+              )}
+            </div>
+
+            {/* Navigation Sidebar (Scroll Wheel) */}
+            {groupedItems.length > 1 && (
+              <div className="w-10 border-l border-white/10 bg-black/20 flex flex-col items-center py-4 gap-1 overflow-y-auto no-scrollbar select-none">
+                {groupedItems.map((group) => {
+                  const label = group.title.charAt(0).toUpperCase();
+                  return (
+                    <button
+                      key={group.title}
+                      onClick={() => {
+                        const element = document.getElementById(`group-${group.title}`);
+                        if (element && scrollContainerRef.current) {
+                          const container = scrollContainerRef.current;
+                          const offset = element.offsetTop - container.offsetTop;
+                          container.scrollTo({ top: offset, behavior: 'smooth' });
+                        }
+                      }}
+                      className="w-7 h-7 flex items-center justify-center rounded-md text-[10px] font-black text-gray-500 hover:text-dagger-gold hover:bg-white/5 transition-all"
+                      title={group.title}
+                    >
+                      {label}
+                    </button>
                   );
                 })}
               </div>
-            ) : (
-              <div className="text-center text-gray-500 py-8">No items found.</div>
             )}
           </div>
         </div>

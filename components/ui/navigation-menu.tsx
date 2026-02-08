@@ -17,6 +17,7 @@ import * as React from "react"
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu"
 import { cva } from "class-variance-authority"
 import { ChevronDownIcon } from "lucide-react"
+import { Z_INDEX } from "@/constants/z-index"
 
 import { cn } from "@/lib/utils"
 
@@ -121,8 +122,9 @@ function NavigationMenuViewport({
   return (
     <div
       className={cn(
-        "absolute top-full left-0 isolate z-50 flex justify-center"
+        "absolute top-full left-0 isolate flex justify-center"
       )}
+      style={{ zIndex: Z_INDEX.NAV_BAR }}
     >
       <NavigationMenuPrimitive.Viewport
         data-slot="navigation-menu-viewport"

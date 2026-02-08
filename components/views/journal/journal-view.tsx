@@ -41,6 +41,7 @@ import TextNotesPanel from './text-notes-panel';
 import PromptModal from '@/components/shared/prompt-modal';
 import useCampaignNPCs from '@/hooks/useCampaignNPCs';
 import type { CreateRelationshipInput } from '@/types/journal';
+import { Z_INDEX } from '@/constants/z-index';
 
 type JournalTab = 'relationships' | 'reputation' | 'notes';
 
@@ -301,7 +302,10 @@ function RelationshipCard({
         <>
             <div className="relative p-3 pt-2 rounded-lg bg-white/5 border border-white/10">
                 {/* Top-right action buttons - overlay */}
-                <div className="absolute top-2 right-2 flex items-center gap-1 z-10">
+                <div 
+                    className="absolute top-2 right-2 flex items-center gap-1"
+                    style={{ zIndex: Z_INDEX.BASE + 1 }}
+                >
                     {/* Info Button - toggle description */}
                     {relationship.npc_description && (
                         <button
@@ -342,7 +346,8 @@ function RelationshipCard({
                         {/* Dropdown Menu */}
                         {showMenu && (
                             <div
-                                className="absolute right-0 top-full mt-1 w-44 bg-dagger-panel border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden"
+                                className="absolute right-0 top-full mt-1 w-44 bg-dagger-panel border border-white/10 rounded-lg shadow-xl overflow-hidden"
+                                style={{ zIndex: Z_INDEX.MODAL }}
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <button

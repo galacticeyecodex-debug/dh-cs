@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MoreVertical, UserMinus, Ban, Share2 } from 'lucide-react';
 import { getInitials, formatShortDate } from '@/lib/format-utils';
 import type { Friend } from '@/types/friendship';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface FriendCardProps {
     friend: Friend;
@@ -49,10 +50,14 @@ export function FriendCard({ friend, onUnfriend, onBlock, onShareHomebrew }: Fri
                 {showMenu && (
                     <>
                         <div
-                            className="fixed inset-0 z-10"
+                            className="fixed inset-0"
+                            style={{ zIndex: Z_INDEX.BASE }}
                             onClick={() => setShowMenu(false)}
                         />
-                        <div className="absolute right-0 top-full mt-1 z-20 bg-dagger-panel border border-white/10 rounded-lg shadow-xl overflow-hidden min-w-[160px]">
+                        <div 
+                            className="absolute right-0 top-full mt-1 bg-dagger-panel border border-white/10 rounded-lg shadow-xl overflow-hidden min-w-[160px]"
+                            style={{ zIndex: Z_INDEX.CARD_CONTENT }}
+                        >
                             {onShareHomebrew && (
                                 <button
                                     onClick={() => {

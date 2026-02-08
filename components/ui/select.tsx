@@ -26,6 +26,7 @@
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+import { Z_INDEX } from "@/constants/z-index"
 
 import { cn } from "@/lib/utils"
 
@@ -120,7 +121,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          "relative z-50 max-h-72 min-w-[8rem] overflow-hidden rounded-lg border border-white/10 bg-zinc-900 text-white shadow-lg",
+          "relative max-h-72 min-w-[8rem] overflow-hidden rounded-lg border border-white/10 bg-zinc-900 text-white shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -131,6 +132,7 @@ function SelectContent({
           className
         )}
         position={position}
+        style={{ zIndex: Z_INDEX.MODAL }}
         {...props}
       >
         <SelectScrollUpButton />

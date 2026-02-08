@@ -14,7 +14,6 @@
 /coverage
 
 # next.js
-/.next/
 /out/
 
 # production
@@ -26,8 +25,6 @@
 desktop.ini
 Thumbs.db
 ehthumbs.db
-.vscode/
-.idea/
 
 # Windows specific
 *.Zone.Identifier
@@ -54,14 +51,11 @@ dh-cs/
 next-env.d.ts
 
 # AI & Tooling
-.gemini/
-.agent/
-.claude/
+.*/
+.agents
+!.github/
 CLAUDE.md
 GEMINI.md
-
-# Supabase
-.supabase/
 
 # GitHub App credentials
 gha-creds-*.json
@@ -75,8 +69,6 @@ docs/
 /e2e/screenshots/
 /playwright-report/
 /test-results/
-/.auth/
 
 # Private campaign content (managed in separate private repo)
 content/private/
-.agents

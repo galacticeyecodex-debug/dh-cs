@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppIcons } from '@/lib/icon-utils';
 import { useCharacterStore } from '@/store/character-store';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface CreateCampaignModalProps {
     isOpen: boolean;
@@ -45,7 +46,10 @@ export default function CreateCampaignModal({ isOpen, onClose }: CreateCampaignM
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div 
+                className="fixed inset-0 flex items-center justify-center p-4"
+                style={{ zIndex: Z_INDEX.TOAST }}
+            >
                 {/* Backdrop */}
                 <motion.div
                     initial={{ opacity: 0 }}

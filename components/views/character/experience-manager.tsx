@@ -19,6 +19,7 @@ import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Experience } from '@/types/modifiers';
 import { VALUE_COLORS } from '@/lib/styles';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface ExperienceSheetProps {
   isOpen: boolean;
@@ -80,7 +81,8 @@ export default function ExperienceSheet({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            style={{ zIndex: Z_INDEX.DRAWER }}
           />
 
           {/* Sheet */}
@@ -89,7 +91,8 @@ export default function ExperienceSheet({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col"
+            style={{ zIndex: Z_INDEX.DRAWER }}
           >
             {/* Handle */}
             <div className="flex justify-center p-3 cursor-pointer" onClick={onClose}>
