@@ -13,7 +13,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Map, ChevronDown, ChevronUp, Target, Users } from 'lucide-react';
+import { Search, Map, ChevronDown, ChevronUp, Target, Users } from '@/lib/icon-utils';
 import { Environment } from '@/types/adversary';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import clsx from 'clsx';

@@ -10,7 +10,7 @@ import { render } from '@testing-library/react';
 import React from 'react';
 import VitalCard from '@/components/vitals/vital-card';
 import StatButton from '@/components/views/character/trait-button';
-import { Heart, Shield } from 'lucide-react';
+import { Heart, Shield } from '@/lib/icon-utils';
 
 describe('Performance: VitalCard Re-renders', () => {
   it('should render successfully with props', () => {

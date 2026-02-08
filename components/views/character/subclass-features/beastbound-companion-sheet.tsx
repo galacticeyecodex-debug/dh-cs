@@ -15,7 +15,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { X, Trash2, Check, Pencil, Plus, PawPrint, ChevronDown, ChevronUp, Camera, Zap, Eye, Sparkles, Shield } from 'lucide-react';
+import { X, Trash2, Check, Pencil, Plus, PawPrint, ChevronDown, ChevronUp, Camera, Zap, Eye, Sparkles, Shield } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RangerCompanion, CompanionExperience } from '@/types/character';

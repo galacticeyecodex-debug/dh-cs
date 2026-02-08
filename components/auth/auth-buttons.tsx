@@ -20,7 +20,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 import { LOGIN_PATH } from "@/constants/common";
-import { ArrowRightIcon, LogOut } from "lucide-react";
+import { ArrowRightIcon, LogOut } from '@/lib/icon-utils';
 import useUser from "@/hooks/useUser";
 
 export default function AuthButton() {

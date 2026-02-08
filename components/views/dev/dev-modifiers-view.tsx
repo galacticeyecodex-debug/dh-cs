@@ -20,7 +20,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Sliders, ChevronDown, ChevronRight, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Sliders, ChevronDown, ChevronRight, CheckCircle, XCircle, AlertTriangle } from '@/lib/icon-utils';
 import { ViewHeader } from '@/components/shared/view-header';
 import { getSystemModifiers } from '@/lib/utils';
 import { getModifiers, isModifierActive } from '@/lib/enhancement-utils';

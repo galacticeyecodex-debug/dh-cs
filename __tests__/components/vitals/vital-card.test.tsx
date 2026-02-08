@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import VitalCard from '@/components/vitals/vital-card';
-import { Heart } from 'lucide-react';
+import { Heart } from '@/lib/icon-utils';
 
 describe('VitalCard Visuals', () => {
     it('should apply strokeColor class to filled icons when provided', () => {

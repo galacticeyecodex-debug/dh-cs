@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, X } from 'lucide-react';
+import { AlertCircle, X } from '@/lib/icon-utils';
 import { Z_INDEX } from '@/constants/z-index';
 
 interface ConfirmDialogProps {

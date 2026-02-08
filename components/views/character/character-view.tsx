@@ -52,7 +52,7 @@ import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
 import { Z_INDEX } from '@/constants/z-index';
 import ViewHeader from '@/components/shared/view-header';
 import SRDInfoButton from '@/components/shared/srd-info-button';
-import { User } from 'lucide-react';
+import { User } from '@/lib/icon-utils';
 
 import MechanicsTray from '@/components/shared/mechanics-tray';
 import useContentAccess from '@/hooks/useContentAccess';

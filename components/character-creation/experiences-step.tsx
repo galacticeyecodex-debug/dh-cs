@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sparkle } from 'lucide-react';
+import { Sparkle } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { CharacterFormData } from './types';
 

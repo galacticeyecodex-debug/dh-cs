@@ -12,7 +12,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, Minus, UserPlus } from 'lucide-react';
+import { X, Plus, Minus, UserPlus } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CreateRelationshipInput } from '@/types/journal';

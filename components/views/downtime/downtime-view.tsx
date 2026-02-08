@@ -19,7 +19,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import useContentAccess from '@/hooks/useContentAccess';
-import { Moon, Clock, Plus, Check, Trash2, ChevronRight, Settings, Pencil, Dices, Users, User, Heart, Zap, Shield, Minus, Sparkles } from 'lucide-react';
+import { Moon, Clock, Plus, Check, Trash2, ChevronRight, Settings, Pencil, Dices, Users, User, Heart, Zap, Shield, Minus, Sparkles } from '@/lib/icon-utils';
 
 import { getMovesForRestType } from '@/types/downtime';
 import { getTier } from '@/lib/level-up-helpers';

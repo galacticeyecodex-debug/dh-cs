@@ -46,7 +46,7 @@
  */
 
 import React, { useState } from 'react';
-import { X, Zap, Check, Search, PawPrint, ChevronUp, ChevronDown } from 'lucide-react';
+import { X, Zap, Check, Search, PawPrint, ChevronUp, ChevronDown } from '@/lib/icon-utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RangerCompanion } from '@/types/character';
 import { calculateTierAchievements, calculateNewDamageThresholds, getTier, getMaxCardLevelForDomain, getClassDomainsFromData } from '@/lib/level-up-helpers';

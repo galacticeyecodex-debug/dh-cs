@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCharacterStore, Character } from '@/store/character-store';
 import { dataService } from '@/lib/data-service';
-import { Trash2, Sword } from 'lucide-react';
+import { Trash2, Sword } from '@/lib/icon-utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Z_INDEX } from '@/constants/z-index';

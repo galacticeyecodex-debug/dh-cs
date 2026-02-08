@@ -17,7 +17,7 @@
  */
 
 import { useEffect } from 'react';
-import { AlertCircle, RotateCcw, Home } from 'lucide-react';
+import { AlertCircle, RotateCcw, Home } from '@/lib/icon-utils';
 import Link from 'next/link';
 import { errorLogger } from '@/lib/error-logging';
 

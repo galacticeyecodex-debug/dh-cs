@@ -23,7 +23,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Loader2 } from 'lucide-react';
+import { BookOpen, Loader2 } from '@/lib/icon-utils';
 import { useSRDRule } from '@/hooks/useSRDRule';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { Z_INDEX } from '@/constants/z-index';

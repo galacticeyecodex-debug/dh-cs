@@ -7,7 +7,7 @@
  */
 
 import { CampaignActivity, GmVitalAdjustActivityData } from '@/types/activity';
-import { Wand2, Heart, Brain, Shield, Sparkles } from 'lucide-react';
+import { Wand2, Heart, Brain, Shield, Sparkles } from '@/lib/icon-utils';
 
 interface GmVitalAdjustActivityProps {
     activity: CampaignActivity;

@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/character-store';
 import useUser from '@/hooks/useUser';
-import { Settings, LogOut, UserPlus, Crown, Skull } from 'lucide-react';
+import { Settings, LogOut, UserPlus, Crown, Skull } from '@/lib/icon-utils';
 import PageLayout from '@/components/core/page-layout';
 import InviteCodeDisplay from '@/components/campaign/invite-code-display';
 import MemberList from '@/components/campaign/member-list';

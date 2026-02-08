@@ -7,7 +7,7 @@
  */
 
 import { CampaignActivity, DiceRollActivityData, GmRollActivityData } from '@/types/activity';
-import { Dices, Eye, EyeOff } from 'lucide-react';
+import { Dices, Eye, EyeOff } from '@/lib/icon-utils';
 
 interface DiceRollActivityProps {
     activity: CampaignActivity;

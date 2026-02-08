@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MoreVertical, UserMinus, Ban, Share2 } from 'lucide-react';
+import { MoreVertical, UserMinus, Ban, Share2 } from '@/lib/icon-utils';
 import { getInitials, formatShortDate } from '@/lib/format-utils';
 import type { Friend } from '@/types/friendship';
 import { Z_INDEX } from '@/constants/z-index';

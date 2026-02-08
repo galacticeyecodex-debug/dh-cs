@@ -13,7 +13,7 @@
 
 import { MarkdownText } from '@/components/shared/markdown-text';
 import React from 'react';
-import { Flame, Wind, Mountain, Droplets, Zap, Info, Sparkles } from 'lucide-react';
+import { Flame, Wind, Mountain, Droplets, Zap, Info, Sparkles } from '@/lib/icon-utils';
 import { toast } from 'sonner';
 import { SorcererElement } from '@/types/character';
 import clsx from 'clsx';

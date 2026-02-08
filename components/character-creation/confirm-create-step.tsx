@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Shield, Coins } from 'lucide-react';
+import { Shield, Coins } from '@/lib/icon-utils';
 import { CharacterFormData, LibraryData } from './types';
 
 interface ConfirmCreateStepProps {

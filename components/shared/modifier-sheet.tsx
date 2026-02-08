@@ -14,7 +14,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Check, Pencil, Shield, ShieldOff, Users, AlertCircle } from 'lucide-react';
+import { X, Plus, Trash2, Check, Pencil, Shield, ShieldOff, Users, AlertCircle } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCharacterStore } from '@/store/character-store';

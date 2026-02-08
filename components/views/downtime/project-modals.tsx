@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Clock, AlertCircle } from 'lucide-react';
+import { X, Clock, AlertCircle } from '@/lib/icon-utils';
 import { clsx } from 'clsx';
 import { Project, CreateProjectInput, ProjectType } from '@/types/downtime';
 import { Z_INDEX } from '@/constants/z-index';

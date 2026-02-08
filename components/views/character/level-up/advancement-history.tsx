@@ -17,7 +17,7 @@
  */
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Check, Eye, EyeOff, Heart, Zap, Shield, Star, Swords } from 'lucide-react';
+import { ChevronDown, ChevronRight, Check, Eye, EyeOff, Heart, Zap, Shield, Star, Swords } from '@/lib/icon-utils';
 import { AdvancementRecord } from '@/store/character-store';
 import { Experience } from '@/types/modifiers';
 import SectionHeader from '@/components/shared/section-header';

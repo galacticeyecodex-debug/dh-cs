@@ -7,7 +7,7 @@
  */
 
 import { CampaignActivity, FearChangeActivityData } from '@/types/activity';
-import { Skull, TrendingUp, TrendingDown } from 'lucide-react';
+import { Skull, TrendingUp, TrendingDown } from '@/lib/icon-utils';
 
 interface FearChangeActivityProps {
     activity: CampaignActivity;

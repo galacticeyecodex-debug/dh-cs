@@ -6,7 +6,7 @@
  */
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { X, Clock } from 'lucide-react';
+import { X, Clock } from '@/lib/icon-utils';
 import { getInitials, formatRelativeDate } from '@/lib/format-utils';
 import type { OutgoingRequest } from '@/types/friendship';
 

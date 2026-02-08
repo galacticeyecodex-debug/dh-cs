@@ -18,7 +18,7 @@
  */
 
 import React, { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight } from '@/lib/icon-utils';
 
 interface CharacterCard {
   id: string;

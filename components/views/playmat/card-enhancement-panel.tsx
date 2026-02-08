@@ -20,7 +20,7 @@
 'use client';
 
 import React from 'react';
-import { Target, Zap, MapPin, Skull } from 'lucide-react';
+import { Target, Zap, MapPin, Skull } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
 import { DomainCostsRow } from '@/components/shared/ability-costs-row';

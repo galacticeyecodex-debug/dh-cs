@@ -26,7 +26,7 @@ import {
     Settings,
     FileText,
     Info,
-} from 'lucide-react';
+} from '@/lib/icon-utils';
 import {
     getRelationshipTier,
     getRelationshipTierInfo,

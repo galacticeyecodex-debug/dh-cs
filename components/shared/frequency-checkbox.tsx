@@ -13,7 +13,7 @@
 'use client';
 
 import React from 'react';
-import { Check, Square } from 'lucide-react';
+import { Check, Square } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
 import { getFrequencyLabel } from '@/lib/card-parser';

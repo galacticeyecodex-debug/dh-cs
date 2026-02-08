@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { UserPlus, Loader2 } from 'lucide-react';
+import { UserPlus, Loader2 } from '@/lib/icon-utils';
 
 interface AddFriendFormProps {
     onSubmit: (friendCode: string) => Promise<boolean>;

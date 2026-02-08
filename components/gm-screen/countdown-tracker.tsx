@@ -37,7 +37,7 @@ import {
     Zap,
     AlertTriangle,
     CheckCircle
-} from 'lucide-react';
+} from '@/lib/icon-utils';
 import { Countdown, CountdownType, RollOutcome, COUNTDOWN_ADVANCEMENT } from '@/types/campaign';
 import clsx from 'clsx';
 import { toast } from 'sonner';

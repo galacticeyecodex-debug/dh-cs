@@ -7,7 +7,7 @@
  */
 
 import { CampaignActivity, VitalChangeActivityData } from '@/types/activity';
-import { Heart, Brain, Shield, Sparkles, TrendingUp, TrendingDown, LucideIcon } from 'lucide-react';
+import { Heart, Brain, Shield, Sparkles, TrendingUp, TrendingDown, LucideIcon } from '@/lib/icon-utils';
 import { useCharacterStore } from '@/store/character-store';
 import { getIconByName, VitalId } from '@/lib/icon-utils';
 

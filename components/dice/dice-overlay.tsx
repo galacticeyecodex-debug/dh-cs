@@ -21,7 +21,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X, RotateCcw, Plus, Trash2 } from 'lucide-react';
+import { X, RotateCcw, Plus, Trash2 } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { toast } from 'sonner';
 import { parseDiceNotation } from '@/lib/dice';
