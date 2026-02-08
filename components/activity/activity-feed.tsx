@@ -10,7 +10,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { ActivityItem } from './activity-item';
-import { RefreshCw, Activity, ChevronDown } from 'lucide-react';
+import { RefreshCw, Activity, ChevronDown } from '@/lib/icon-utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ActivityFeedProps {

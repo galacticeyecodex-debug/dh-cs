@@ -7,7 +7,7 @@
  */
 
 import { CampaignActivity, CardUsedActivityData, ItemUsedActivityData } from '@/types/activity';
-import { Sparkles, Package } from 'lucide-react';
+import { Sparkles, Package } from '@/lib/icon-utils';
 
 interface CardUsedActivityProps {
     activity: CampaignActivity;

@@ -9,7 +9,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Settings, Code2 } from 'lucide-react';
+import { Settings, Code2 } from '@/lib/icon-utils';
 import ContentAccessSettings from '@/components/modals/content-access-settings';
 import { Switch } from '@/components/ui/switch';
 import { useCharacterStore } from '@/store/character-store';

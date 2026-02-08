@@ -12,7 +12,7 @@
 import React from 'react';
 import { CampaignActivity, DiceRollActivityData, GmRollActivityData, CardUsedActivityData } from '@/types/activity';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dices, X, Sparkles, Skull, Wand2, Zap } from 'lucide-react';
+import { Dices, X, Sparkles, Skull, Wand2, Zap } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { AppIcons } from '@/lib/icon-utils';
 import { Z_INDEX } from '@/constants/z-index';

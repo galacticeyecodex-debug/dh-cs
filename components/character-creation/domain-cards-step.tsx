@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BookOpen, FlaskConical } from 'lucide-react';
+import { BookOpen, FlaskConical } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { CharacterFormData, LibraryData } from './types';
 

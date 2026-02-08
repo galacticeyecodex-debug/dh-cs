@@ -22,7 +22,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Timer, Eye, EyeOff, RefreshCw, Info } from 'lucide-react';
+import { X, Timer, Eye, EyeOff, RefreshCw, Info } from '@/lib/icon-utils';
 import { CountdownType, CountdownInsert } from '@/types/campaign';
 import clsx from 'clsx';
 import { Z_INDEX } from '@/constants/z-index';

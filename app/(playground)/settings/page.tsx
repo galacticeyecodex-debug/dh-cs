@@ -13,7 +13,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Settings, Code2, ArrowLeft } from 'lucide-react';
+import { Settings, Code2, ArrowLeft } from '@/lib/icon-utils';
 import { Switch } from '@/components/ui/switch';
 import ContentAccessSettings from '@/components/modals/content-access-settings';
 import UserMenu from '@/components/core/user-menu';

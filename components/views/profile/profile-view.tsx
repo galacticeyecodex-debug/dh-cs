@@ -16,7 +16,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { User, Users, LogOut } from 'lucide-react';
+import { User, Users, LogOut } from '@/lib/icon-utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { FriendsPanel } from '@/components/friends';

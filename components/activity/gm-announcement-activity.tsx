@@ -7,7 +7,7 @@
  */
 
 import { CampaignActivity, GmAnnouncementActivityData } from '@/types/activity';
-import { Megaphone, AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { Megaphone, AlertTriangle, AlertCircle, Info } from '@/lib/icon-utils';
 
 interface GmAnnouncementActivityProps {
     activity: CampaignActivity;

@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCharacterStore } from '@/store/character-store';
-import { Users, Swords, Check, Loader2 } from 'lucide-react';
+import { Users, Swords, Check, Loader2 } from '@/lib/icon-utils';
 import { getInitials } from '@/lib/format-utils';
 import { toast } from 'sonner';
 import { dataService } from '@/lib/data-service';

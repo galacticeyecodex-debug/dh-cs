@@ -12,7 +12,7 @@
 
 import { useEffect, useState } from 'react';
 import { Switch } from '@/components/ui/switch';
-import { AlertTriangle, BookOpen, FlaskConical, Sparkles, Lock } from 'lucide-react';
+import { AlertTriangle, BookOpen, FlaskConical, Sparkles, Lock } from '@/lib/icon-utils';
 import { dataService } from '@/lib/data-service';
 import useUser from '@/hooks/useUser';
 import useAvailableCampaigns from '@/hooks/useAvailableCampaigns';

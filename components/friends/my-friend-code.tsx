@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { Copy, Check, RefreshCw } from 'lucide-react';
+import { Copy, Check, RefreshCw } from '@/lib/icon-utils';
 import { toast } from 'sonner';
 
 interface MyFriendCodeProps {

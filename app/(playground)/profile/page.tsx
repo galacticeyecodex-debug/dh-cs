@@ -21,7 +21,7 @@ import { FriendsPanel } from "@/components/friends";
 import UserMenu from "@/components/core/user-menu";
 import { useCharacterStore } from "@/store/character-store";
 import useUser from "@/hooks/useUser";
-import { Users, User, LogOut, Sword, ArrowLeft } from "lucide-react";
+import { Users, User, LogOut, Sword, ArrowLeft } from '@/lib/icon-utils';
 import { LOGIN_PATH } from "@/constants/common";
 
 export default function ProfilePage() {

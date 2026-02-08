@@ -16,7 +16,7 @@
  */
 
 import React from 'react';
-import { Check } from 'lucide-react';
+import { Check } from '@/lib/icon-utils';
 import { getClassDomainsFromData, getClassNamesFromData, getSubclassesFromData } from '@/lib/level-up-helpers';
 
 interface MulticlassSelectionProps {

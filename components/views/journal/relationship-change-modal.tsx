@@ -11,7 +11,7 @@
  */
 
 import React, { useState } from 'react';
-import { X, Plus, Minus } from 'lucide-react';
+import { X, Plus, Minus } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Z_INDEX } from '@/constants/z-index';

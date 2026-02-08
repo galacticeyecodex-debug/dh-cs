@@ -12,7 +12,7 @@
  */
 
 import Link from 'next/link';
-import { Github } from 'lucide-react';
+import { Github } from '@/lib/icon-utils';
 import { redirect } from 'next/navigation';
 import createClient from '@/lib/supabase/server';
 

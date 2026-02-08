@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Dna } from 'lucide-react';
+import { Dna } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { CharacterFormData, LibraryData } from './types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

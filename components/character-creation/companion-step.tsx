@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { PawPrint } from 'lucide-react';
+import { PawPrint } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { CharacterFormData } from './types';
 import { RangerCompanion } from '@/types/character';

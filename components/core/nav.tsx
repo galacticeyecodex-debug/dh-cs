@@ -10,7 +10,7 @@
 
 import Link from "next/link";
 
-import { Menu, Swords } from "lucide-react";
+import { Menu, Swords } from '@/lib/icon-utils';
 
 import { Button } from "@/components/ui/button";
 import {

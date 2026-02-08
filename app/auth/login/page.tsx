@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import createClient from "@/lib/supabase/client";
-import { CircleAlert, LoaderCircle, Coffee, Heart, Shield, Sparkles } from "lucide-react";
+import { CircleAlert, LoaderCircle, Coffee, Heart, Shield, Sparkles } from '@/lib/icon-utils';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { motion } from "framer-motion";

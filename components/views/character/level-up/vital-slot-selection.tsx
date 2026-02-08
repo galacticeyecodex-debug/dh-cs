@@ -15,7 +15,7 @@
  */
 
 import React from 'react';
-import { Plus, Minus, Heart, Zap } from 'lucide-react';
+import { Plus, Minus, Heart, Zap } from '@/lib/icon-utils';
 import { useCharacterStore } from '@/store/character-store';
 import { getIconByName } from '@/lib/icon-utils';
 

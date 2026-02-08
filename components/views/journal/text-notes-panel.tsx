@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { JournalNote, CreateNoteInput } from '@/types/journal';
-import { Plus, Trash2, ArrowLeft, Save, FileText, Calendar } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Save, FileText, Calendar } from '@/lib/icon-utils';
 import clsx from 'clsx';
 
 interface TextNotesPanelProps {

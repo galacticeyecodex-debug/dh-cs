@@ -14,7 +14,7 @@
 'use client';
 
 import React from 'react';
-import { Minus, Plus, RotateCcw } from 'lucide-react';
+import { Minus, Plus, RotateCcw } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
 import type { CardTokenTrackProps } from '@/types/cards';

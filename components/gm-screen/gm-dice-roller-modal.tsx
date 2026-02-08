@@ -15,7 +15,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Dices, EyeOff, Eye } from 'lucide-react';
+import { X, Dices, EyeOff, Eye } from '@/lib/icon-utils';
 import { useCharacterStore } from '@/store/character-store';
 import { Z_INDEX } from '@/constants/z-index';
 

@@ -18,7 +18,7 @@ import { useCharacterStore, Character } from '@/store/character-store';
 import { dataService } from '@/lib/data-service';
 import useContentAccess from '@/hooks/useContentAccess';
 import clsx from 'clsx';
-import { X } from 'lucide-react';
+import { X } from '@/lib/icon-utils';
 import { uploadCharacterAvatar } from '@/lib/storage-service';
 import { calculateDamageThresholds } from '@/lib/game-logic';
 import { Button } from '@/components/ui/button';

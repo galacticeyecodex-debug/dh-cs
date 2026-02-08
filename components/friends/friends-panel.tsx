@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
-import { Loader2, Users, UserPlus, Send } from 'lucide-react';
+import { Loader2, Users, UserPlus, Send } from '@/lib/icon-utils';
 import { FriendCard } from './friend-card';
 import { FriendRequestCard } from './friend-request-card';
 import { OutgoingRequestCard } from './outgoing-request-card';

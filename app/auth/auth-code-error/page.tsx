@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CircleAlert } from "lucide-react";
+import { CircleAlert } from '@/lib/icon-utils';
 
 export default function AuthCodeErrorPage() {
   return (
