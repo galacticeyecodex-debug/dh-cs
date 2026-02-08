@@ -19,7 +19,7 @@ const crypto = require('crypto');
 // Paths relative to this script's location (content/public/)
 const SCRIPT_DIR = __dirname;
 const SRD_JSON_DIR = path.join(SCRIPT_DIR, 'srd/json');
-const OUTPUT_PATH = path.join(SCRIPT_DIR, 'sql/seed_public-library.sql');
+const OUTPUT_PATH = path.join(SCRIPT_DIR, '../../supabase/seed_library.sql');
 
 // --- Modifier Parsing Logic ---
 const STAT_MODIFIER_REGEX = /([+-]?\d+)\s+(?:to|bonus\s+to)\s+(Agility|Strength|Finesse|Instinct|Presence|Knowledge|Evasion|Armor|Hit\s+Points|Stress|Hope|Proficiency)/i;

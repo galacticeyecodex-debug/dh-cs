@@ -59,6 +59,7 @@ import ExperienceSelection from './experience-selection';
 import VitalSlotSelection from './vital-slot-selection';
 import { Character } from '@/store/character-store';
 import { ErrorBoundary } from '@/components/core/error-boundary';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface LevelUpModalProps {
   isOpen: boolean;
@@ -624,7 +625,8 @@ export default function LevelUpModal({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={onClose}
-              className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
+              style={{ zIndex: Z_INDEX.MODAL }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             />
 
             {/* Bottom Sheet */}
@@ -633,7 +635,8 @@ export default function LevelUpModal({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col"
+              style={{ zIndex: Z_INDEX.MODAL }}
+              className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[95vh] flex flex-col"
             >
               {/* Drag Handle */}
               <div className="flex justify-center p-3" onClick={onClose}>
@@ -673,7 +676,7 @@ export default function LevelUpModal({
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto px-6 py-6">
+              <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-thin">
                 {step === 1 && (
                   <div>
                     <h3 className="text-xl font-bold text-white mb-4">Level Advancement</h3>
@@ -1124,7 +1127,7 @@ export default function LevelUpModal({
               </div>
 
               {/* Footer */}
-              <div className="border-t border-white/10 px-6 py-4 flex items-center justify-between">
+              <div className="border-t border-white/10 px-6 py-4 pb-safe flex items-center justify-between">
                 <button
                   onClick={handleBack}
                   disabled={step === 1}

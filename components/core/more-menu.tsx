@@ -22,6 +22,7 @@ import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import type { TabId } from '@/store/slices/ui-slice';
 import { useDevMode } from '@/components/views/settings/settings-view';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface MoreMenuItem {
     id: TabId;
@@ -80,7 +81,8 @@ export default function MoreMenu() {
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+                style={{ zIndex: Z_INDEX.DRAWER }}
                 onClick={closeMoreMenu}
                 aria-hidden="true"
             />
@@ -88,11 +90,12 @@ export default function MoreMenu() {
             {/* Drawer */}
             <div
                 className={clsx(
-                    'fixed bottom-0 left-0 right-0 z-50',
+                    'fixed bottom-0 left-0 right-0',
                     'bg-dagger-panel border-t border-white/10',
                     'rounded-t-2xl shadow-2xl shadow-black/50',
                     'animate-slide-up'
                 )}
+                style={{ zIndex: Z_INDEX.DRAWER }}
                 role="dialog"
                 aria-modal="true"
                 aria-label="More menu"

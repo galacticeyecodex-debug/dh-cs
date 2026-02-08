@@ -24,6 +24,7 @@ import UserMenu from './user-menu';
 import DiceOverlay from '../dice/dice-overlay';
 import HeaderMenuButton from './header-menu-button';
 import clsx from 'clsx';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface Breadcrumb {
     label: string;
@@ -100,7 +101,10 @@ export default function PageLayout({
     return (
         <div className="flex flex-col min-h-screen bg-dagger-dark text-white">
             {/* Header */}
-            <header className="sticky top-0 z-40 flex items-center justify-between px-4 py-3 border-b border-white/10 bg-dagger-panel backdrop-blur-lg">
+            <header 
+                className="sticky top-0 flex items-center justify-between px-4 py-3 border-b border-white/10 bg-dagger-panel backdrop-blur-lg"
+                style={{ zIndex: Z_INDEX.HEADER }}
+            >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                     {/* Back button */}
                     {backHref && (
@@ -151,7 +155,8 @@ export default function PageLayout({
                             {/* Context Dropdown Menu */}
                             {isContextMenuOpen && (
                                 <div
-                                    className="absolute left-0 top-full mt-2 w-64 bg-dagger-panel border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50"
+                                    className="absolute left-0 top-full mt-2 w-64 bg-dagger-panel border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden"
+                                    style={{ zIndex: Z_INDEX.MODAL }}
                                     role="menu"
                                     aria-orientation="vertical"
                                 >

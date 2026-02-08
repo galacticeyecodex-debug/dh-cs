@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ModifierBuilder from '@/components/views/inventory/modifier-builder';
 import { Modifier } from '@/types/modifiers';
 import ConfirmDialog from '@/components/shared/confirm-dialog';
+import { Z_INDEX } from '@/constants/z-index';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export interface HomebrewItemData {
@@ -300,7 +301,10 @@ export default function CreateHomebrewItemModal({
   return (
     <>
       <AnimatePresence>
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+        <div 
+      className="fixed inset-0 bg-black/70 flex items-center justify-center p-4"
+      style={{ zIndex: Z_INDEX.MODAL }}
+    >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

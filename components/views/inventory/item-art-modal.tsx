@@ -15,6 +15,7 @@ import { AppIcons } from '@/lib/icon-utils';
 import { useCharacterStore, CharacterInventoryItem } from '@/store/character-store';
 import { uploadCharacterImage } from '@/lib/storage-service';
 import { toast } from 'sonner';
+import { Z_INDEX } from '@/constants/z-index';
 
 const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_IMAGE_FILE_SIZE_MB = '5MB';
@@ -120,7 +121,11 @@ export default function ItemArtModal({ item, onClose }: ItemArtModalProps) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
+        <div 
+      className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm" 
+      onClick={onClose}
+      style={{ zIndex: Z_INDEX.MODAL }}
+    >
             <div
                 className="bg-zinc-800 text-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh] relative"
                 style={{ borderTop: `4px solid ${accentColor}` }}

@@ -21,6 +21,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { AppIcons } from '@/lib/icon-utils';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface PromptModalProps {
     isOpen: boolean;
@@ -81,7 +82,10 @@ export function PromptModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div 
+            className="fixed inset-0 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            style={{ zIndex: Z_INDEX.TOAST }}
+        >
             <div
                 className="bg-dagger-panel border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}

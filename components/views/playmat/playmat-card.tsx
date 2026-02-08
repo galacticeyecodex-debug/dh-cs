@@ -24,6 +24,7 @@ import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { DomainCard } from '@/components/physical-cards/domain-card';
 import MechanicsTray from '@/components/shared/mechanics-tray';
+import { Z_INDEX } from '@/constants/z-index';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { type CharacterCard } from '@/store/character-store';
 import { useCardMechanics } from '@/hooks/useCardMechanics';
@@ -88,7 +89,10 @@ export default function PlaymatCard({
       <div className="relative px-4 -mt-16 mb-4">
         <div className="flex flex-col w-full">
           {/* Top Actions Tray - positioned above domain card, aligned right */}
-          <div className="flex justify-end items-center gap-1.5 mb-2 z-40">
+          <div 
+            className="flex justify-end items-center gap-1.5 mb-2"
+            style={{ zIndex: Z_INDEX.CARD_CONTROLS }}
+          >
             {/* Toggle Location Button (Vault/Loadout) */}
             <button
               onClick={(e) => {
@@ -145,7 +149,8 @@ export default function PlaymatCard({
               {/* Dropdown Menu */}
               {showManageMenu && (
                 <div
-                  className="absolute right-0 top-full mt-1 w-48 bg-dagger-panel border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden"
+                  className="absolute right-0 top-full mt-1 w-48 bg-dagger-panel border border-white/10 rounded-lg shadow-xl overflow-hidden"
+                  style={{ zIndex: Z_INDEX.MODAL }}
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* Manage Modifiers */}
@@ -226,7 +231,10 @@ export default function PlaymatCard({
         <div className="flex justify-between items-start relative mb-2">
           {/* Info button for description */}
           {libraryItem.data?.description && (
-            <div className="absolute top-0 right-0 z-10">
+            <div 
+              className="absolute top-0 right-0"
+              style={{ zIndex: Z_INDEX.BASE + 1 }}
+            >
               <button
                 type="button"
                 onClick={(e) => {

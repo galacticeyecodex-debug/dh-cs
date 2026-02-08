@@ -6,6 +6,7 @@ import { AppIcons } from '@/lib/icon-utils';
 import { useCharacterStore } from '@/store/character-store';
 import { Campaign } from '@/types/campaign';
 import { useRouter } from 'next/navigation';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface CampaignSettingsModalProps {
     isOpen: boolean;
@@ -70,7 +71,10 @@ export default function CampaignSettingsModal({ isOpen, onClose, campaign }: Cam
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div 
+                className="fixed inset-0 flex items-center justify-center p-4"
+                style={{ zIndex: Z_INDEX.TOAST }}
+            >
                 {/* Backdrop */}
                 <motion.div
                     initial={{ opacity: 0 }}

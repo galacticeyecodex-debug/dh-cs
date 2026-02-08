@@ -11,6 +11,7 @@ import { dataService } from '@/lib/data-service';
 import { Trash2, Sword } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Z_INDEX } from '@/constants/z-index';
 
 export default function CharacterSelectPage() {
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -205,7 +206,10 @@ export default function CharacterSelectPage() {
                   >
                     {/* Background Image Overlay */}
                     {char.image_url && (
-                      <div className="absolute inset-0 z-0">
+                      <div 
+                        className="absolute inset-0"
+                        style={{ zIndex: Z_INDEX.BASE }}
+                      >
                         <Image
                           src={char.image_url}
                           alt={char.name}
@@ -216,7 +220,10 @@ export default function CharacterSelectPage() {
                       </div>
                     )}
 
-                    <CardHeader className="relative z-10 flex-row items-center gap-4 space-y-0 pb-2">
+                    <CardHeader 
+                      className="relative flex-row items-center gap-4 space-y-0 pb-2"
+                      style={{ zIndex: Z_INDEX.DECORATIVE }}
+                    >
                       <div className="flex-1 min-w-0">
                         <CardTitle className="text-dagger-gold flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 truncate min-w-0 drop-shadow-lg">
@@ -240,7 +247,10 @@ export default function CharacterSelectPage() {
                         </CardTitle>
                       </div>
                     </CardHeader>
-                    <CardContent className="relative z-10 pt-0 pb-4">
+                    <CardContent 
+                      className="relative pt-0 pb-4"
+                      style={{ zIndex: Z_INDEX.DECORATIVE }}
+                    >
                       <div className="flex flex-wrap gap-2">
                         <Badge variant="outline" className="bg-black/30 border-white/10 text-white backdrop-blur-sm">Level {char.level}</Badge>
                         {(char.class_id || char.ancestry) && (

@@ -22,6 +22,7 @@
 
 import React, { useState } from 'react';
 import { AppIcons } from '@/lib/icon-utils';
+import { Z_INDEX } from '@/constants/z-index';
 
 export default function DevErrorTriggers() {
   const [shouldThrow, setShouldThrow] = useState(false);
@@ -69,7 +70,8 @@ export default function DevErrorTriggers() {
     return (
       <button
         onClick={() => setIsVisible(true)}
-        className="fixed bottom-4 left-4 z-50 bg-red-600 text-white p-2 rounded-full shadow-lg hover:bg-red-700 transition-colors"
+        className="fixed bottom-4 left-4 bg-red-600 text-white p-2 rounded-full shadow-lg hover:bg-red-700 transition-colors"
+        style={{ zIndex: Z_INDEX.TOAST }}
         title="Show Dev Error Triggers"
       >
         <AppIcons.system.debug size={20} />
@@ -78,7 +80,10 @@ export default function DevErrorTriggers() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 bg-zinc-900 border border-red-500/50 rounded-lg shadow-2xl p-4 max-w-xs">
+    <div 
+      className="fixed bottom-4 left-4 bg-zinc-900 border border-red-500/50 rounded-lg shadow-2xl p-4 max-w-xs"
+      style={{ zIndex: Z_INDEX.TOAST }}
+    >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <AppIcons.system.error className="w-5 h-5 text-red-500" />

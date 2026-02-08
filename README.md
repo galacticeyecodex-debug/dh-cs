@@ -113,7 +113,8 @@ cp .env.example .env.local
 Edit `.env.local` and add your Supabase credentials:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+# Use your new Publishable Key (sb_publishable_...)
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_publishable_key_here
 ```
 
 4. **Supabase Setup**:
@@ -123,7 +124,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
    *   **Create a New Supabase Project**:
        1.  Go to [Supabase](https://supabase.com/) and sign up or log in.
        2.  Click "New project" to create a new project.
-       3.  Remember your project's **Project URL** and **Anon Key**; these will be needed for your `.env.local` file (Step 3).
+       3.  Remember your project's **Project URL** and **Publishable Key** (formerly "Anon Key"); these will be needed for your `.env.local` file (Step 3). Note that Supabase has transitioned to a new secure key format: `sb_publishable_...` for client-side use and `sb_secret_...` for backend use.
 
    *   **Initialize Database**:
        In your Supabase project dashboard, navigate to the **SQL Editor** and execute the following scripts **in this order**:
@@ -316,7 +317,7 @@ This application can be easily deployed to [Render](https://render.com), a unifi
     | Variable | Value | Description |
     | :--- | :--- | :--- |
     | `NEXT_PUBLIC_SUPABASE_URL` | *Your Supabase URL* | From Supabase Settings |
-    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | *Your Anon Key* | From Supabase Settings |
+    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | *Your Publishable Key (sb_publishable_...)* | From Supabase Settings |
 
 5.  **Deploy**:
     *   Click "Create Web Service".

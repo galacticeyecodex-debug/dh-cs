@@ -8,6 +8,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { getDomainTheme } from '@/lib/domain-colors';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface CardDividerProps {
   domain?: string;
@@ -45,8 +46,9 @@ export function CardDivider({ domain, subtype, size = 'small' }: CardDividerProp
     <div className="relative w-full" style={{ height: dimensions.containerHeight, marginTop: dimensions.marginTop }}>
       {/* Gradient background with clip */}
       <div
-        className="absolute w-full z-10"
+        className="absolute w-full"
         style={{
+          zIndex: Z_INDEX.CARD_CONTENT,
           height: dimensions.containerHeight * 0.7, // 30% shorter to look less "big"
           top: dimensions.containerHeight * 0.15,   // Centered vertically
           background: `linear-gradient(to right, ${theme.secondary}, ${theme.primary}, ${theme.accent})`,
@@ -60,8 +62,9 @@ export function CardDivider({ domain, subtype, size = 'small' }: CardDividerProp
         alt=""
         width={340}
         height={dimensions.imageHeight}
-        className="absolute z-20 w-full"
+        className="absolute w-full"
         style={{
+          zIndex: Z_INDEX.CARD_DECORATION,
           top: `${dimensions.imageTop}px`,
           height: `${dimensions.imageHeight}px`,
           objectFit: 'contain' // Use contain instead of cover to preserve decorations
@@ -71,8 +74,9 @@ export function CardDivider({ domain, subtype, size = 'small' }: CardDividerProp
       {/* Type/subtype label text - only shows subtype */}
       {subtype && (
         <div
-          className="absolute z-40 font-eveleth font-bold uppercase text-center w-full flex items-center justify-center"
+          className="absolute font-eveleth font-bold uppercase text-center w-full flex items-center justify-center"
           style={{
+            zIndex: Z_INDEX.CARD_CONTENT + 1,
             top: '50%',
             transform: 'translateY(-50%)',
             color: textColor,

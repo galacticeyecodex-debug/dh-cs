@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Dices, EyeOff, Eye } from 'lucide-react';
 import { useCharacterStore } from '@/store/character-store';
+import { Z_INDEX } from '@/constants/z-index';
 
 interface GmDiceRollerModalProps {
     isOpen: boolean;
@@ -61,7 +62,10 @@ export function GmDiceRollerModal({
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div 
+                className="fixed inset-0 flex items-center justify-center p-4"
+                style={{ zIndex: Z_INDEX.TOAST }}
+            >
                 {/* Backdrop */}
                 <motion.div
                     initial={{ opacity: 0 }}

@@ -19,6 +19,7 @@ import { useCharacterStore } from '@/store/character-store';
 import Image from 'next/image';
 import { getStatModifiers } from '@/lib/modifier-aggregator';
 import { calculateRollBonus } from '@/lib/roll-utils';
+import { getTier } from '@/lib/level-up-helpers';
 import StatButton from '@/components/views/character/trait-button';
 
 import { MarkdownText } from '@/components/shared/markdown-text';
@@ -48,6 +49,7 @@ import { toast } from 'sonner';
 import { dataService } from '@/lib/data-service';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import { DomainAbilityButton } from '@/components/shared/ability-cost-button';
+import { Z_INDEX } from '@/constants/z-index';
 import ViewHeader from '@/components/shared/view-header';
 import SRDInfoButton from '@/components/shared/srd-info-button';
 import { User } from 'lucide-react';
@@ -451,7 +453,10 @@ export default function CharacterView() {
           <div className="absolute inset-0 bg-gradient-to-r from-dagger-dark/40 via-transparent to-transparent hidden md:block" />
 
           {/* Top Right Controls */}
-          <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+          <div 
+            className="absolute top-4 right-4 flex items-center gap-2"
+            style={{ zIndex: Z_INDEX.VIEW_CONTROLS }}
+          >
             <input
               type="file"
               ref={bannerInputRef}
@@ -494,7 +499,10 @@ export default function CharacterView() {
                 </div>
 
                 {/* Artwork Edit Button (Art Icon style) */}
-                <div className="absolute top-2 right-2 z-10">
+                <div 
+                  className="absolute top-2 right-2"
+                  style={{ zIndex: Z_INDEX.BASE + 1 }}
+                >
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -521,7 +529,7 @@ export default function CharacterView() {
               {/* Character Info - Compact Single Row */}
               <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
                 {(() => {
-                  const tier = Math.ceil(character.level / 5);
+                  const tier = getTier(character.level);
                   const subclassName = character.subclass_data?.name || character.subclass_id || null;
 
                   return (
@@ -602,7 +610,10 @@ export default function CharacterView() {
         </div> {/* Closes Social Profile Header */}
 
         {/* Segmented Control (Sticky Tab Bar) */}
-        <div className="sticky top-0 z-20 bg-dagger-dark/95 backdrop-blur border-b border-white/10 px-4 py-2 flex justify-between items-center shadow-sm">
+        <div 
+          className="sticky top-0 bg-dagger-dark/95 backdrop-blur border-b border-white/10 px-4 py-2 flex justify-between items-center shadow-sm"
+          style={{ zIndex: Z_INDEX.HEADER }}
+        >
           <div className="flex p-1 bg-white/5 rounded-lg w-full">
             <button
               onClick={() => setActiveTab('stats')}

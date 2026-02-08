@@ -20,6 +20,7 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VitalId } from '@/lib/icon-utils';
 import VitalCard from './vital-card';
+import { Z_INDEX } from '@/constants/z-index';
 
 export type VitalTrackType = 'mark-bad' | 'fill-up-bad' | 'fill-up-good';
 
@@ -89,8 +90,11 @@ export function MiniVitalTray({
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed left-0 right-0 z-40 bg-dagger-panel border-t border-white/10 rounded-t-xl shadow-lg"
-          style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom) + 3rem)' }}
+          className="fixed left-0 right-0 bg-dagger-panel border-t border-white/10 rounded-t-xl shadow-lg"
+          style={{ 
+            zIndex: Z_INDEX.VITAL_TRAY,
+            bottom: 'calc(4rem + env(safe-area-inset-bottom) + 3rem)' 
+          }}
         >
           {/* Handle - tap to close (matches modifier-sheet pattern) */}
           <button

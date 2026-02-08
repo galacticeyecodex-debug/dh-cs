@@ -22,11 +22,13 @@ import useContentAccess from '@/hooks/useContentAccess';
 import { Moon, Clock, Plus, Check, Trash2, ChevronRight, Settings, Pencil, Dices, Users, User, Heart, Zap, Shield, Minus, Sparkles } from 'lucide-react';
 
 import { getMovesForRestType } from '@/types/downtime';
+import { getTier } from '@/lib/level-up-helpers';
 import useCampaignDowntimeMoves from '@/hooks/useCampaignDowntimeMoves';
 import type { RestType, DowntimeMove, Project, CreateProjectInput } from '@/types/downtime';
 import { clsx } from 'clsx';
 import { ProjectFormModal, WorkOnProjectModal } from './project-modals';
 import { toast } from 'sonner';
+import { Z_INDEX } from '@/constants/z-index';
 
 // ============================================================================
 // MAIN COMPONENT
@@ -217,8 +219,8 @@ function ActiveRestPanel({
     const [showTargetModal, setShowTargetModal] = useState(false);
     const [targetMoveType, setTargetMoveType] = useState<'tend_wounds' | 'repair_armor' | null>(null);
 
-    // Calculate character tier (level / 2, rounded up, min 1)
-    const characterTier = character ? Math.max(1, Math.ceil(character.level / 2)) : 1;
+    // Calculate character tier per SRD: T1=Lvl1, T2=Lvl2-4, T3=Lvl5-7, T4=Lvl8-10
+    const characterTier = character ? getTier(character.level) : 1;
 
     // Current resource values for display
     const currentHp = character?.vitals.hit_points_current || 0;
@@ -561,7 +563,10 @@ function ActiveRestPanel({
 
             {/* Target Selection Modal - Self vs Ally */}
             {showTargetModal && pendingMove && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div 
+      className="fixed inset-0 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      style={{ zIndex: Z_INDEX.TOAST }}
+    >
                     <div className="bg-dagger-panel border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                         <h3 className="text-lg font-bold text-white mb-2">{pendingMove.name}</h3>
                         <p className="text-sm text-gray-400 mb-6">
@@ -618,7 +623,10 @@ function ActiveRestPanel({
 
             {/* Prepare Modal - Solo vs With Party */}
             {showPrepareModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div 
+      className="fixed inset-0 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      style={{ zIndex: Z_INDEX.TOAST }}
+    >
                     <div className="bg-dagger-panel border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                         <h3 className="text-lg font-bold text-white mb-2">Prepare</h3>
                         <p className="text-sm text-gray-400 mb-4">

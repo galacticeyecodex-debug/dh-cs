@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { CardBanner } from './card-banner';
 import { CardDivider } from './card-divider';
+import { Z_INDEX } from '@/constants/z-index';
 
 export interface DomainCardProps {
   name: string;
@@ -75,12 +76,12 @@ export function DomainCard({
       onClick={onClick}
     >
       {/* Banner - top left */}
-      <div className="absolute" style={{ left: isThumbnail ? '5px' : '24px', top: '-4px', zIndex: 40 }}>
+      <div className="absolute" style={{ left: isThumbnail ? '5px' : '24px', top: '-4px', zIndex: Z_INDEX.CARD_DECORATION }}>
         <CardBanner domain={domain} level={tier} size={isThumbnail ? 'small' : 'large'} />
       </div>
 
       {/* Recall Cost Badge */}
-      <div className="absolute" style={{ right: isThumbnail ? '14px' : '24px', top: isThumbnail ? '14px' : '24px', zIndex: 40 }}>
+      <div className="absolute" style={{ right: isThumbnail ? '14px' : '24px', top: isThumbnail ? '14px' : '24px', zIndex: Z_INDEX.CARD_DECORATION }}>
         <Image
           src="/assets/card/recall-cost-bg.webp"
           alt=""
@@ -95,7 +96,7 @@ export function DomainCard({
           right: isThumbnail ? '27px' : '40px',  // x-axis; left of center of badge
           top: isThumbnail ? '19.5px' : '29px',    // y-axis; center
           fontSize: `${isThumbnail ? 11 : 14}px`,
-          zIndex: 40,
+          zIndex: Z_INDEX.CARD_DECORATION,
         }}
       >
         {recallCost}
@@ -130,8 +131,9 @@ export function DomainCard({
 
         {/* Card Name */}
         <p
-          className="font-eveleth font-bold text-center w-full z-20 uppercase"
+          className="font-eveleth font-bold text-center w-full uppercase"
           style={{
+            zIndex: Z_INDEX.CARD_CONTENT,
             fontSize: `${16 * fontSize}px`,
             paddingLeft: `${16 * fontSize}px`,
             paddingRight: `${16 * fontSize}px`,
@@ -142,8 +144,9 @@ export function DomainCard({
 
         {/* Description */}
         <div
-          className="w-full z-20 leading-none px-4 text-pretty overflow-hidden flex-1"
+          className="w-full leading-none px-4 text-pretty overflow-hidden flex-1"
           style={{
+            zIndex: Z_INDEX.CARD_CONTENT,
             fontSize: `${descriptionBaseSize * fontSize}px`,
           }}
         >

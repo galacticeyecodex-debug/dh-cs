@@ -23,6 +23,7 @@ import clsx from 'clsx';
 import { CharacterInventoryItem } from '@/store/character-store';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import SRDInfoButton from '@/components/shared/srd-info-button';
+import { Z_INDEX } from '@/constants/z-index';
 
 export interface InventoryItemCardProps {
     /** The inventory item to display */
@@ -67,7 +68,10 @@ const InventoryItemCard = React.memo(function InventoryItemCard({
             isEquipped ? "bg-dagger-gold/10 border-dagger-gold/30" : "bg-white/5 border-white/5"
         )}>
             {/* Action Buttons - absolute top right */}
-            <div className="absolute top-1 right-1 z-10 flex items-center gap-0.5">
+            <div 
+                className="absolute top-1 right-1 flex items-center gap-0.5"
+                style={{ zIndex: Z_INDEX.DECORATIVE }}
+            >
                 <SRDInfoButton
                     ruleKey={srdRuleKey}
                     size={12}

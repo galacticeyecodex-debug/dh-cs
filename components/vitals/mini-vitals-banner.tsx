@@ -6,6 +6,7 @@ import { getClassBaseStat, cn } from '@/lib/utils';
 import { getStatModifierTotal } from '@/lib/modifier-aggregator';
 import { getIconByName, AppIcons, VitalId } from '@/lib/icon-utils';
 import { MiniVitalTray, VitalTrackType } from './mini-vital-tray';
+import { Z_INDEX } from '@/constants/z-index';
 
 export interface VitalEntry {
     label: string;
@@ -87,13 +88,16 @@ export function MiniVitalsPanel({
             />
 
             {/* Mini vitals bar */}
-            <div
-                className={cn(
-                    "fixed left-0 right-0 z-50 bg-dagger-panel backdrop-blur-lg border-t border-white/10 transition-all",
-                    className
-                )}
-                style={{ bottom: bottomOffset }}
-            >
+                    <div
+                        className={cn(
+                            "fixed left-0 right-0 bg-dagger-panel backdrop-blur-lg border-t border-white/10 transition-all",
+                            className
+                        )}
+                        style={{
+                            bottom: bottomOffset,
+                            zIndex: Z_INDEX.NAV_BAR
+                        }}
+                    >
                 <div className="flex items-center justify-around px-2 py-2">
                     {vitals.map((vital, index) => {
                         const isInteractive = vital.trackType && vital.onIncrement && vital.onDecrement && vital.max;

@@ -30,6 +30,7 @@ import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import ModifierSheet from '@/components/shared/modifier-sheet';
 import { getValueColor } from '@/lib/styles';
+import { Z_INDEX } from '@/constants/z-index';
 
 // Modifier source types align with ModifierSourceType from modifier-aggregator
 type ModifierSourceTypeLocal = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
@@ -63,7 +64,10 @@ const StatButton = React.memo(function StatButton({ label, value, baseValue, mod
         "hover:border-white/20"
       )}>
         {/* Gear button - top right corner of entire card */}
-        <div className="absolute top-1 right-1 z-10 flex items-center gap-0.5">
+        <div 
+          className="absolute top-1 right-1 flex items-center gap-0.5"
+          style={{ zIndex: Z_INDEX.DECORATIVE }}
+        >
           {onUpdateModifiers && !hideModifierButton && (
             <button
               type="button"

@@ -31,12 +31,19 @@ export function CardNote({
     }, [currentNote]);
 
     // Debounced save to store
-    const debouncedSave = useCallback(
-        debounce((text: string) => {
+    const debouncedSave = React.useMemo(
+        () => debounce((text: string) => {
             setCardNote(cardName, noteKey, text);
         }, 1000),
         [cardName, noteKey, setCardNote]
     );
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            debouncedSave.cancel();
+        };
+    }, [debouncedSave]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const text = e.target.value;
