@@ -27,7 +27,14 @@ export type ActivityType =
     | 'project_created'
     | 'project_advanced'
     | 'project_completed'
-    | 'project_abandoned';
+    | 'project_abandoned'
+    // Phase 10: Encounter & NPC activity types
+    | 'encounter_started'
+    | 'encounter_ended'
+    | 'adversary_pinned'
+    | 'adversary_defeated'
+    | 'adversary_damaged'
+    | 'npc_shared';
 
 // Base activity interface
 export interface CampaignActivity {
@@ -56,7 +63,10 @@ export type ActivityData =
     | PlayerLeftActivityData
     | CharacterSwitchedActivityData
     | CountdownActivityData
-    | ProjectActivityData;
+    | ProjectActivityData
+    | EncounterActivityData
+    | AdversaryActivityData
+    | NPCSharedActivityData;
 
 // Specific activity payloads
 export interface DiceRollActivityData {
@@ -158,6 +168,29 @@ export interface ProjectActivityData {
     previous_value?: number;
     new_value?: number;
     starting_value?: number;
+}
+
+// Phase 10: Encounter activity data
+export interface EncounterActivityData {
+    encounter_name: string;
+    encounter_id?: string;
+    adversary_count?: number;
+}
+
+// Phase 10: Adversary activity data
+export interface AdversaryActivityData {
+    adversary_name: string;
+    adversary_label?: string;
+    encounter_name?: string;
+    damage?: number;
+    hp_remaining?: number;
+    hp_max?: number;
+}
+
+// Phase 10: NPC shared activity data
+export interface NPCSharedActivityData {
+    npc_name: string;
+    recipient_count: number;
 }
 
 // Insert type (without id and created_at)

@@ -16,6 +16,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { AppIcons } from '@/lib/icon-utils';
 import { Adversary } from '@/types/adversary';
 import { MarkdownText } from '@/components/shared/markdown-text';
+import { useCharacterStore } from '@/store/character-store';
 import clsx from 'clsx';
 
 // Import adversary data
@@ -24,13 +25,16 @@ import adversariesData from '@/content/public/srd/json/adversaries.json';
 interface AdversaryBrowserProps {
     /** Optional: Compact mode for sidebar usage */
     compact?: boolean;
+    /** Campaign ID for pinning to encounters */
+    campaignId?: string;
 }
 
-export function AdversaryBrowser({ compact = false }: AdversaryBrowserProps) {
+export function AdversaryBrowser({ compact = false, campaignId }: AdversaryBrowserProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTier, setSelectedTier] = useState<string>('all');
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [adversaries, setAdversaries] = useState<Adversary[]>([]);
+    const { activeEncounter, pinAdversary } = useCharacterStore();
 
     useEffect(() => {
         setAdversaries(adversariesData as Adversary[]);
@@ -119,6 +123,8 @@ export function AdversaryBrowser({ compact = false }: AdversaryBrowserProps) {
                                 isExpanded={expandedId === adversary.name}
                                 onToggle={() => toggleExpanded(adversary.name)}
                                 compact={compact}
+                                canPin={!!activeEncounter && !!campaignId}
+                                onPin={() => campaignId && pinAdversary(campaignId, adversary)}
                             />
                         ))}
                     </div>
@@ -133,36 +139,52 @@ interface AdversaryCardProps {
     isExpanded: boolean;
     onToggle: () => void;
     compact?: boolean;
+    canPin?: boolean;
+    onPin?: () => void;
 }
 
-function AdversaryCard({ adversary, isExpanded, onToggle, compact }: AdversaryCardProps) {
+function AdversaryCard({ adversary, isExpanded, onToggle, compact, canPin, onPin }: AdversaryCardProps) {
     return (
         <div className="p-3 hover:bg-white/5 transition-colors">
             {/* Header Row */}
-            <button
-                onClick={onToggle}
-                className="w-full text-left flex items-start justify-between gap-2"
-            >
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-bold text-white">{adversary.name}</h3>
-                        <span className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-300">
-                            Tier {adversary.tier}
-                        </span>
-                        <span className="text-xs px-2 py-0.5 rounded bg-white/10 text-gray-400">
-                            {adversary.type}
-                        </span>
+            <div className="flex items-start gap-2">
+                <button
+                    onClick={onToggle}
+                    className="flex-1 text-left flex items-start justify-between gap-2 min-w-0"
+                >
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-bold text-white">{adversary.name}</h3>
+                            <span className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-300">
+                                Tier {adversary.tier}
+                            </span>
+                            <span className="text-xs px-2 py-0.5 rounded bg-white/10 text-gray-400">
+                                {adversary.type}
+                            </span>
+                        </div>
+                        <MarkdownText className="text-xs text-gray-500 mt-1 line-clamp-2">
+                            {adversary.description}
+                        </MarkdownText>
                     </div>
-                    <MarkdownText className="text-xs text-gray-500 mt-1 line-clamp-2">
-                        {adversary.description}
-                    </MarkdownText>
-                </div>
-                {isExpanded ? (
-                    <AppIcons.ui.collapse size={18} className="text-gray-500 flex-shrink-0 mt-1" />
-                ) : (
-                    <AppIcons.ui.expand size={18} className="text-gray-500 flex-shrink-0 mt-1" />
+                    {isExpanded ? (
+                        <AppIcons.ui.collapse size={18} className="text-gray-500 flex-shrink-0 mt-1" />
+                    ) : (
+                        <AppIcons.ui.expand size={18} className="text-gray-500 flex-shrink-0 mt-1" />
+                    )}
+                </button>
+                {canPin && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onPin?.();
+                        }}
+                        className="flex-shrink-0 mt-1 p-1.5 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg transition-colors"
+                        title="Pin to encounter"
+                    >
+                        <AppIcons.ui.add size={14} />
+                    </button>
                 )}
-            </button>
+            </div>
 
             {/* Expanded Details */}
             {isExpanded && (

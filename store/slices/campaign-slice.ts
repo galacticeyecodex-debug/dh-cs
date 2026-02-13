@@ -13,6 +13,7 @@
 
 import { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
+import { createClient } from '@/lib/supabase/client';
 import { realtimeManager } from '@/lib/realtime';
 import { CharacterStore } from '@/types/store';
 import { Character } from '@/types/character';
@@ -27,7 +28,13 @@ import type {
     CountdownInsert,
     Project,
     ProjectInsert,
+    Encounter,
+    PinnedAdversary,
+    EncounterStatus,
+    SessionNote,
+    CampaignNPC,
 } from '@/types/campaign';
+import type { Adversary } from '@/types/adversary';
 import type { CampaignActivity, CampaignActivityInsert } from '@/types/activity';
 import { toast } from 'sonner';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
@@ -105,6 +112,35 @@ export interface CampaignSlice {
     advanceCampaignProject: (campaignId: string, projectId: string) => Promise<void>;
     completeCampaignProject: (campaignId: string, projectId: string) => Promise<void>;
     abandonCampaignProject: (campaignId: string, projectId: string) => Promise<void>;
+
+    // Phase 10: Encounter Management
+    activeEncounter: Encounter | null;
+    createEncounter: (campaignId: string, name: string, description?: string) => Promise<void>;
+    endEncounter: (campaignId: string) => Promise<void>;
+    setEncounterStatus: (campaignId: string, status: EncounterStatus) => Promise<void>;
+    toggleEncounterVisibility: (campaignId: string) => Promise<void>;
+    pinAdversary: (campaignId: string, adversary: Adversary) => Promise<void>;
+    unpinAdversary: (campaignId: string, adversaryId: string) => Promise<void>;
+    damageAdversary: (campaignId: string, adversaryId: string, damage: number, isStress?: boolean) => Promise<void>;
+    healAdversary: (campaignId: string, adversaryId: string, amount: number, isStress?: boolean) => Promise<void>;
+    defeatAdversary: (campaignId: string, adversaryId: string) => Promise<void>;
+    reviveAdversary: (campaignId: string, adversaryId: string) => Promise<void>;
+    updateAdversaryNotes: (campaignId: string, adversaryId: string, notes: string) => void;
+    loadEncounterFromCampaign: () => void;
+
+    // Phase 10: Session Notes
+    sessionNotes: SessionNote[];
+    addSessionNote: (campaignId: string, content: string) => Promise<void>;
+    updateSessionNote: (campaignId: string, noteId: string, content: string) => Promise<void>;
+    deleteSessionNote: (campaignId: string, noteId: string) => Promise<void>;
+    loadSessionNotes: () => void;
+
+    // Phase 10: Campaign NPC Directory
+    campaignNPCs: CampaignNPC[];
+    addCampaignNPC: (campaignId: string, npc: Omit<CampaignNPC, 'id' | 'pushed_to' | 'created_at'>) => Promise<void>;
+    removeCampaignNPC: (campaignId: string, npcId: string) => Promise<void>;
+    pushNPCToParty: (campaignId: string, npcId: string) => Promise<void>;
+    loadCampaignNPCs: () => void;
 }
 
 export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignSlice> = (set, get) => ({
@@ -128,6 +164,11 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
 
     // Phase 4: Real-time subscription state
     realtimeSubscribed: false,
+
+    // Phase 10: Encounter, Session Notes, Campaign NPCs
+    activeEncounter: null,
+    sessionNotes: [],
+    campaignNPCs: [],
 
     fetchUserCampaigns: async () => {
         set({ isLoadingCampaigns: true, campaignError: null });
@@ -1105,6 +1146,763 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
 
         if (success) {
             toast.success(`Project "${project.name}" abandoned`);
+        }
+    },
+
+    // =========================================================================
+    // Phase 10: Encounter Management
+    // =========================================================================
+
+    /**
+     * Helper: Parse a numeric value from SRD string (e.g., "6" from "6" or "12" from "12").
+     * Falls back to 0 if not parseable.
+     */
+
+    loadEncounterFromCampaign: () => {
+        const campaign = get().activeCampaign;
+        if (!campaign) return;
+        const settings = campaign.settings || {};
+        const encounter = (settings as Record<string, unknown>).active_encounter as Encounter | undefined;
+        set({ activeEncounter: encounter || null });
+
+        // Load session notes
+        const notes = (settings as Record<string, unknown>).session_notes as SessionNote[] | undefined;
+        set({ sessionNotes: notes || [] });
+
+        // Load campaign NPCs
+        const npcs = (settings as Record<string, unknown>).campaign_npcs as CampaignNPC[] | undefined;
+        set({ campaignNPCs: npcs || [] });
+    },
+
+    createEncounter: async (campaignId: string, name: string, description?: string) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) {
+            toast.error('No active campaign');
+            return;
+        }
+
+        const newEncounter: Encounter = {
+            id: crypto.randomUUID(),
+            name,
+            description,
+            status: 'preparing',
+            adversaries: [],
+            is_visible_to_players: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        };
+
+        const updatedSettings = {
+            ...campaign.settings,
+            active_encounter: newEncounter,
+        };
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set({
+                    activeEncounter: newEncounter,
+                    activeCampaign: campaign
+                        ? { ...campaign, settings: updatedSettings }
+                        : null,
+                });
+                return () => set({
+                    activeEncounter: null,
+                    activeCampaign: campaign
+                        ? { ...campaign }
+                        : null,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to create encounter'
+        );
+
+        if (success) {
+            toast.success(`Encounter "${name}" created`);
+        }
+    },
+
+    endEncounter: async (campaignId: string) => {
+        const campaign = get().activeCampaign;
+        const encounter = get().activeEncounter;
+        if (!campaign || !encounter) return;
+
+        const updatedSettings = { ...campaign.settings };
+        delete (updatedSettings as Record<string, unknown>).active_encounter;
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                const prev = get().activeEncounter;
+                set({
+                    activeEncounter: null,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    activeEncounter: prev,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to end encounter'
+        );
+
+        if (success) {
+            // Log activity
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'encounter_ended',
+                    data: {
+                        encounter_name: encounter.name,
+                        encounter_id: encounter.id,
+                        adversary_count: encounter.adversaries.length,
+                    },
+                    is_private: false,
+                });
+            }
+            toast.success(`Encounter "${encounter.name}" ended`);
+        }
+    },
+
+    setEncounterStatus: async (campaignId: string, status: EncounterStatus) => {
+        const campaign = get().activeCampaign;
+        const encounter = get().activeEncounter;
+        if (!campaign || !encounter) return;
+
+        const updatedEncounter = { ...encounter, status, updated_at: new Date().toISOString() };
+        const updatedSettings = { ...campaign.settings, active_encounter: updatedEncounter };
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set({
+                    activeEncounter: updatedEncounter,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    activeEncounter: encounter,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to update encounter status'
+        );
+
+        if (success && status === 'active') {
+            // Log encounter started
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'encounter_started',
+                    data: {
+                        encounter_name: encounter.name,
+                        encounter_id: encounter.id,
+                        adversary_count: encounter.adversaries.length,
+                    },
+                    is_private: false,
+                });
+            }
+            toast.success(`Encounter "${encounter.name}" is now active!`);
+        }
+    },
+
+    toggleEncounterVisibility: async (campaignId: string) => {
+        const campaign = get().activeCampaign;
+        const encounter = get().activeEncounter;
+        if (!campaign || !encounter) return;
+
+        const updatedEncounter = {
+            ...encounter,
+            is_visible_to_players: !encounter.is_visible_to_players,
+            updated_at: new Date().toISOString(),
+        };
+        const updatedSettings = { ...campaign.settings, active_encounter: updatedEncounter };
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set({
+                    activeEncounter: updatedEncounter,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    activeEncounter: encounter,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to toggle encounter visibility'
+        );
+
+        if (success) {
+            toast.success(updatedEncounter.is_visible_to_players
+                ? 'Encounter visible to players'
+                : 'Encounter hidden from players');
+        }
+    },
+
+    pinAdversary: async (campaignId: string, adversary: Adversary) => {
+        const campaign = get().activeCampaign;
+        const encounter = get().activeEncounter;
+        if (!campaign || !encounter) {
+            toast.error('Create an encounter first');
+            return;
+        }
+
+        // Parse HP and Stress from SRD strings
+        const parseNumeric = (val: string): number => {
+            const match = val.match(/\d+/);
+            return match ? parseInt(match[0], 10) : 0;
+        };
+
+        // Count existing adversaries of same name for labeling
+        const sameNameCount = encounter.adversaries.filter(
+            a => a.adversary_name === adversary.name
+        ).length;
+        const label = sameNameCount > 0
+            ? `${adversary.name} #${sameNameCount + 1}`
+            : adversary.name;
+
+        const pinned: PinnedAdversary = {
+            id: crypto.randomUUID(),
+            adversary_name: adversary.name,
+            label,
+            hp_current: parseNumeric(adversary.hp),
+            hp_max: parseNumeric(adversary.hp),
+            stress_current: parseNumeric(adversary.stress),
+            stress_max: parseNumeric(adversary.stress),
+            is_defeated: false,
+            tier: adversary.tier,
+            type: adversary.type,
+            difficulty: adversary.difficulty,
+            thresholds: adversary.thresholds,
+            attack: adversary.attack,
+            atk: adversary.atk,
+            range: adversary.range,
+            damage: adversary.damage,
+            motives_and_tactics: adversary.motives_and_tactics,
+            sort_order: encounter.adversaries.length,
+            pinned_at: new Date().toISOString(),
+        };
+
+        const updatedEncounter = {
+            ...encounter,
+            adversaries: [...encounter.adversaries, pinned],
+            updated_at: new Date().toISOString(),
+        };
+        const updatedSettings = { ...campaign.settings, active_encounter: updatedEncounter };
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set({
+                    activeEncounter: updatedEncounter,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    activeEncounter: encounter,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to pin adversary'
+        );
+
+        if (success) {
+            // Log activity
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'adversary_pinned',
+                    data: {
+                        adversary_name: adversary.name,
+                        adversary_label: label,
+                        encounter_name: encounter.name,
+                    },
+                    is_private: !encounter.is_visible_to_players,
+                });
+            }
+            toast.success(`${label} pinned to encounter`);
+        }
+    },
+
+    unpinAdversary: async (campaignId: string, adversaryId: string) => {
+        const campaign = get().activeCampaign;
+        const encounter = get().activeEncounter;
+        if (!campaign || !encounter) return;
+
+        const updatedEncounter = {
+            ...encounter,
+            adversaries: encounter.adversaries.filter(a => a.id !== adversaryId),
+            updated_at: new Date().toISOString(),
+        };
+        const updatedSettings = { ...campaign.settings, active_encounter: updatedEncounter };
+
+        await withOptimisticUpdate(
+            () => {
+                set({
+                    activeEncounter: updatedEncounter,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    activeEncounter: encounter,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to unpin adversary'
+        );
+    },
+
+    damageAdversary: async (campaignId: string, adversaryId: string, damage: number, isStress: boolean = false) => {
+        const campaign = get().activeCampaign;
+        const encounter = get().activeEncounter;
+        if (!campaign || !encounter) return;
+
+        const adversary = encounter.adversaries.find(a => a.id === adversaryId);
+        if (!adversary) return;
+
+        const updatedAdversary = { ...adversary };
+        if (isStress) {
+            updatedAdversary.stress_current = Math.max(0, adversary.stress_current - damage);
+        } else {
+            updatedAdversary.hp_current = Math.max(0, adversary.hp_current - damage);
+            if (updatedAdversary.hp_current === 0) {
+                updatedAdversary.is_defeated = true;
+            }
+        }
+
+        const updatedEncounter = {
+            ...encounter,
+            adversaries: encounter.adversaries.map(a =>
+                a.id === adversaryId ? updatedAdversary : a
+            ),
+            updated_at: new Date().toISOString(),
+        };
+        const updatedSettings = { ...campaign.settings, active_encounter: updatedEncounter };
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set({
+                    activeEncounter: updatedEncounter,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    activeEncounter: encounter,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to damage adversary'
+        );
+
+        if (success && updatedAdversary.is_defeated && !adversary.is_defeated) {
+            // Log defeat
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'adversary_defeated',
+                    data: {
+                        adversary_name: adversary.adversary_name,
+                        adversary_label: adversary.label,
+                        encounter_name: encounter.name,
+                    },
+                    is_private: false,
+                });
+            }
+            toast.success(`${adversary.label} defeated!`);
+        }
+    },
+
+    healAdversary: async (campaignId: string, adversaryId: string, amount: number, isStress: boolean = false) => {
+        const campaign = get().activeCampaign;
+        const encounter = get().activeEncounter;
+        if (!campaign || !encounter) return;
+
+        const adversary = encounter.adversaries.find(a => a.id === adversaryId);
+        if (!adversary) return;
+
+        const updatedAdversary = { ...adversary };
+        if (isStress) {
+            updatedAdversary.stress_current = Math.min(adversary.stress_max, adversary.stress_current + amount);
+        } else {
+            updatedAdversary.hp_current = Math.min(adversary.hp_max, adversary.hp_current + amount);
+        }
+
+        const updatedEncounter = {
+            ...encounter,
+            adversaries: encounter.adversaries.map(a =>
+                a.id === adversaryId ? updatedAdversary : a
+            ),
+            updated_at: new Date().toISOString(),
+        };
+        const updatedSettings = { ...campaign.settings, active_encounter: updatedEncounter };
+
+        await withOptimisticUpdate(
+            () => {
+                set({
+                    activeEncounter: updatedEncounter,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    activeEncounter: encounter,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to heal adversary'
+        );
+    },
+
+    defeatAdversary: async (campaignId: string, adversaryId: string) => {
+        const campaign = get().activeCampaign;
+        const encounter = get().activeEncounter;
+        if (!campaign || !encounter) return;
+
+        const adversary = encounter.adversaries.find(a => a.id === adversaryId);
+        if (!adversary) return;
+
+        const updatedEncounter = {
+            ...encounter,
+            adversaries: encounter.adversaries.map(a =>
+                a.id === adversaryId ? { ...a, is_defeated: true, hp_current: 0 } : a
+            ),
+            updated_at: new Date().toISOString(),
+        };
+        const updatedSettings = { ...campaign.settings, active_encounter: updatedEncounter };
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set({
+                    activeEncounter: updatedEncounter,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    activeEncounter: encounter,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to defeat adversary'
+        );
+
+        if (success) {
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'adversary_defeated',
+                    data: {
+                        adversary_name: adversary.adversary_name,
+                        adversary_label: adversary.label,
+                        encounter_name: encounter.name,
+                    },
+                    is_private: false,
+                });
+            }
+            toast.success(`${adversary.label} defeated!`);
+        }
+    },
+
+    reviveAdversary: async (campaignId: string, adversaryId: string) => {
+        const campaign = get().activeCampaign;
+        const encounter = get().activeEncounter;
+        if (!campaign || !encounter) return;
+
+        const adversary = encounter.adversaries.find(a => a.id === adversaryId);
+        if (!adversary) return;
+
+        const updatedEncounter = {
+            ...encounter,
+            adversaries: encounter.adversaries.map(a =>
+                a.id === adversaryId ? { ...a, is_defeated: false, hp_current: a.hp_max } : a
+            ),
+            updated_at: new Date().toISOString(),
+        };
+        const updatedSettings = { ...campaign.settings, active_encounter: updatedEncounter };
+
+        await withOptimisticUpdate(
+            () => {
+                set({
+                    activeEncounter: updatedEncounter,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    activeEncounter: encounter,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to revive adversary'
+        );
+    },
+
+    updateAdversaryNotes: (campaignId: string, adversaryId: string, notes: string) => {
+        const encounter = get().activeEncounter;
+        if (!encounter) return;
+
+        const updatedEncounter = {
+            ...encounter,
+            adversaries: encounter.adversaries.map(a =>
+                a.id === adversaryId ? { ...a, notes } : a
+            ),
+        };
+        set({ activeEncounter: updatedEncounter });
+    },
+
+    // =========================================================================
+    // Phase 10: Session Notes
+    // =========================================================================
+
+    loadSessionNotes: () => {
+        const campaign = get().activeCampaign;
+        if (!campaign) return;
+        const notes = ((campaign.settings || {}) as Record<string, unknown>).session_notes as SessionNote[] | undefined;
+        set({ sessionNotes: notes || [] });
+    },
+
+    addSessionNote: async (campaignId: string, content: string) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) return;
+
+        const newNote: SessionNote = {
+            id: crypto.randomUUID(),
+            content,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        };
+
+        const currentNotes = get().sessionNotes;
+        const updatedNotes = [newNote, ...currentNotes];
+        const updatedSettings = { ...campaign.settings, session_notes: updatedNotes };
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set({
+                    sessionNotes: updatedNotes,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    sessionNotes: currentNotes,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to save note'
+        );
+
+        if (success) {
+            toast.success('Note saved');
+        }
+    },
+
+    updateSessionNote: async (campaignId: string, noteId: string, content: string) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) return;
+
+        const currentNotes = get().sessionNotes;
+        const updatedNotes = currentNotes.map(n =>
+            n.id === noteId ? { ...n, content, updated_at: new Date().toISOString() } : n
+        );
+        const updatedSettings = { ...campaign.settings, session_notes: updatedNotes };
+
+        await withOptimisticUpdate(
+            () => {
+                set({
+                    sessionNotes: updatedNotes,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    sessionNotes: currentNotes,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to update note'
+        );
+    },
+
+    deleteSessionNote: async (campaignId: string, noteId: string) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) return;
+
+        const currentNotes = get().sessionNotes;
+        const updatedNotes = currentNotes.filter(n => n.id !== noteId);
+        const updatedSettings = { ...campaign.settings, session_notes: updatedNotes };
+
+        await withOptimisticUpdate(
+            () => {
+                set({
+                    sessionNotes: updatedNotes,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    sessionNotes: currentNotes,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to delete note'
+        );
+    },
+
+    // =========================================================================
+    // Phase 10: Campaign NPC Directory
+    // =========================================================================
+
+    loadCampaignNPCs: () => {
+        const campaign = get().activeCampaign;
+        if (!campaign) return;
+        const npcs = ((campaign.settings || {}) as Record<string, unknown>).campaign_npcs as CampaignNPC[] | undefined;
+        set({ campaignNPCs: npcs || [] });
+    },
+
+    addCampaignNPC: async (campaignId: string, npc: Omit<CampaignNPC, 'id' | 'pushed_to' | 'created_at'>) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) return;
+
+        const newNPC: CampaignNPC = {
+            ...npc,
+            id: crypto.randomUUID(),
+            pushed_to: [],
+            created_at: new Date().toISOString(),
+        };
+
+        const currentNPCs = get().campaignNPCs;
+        const updatedNPCs = [...currentNPCs, newNPC];
+        const updatedSettings = { ...campaign.settings, campaign_npcs: updatedNPCs };
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set({
+                    campaignNPCs: updatedNPCs,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    campaignNPCs: currentNPCs,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to add NPC'
+        );
+
+        if (success) {
+            toast.success(`${npc.name} added to campaign NPCs`);
+        }
+    },
+
+    removeCampaignNPC: async (campaignId: string, npcId: string) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) return;
+
+        const currentNPCs = get().campaignNPCs;
+        const updatedNPCs = currentNPCs.filter(n => n.id !== npcId);
+        const updatedSettings = { ...campaign.settings, campaign_npcs: updatedNPCs };
+
+        await withOptimisticUpdate(
+            () => {
+                set({
+                    campaignNPCs: updatedNPCs,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    campaignNPCs: currentNPCs,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to remove NPC'
+        );
+    },
+
+    pushNPCToParty: async (campaignId: string, npcId: string) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) return;
+
+        const currentNPCs = get().campaignNPCs;
+        const npc = currentNPCs.find(n => n.id === npcId);
+        if (!npc) return;
+
+        // Get all party character IDs that haven't received this NPC yet
+        const partyCharacters = get().partyCharacters;
+        const newCharacterIds = partyCharacters
+            .map(c => c.id)
+            .filter(id => !npc.pushed_to.includes(id));
+
+        if (newCharacterIds.length === 0) {
+            toast.success('All party members already have this NPC');
+            return;
+        }
+
+        // Create relationship entries for each character via Supabase
+        const supabase = createClient();
+        for (const characterId of newCharacterIds) {
+            try {
+                const character = partyCharacters.find(c => c.id === characterId);
+                await supabase
+                    .from('character_relationships')
+                    .insert({
+                        character_id: characterId,
+                        character_name: character?.name || 'Unknown',
+                        npc_name: npc.name,
+                        npc_description: npc.description || null,
+                        npc_image_url: npc.image_url || null,
+                        points: npc.starting_points,
+                        bond_boon: npc.bond_boon || null,
+                        bond_bane: npc.bond_bane || null,
+                        campaign: campaign.name,
+                    });
+            } catch (error) {
+                // Relationship may already exist - continue
+                console.warn(`Failed to create relationship for character ${characterId}:`, error);
+            }
+        }
+
+        // Update pushed_to list
+        const updatedNPCs = currentNPCs.map(n =>
+            n.id === npcId
+                ? { ...n, pushed_to: [...n.pushed_to, ...newCharacterIds] }
+                : n
+        );
+        const updatedSettings = { ...campaign.settings, campaign_npcs: updatedNPCs };
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set({
+                    campaignNPCs: updatedNPCs,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    campaignNPCs: currentNPCs,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to push NPC to party'
+        );
+
+        if (success) {
+            // Log activity
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'npc_shared',
+                    data: {
+                        npc_name: npc.name,
+                        recipient_count: newCharacterIds.length,
+                    },
+                    is_private: false,
+                });
+            }
+            toast.success(`${npc.name} pushed to ${newCharacterIds.length} party member${newCharacterIds.length !== 1 ? 's' : ''}`);
         }
     },
 });

@@ -23,6 +23,9 @@ import { AdversaryBrowser } from './adversary-browser';
 import { EnvironmentBrowser } from './environment-browser';
 import { CountdownTracker } from './countdown-tracker';
 import { CountdownCreatorModal } from './countdown-creator-modal';
+import { EncounterTracker } from './encounter-tracker';
+import { SessionNotesPanel } from './session-notes-panel';
+import { CampaignNPCDirectory } from './campaign-npc-directory';
 import { ActivityFeed, BroadcastNotification } from '@/components/activity';
 import { realtimeManager } from '@/lib/realtime';
 import { CampaignActivity } from '@/types/activity';
@@ -56,9 +59,16 @@ export function GmScreen({ campaignId }: GmScreenProps) {
         advanceCountdown,
         resetCountdown,
         deleteCountdown,
+        // Phase 10: Encounters, Notes, NPCs
+        loadEncounterFromCampaign,
+        activeEncounter,
+        loadSessionNotes,
+        loadCampaignNPCs,
     } = useCharacterStore();
     const [showSettings, setShowSettings] = useState(false);
     const [showCountdownCreator, setShowCountdownCreator] = useState(false);
+    const [showSessionNotes, setShowSessionNotes] = useState(false);
+    const [showNPCDirectory, setShowNPCDirectory] = useState(false);
     const [sidebarTab, setSidebarTab] = useState<'activity' | 'adversaries' | 'environments' | 'countdowns'>('activity');
 
     // Broadcast notification state for GM Screen
@@ -90,6 +100,10 @@ export function GmScreen({ campaignId }: GmScreenProps) {
             // Always call selectCampaign - it will load/refresh the campaign
             await selectCampaign(campaignId);
             await fetchPartyCharacters(campaignId);
+            // Load Phase 10 data from campaign settings
+            loadEncounterFromCampaign();
+            loadSessionNotes();
+            loadCampaignNPCs();
         };
 
         // Only load if auth is ready and we have a user
@@ -196,7 +210,16 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                         />
 
                         {/* Quick Actions */}
-                        <QuickActionsBar campaignId={campaignId} />
+                        <QuickActionsBar
+                            campaignId={campaignId}
+                            onOpenNotes={() => setShowSessionNotes(true)}
+                            onOpenNPCs={() => setShowNPCDirectory(true)}
+                        />
+
+                        {/* Active Encounter (shown when encounter exists) */}
+                        {activeEncounter && (
+                            <EncounterTracker campaignId={campaignId} />
+                        )}
 
                         {/* Party Overview */}
                         <PartyOverview campaignId={campaignId} characters={partyCharacters} />
@@ -278,7 +301,7 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                             />
                         )}
                         {sidebarTab === 'adversaries' && (
-                            <AdversaryBrowser compact />
+                            <AdversaryBrowser compact campaignId={campaignId} />
                         )}
                         {sidebarTab === 'environments' && (
                             <EnvironmentBrowser compact />
@@ -301,6 +324,20 @@ export function GmScreen({ campaignId }: GmScreenProps) {
                 onSubmit={async (countdown: CountdownInsert) => {
                     await createCountdown(campaignId, countdown);
                 }}
+            />
+
+            {/* Session Notes Panel */}
+            <SessionNotesPanel
+                isOpen={showSessionNotes}
+                onClose={() => setShowSessionNotes(false)}
+                campaignId={campaignId}
+            />
+
+            {/* Campaign NPC Directory */}
+            <CampaignNPCDirectory
+                isOpen={showNPCDirectory}
+                onClose={() => setShowNPCDirectory(false)}
+                campaignId={campaignId}
             />
 
             {/* Broadcast notification pop-ups for campaign members */}
