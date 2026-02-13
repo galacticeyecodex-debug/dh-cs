@@ -116,7 +116,14 @@ export type ActivityType =
     | 'countdown_deleted'
     | 'project_created'
     | 'project_advanced'
-    | 'project_completed';
+    | 'project_completed'
+    // Phase 10: Encounter & NPC activity types
+    | 'encounter_started'
+    | 'encounter_ended'
+    | 'adversary_pinned'
+    | 'adversary_defeated'
+    | 'adversary_damaged'
+    | 'npc_shared';
 
 // Activity will be fully implemented in Phase 3
 export interface CampaignActivity {
@@ -226,6 +233,105 @@ export interface ProjectInsert {
     current_value?: number;
     advancement_type?: ProjectAdvancementType;
     status?: ProjectStatus;
+}
+
+// =============================================================================
+// ENCOUNTERS (Phase 10 - GM Encounter Management)
+// =============================================================================
+
+/**
+ * A pinned adversary instance in an active encounter.
+ * Each pinned adversary gets its own HP/stress tracking independent of the SRD template.
+ */
+export interface PinnedAdversary {
+    id: string;
+    /** The SRD adversary name (used to look up template data) */
+    adversary_name: string;
+    /** Display label for this instance (e.g., "Goblin #2") */
+    label: string;
+    /** Current HP remaining (parsed from SRD hp string on pin) */
+    hp_current: number;
+    /** Max HP (parsed from SRD hp string on pin) */
+    hp_max: number;
+    /** Current stress remaining */
+    stress_current: number;
+    /** Max stress */
+    stress_max: number;
+    /** Whether this adversary has been defeated (HP <= 0) */
+    is_defeated: boolean;
+    /** Tier from SRD */
+    tier: string;
+    /** Type from SRD */
+    type: string;
+    /** Difficulty from SRD */
+    difficulty: string;
+    /** Thresholds from SRD */
+    thresholds: string;
+    /** Attack info from SRD */
+    attack: string;
+    /** Attack modifier from SRD */
+    atk: string;
+    /** Range from SRD */
+    range: string;
+    /** Damage from SRD */
+    damage: string;
+    /** Motives and tactics from SRD */
+    motives_and_tactics: string;
+    /** Optional notes the GM added */
+    notes?: string;
+    /** Order for display sorting */
+    sort_order: number;
+    /** When this adversary was pinned */
+    pinned_at: string;
+}
+
+export type EncounterStatus = 'preparing' | 'active' | 'completed';
+
+/**
+ * An encounter managed on the GM screen.
+ * Encounters are stored in campaign.settings.encounters as JSON.
+ */
+export interface Encounter {
+    id: string;
+    name: string;
+    description?: string;
+    status: EncounterStatus;
+    adversaries: PinnedAdversary[];
+    /** Whether players can see this encounter on their campaign page */
+    is_visible_to_players: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+// =============================================================================
+// SESSION NOTES (Phase 10 - GM Session Notes)
+// =============================================================================
+
+export interface SessionNote {
+    id: string;
+    content: string;
+    created_at: string;
+    updated_at: string;
+}
+
+// =============================================================================
+// CAMPAIGN NPC DIRECTORY (Phase 10 - Shared NPCs)
+// =============================================================================
+
+/**
+ * A campaign-wide NPC that the GM can push to all players' journals.
+ */
+export interface CampaignNPC {
+    id: string;
+    name: string;
+    description?: string;
+    image_url?: string;
+    bond_boon?: string;
+    bond_bane?: string;
+    starting_points: number;
+    /** Which player character IDs have received this NPC */
+    pushed_to: string[];
+    created_at: string;
 }
 
 // =============================================================================
