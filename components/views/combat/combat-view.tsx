@@ -41,7 +41,7 @@ export default function CombatView() {
   const { character, prepareRoll, updateModifiers, cardStates, updateHope, updateVitals } = useCharacterStore();
   const { includePlaytest } = useContentAccess();
   const [showProficiencyModifiers, setShowProficiencyModifiers] = useState(false);
-  const [showVitals, setShowVitals] = useState(true);
+  const [showVitals, setShowVitals] = useState(false);
   const [showWeapons, setShowWeapons] = useState(true);
   const [showSpells, setShowSpells] = useState(true);
   const [showArmor, setShowArmor] = useState(true);
