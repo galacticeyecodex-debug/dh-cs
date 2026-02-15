@@ -4,9 +4,31 @@
  * Type definition for Daggerheart adversaries from the SRD.
  */
 
-export interface AdversaryFeat {
+export interface AdversaryFeatureEnhancement {
+    action_type?: string;
+    timing?: string;
+    frequency?: string;
+    costs?: {
+        stress?: number;
+        hope?: number;
+        fear?: number;
+    };
+    keywords?: string[];
+    attack?: {
+        trait?: string;
+        range?: string;
+        combat_category?: string;
+        damage?: string;
+        damage_type?: string;
+        targets?: string;
+        damage_scaling?: string;
+    };
+}
+
+export interface AdversaryFeature {
     name: string;
     text: string;
+    enhancement?: AdversaryFeatureEnhancement;
 }
 
 export interface Adversary {
@@ -24,7 +46,7 @@ export interface Adversary {
     range: string;
     damage: string;
     experience?: string;
-    feats: AdversaryFeat[];
+    feats: AdversaryFeature[];
 }
 
 export interface EnvironmentFeat {

@@ -6,16 +6,19 @@
  * The GM's combat management panel. Allows the GM to:
  * - Create and manage encounters
  * - Track pinned adversary HP/stress in real-time
+ * - Spotlight adversaries and activate their features
  * - Mark adversaries as defeated
  * - Control player visibility of the encounter
- * - Quick reference adversary stats during combat
+ * - End GM turn (clear spotlights)
+ *
+ * The PinnedAdversaryCard is extracted to its own file for maintainability.
  */
 
 import { useState } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { AppIcons } from '@/lib/icon-utils';
-import { MarkdownText } from '@/components/shared/markdown-text';
-import type { PinnedAdversary, EncounterStatus } from '@/types/campaign';
+import { PinnedAdversaryCard } from './pinned-adversary-card';
+import type { EncounterStatus } from '@/types/campaign';
 import clsx from 'clsx';
 
 interface EncounterTrackerProps {
@@ -25,6 +28,7 @@ interface EncounterTrackerProps {
 export function EncounterTracker({ campaignId }: EncounterTrackerProps) {
     const {
         activeEncounter,
+        activeCampaign,
         createEncounter,
         endEncounter,
         setEncounterStatus,
@@ -34,12 +38,18 @@ export function EncounterTracker({ campaignId }: EncounterTrackerProps) {
         healAdversary,
         defeatAdversary,
         reviveAdversary,
+        spotlightAdversary,
+        clearSpotlights,
+        activateAdversaryFeature,
     } = useCharacterStore();
 
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [encounterName, setEncounterName] = useState('');
     const [encounterDescription, setEncounterDescription] = useState('');
     const [expandedAdversary, setExpandedAdversary] = useState<string | null>(null);
+
+    const currentFear = activeCampaign?.fear_current ?? 0;
+    const hasSpotlights = activeEncounter?.adversaries.some(a => a.is_spotlighted) ?? false;
 
     const handleCreateEncounter = async () => {
         if (!encounterName.trim()) return;
@@ -172,12 +182,23 @@ export function EncounterTracker({ campaignId }: EncounterTrackerProps) {
                         </button>
                     )}
                     {activeEncounter.status === 'active' && (
-                        <button
-                            onClick={() => setEncounterStatus(campaignId, 'preparing')}
-                            className="flex-1 px-3 py-1.5 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 rounded-lg text-xs font-medium transition-colors"
-                        >
-                            Pause
-                        </button>
+                        <>
+                            <button
+                                onClick={() => setEncounterStatus(campaignId, 'preparing')}
+                                className="flex-1 px-3 py-1.5 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 rounded-lg text-xs font-medium transition-colors"
+                            >
+                                Pause
+                            </button>
+                            {hasSpotlights && (
+                                <button
+                                    onClick={() => clearSpotlights(campaignId)}
+                                    className="px-3 py-1.5 bg-dagger-gold/20 hover:bg-dagger-gold/30 text-dagger-gold rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
+                                >
+                                    <AppIcons.ui.reset size={12} />
+                                    End GM Turn
+                                </button>
+                            )}
+                        </>
                     )}
                     <button
                         onClick={() => toggleEncounterVisibility(campaignId)}
@@ -218,6 +239,7 @@ export function EncounterTracker({ campaignId }: EncounterTrackerProps) {
                                 key={adversary.id}
                                 adversary={adversary}
                                 campaignId={campaignId}
+                                currentFear={currentFear}
                                 isExpanded={expandedAdversary === adversary.id}
                                 onToggle={() => setExpandedAdversary(
                                     expandedAdversary === adversary.id ? null : adversary.id
@@ -229,276 +251,15 @@ export function EncounterTracker({ campaignId }: EncounterTrackerProps) {
                                 onDefeat={() => defeatAdversary(campaignId, adversary.id)}
                                 onRevive={() => reviveAdversary(campaignId, adversary.id)}
                                 onUnpin={() => unpinAdversary(campaignId, adversary.id)}
+                                onSpotlight={() => spotlightAdversary(campaignId, adversary.id)}
+                                onActivateFeature={(featureName, fearCost, stressCost) =>
+                                    activateAdversaryFeature(campaignId, adversary.id, featureName, fearCost, stressCost)
+                                }
                             />
                         ))}
                     </div>
                 )}
             </div>
-        </div>
-    );
-}
-
-interface PinnedAdversaryCardProps {
-    adversary: PinnedAdversary;
-    campaignId: string;
-    isExpanded: boolean;
-    onToggle: () => void;
-    onDamage: (amount: number) => void;
-    onHeal: (amount: number) => void;
-    onDamageStress: (amount: number) => void;
-    onHealStress: (amount: number) => void;
-    onDefeat: () => void;
-    onRevive: () => void;
-    onUnpin: () => void;
-}
-
-function PinnedAdversaryCard({
-    adversary,
-    isExpanded,
-    onToggle,
-    onDamage,
-    onHeal,
-    onDamageStress,
-    onHealStress,
-    onDefeat,
-    onRevive,
-    onUnpin,
-}: PinnedAdversaryCardProps) {
-    const [damageInput, setDamageInput] = useState('');
-    const [stressDamageInput, setStressDamageInput] = useState('');
-
-    const hpPercent = adversary.hp_max > 0
-        ? (adversary.hp_current / adversary.hp_max) * 100
-        : 0;
-
-    const stressPercent = adversary.stress_max > 0
-        ? (adversary.stress_current / adversary.stress_max) * 100
-        : 0;
-
-    const hpColor = hpPercent > 50
-        ? 'bg-green-500'
-        : hpPercent > 25
-            ? 'bg-yellow-500'
-            : 'bg-red-500';
-
-    const handleDamageSubmit = () => {
-        const amount = parseInt(damageInput);
-        if (!isNaN(amount) && amount > 0) {
-            onDamage(amount);
-            setDamageInput('');
-        }
-    };
-
-    const handleStressDamageSubmit = () => {
-        const amount = parseInt(stressDamageInput);
-        if (!isNaN(amount) && amount > 0) {
-            onDamageStress(amount);
-            setStressDamageInput('');
-        }
-    };
-
-    return (
-        <div className={clsx(
-            'p-3 transition-all',
-            adversary.is_defeated
-                ? 'opacity-50 bg-black/20'
-                : 'hover:bg-white/5'
-        )}>
-            {/* Header Row */}
-            <button
-                onClick={onToggle}
-                className="w-full text-left flex items-center gap-3"
-            >
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                        <h3 className={clsx(
-                            'font-bold',
-                            adversary.is_defeated ? 'text-gray-500 line-through' : 'text-white'
-                        )}>
-                            {adversary.label}
-                        </h3>
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-300">
-                            T{adversary.tier}
-                        </span>
-                        {adversary.is_defeated && (
-                            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-500/20 text-gray-400">
-                                Defeated
-                            </span>
-                        )}
-                    </div>
-
-                    {/* HP Bar */}
-                    {!adversary.is_defeated && (
-                        <div className="flex items-center gap-2 mt-1.5">
-                            <div className="flex-1 h-2 bg-black/40 rounded-full overflow-hidden">
-                                <div
-                                    className={clsx('h-full rounded-full transition-all duration-300', hpColor)}
-                                    style={{ width: `${hpPercent}%` }}
-                                />
-                            </div>
-                            <span className="text-xs text-gray-400 tabular-nums min-w-[48px] text-right">
-                                {adversary.hp_current}/{adversary.hp_max}
-                            </span>
-                        </div>
-                    )}
-                </div>
-
-                {isExpanded ? (
-                    <AppIcons.ui.collapse size={18} className="text-gray-500 flex-shrink-0" />
-                ) : (
-                    <AppIcons.ui.expand size={18} className="text-gray-500 flex-shrink-0" />
-                )}
-            </button>
-
-            {/* Expanded Details */}
-            {isExpanded && (
-                <div className="mt-3 space-y-3">
-                    {/* HP & Stress Tracks */}
-                    {!adversary.is_defeated && (
-                        <div className="space-y-2">
-                            {/* HP Damage Input */}
-                            <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1.5 min-w-[60px]">
-                                    <AppIcons.vitals.hitPoints size={14} className="text-red-400" />
-                                    <span className="text-xs text-gray-400">HP</span>
-                                </div>
-                                <div className="flex-1 flex items-center gap-1">
-                                    <button
-                                        onClick={() => onHeal(1)}
-                                        className="px-2 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded text-xs font-bold transition-colors"
-                                    >
-                                        +1
-                                    </button>
-                                    <input
-                                        type="number"
-                                        value={damageInput}
-                                        onChange={(e) => setDamageInput(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleDamageSubmit()}
-                                        placeholder="Dmg"
-                                        min={1}
-                                        className="w-16 px-2 py-1 bg-black/40 border border-white/10 rounded text-xs text-white text-center placeholder:text-gray-600 focus:outline-none focus:border-red-500/50"
-                                    />
-                                    <button
-                                        onClick={handleDamageSubmit}
-                                        disabled={!damageInput}
-                                        className="px-2 py-1 bg-red-500/20 hover:bg-red-500/30 disabled:opacity-30 text-red-300 rounded text-xs font-bold transition-colors"
-                                    >
-                                        Hit
-                                    </button>
-                                </div>
-                                <span className="text-xs text-gray-500 tabular-nums">
-                                    {adversary.hp_current}/{adversary.hp_max}
-                                </span>
-                            </div>
-
-                            {/* Stress Damage Input */}
-                            {adversary.stress_max > 0 && (
-                                <div className="flex items-center gap-2">
-                                    <div className="flex items-center gap-1.5 min-w-[60px]">
-                                        <AppIcons.vitals.stress size={14} className="text-purple-400" />
-                                        <span className="text-xs text-gray-400">Stress</span>
-                                    </div>
-                                    <div className="flex-1 flex items-center gap-1">
-                                        <button
-                                            onClick={() => onHealStress(1)}
-                                            className="px-2 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded text-xs font-bold transition-colors"
-                                        >
-                                            +1
-                                        </button>
-                                        <input
-                                            type="number"
-                                            value={stressDamageInput}
-                                            onChange={(e) => setStressDamageInput(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleStressDamageSubmit()}
-                                            placeholder="Dmg"
-                                            min={1}
-                                            className="w-16 px-2 py-1 bg-black/40 border border-white/10 rounded text-xs text-white text-center placeholder:text-gray-600 focus:outline-none focus:border-purple-500/50"
-                                        />
-                                        <button
-                                            onClick={handleStressDamageSubmit}
-                                            disabled={!stressDamageInput}
-                                            className="px-2 py-1 bg-purple-500/20 hover:bg-purple-500/30 disabled:opacity-30 text-purple-300 rounded text-xs font-bold transition-colors"
-                                        >
-                                            Hit
-                                        </button>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <div className="w-12 h-1.5 bg-black/40 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-purple-500 rounded-full transition-all duration-300"
-                                                style={{ width: `${stressPercent}%` }}
-                                            />
-                                        </div>
-                                        <span className="text-xs text-gray-500 tabular-nums">
-                                            {adversary.stress_current}/{adversary.stress_max}
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Quick Stats */}
-                    <div className="grid grid-cols-2 gap-1.5 text-xs">
-                        <div className="flex items-center gap-1.5 bg-black/20 rounded px-2 py-1.5">
-                            <AppIcons.combat.target size={12} className="text-yellow-400" />
-                            <span className="text-gray-400">Diff:</span>
-                            <span className="text-white font-bold">{adversary.difficulty}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 bg-black/20 rounded px-2 py-1.5">
-                            <AppIcons.vitals.armor size={12} className="text-blue-400" />
-                            <span className="text-gray-400">Thr:</span>
-                            <span className="text-white font-bold">{adversary.thresholds}</span>
-                        </div>
-                    </div>
-
-                    {/* Attack Info */}
-                    <div className="bg-black/20 rounded-lg p-2 text-xs">
-                        <div className="flex items-center gap-1.5 mb-1">
-                            <AppIcons.combat.attack size={12} className="text-orange-400" />
-                            <MarkdownText className="text-white font-bold inline-block">{adversary.attack}</MarkdownText>
-                            <span className="text-gray-500">({adversary.range})</span>
-                        </div>
-                        <div className="flex gap-3">
-                            <span className="text-gray-400">Atk: <MarkdownText className="text-white font-bold inline-block">{adversary.atk}</MarkdownText></span>
-                            <span className="text-gray-400">Dmg: <MarkdownText className="text-orange-300 font-bold inline-block">{adversary.damage}</MarkdownText></span>
-                        </div>
-                    </div>
-
-                    {/* Motives */}
-                    <div className="text-xs">
-                        <span className="text-gray-500">Motives: </span>
-                        <MarkdownText className="text-gray-300 inline-block align-top">
-                            {adversary.motives_and_tactics}
-                        </MarkdownText>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 pt-1">
-                        {adversary.is_defeated ? (
-                            <button
-                                onClick={onRevive}
-                                className="flex-1 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-lg text-xs font-medium transition-colors"
-                            >
-                                Revive
-                            </button>
-                        ) : (
-                            <button
-                                onClick={onDefeat}
-                                className="flex-1 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-xs font-medium transition-colors"
-                            >
-                                Defeat
-                            </button>
-                        )}
-                        <button
-                            onClick={onUnpin}
-                            className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-gray-400 rounded-lg text-xs font-medium transition-colors"
-                        >
-                            Remove
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

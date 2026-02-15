@@ -18,7 +18,7 @@ interface EncounterActivityProps {
 }
 
 export function EncounterActivity({ activity, compact }: EncounterActivityProps) {
-    const data = activity.data as Record<string, unknown>;
+    const data = activity.data as unknown as Record<string, unknown>;
 
     switch (activity.activity_type) {
         case 'encounter_started':

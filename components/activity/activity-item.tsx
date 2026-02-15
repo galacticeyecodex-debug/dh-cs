@@ -15,6 +15,7 @@ import { GmAnnouncementActivity } from './gm-announcement-activity';
 import { GmVitalAdjustActivity } from './gm-vital-adjust-activity';
 import { CardUsedActivity } from './card-used-activity';
 import { EncounterActivity } from './encounter-activity';
+import { GmActionActivity } from './gm-action-activity';
 import { GenericActivity } from './generic-activity';
 
 interface ActivityItemProps {
@@ -59,6 +60,10 @@ export function ActivityItem({ activity, compact = false }: ActivityItemProps) {
             case 'adversary_damaged':
             case 'npc_shared':
                 return <EncounterActivity activity={activity} compact={compact} />;
+            case 'adversary_spotlighted':
+            case 'adversary_feature_used':
+            case 'gm_fear_move':
+                return <GmActionActivity activity={activity} compact={compact} />;
             case 'player_joined':
             case 'player_left':
             case 'character_switched':

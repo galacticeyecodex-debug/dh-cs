@@ -18,9 +18,11 @@ import { Adversary } from '@/types/adversary';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { useCharacterStore } from '@/store/character-store';
 import clsx from 'clsx';
+import { AdversaryFeatureButton } from './adversary-feature-button';
+import { classifyAndSortFeatures } from '@/lib/card-parser';
 
 // Import adversary data
-import adversariesData from '@/content/public/srd/json/adversaries.json';
+import adversariesData from '@/content/public/srd/json/adversaries_enhanced.json';
 
 interface AdversaryBrowserProps {
     /** Optional: Compact mode for sidebar usage */
@@ -34,7 +36,7 @@ export function AdversaryBrowser({ compact = false, campaignId }: AdversaryBrows
     const [selectedTier, setSelectedTier] = useState<string>('all');
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [adversaries, setAdversaries] = useState<Adversary[]>([]);
-    const { activeEncounter, pinAdversary } = useCharacterStore();
+    const { activeEncounter, pinAdversary, createEncounter } = useCharacterStore();
 
     useEffect(() => {
         setAdversaries(adversariesData as Adversary[]);
@@ -123,8 +125,14 @@ export function AdversaryBrowser({ compact = false, campaignId }: AdversaryBrows
                                 isExpanded={expandedId === adversary.name}
                                 onToggle={() => toggleExpanded(adversary.name)}
                                 compact={compact}
-                                canPin={!!activeEncounter && !!campaignId}
-                                onPin={() => campaignId && pinAdversary(campaignId, adversary)}
+                                canPin={!!campaignId}
+                                onPin={async () => {
+                                    if (!campaignId) return;
+                                    if (!activeEncounter) {
+                                        await createEncounter(campaignId, 'Encounter');
+                                    }
+                                    pinAdversary(campaignId, adversary);
+                                }}
                             />
                         ))}
                     </div>
@@ -246,17 +254,15 @@ function AdversaryCard({ adversary, isExpanded, onToggle, compact, canPin, onPin
                         </div>
                     )}
 
-                    {/* Feats */}
+                    {/* Features */}
                     {adversary.feats.length > 0 && (
                         <div className="space-y-2">
-                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Feats</h4>
-                            {adversary.feats.map((feat, idx) => (
-                                <div key={idx} className="bg-black/20 rounded-lg p-2">
-                                    <p className="text-xs font-bold text-orange-300 mb-1">{feat.name}</p>
-                                    <MarkdownText className="text-xs text-gray-400 leading-relaxed">
-                                        {feat.text}
-                                    </MarkdownText>
-                                </div>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Features</h4>
+                            {classifyAndSortFeatures(adversary.feats).map((cf) => (
+                                <AdversaryFeatureButton
+                                    key={cf.feat.name}
+                                    classified={cf}
+                                />
                             ))}
                         </div>
                     )}
