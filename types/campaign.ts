@@ -119,6 +119,7 @@ export type ActivityType =
     | 'project_created'
     | 'project_advanced'
     | 'project_completed'
+    | 'project_abandoned'
     // Phase 10: Encounter & NPC activity types
     | 'encounter_started'
     | 'encounter_ended'
