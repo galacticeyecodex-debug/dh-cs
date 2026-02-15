@@ -24,7 +24,7 @@ import { ErrorBoundary } from '@/components/core/error-boundary';
 import CreateHomebrewItemModal, { HomebrewItemData } from './create-homebrew-item-modal';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { DomainCard } from '@/components/physical-cards/domain-card';
-import { DOMAIN_COLORS } from '@/lib/domain-colors';
+import { DOMAIN_COLORS, getDomainTheme } from '@/lib/domain-colors';
 import { Z_INDEX } from '@/constants/z-index';
 interface AddItemModalProps {
   isOpen: boolean;
@@ -242,10 +242,10 @@ export default function AddItemModal({
 
   return (
     <ErrorBoundary>
-      <div 
-      className="fixed inset-0 bg-black/70 flex items-center justify-center p-4"
-      style={{ zIndex: Z_INDEX.MODAL }}
-    >
+      <div
+        className="fixed inset-0 bg-black/70 flex items-center justify-center p-4"
+        style={{ zIndex: Z_INDEX.MODAL }}
+      >
         <div className="bg-dagger-panel border border-white/10 rounded-xl shadow-lg w-full max-w-lg h-[80vh] flex flex-col">
           {/* Header */}
           <div className="flex justify-between items-center p-4 border-b border-white/10">
@@ -396,7 +396,7 @@ export default function AddItemModal({
           <div className="flex-1 overflow-hidden flex relative">
             <div
               ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 scroll-smooth"
+              className="flex-1 overflow-y-auto px-4 pb-4 -mt-px space-y-6 scroll-smooth"
             >
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
@@ -407,11 +407,14 @@ export default function AddItemModal({
                 <div className="space-y-8">
                   {groupedItems.map((group) => (
                     <div key={group.title} id={`group-${group.title}`} className="space-y-4">
-                      <div 
-                        className="sticky top-0 py-2 bg-dagger-panel/95 backdrop-blur-sm border-b border-white/5"
-                        style={{ zIndex: Z_INDEX.BASE + 1 }}
+                      <div
+                        className="sticky top-0 -mx-4 px-4 py-2 bg-dagger-panel backdrop-blur-sm border-b border-white/5"
+                        style={{ zIndex: 50 }}
                       >
-                        <h3 className="text-xs font-black uppercase text-dagger-gold tracking-[0.2em]">
+                        <h3 className="text-xs font-black uppercase text-dagger-gold tracking-[0.2em] flex items-center gap-2">
+                          {(filterType === 'cards' || selectedCategory === 'card') && (
+                            <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: getDomainTheme(group.title).accent }} />
+                          )}
                           {group.title}
                         </h3>
                       </div>
