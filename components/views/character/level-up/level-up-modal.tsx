@@ -45,14 +45,15 @@
  *      - NOTE: Multi-class has not yet been fully implemented.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { X, Zap, Check, Search, PawPrint, ChevronUp, ChevronDown } from '@/lib/icon-utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RangerCompanion } from '@/types/character';
 import { calculateTierAchievements, calculateNewDamageThresholds, getTier, getMaxCardLevelForDomain, getClassDomainsFromData } from '@/lib/level-up-helpers';
 import { validateNewLevel, validateAdvancementSelections } from '@/lib/level-up-validation';
-import { getCardLevel, getCardDescription, getCardType, isCardInDomain, isCardAvailableAtLevel } from '@/lib/card-helpers';
+import { getCardLevel, getCardDescription, getCardType, getCardRecallCost, isCardInDomain, isCardAvailableAtLevel } from '@/lib/card-helpers';
 import MulticlassSelection from './multiclass-selection';
+import { MarkdownText } from '@/components/shared/markdown-text';
 import DomainExchange from './domain-exchange';
 import TraitSelection from './trait-selection';
 import ExperienceSelection from './experience-selection';
@@ -60,6 +61,8 @@ import VitalSlotSelection from './vital-slot-selection';
 import { Character } from '@/store/character-store';
 import { ErrorBoundary } from '@/components/core/error-boundary';
 import { Z_INDEX } from '@/constants/z-index';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getDomainTheme, DOMAIN_COLORS } from '@/lib/domain-colors';
 
 interface LevelUpModalProps {
   isOpen: boolean;
@@ -124,6 +127,251 @@ const COMPANION_TRAINING_OPTIONS = [
   { key: 'aware', name: 'Aware', description: '+2 bonus to Evasion', multi: false, max: 1, color: 'yellow' },
 ];
 
+/** Shared card selection UI for Steps 5 & 6 with filters, grouping, and polished cards */
+function DomainCardSelection({
+  title,
+  subtitle,
+  multiclassNote,
+  availableCards,
+  selectedCardId,
+  onSelectCard,
+  searchTerm,
+  onSearchChange,
+  selectedDomains,
+  onSelectedDomainsChange,
+  minLevel,
+  onMinLevelChange,
+  maxLevel,
+  onMaxLevelChange,
+  noDomainsMessage,
+  noCardsMessage,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  multiclassNote?: React.ReactNode;
+  availableCards: any[];
+  selectedCardId: string;
+  onSelectCard: (id: string) => void;
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
+  selectedDomains: (string | null)[];
+  onSelectedDomainsChange: React.Dispatch<React.SetStateAction<(string | null)[]>>;
+  minLevel: number;
+  onMinLevelChange: (level: number) => void;
+  maxLevel: number;
+  onMaxLevelChange: (level: number) => void;
+  noDomainsMessage?: boolean;
+  noCardsMessage?: string;
+  children?: React.ReactNode;
+}) {
+  // Build full domain list from DOMAIN_COLORS + any domains referenced by available cards
+  const domains = useMemo(() => {
+    const supportedDomains = Object.keys(DOMAIN_COLORS).map(key =>
+      key.charAt(0).toUpperCase() + key.slice(1)
+    );
+    const usedDomains = availableCards
+      .map(card => card.domain)
+      .filter((d): d is string => !!d);
+    return Array.from(new Set([...supportedDomains, ...usedDomains])).sort();
+  }, [availableCards]);
+
+  const activeDomains = selectedDomains.filter(d => d !== null);
+
+  const filteredCards = availableCards
+    .filter(card =>
+      card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      card.domain?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter(card => activeDomains.length === 0 || activeDomains.includes(card.domain || ''))
+    .filter(card => {
+      const level = getCardLevel(card);
+      return level >= minLevel && level <= maxLevel;
+    });
+
+  // Group cards by domain, sorted by domain name
+  const groupedCards = filteredCards.reduce<Record<string, any[]>>((groups, card) => {
+    const domain = card.domain || 'Unknown';
+    if (!groups[domain]) groups[domain] = [];
+    groups[domain].push(card);
+    return groups;
+  }, {});
+
+  const sortedDomains = Object.keys(groupedCards).sort();
+
+  return (
+    <div className="pt-6">
+      <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
+      <p className="text-gray-400 mb-4">
+        {subtitle}
+        {multiclassNote}
+      </p>
+
+      {/* Search Input */}
+      <div className="relative mb-3">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+        <input
+          type="text"
+          placeholder="Search by card name..."
+          value={searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="w-full bg-black/30 border border-gray-700 rounded-lg py-2 pl-10 pr-4 text-white focus:outline-none focus:border-dagger-gold transition-colors"
+        />
+      </div>
+
+      {/* Domain Filters */}
+      <div className="flex flex-wrap gap-4 items-center p-2 bg-black/20 rounded-lg border border-white/5 mb-2">
+        {selectedDomains.map((selectedDomain, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <span className="text-[10px] text-gray-500 uppercase font-bold">Domain {index + 1}:</span>
+            <Select
+              value={selectedDomain || 'any'}
+              onValueChange={(val) => {
+                const newVal = val === 'any' ? null : val;
+                onSelectedDomainsChange(prev => {
+                  const next = [...prev];
+                  next[index] = newVal;
+                  return next;
+                });
+              }}
+            >
+              <SelectTrigger className="h-7 text-xs w-32">
+                <SelectValue placeholder="Any Domain" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any Domain</SelectItem>
+                {domains.map(domain => (
+                  <SelectItem key={domain} value={domain}>{domain}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ))}
+      </div>
+
+      {/* Level Filters */}
+      <div className="flex flex-wrap gap-4 items-center p-2 bg-black/20 rounded-lg border border-white/5 mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 uppercase font-bold">From Level:</span>
+          <Select
+            value={String(minLevel)}
+            onValueChange={(val) => onMinLevelChange(Number(val))}
+          >
+            <SelectTrigger className="h-7 text-xs w-16">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(l => (
+                <SelectItem key={l} value={String(l)}>{l}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 uppercase font-bold">To Level:</span>
+          <Select
+            value={String(maxLevel)}
+            onValueChange={(val) => onMaxLevelChange(Number(val))}
+          >
+            <SelectTrigger className="h-7 text-xs w-16">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(l => (
+                <SelectItem key={l} value={String(l)}>{l}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {noDomainsMessage ? (
+        <p className="text-gray-500 text-sm p-4 bg-black/20 rounded-lg">No domains available. Ensure your character has at least one domain.</p>
+      ) : noCardsMessage ? (
+        <div className="p-4 bg-red-900/20 border border-red-700/50 rounded-lg">
+          <p className="text-red-200 font-bold mb-1">No Domain Cards Found</p>
+          <p className="text-sm text-red-300">
+            There are no domain cards available for your domains (<strong>{noCardsMessage}</strong>) at the appropriate level.
+          </p>
+        </div>
+      ) : filteredCards.length === 0 ? (
+        <p className="text-gray-500 text-center py-4">No cards match your filters.</p>
+      ) : (
+        <div className="flex flex-col">
+          {sortedDomains.map(domain => {
+            const theme = getDomainTheme(domain);
+            return (
+              <div key={domain} className="pt-4 first:pt-0">
+                {/* Domain Group Header - sticky, flush with no gap */}
+                <div className="sticky top-0 -mx-6 px-6 py-2 bg-dagger-panel backdrop-blur-sm border-b border-white/5 z-[1]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.accent }} />
+                    <span className="text-xs font-black uppercase tracking-[0.2em] text-dagger-gold">{domain}</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  {groupedCards[domain].map((card: any) => {
+                    const isSelected = selectedCardId === card.id;
+                    const cardLevel = getCardLevel(card);
+                    const cardDescription = getCardDescription(card);
+                    const cardType = getCardType(card);
+                    const recallCost = getCardRecallCost(card);
+
+                    return (
+                      <button
+                        key={card.id}
+                        onClick={() => onSelectCard(card.id)}
+                        className={`text-left p-3 rounded-lg border border-l-[3px] transition-all ${isSelected
+                          ? 'border-dagger-gold bg-dagger-gold/10'
+                          : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
+                          }`}
+                        style={{ borderLeftColor: theme.accent }}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-serif font-bold text-dagger-gold">{card.name}</p>
+                            <div className="flex items-center gap-1.5 mt-1 mb-1.5 flex-wrap">
+                              <span className="bg-white/10 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded text-gray-300">
+                                {cardType.charAt(0).toUpperCase() + cardType.slice(1)}
+                              </span>
+                              <span className="bg-white/10 text-[10px] font-bold px-1.5 py-0.5 rounded text-gray-300">
+                                Lvl {cardLevel}
+                              </span>
+                              {recallCost > 0 && (
+                                <span className="bg-white/10 text-[10px] font-bold px-1.5 py-0.5 rounded text-gray-300">
+                                  Recall {recallCost}
+                                </span>
+                              )}
+                              <span className="text-[10px] font-medium" style={{ color: theme.accent }}>
+                                {card.domain}
+                              </span>
+                            </div>
+                            <MarkdownText className={`text-sm text-gray-300 ${isSelected ? '' : 'line-clamp-2'}`}>
+                              {cardDescription}
+                            </MarkdownText>
+                          </div>
+                          {isSelected && (
+                            <span className="text-xs bg-dagger-gold text-black px-2 py-1 rounded-full font-bold flex-shrink-0 mt-0.5">
+                              Selected
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {children}
+    </div>
+  );
+}
+
 export default function LevelUpModal({
   isOpen,
   onClose,
@@ -147,6 +395,9 @@ export default function LevelUpModal({
   const [selectedMulticlassSubclass, setSelectedMulticlassSubclass] = useState<string>('');
   const [exchangeExistingCardId, setExchangeExistingCardId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDomains, setSelectedDomains] = useState<(string | null)[]>([null, null]);
+  const [minLevel, setMinLevel] = useState<number>(1);
+  const [maxLevel, setMaxLevel] = useState<number>(1);
 
   // Configuration State (Sub-steps)
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
@@ -169,6 +420,11 @@ export default function LevelUpModal({
       setSelectedMulticlassSubclass('');
       setExchangeExistingCardId(null);
       setSearchTerm('');
+      const initial: (string | null)[] = [...(character.domains || [])];
+      while (initial.length < 2) initial.push(null);
+      setSelectedDomains(initial);
+      setMinLevel(1);
+      setMaxLevel(newLevel);
       setSelectedTraits([]);
       setSelectedExperienceIndices([]);
       setHpSlotsAdded(1);
@@ -176,7 +432,7 @@ export default function LevelUpModal({
       setSelectedCompanionTraining('');
       setError('');
     }
-  }, [isOpen]);
+  }, [isOpen, character.domains, newLevel]);
 
   if (!isOpen) return null;
 
@@ -676,9 +932,9 @@ export default function LevelUpModal({
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-thin">
+              <div className="flex-1 overflow-y-auto px-6 pb-6 pt-0 scrollbar-thin">
                 {step === 1 && (
-                  <div>
+                  <div className="pt-6">
                     <h3 className="text-xl font-bold text-white mb-4">Level Advancement</h3>
                     <div className="space-y-3 text-gray-300">
                       <div className="flex items-start gap-3 p-3 bg-black/30 rounded-lg">
@@ -724,7 +980,7 @@ export default function LevelUpModal({
                 )}
 
                 {step === 2 && (
-                  <div>
+                  <div className="pt-6">
                     <h3 className="text-xl font-bold text-white mb-2">Select Advancements</h3>
                     <p className="text-gray-400 mb-4">
                       Choose advancements totaling exactly 2 slots. (Current: <span className={totalSlots === 2 ? 'text-dagger-gold font-bold' : 'text-gray-400'}>{totalSlots}</span> slots)
@@ -800,7 +1056,7 @@ export default function LevelUpModal({
                 )}
 
                 {step === 3 && needsConfiguration && (
-                  <div className="space-y-6">
+                  <div className="space-y-6 pt-6">
                     {selectedAdvancements.includes('increase_traits') && (
                       <TraitSelection
                         character={character}
@@ -835,7 +1091,7 @@ export default function LevelUpModal({
                 )}
 
                 {step === 4 && (
-                  <div>
+                  <div className="pt-6">
                     <h3 className="text-xl font-bold text-white mb-4">Damage Thresholds</h3>
                     <p className="text-gray-300 mb-4">Your damage thresholds increase by +1:</p>
                     <div className="space-y-3">
@@ -867,89 +1123,28 @@ export default function LevelUpModal({
                 )}
 
                 {step === 5 && (
-                  <div>
-                    <h3 className="text-xl font-bold text-white mb-2">Select New Domain Card</h3>
-                    <p className="text-gray-400 mb-4">
-                      Choose a new domain card.
-                      {selectedAdvancements.includes('multiclass') && selectedMulticlassDomain && (
-                        <span className="block text-xs text-dagger-gold mt-1">
-                          Multiclass Rule: Cards from your new domain ({selectedMulticlassDomain}) are limited to Level {Math.ceil(newLevel / 2)}.
-                        </span>
-                      )}
-                    </p>
-
-                    {/* Search Input */}
-                    <div className="relative mb-4">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="text"
-                        placeholder="Search by card name or domain..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-black/30 border border-gray-700 rounded-lg py-2 pl-10 pr-4 text-white focus:outline-none focus:border-dagger-gold transition-colors"
-                      />
-                    </div>
-
-                    {character.domains?.length === 0 ? (
-                      <p className="text-gray-500 text-sm p-4 bg-black/20 rounded-lg">No domains available. Ensure your character has at least one domain.</p>
-                    ) : availableDomainCards.length === 0 ? (
-                      <div className="p-4 bg-red-900/20 border border-red-700/50 rounded-lg">
-                        <p className="text-red-200 font-bold mb-1">No Domain Cards Found</p>
-                        <p className="text-sm text-red-300">
-                          There are no domain cards available for your domains (<strong>{allDomains.join(', ')}</strong>) at the appropriate level.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 gap-2">
-                        {availableDomainCards
-                          .filter(card =>
-                            card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            card.domain?.toLowerCase().includes(searchTerm.toLowerCase())
-                          )
-                          .map((card) => {
-                            const isSelected = selectedAutomaticCard === card.id;
-                            const cardLevel = getCardLevel(card);
-                            const cardDescription = getCardDescription(card);
-                            const cardType = getCardType(card);
-
-                            return (
-                              <button
-                                key={card.id}
-                                onClick={() => selectAutomaticCard(card.id)}
-                                className={`text-left p-3 rounded-lg border transition-all ${isSelected
-                                  ? 'border-dagger-gold bg-dagger-gold/10'
-                                  : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
-                                  }`}
-                              >
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="flex-1">
-                                    <p className="font-bold text-dagger-gold">{card.name}</p>
-                                    <p className="text-xs text-gray-400 mb-1">
-                                      {cardType} • Level {cardLevel} • {card.domain}
-                                    </p>
-                                    <p className="text-sm text-gray-300 line-clamp-2">
-                                      {cardDescription}
-                                    </p>
-                                  </div>
-                                  {isSelected && (
-                                    <span className="text-xs bg-dagger-gold text-black px-2 py-1 rounded-full font-bold flex-shrink-0 mt-0.5">
-                                      Selected
-                                    </span>
-                                  )}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        {availableDomainCards.filter(card =>
-                          card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          card.domain?.toLowerCase().includes(searchTerm.toLowerCase())
-                        ).length === 0 && (
-                            <p className="text-gray-500 text-center py-4">No cards match your search.</p>
-                          )}
-                      </div>
-                    )}
-
-                    {/* Domain Exchange - Show if card selected */}
+                  <DomainCardSelection
+                    title="Select New Domain Card"
+                    subtitle="Choose a new Domain Card."
+                    multiclassNote={selectedAdvancements.includes('multiclass') && selectedMulticlassDomain ? (
+                      <span className="block text-xs text-dagger-gold mt-1">
+                        Multiclass Rule: Cards from your new domain ({selectedMulticlassDomain}) are limited to Level {Math.ceil(newLevel / 2)}.
+                      </span>
+                    ) : undefined}
+                    availableCards={availableDomainCards}
+                    selectedCardId={selectedAutomaticCard}
+                    onSelectCard={selectAutomaticCard}
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    selectedDomains={selectedDomains}
+                    onSelectedDomainsChange={setSelectedDomains}
+                    minLevel={minLevel}
+                    onMinLevelChange={setMinLevel}
+                    maxLevel={maxLevel}
+                    onMaxLevelChange={setMaxLevel}
+                    noDomainsMessage={character.domains?.length === 0}
+                    noCardsMessage={availableDomainCards.length === 0 ? allDomains.join(', ') : undefined}
+                  >
                     {selectedAutomaticCard && (
                       <DomainExchange
                         selectedNewCard={domainCards.find(c => c.id === selectedAutomaticCard)!}
@@ -957,82 +1152,29 @@ export default function LevelUpModal({
                         onSelectExchangeCard={setExchangeExistingCardId}
                       />
                     )}
-                  </div>
+                  </DomainCardSelection>
                 )}
 
                 {step === 6 && (
-                  <div>
-                    <h3 className="text-xl font-bold text-white mb-2">Select An Additional Domain Card</h3>
-                    <p className="text-gray-400 mb-4">
-                      Choose your additional domain card (Advancement Bonus).
-                    </p>
-
-                    {/* Search Input */}
-                    <div className="relative mb-4">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="text"
-                        placeholder="Search by card name or domain..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-black/30 border border-gray-700 rounded-lg py-2 pl-10 pr-4 text-white focus:outline-none focus:border-dagger-gold transition-colors"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-2">
-                      {availableDomainCards.filter(
-                        card => card.id !== selectedAutomaticCard
-                      ).filter(card =>
-                        card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        card.domain?.toLowerCase().includes(searchTerm.toLowerCase())
-                      ).map((card) => {
-                        const isSelected = selectedAdditionalCard === card.id;
-                        const cardLevel = getCardLevel(card);
-                        const cardDescription = getCardDescription(card);
-                        const cardType = getCardType(card);
-
-                        return (
-                          <button
-                            key={card.id}
-                            onClick={() => selectAdditionalCard(card.id)}
-                            className={`text-left p-3 rounded-lg border transition-all ${isSelected
-                              ? 'border-dagger-gold bg-dagger-gold/10'
-                              : 'border-gray-600 bg-black/30 hover:border-dagger-gold/50'
-                              }`}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex-1">
-                                <p className="font-bold text-dagger-gold">{card.name}</p>
-                                <p className="text-xs text-gray-400 mb-1">
-                                  {cardType} • Level {cardLevel} • {card.domain}
-                                </p>
-                                <p className="text-sm text-gray-300 line-clamp-2">
-                                  {cardDescription}
-                                </p>
-                              </div>
-                              {isSelected && (
-                                <span className="text-xs bg-dagger-gold text-black px-2 py-1 rounded-full font-bold flex-shrink-0 mt-0.5">
-                                  Selected
-                                </span>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                      {availableDomainCards.filter(
-                        card => card.id !== selectedAutomaticCard
-                      ).filter(card =>
-                        card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        card.domain?.toLowerCase().includes(searchTerm.toLowerCase())
-                      ).length === 0 && (
-                          <p className="text-gray-500 text-center py-4">No cards match your search.</p>
-                        )}
-                    </div>
-                  </div>
+                  <DomainCardSelection
+                    title="Select Additional Domain Card"
+                    subtitle="Choose an additional Domain Card (Advancement Bonus)."
+                    availableCards={availableDomainCards.filter(card => card.id !== selectedAutomaticCard)}
+                    selectedCardId={selectedAdditionalCard}
+                    onSelectCard={selectAdditionalCard}
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    selectedDomains={selectedDomains}
+                    onSelectedDomainsChange={setSelectedDomains}
+                    minLevel={minLevel}
+                    onMinLevelChange={setMinLevel}
+                    maxLevel={maxLevel}
+                    onMaxLevelChange={setMaxLevel}
+                  />
                 )}
 
                 {step === 7 && isBeastboundRanger && (
-                  <div>
+                  <div className="pt-6">
                     <div className="flex items-center gap-3 mb-4">
                       <PawPrint size={24} className="text-dagger-gold" />
                       <div>
