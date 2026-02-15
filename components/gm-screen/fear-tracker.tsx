@@ -180,6 +180,13 @@ export function FearTracker({ campaignId, currentFear }: FearTrackerProps) {
                 </button>
             </div>
 
+            {/* Fear Spending Guide */}
+            <div className="mt-3 pt-3 border-t border-white/5">
+                <p className="text-[10px] text-gray-500 text-center">
+                    Spend Fear to: interrupt, make extra moves, use Fear Features
+                </p>
+            </div>
+
             {/* Fear Moves Panel */}
             <GmFearMoves
                 campaignId={campaignId}

@@ -3,7 +3,7 @@
 </p>
 
 # Why Does This App Exist?
-First, let me say that this repository is 1) free, 2) open source, 3) available for use by anyone who wants to use it, and 4) very much a work in progress.
+First, let me say that this repository is "personal software" that always a work in progress. At the same time, I'm happy to make it 1) free, 2) open source, 3) available for use by anyone who wants to use it.
 
 I play Daggerheart once a week with my children, brother, and sister for our campaign set in the magical university of Strixhaven. We started out with D&D 5e, but I convinced them to try Daggerheart. I love the system! The family was very generous to let us use this system for our games, which was mostly because I felt that it would be more fun to run than D&D.
 
@@ -757,3 +757,4 @@ This section tracks the implementation status of all domain cards and class feat
 
 
 **Class Features:** 9 major mechanics fully implemented, ~20 subclass features require manual tracking
+
