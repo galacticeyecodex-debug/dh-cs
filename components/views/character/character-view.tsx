@@ -68,7 +68,7 @@ export default function CharacterView() {
   const [isLevelUpLoading, setIsLevelUpLoading] = useState(false);
   const [isManageOpen, setIsManageOpen] = useState(false);
   const [isManageLoading, setIsManageLoading] = useState(false);
-  const [showVitals, setShowVitals] = useState(true);
+  const [showVitals, setShowVitals] = useState(false);
   const [showTraits, setShowTraits] = useState(true);
   const [showExperiences, setShowExperiences] = useState(true);
   const [activeTab, setActiveTab] = useState<'stats' | 'gallery' | 'lore'>('stats');

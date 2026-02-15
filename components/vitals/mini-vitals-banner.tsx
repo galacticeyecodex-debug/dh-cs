@@ -3,10 +3,14 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { getClassBaseStat, cn } from '@/lib/utils';
-import { getStatModifierTotal } from '@/lib/modifier-aggregator';
+import { getStatModifierTotal, getStatModifiers } from '@/lib/modifier-aggregator';
 import { getIconByName, AppIcons, VitalId } from '@/lib/icon-utils';
 import { MiniVitalTray, VitalTrackType } from './mini-vital-tray';
 import { Z_INDEX } from '@/constants/z-index';
+import { ModifierTab } from '@/components/shared/modifier-sheet';
+
+// Modifier source types align with ModifierSourceType from modifier-aggregator
+type ModifierSourceType = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
 
 export interface VitalEntry {
     label: string;
@@ -31,6 +35,20 @@ export interface VitalEntry {
     onIncrement?: () => void;
     /** Called when user decrements (Clear/Spend) - required if trackType is set */
     onDecrement?: () => void;
+    /** Damage thresholds (for Armor) */
+    thresholds?: { minor: number, major: number, severe: number };
+    /** Stat modifiers for the modifier sheet */
+    modifiers?: { id: string; name: string; value: number; source: ModifierSourceType; type?: string }[];
+    /** Callback to update modifiers */
+    onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: ModifierSourceType; type?: string }[]) => void;
+    /** Tabbed sub-stats for the modifier sheet (for Armor thresholds) */
+    subStats?: ModifierTab[];
+    /** Flag for critical condition (low HP, etc.) */
+    isCriticalCondition?: boolean;
+    /** Whether the base value has been modified */
+    isModified?: boolean;
+    /** The expected base value for comparison */
+    expectedValue?: number;
 }
 
 export interface MiniVitalsBannerProps {
@@ -42,7 +60,7 @@ export interface MiniVitalsBannerProps {
 /**
  * MINI VITALS PANEL (UI Only)
  * A pure presentation component that renders a row of vitals.
- * When a vital with a trackType is tapped, opens an expandable tray with Mark/Clear controls.
+ * When a vital with a trackType or modifiers is tapped, opens an expandable tray.
  */
 export function MiniVitalsPanel({
     vitals,
@@ -52,9 +70,11 @@ export function MiniVitalsPanel({
     const [selectedVitalIndex, setSelectedVitalIndex] = useState<number | null>(null);
 
     const handleVitalClick = useCallback((index: number, vital: VitalEntry) => {
-        // If vital has trackType (interactive), toggle the tray
-        // Otherwise, use the provided onClick handler (for read-only vitals)
-        if (vital.trackType && vital.onIncrement && vital.onDecrement && vital.max) {
+        // If vital is interactive, toggle the tray
+        const isInteractive = (vital.trackType && vital.onIncrement && vital.onDecrement) || 
+                            (vital.onUpdateModifiers);
+        
+        if (isInteractive) {
             // Toggle: close if already open, open if closed
             setSelectedVitalIndex(prev => prev === index ? null : index);
         } else if (vital.onClick) {
@@ -67,7 +87,10 @@ export function MiniVitalsPanel({
     }, []);
 
     const selectedVital = selectedVitalIndex !== null ? vitals[selectedVitalIndex] : null;
-    const isValidTrayVital = selectedVital && selectedVital.trackType && selectedVital.max && selectedVital.onIncrement && selectedVital.onDecrement;
+    const isValidTrayVital = !!selectedVital && (
+        (!!selectedVital.trackType && !!selectedVital.onIncrement && !!selectedVital.onDecrement) || 
+        (!!selectedVital.onUpdateModifiers)
+    );
 
     return (
         <>
@@ -76,15 +99,22 @@ export function MiniVitalsPanel({
                 isOpen={!!isValidTrayVital}
                 label={selectedVital?.label ?? ''}
                 current={selectedVital?.rawCurrent ?? selectedVital?.current ?? 0}
-                max={selectedVital?.max ?? 0}
-                trackType={selectedVital?.trackType ?? 'mark-bad'}
+                max={selectedVital?.max}
+                trackType={selectedVital?.trackType}
                 icon={selectedVital?.icon ?? (() => null)}
                 vitalId={selectedVital?.vitalId}
                 color={selectedVital?.color ?? ''}
                 strokeColor={selectedVital?.strokeColor}
-                onIncrement={selectedVital?.onIncrement ?? (() => { })}
-                onDecrement={selectedVital?.onDecrement ?? (() => { })}
+                onIncrement={selectedVital?.onIncrement}
+                onDecrement={selectedVital?.onDecrement}
                 onClose={handleCloseTray}
+                thresholds={selectedVital?.thresholds}
+                modifiers={selectedVital?.modifiers}
+                onUpdateModifiers={selectedVital?.onUpdateModifiers}
+                subStats={selectedVital?.subStats}
+                isCriticalCondition={selectedVital?.isCriticalCondition}
+                isModified={selectedVital?.isModified}
+                expectedValue={selectedVital?.expectedValue}
             />
 
             {/* Mini vitals bar */}
@@ -100,7 +130,8 @@ export function MiniVitalsPanel({
                     >
                 <div className="flex items-center justify-around px-2 py-2">
                     {vitals.map((vital, index) => {
-                        const isInteractive = vital.trackType && vital.onIncrement && vital.onDecrement && vital.max;
+                        const isInteractive = (vital.trackType && vital.onIncrement && vital.onDecrement) || 
+                                           (vital.onUpdateModifiers);
                         const hasClickHandler = isInteractive || vital.onClick;
 
                         return (
@@ -153,104 +184,219 @@ export function MiniVitalsPanel({
  * Provides handlers for Mark/Clear actions on interactive vitals.
  */
 export default function CharacterVitalsBanner() {
-    const { character, cardStates, activeCampaign, vitalIcons: iconPreferences, updateVitals, updateHope } = useCharacterStore();
+    const { 
+        character, 
+        cardStates, 
+        activeCampaign, 
+        vitalIcons: iconPreferences, 
+        updateVitals, 
+        updateHope,
+        updateEvasion,
+        updateModifiers
+    } = useCharacterStore();
+
+    // Helper to calculate totals and combine modifiers (memoized)
+    const getStatDetails = useCallback((stat: string, base: number) => {
+        if (!character) return { total: base, allMods: [] };
+        const allMods = getStatModifiers(character, stat, cardStates as any);
+        const total = base + allMods.reduce((acc, mod) => acc + mod.value, 0);
+        return { total, allMods };
+    }, [character, cardStates]);
 
     // --- VITAL CALCULATIONS (must be before any early returns) ---
     // We compute all values in a single useMemo to avoid hook ordering issues
     const vitalData = useMemo(() => {
         if (!character) return null;
 
-        const hpMax = getClassBaseStat(character, 'hp') +
-            getStatModifierTotal(character, 'hit_points', cardStates as any || {});
+        // HP
+        const classBaseHP = getClassBaseStat(character, 'hp');
+        const hpDetails = getStatDetails('hit_points', classBaseHP);
 
-        const stressMax = 6 +
-            getStatModifierTotal(character, 'stress', cardStates as any || {});
+        // Stress
+        const classBaseStress = 6;
+        const stressDetails = getStatDetails('stress', classBaseStress);
 
-        const hopeMax = 6 +
-            getStatModifierTotal(character, 'hope', cardStates as any || {});
+        // Hope
+        const baseHope = 6;
+        const hopeDetails = getStatDetails('hope', baseHope);
 
-        const evasionTotal = getClassBaseStat(character, 'evasion') +
-            getStatModifierTotal(character, 'evasion', cardStates as any || {});
+        // Evasion
+        const classBaseEvasion = getClassBaseStat(character, 'evasion');
+        const evasionDetails = getStatDetails('evasion', classBaseEvasion);
 
+        // Armor & Thresholds
         const armorItem = character.character_inventory?.find(item => item.location === 'equipped_armor');
-        const armorBaseScore = armorItem?.library_item?.data?.base_score || 0;
-        const armorMax = (typeof armorBaseScore === 'string' ? parseInt(armorBaseScore) : armorBaseScore) +
-            getStatModifierTotal(character, 'armor', cardStates as any || {});
+        let armorBaseScore = 0;
+        let majorThreshold = character.level;
+        let severeThreshold = character.level * 2;
+
+        if (armorItem?.library_item?.data) {
+            armorBaseScore = (parseInt(armorItem.library_item.data.base_score) || 0);
+
+            if (armorItem.library_item.data.base_thresholds) {
+                const [baseMajor, baseSevere] = armorItem.library_item.data.base_thresholds.split('/').map((s: string) => parseInt(s.trim()));
+                majorThreshold = (baseMajor || 0) + character.level;
+                severeThreshold = (baseSevere || 0) + character.level;
+            }
+        } else {
+            // Unarmored thresholds
+            majorThreshold = character.level;
+            severeThreshold = character.level * 2;
+        }
+
+        const armorDetails = getStatDetails('armor', armorBaseScore);
+
+        // Threshold calculations (matching CommonVitalsDisplay)
+        const genericStats = getStatDetails('damage_thresholds', 0);
+        const minorStats = getStatDetails('damage_threshold_minor', 1);
+        const majorStats = getStatDetails('damage_threshold_major', majorThreshold);
+        const severeStats = getStatDetails('damage_threshold_severe', severeThreshold);
+
+        const genericBonus = genericStats.total;
+
+        const armorSubStats: ModifierTab[] = [
+            {
+                id: 'armor',
+                label: 'Armor',
+                baseValue: armorBaseScore,
+                currentModifiers: armorDetails.allMods as any,
+                onUpdateModifiers: (mods: any[]) => updateModifiers('armor', mods)
+            },
+            {
+                id: 'generic',
+                label: 'Thresholds (All)',
+                baseValue: 0,
+                currentModifiers: genericStats.allMods as any,
+                onUpdateModifiers: (mods: any[]) => updateModifiers('damage_thresholds', mods)
+            },
+            {
+                id: 'minor',
+                label: 'Minor',
+                baseValue: 1,
+                currentModifiers: minorStats.allMods as any,
+                onUpdateModifiers: (mods: any[]) => updateModifiers('damage_threshold_minor', mods)
+            },
+            {
+                id: 'major',
+                label: 'Major',
+                baseValue: majorThreshold + genericBonus,
+                currentModifiers: majorStats.allMods as any,
+                onUpdateModifiers: (mods: any[]) => updateModifiers('damage_threshold_major', mods)
+            },
+            {
+                id: 'severe',
+                label: 'Severe',
+                baseValue: severeThreshold + genericBonus,
+                currentModifiers: severeStats.allMods as any,
+                onUpdateModifiers: (mods: any[]) => updateModifiers('damage_threshold_severe', mods)
+            }
+        ];
 
         return {
-            hpMax,
-            stressMax,
-            hopeMax,
-            evasionTotal,
-            armorMax,
-            // Display values (for mini-vital bar)
-            hp_marked: hpMax - character.vitals.hit_points_current,
-            stress_current: character.vitals.stress_current,
-            hope_current: character.hope,
-            armor_marked: armorMax - character.vitals.armor_slots,
-            // Raw values (for VitalCard tray - matching common-vitals-display.tsx)
+            // HP
+            hpMax: hpDetails.total,
             hp_current: character.vitals.hit_points_current,
+            hp_marked: hpDetails.total - character.vitals.hit_points_current,
+            hp_modifiers: hpDetails.allMods,
+            hp_base: classBaseHP,
+            
+            // Stress
+            stressMax: stressDetails.total,
+            stress_current: character.vitals.stress_current,
+            stress_modifiers: stressDetails.allMods,
+            stress_base: classBaseStress,
+
+            // Hope
+            hopeMax: hopeDetails.total,
+            hope_current: character.hope,
+            hope_modifiers: hopeDetails.allMods,
+            hope_base: baseHope,
+
+            // Evasion
+            evasionTotal: evasionDetails.total,
+            evasion_modifiers: evasionDetails.allMods,
+            evasion_base: classBaseEvasion,
+
+            // Armor
+            armorMax: armorDetails.total,
             armor_slots: character.vitals.armor_slots,
+            armor_marked: armorDetails.total - character.vitals.armor_slots,
+            armor_modifiers: armorDetails.allMods,
+            armor_base: armorBaseScore,
+            armor_subStats: armorSubStats,
+            thresholds: character.damage_thresholds,
         };
-    }, [character, cardStates]);
+    }, [character, cardStates, getStatDetails, updateModifiers]);
 
     // --- VITAL HANDLERS ---
-    // HP: mark-bad semantics - current is capacity remaining
-    // Mark (-1 to current) = take damage, Clear (+1 to current) = heal
     const handleHpIncrement = useCallback(() => {
-        if (!character) return;
+        if (!character || !vitalData) return;
         updateVitals('hit_points_current', character.vitals.hit_points_current + 1);
-    }, [character, updateVitals]);
+    }, [character, updateVitals, vitalData]);
 
     const handleHpDecrement = useCallback(() => {
         if (!character) return;
         updateVitals('hit_points_current', character.vitals.hit_points_current - 1);
     }, [character, updateVitals]);
 
-    // Armor: mark-bad semantics - current is slots remaining
-    // Mark (-1 to current) = use armor, Clear (+1 to current) = repair armor
     const handleArmorIncrement = useCallback(() => {
-        if (!character) return;
+        if (!character || !vitalData) return;
         updateVitals('armor_slots', character.vitals.armor_slots + 1);
-    }, [character, updateVitals]);
+    }, [character, updateVitals, vitalData]);
 
     const handleArmorDecrement = useCallback(() => {
         if (!character) return;
         updateVitals('armor_slots', character.vitals.armor_slots - 1);
     }, [character, updateVitals]);
 
-    // Stress: fill-up-bad semantics - current is amount accumulated
-    // Mark (+1) = gain stress, Clear (-1) = relieve stress
     const handleStressIncrement = useCallback(() => {
-        if (!character) return;
+        if (!character || !vitalData) return;
         updateVitals('stress_current', character.vitals.stress_current + 1);
-    }, [character, updateVitals]);
+    }, [character, updateVitals, vitalData]);
 
     const handleStressDecrement = useCallback(() => {
         if (!character) return;
         updateVitals('stress_current', character.vitals.stress_current - 1);
     }, [character, updateVitals]);
 
-    // Hope: fill-up-good semantics - current is amount accumulated
-    // Gain (+1) = gain hope, Spend (-1) = use hope
     const handleHopeIncrement = useCallback(() => {
-        if (!character) return;
+        if (!character || !vitalData) return;
         updateHope(character.hope + 1);
-    }, [character, updateHope]);
+    }, [character, updateHope, vitalData]);
 
     const handleHopeDecrement = useCallback(() => {
         if (!character) return;
         updateHope(character.hope - 1);
     }, [character, updateHope]);
 
+    const handleUpdateEvasionMods = useCallback((mods: any) => {
+        updateModifiers('evasion', mods);
+    }, [updateModifiers]);
+
+    const handleUpdateArmorMods = useCallback((mods: any) => {
+        updateModifiers('armor', mods);
+    }, [updateModifiers]);
+
+    const handleUpdateHPMods = useCallback((mods: any) => {
+        updateModifiers('hit_points', mods);
+    }, [updateModifiers]);
+
+    const handleUpdateStressMods = useCallback((mods: any) => {
+        updateModifiers('stress', mods);
+    }, [updateModifiers]);
+
+    const handleUpdateHopeMods = useCallback((mods: any) => {
+        updateModifiers('hope', mods);
+    }, [updateModifiers]);
+
     // Early return after hooks
-    if (!vitalData) return null;
+    if (!vitalData || !character) return null;
 
     // Build vitals array
     const vitals: VitalEntry[] = [];
 
     // Character vitals
-    // Evasion: read-only (no trackType)
+    // Evasion: interactive (for modifiers)
     vitals.push({
         label: 'Evasion',
         current: vitalData.evasionTotal,
@@ -259,36 +405,35 @@ export default function CharacterVitalsBanner() {
         color: 'text-vital-evasion',
         strokeColor: 'stroke-vital-evasion-stroke',
         subLabel: 'Score',
+        trackType: undefined, // Evasion is numeric only
+        modifiers: vitalData.evasion_modifiers as any,
+        onUpdateModifiers: handleUpdateEvasionMods,
+        isModified: vitalData.evasionTotal !== vitalData.evasion_base,
+        expectedValue: vitalData.evasion_base,
     });
 
-    // Armor: mark-bad (only interactive if armor exists)
-    // Colors match common-vitals-display.tsx
-    if (vitalData.armorMax > 0) {
-        vitals.push({
-            label: 'Armor',
-            current: vitalData.armor_marked,
-            rawCurrent: vitalData.armor_slots,
-            max: vitalData.armorMax,
-            icon: getIconByName(iconPreferences.armor, AppIcons.vitals.armor),
-            vitalId: 'armor',
-            color: 'text-vital-armor',
-            strokeColor: 'stroke-vital-armor-stroke',
-            subLabel: 'Marked',
-            trackType: 'mark-bad',
-            onIncrement: handleArmorIncrement,
-            onDecrement: handleArmorDecrement,
-        });
-    } else {
-        vitals.push({
-            label: 'Armor',
-            current: 0,
-            max: 0,
-            icon: getIconByName(iconPreferences.armor, AppIcons.vitals.armor),
-            vitalId: 'armor',
-            color: 'text-vital-armor',
-            subLabel: 'None',
-        });
-    }
+    // Armor: mark-bad (always interactive to allow modifiers/unarmored view)
+    vitals.push({
+        label: 'Armor',
+        current: vitalData.armor_marked,
+        rawCurrent: vitalData.armor_slots,
+        max: vitalData.armorMax,
+        icon: getIconByName(iconPreferences.armor, AppIcons.vitals.armor),
+        vitalId: 'armor',
+        color: 'text-vital-armor',
+        strokeColor: 'stroke-vital-armor-stroke',
+        subLabel: vitalData.armorMax > 0 ? 'Marked' : 'None',
+        trackType: 'mark-bad',
+        onIncrement: handleArmorIncrement,
+        onDecrement: handleArmorDecrement,
+        thresholds: vitalData.thresholds,
+        modifiers: vitalData.armor_modifiers as any,
+        onUpdateModifiers: handleUpdateArmorMods,
+        subStats: vitalData.armor_subStats,
+        isCriticalCondition: vitalData.armor_slots === 0 && vitalData.armorMax > 0,
+        isModified: vitalData.armorMax !== vitalData.armor_base,
+        expectedValue: vitalData.armor_base,
+    });
 
     // HP: mark-bad
     vitals.push({
@@ -304,6 +449,11 @@ export default function CharacterVitalsBanner() {
         trackType: 'mark-bad',
         onIncrement: handleHpIncrement,
         onDecrement: handleHpDecrement,
+        modifiers: vitalData.hp_modifiers as any,
+        onUpdateModifiers: handleUpdateHPMods,
+        isCriticalCondition: vitalData.hp_current === 0,
+        isModified: vitalData.hpMax !== vitalData.hp_base,
+        expectedValue: vitalData.hp_base,
     });
 
     // Stress: fill-up-bad
@@ -319,6 +469,11 @@ export default function CharacterVitalsBanner() {
         trackType: 'fill-up-bad',
         onIncrement: handleStressIncrement,
         onDecrement: handleStressDecrement,
+        modifiers: vitalData.stress_modifiers as any,
+        onUpdateModifiers: handleUpdateStressMods,
+        isCriticalCondition: vitalData.stress_current >= vitalData.stressMax && vitalData.stressMax > 0,
+        isModified: vitalData.stressMax !== vitalData.stress_base,
+        expectedValue: vitalData.stress_base,
     });
 
     // Hope: fill-up-good
@@ -334,6 +489,10 @@ export default function CharacterVitalsBanner() {
         trackType: 'fill-up-good',
         onIncrement: handleHopeIncrement,
         onDecrement: handleHopeDecrement,
+        modifiers: vitalData.hope_modifiers as any,
+        onUpdateModifiers: handleUpdateHopeMods,
+        isModified: vitalData.hopeMax !== vitalData.hope_base,
+        expectedValue: vitalData.hope_base,
     });
 
     // Add Fear if in an active campaign (read-only for players)
