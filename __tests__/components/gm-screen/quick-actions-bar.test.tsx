@@ -83,11 +83,10 @@ describe('QuickActionsBar', () => {
             expect(screen.getByText('Refresh')).toBeInTheDocument();
         });
 
-        it('should render Notes button (disabled)', () => {
+        it('should render Notes button', () => {
             render(<QuickActionsBar campaignId="campaign-1" />);
 
             expect(screen.getByText('Notes')).toBeInTheDocument();
-            expect(screen.getByText('Coming Soon')).toBeInTheDocument();
         });
     });
 
@@ -185,12 +184,14 @@ describe('QuickActionsBar', () => {
         });
     });
 
-    describe('Notes (Disabled)', () => {
-        it('should have Notes button disabled', () => {
-            render(<QuickActionsBar campaignId="campaign-1" />);
+    describe('Notes', () => {
+        it('should call onOpenNotes when Notes is clicked', () => {
+            const mockOnOpenNotes = vi.fn();
+            render(<QuickActionsBar campaignId="campaign-1" onOpenNotes={mockOnOpenNotes} />);
 
             const notesButton = screen.getByText('Notes').closest('button');
-            expect(notesButton).toBeDisabled();
+            fireEvent.click(notesButton!);
+            expect(mockOnOpenNotes).toHaveBeenCalled();
         });
     });
 });

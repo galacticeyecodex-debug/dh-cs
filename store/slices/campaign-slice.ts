@@ -13,7 +13,7 @@
 
 import { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
-import { createClient } from '@/lib/supabase/client';
+import createClient from '@/lib/supabase/client';
 import { realtimeManager } from '@/lib/realtime';
 import { CharacterStore } from '@/types/store';
 import { Character } from '@/types/character';
@@ -126,6 +126,10 @@ export interface CampaignSlice {
     defeatAdversary: (campaignId: string, adversaryId: string) => Promise<void>;
     reviveAdversary: (campaignId: string, adversaryId: string) => Promise<void>;
     updateAdversaryNotes: (campaignId: string, adversaryId: string, notes: string) => void;
+    spotlightAdversary: (campaignId: string, adversaryId: string) => Promise<void>;
+    clearSpotlights: (campaignId: string) => Promise<void>;
+    activateAdversaryFeature: (campaignId: string, adversaryId: string, featureName: string, fearCost: number, stressCost: number) => Promise<void>;
+    useGmFearMove: (campaignId: string, moveName: string, fearCost: number) => Promise<void>;
     loadEncounterFromCampaign: () => void;
 
     // Phase 10: Session Notes
@@ -1158,6 +1162,232 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
      * Falls back to 0 if not parseable.
      */
 
+    spotlightAdversary: async (campaignId: string, adversaryId: string) => {
+        const campaign = get().activeCampaign;
+        const encounter = get().activeEncounter;
+        if (!campaign || !encounter) return;
+
+        const adversary = encounter.adversaries.find(a => a.id === adversaryId);
+        if (!adversary) return;
+
+        // First spotlight per GM turn is free, additional cost 1 Fear
+        const alreadySpotlighted = encounter.adversaries.some(a => a.is_spotlighted);
+        const fearCost = alreadySpotlighted ? 1 : 0;
+
+        if (fearCost > 0 && campaign.fear_current < fearCost) {
+            toast.error('Not enough Fear to spotlight another adversary');
+            return;
+        }
+
+        const updatedEncounter = {
+            ...encounter,
+            adversaries: encounter.adversaries.map(a =>
+                a.id === adversaryId ? { ...a, is_spotlighted: true } : a
+            ),
+            updated_at: new Date().toISOString(),
+        };
+        const updatedCampaign = fearCost > 0
+            ? { ...campaign, fear_current: campaign.fear_current - fearCost, settings: { ...campaign.settings, active_encounter: updatedEncounter } }
+            : { ...campaign, settings: { ...campaign.settings, active_encounter: updatedEncounter } };
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set({
+                    activeEncounter: updatedEncounter,
+                    activeCampaign: updatedCampaign as typeof campaign,
+                });
+                return () => set({
+                    activeEncounter: encounter,
+                    activeCampaign: campaign,
+                });
+            },
+            async () => {
+                if (fearCost > 0) {
+                    await dataService.campaign.updateFear(campaignId, -fearCost);
+                }
+                await dataService.campaign.update(campaignId, { settings: updatedCampaign.settings });
+            },
+            'Failed to spotlight adversary'
+        );
+
+        if (success) {
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'adversary_spotlighted',
+                    data: {
+                        adversary_name: adversary.adversary_name,
+                        adversary_label: adversary.label,
+                        encounter_name: encounter.name,
+                        fear_cost: fearCost,
+                    },
+                    is_private: false,
+                });
+            }
+            const costMsg = fearCost > 0 ? ` (${fearCost} Fear)` : ' (Free)';
+            toast.success(`${adversary.label} spotlighted${costMsg}`);
+        }
+    },
+
+    clearSpotlights: async (campaignId: string) => {
+        const campaign = get().activeCampaign;
+        const encounter = get().activeEncounter;
+        if (!campaign || !encounter) return;
+
+        const updatedEncounter = {
+            ...encounter,
+            adversaries: encounter.adversaries.map(a => ({ ...a, is_spotlighted: false })),
+            updated_at: new Date().toISOString(),
+        };
+        const updatedSettings = { ...campaign.settings, active_encounter: updatedEncounter };
+
+        await withOptimisticUpdate(
+            () => {
+                set({
+                    activeEncounter: updatedEncounter,
+                    activeCampaign: { ...campaign, settings: updatedSettings },
+                });
+                return () => set({
+                    activeEncounter: encounter,
+                    activeCampaign: campaign,
+                });
+            },
+            () => dataService.campaign.update(campaignId, { settings: updatedSettings }),
+            'Failed to clear spotlights'
+        );
+    },
+
+    activateAdversaryFeature: async (campaignId: string, adversaryId: string, featureName: string, fearCost: number, stressCost: number) => {
+        const campaign = get().activeCampaign;
+        const encounter = get().activeEncounter;
+        if (!campaign || !encounter) return;
+
+        const adversary = encounter.adversaries.find(a => a.id === adversaryId);
+        if (!adversary) return;
+
+        // Check affordability
+        if (fearCost > 0 && campaign.fear_current < fearCost) {
+            toast.error(`Not enough Fear (need ${fearCost}, have ${campaign.fear_current})`);
+            return;
+        }
+        if (stressCost > 0 && adversary.stress_current < stressCost) {
+            toast.error(`Not enough Stress (need ${stressCost}, have ${adversary.stress_current})`);
+            return;
+        }
+
+        // Deduct costs
+        const updatedAdversary = stressCost > 0
+            ? { ...adversary, stress_current: adversary.stress_current - stressCost }
+            : adversary;
+        const updatedEncounter = stressCost > 0
+            ? {
+                ...encounter,
+                adversaries: encounter.adversaries.map(a =>
+                    a.id === adversaryId ? updatedAdversary : a
+                ),
+                updated_at: new Date().toISOString(),
+            }
+            : encounter;
+        const updatedCampaign = fearCost > 0
+            ? { ...campaign, fear_current: campaign.fear_current - fearCost, settings: { ...campaign.settings, active_encounter: updatedEncounter } }
+            : { ...campaign, settings: { ...campaign.settings, active_encounter: updatedEncounter } };
+
+        const { success } = await withOptimisticUpdate(
+            () => {
+                set({
+                    activeEncounter: updatedEncounter,
+                    activeCampaign: updatedCampaign as typeof campaign,
+                });
+                return () => set({
+                    activeEncounter: encounter,
+                    activeCampaign: campaign,
+                });
+            },
+            async () => {
+                if (fearCost > 0) {
+                    await dataService.campaign.updateFear(campaignId, -fearCost);
+                }
+                if (stressCost > 0 || fearCost > 0) {
+                    await dataService.campaign.update(campaignId, { settings: updatedCampaign.settings });
+                }
+            },
+            'Failed to activate feature'
+        );
+
+        if (success) {
+            const state = get() as CharacterStore;
+            if (state.user) {
+                state.logActivity({
+                    campaign_id: campaignId,
+                    user_id: state.user.id,
+                    activity_type: 'adversary_feature_used',
+                    data: {
+                        adversary_name: adversary.adversary_name,
+                        adversary_label: adversary.label,
+                        feature_name: featureName,
+                        fear_cost: fearCost,
+                        stress_cost: stressCost,
+                    },
+                    is_private: false,
+                });
+            }
+            toast.success(`${adversary.label}: ${featureName}`);
+        }
+    },
+
+    useGmFearMove: async (campaignId: string, moveName: string, fearCost: number) => {
+        const campaign = get().activeCampaign;
+        if (!campaign) return;
+
+        if (fearCost > 0 && campaign.fear_current < fearCost) {
+            toast.error(`Not enough Fear (need ${fearCost}, have ${campaign.fear_current})`);
+            return;
+        }
+
+        const previousFear = campaign.fear_current;
+        const newFear = campaign.fear_current - fearCost;
+
+        if (fearCost > 0) {
+            const { success } = await withOptimisticUpdate(
+                () => {
+                    set((state) => ({
+                        activeCampaign: state.activeCampaign
+                            ? { ...state.activeCampaign, fear_current: newFear }
+                            : null,
+                    }));
+                    return () => set((state) => ({
+                        activeCampaign: state.activeCampaign
+                            ? { ...state.activeCampaign, fear_current: previousFear }
+                            : null,
+                    }));
+                },
+                () => dataService.campaign.updateFear(campaignId, -fearCost),
+                'Failed to use Fear move'
+            );
+
+            if (!success) return;
+        }
+
+        const state = get() as CharacterStore;
+        if (state.user) {
+            state.logActivity({
+                campaign_id: campaignId,
+                user_id: state.user.id,
+                activity_type: 'gm_fear_move',
+                data: {
+                    move_name: moveName,
+                    fear_cost: fearCost,
+                    previous_fear: previousFear,
+                    new_fear: newFear,
+                },
+                is_private: false,
+            });
+        }
+        toast.success(`${moveName}${fearCost > 0 ? ` (-${fearCost} Fear)` : ''}`);
+    },
+
     loadEncounterFromCampaign: () => {
         const campaign = get().activeCampaign;
         if (!campaign) return;
@@ -1384,6 +1614,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
             motives_and_tactics: adversary.motives_and_tactics,
             sort_order: encounter.adversaries.length,
             pinned_at: new Date().toISOString(),
+            feats: adversary.feats.length > 0 ? [...adversary.feats] : undefined,
         };
 
         const updatedEncounter = {

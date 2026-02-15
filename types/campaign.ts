@@ -3,6 +3,8 @@
  * Phase 1: Campaign Foundation
  */
 
+import type { AdversaryFeature } from '@/types/adversary';
+
 export type CampaignRole = 'player' | 'gm';
 
 // =============================================================================
@@ -123,7 +125,11 @@ export type ActivityType =
     | 'adversary_pinned'
     | 'adversary_defeated'
     | 'adversary_damaged'
-    | 'npc_shared';
+    | 'npc_shared'
+    // GM Action Center activity types
+    | 'adversary_spotlighted'
+    | 'adversary_feature_used'
+    | 'gm_fear_move';
 
 // Activity will be fully implemented in Phase 3
 export interface CampaignActivity {
@@ -283,6 +289,10 @@ export interface PinnedAdversary {
     sort_order: number;
     /** When this adversary was pinned */
     pinned_at: string;
+    /** Adversary feats/abilities from SRD (optional for backward compat) */
+    feats?: AdversaryFeature[];
+    /** Whether this adversary is spotlighted this GM turn */
+    is_spotlighted?: boolean;
 }
 
 export type EncounterStatus = 'preparing' | 'active' | 'completed';

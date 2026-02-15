@@ -30,7 +30,7 @@ export interface DomainAbilityButtonProps {
    * - 'token_replenish': Reset tokens to max (blue styling)
    * - 'vault': Return card to vault (gray styling)
    */
-  costType: 'hope' | 'hope_gain' | 'stress' | 'stress_clear' | 'hit_points' | 'hit_points_clear' | 'armor_slots_clear' | 'activate' | 'duration' | 'free' | 'token_replenish' | 'vault';
+  costType: 'hope' | 'hope_gain' | 'stress' | 'stress_clear' | 'hit_points' | 'hit_points_clear' | 'armor_slots_clear' | 'activate' | 'duration' | 'free' | 'token_replenish' | 'vault' | 'fear';
   costValue?: number;
   label?: string; // Optional override
   className?: string;
@@ -105,7 +105,12 @@ export function DomainAbilityButton({
   let costColor = 'text-gray-300';
   let activeColor = 'bg-dagger-gold/20 text-dagger-gold border-dagger-gold/50';
 
-  if (costType === 'hope') {
+  if (costType === 'fear') {
+    displayLabel = label || `Spend ${costValue > 0 ? costValue : 'a'} Fear`;
+    Icon = AppIcons.vitals.fear;
+    costColor = 'text-red-400';
+    activeColor = 'bg-red-900/40 text-red-300 border-red-500/50';
+  } else if (costType === 'hope') {
     displayLabel = label || `Spend ${costValue > 0 ? costValue : 'a'} Hope`;
     Icon = HopeIcon;  // Use user's preferred icon
     costColor = 'text-dagger-gold';
@@ -171,7 +176,21 @@ export function DomainAbilityButton({
 
   const handleActivate = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!character || disabled) return;
+    if (disabled) return;
+
+    // Fear is campaign-level, not player-level. Delegate entirely to callback.
+    // No character context needed.
+    if (costType === 'fear') {
+      if (onActivate) onActivate();
+      return;
+    }
+
+    // No player character loaded (GM/adversary context).
+    // Delegate entirely to callback — parent manages affordability via disabled prop.
+    if (!character) {
+      if (onActivate) onActivate();
+      return;
+    }
 
     // DECOUPLED: Cost buttons ONLY pay costs, activation buttons ONLY toggle state
     if (costType === 'hope') {
@@ -404,7 +423,8 @@ export function DomainAbilityButton({
 
   // Check affordability / availability
   const canAfford = React.useMemo(() => {
-    if (!character) return false;
+    if (costType === 'fear') return true; // Affordability managed by parent via disabled prop
+    if (!character) return true; // No player character (GM/adversary context) — parent manages via disabled prop
     if (costType === 'hope') return character.hope >= costValue;
     if (costType === 'hope_gain') return true; // Can always gain Hope (capped at 6)
     if (costType === 'stress') return character.vitals.stress_current + costValue <= character.vitals.stress_max;
@@ -420,7 +440,7 @@ export function DomainAbilityButton({
   // All buttons should be disabled if they cannot be afforded (e.g. not enough Hope)
   // or if explicitly disabled by parent (e.g. already paid)
   const isCostButton = costType === 'stress' || costType === 'hope' || costType === 'hope_gain' ||
-    costType === 'stress_clear' || costType === 'hit_points' || costType === 'hit_points_clear' || costType === 'armor_slots_clear';
+    costType === 'stress_clear' || costType === 'hit_points' || costType === 'hit_points_clear' || costType === 'armor_slots_clear' || costType === 'fear';
   const isActuallyDisabled = disabled || !canAfford;
 
   // Cost buttons NEVER show "active" state - they just pay resources

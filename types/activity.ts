@@ -34,7 +34,11 @@ export type ActivityType =
     | 'adversary_pinned'
     | 'adversary_defeated'
     | 'adversary_damaged'
-    | 'npc_shared';
+    | 'npc_shared'
+    // GM Action Center activity types
+    | 'adversary_spotlighted'
+    | 'adversary_feature_used'
+    | 'gm_fear_move';
 
 // Base activity interface
 export interface CampaignActivity {
@@ -66,7 +70,10 @@ export type ActivityData =
     | ProjectActivityData
     | EncounterActivityData
     | AdversaryActivityData
-    | NPCSharedActivityData;
+    | NPCSharedActivityData
+    | AdversarySpotlightedActivityData
+    | AdversaryFeatureUsedActivityData
+    | GmFearMoveActivityData;
 
 // Specific activity payloads
 export interface DiceRollActivityData {
@@ -191,6 +198,29 @@ export interface AdversaryActivityData {
 export interface NPCSharedActivityData {
     npc_name: string;
     recipient_count: number;
+}
+
+// GM Action Center activity data
+export interface AdversarySpotlightedActivityData {
+    adversary_name: string;
+    adversary_label?: string;
+    encounter_name?: string;
+    fear_cost: number;
+}
+
+export interface AdversaryFeatureUsedActivityData {
+    adversary_name: string;
+    adversary_label?: string;
+    feature_name: string;
+    fear_cost: number;
+    stress_cost: number;
+}
+
+export interface GmFearMoveActivityData {
+    move_name: string;
+    fear_cost: number;
+    previous_fear: number;
+    new_fear: number;
 }
 
 // Insert type (without id and created_at)
