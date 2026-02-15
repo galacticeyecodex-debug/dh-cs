@@ -1302,7 +1302,7 @@ export function parseCardDamage(text: string): string | undefined {
     /damage\s+is\s+(\d*d\d+(?:\+\d+)?)/i,
     // "roll ... d10s ... deal that much damage" (Unleash Chaos pattern)
     // Matches "roll a number of d10s" where "d10s" is plural, followed later by "deal that much ... damage"
-    /roll\s+(?:a\s+number\s+of\s+)?(\d*d\d+)s?\s+.*deal\s+that\s+much\s+(?:magic\s+|physical\s+)?damage/i,
+    /roll\s+(?:a\s+)?number\s+of\s+(\d*d\d+)s?\s+.*deal\s+that\s+much\s+(?:magic\s+|physical\s+)?damage/i,
   ];
 
   for (const pattern of damagePatterns) {
@@ -2127,7 +2127,7 @@ export function parseRoll(text: string): CardRoll | undefined {
     /\*\*spend\s+(?:a\s+|\d+\s+)?hope\*\*\s+to\s+(?:make|allow)/i.test(text) ||
     /\*\*mark\s+(?:a\s+|\d+\s+)?stress\*\*\s+to\s+(?:make|allow)/i.test(text) ||
     /spend\s+(?:a\s+|\d+\s+)?hope\s+to\s+(?:make|allow)/i.test(cleanText) ||
-    /mark\s+(?:a\s+|\d+\s+)?stress\s+to\s+(?:make|allow)/i.test(cleanText);
+    /mark\s+(?:a\s+)?stress\s+to\s+(?:make|allow)/i.test(cleanText);
 
   return {
     type: `${trait || 'Spellcast'} Roll`,
