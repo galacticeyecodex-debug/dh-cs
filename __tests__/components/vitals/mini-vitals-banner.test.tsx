@@ -29,6 +29,7 @@ vi.mock('@/lib/icon-utils', () => ({
 }));
 vi.mock('@/lib/modifier-aggregator', () => ({
     getStatModifierTotal: vi.fn(() => 0),
+    getStatModifiers: vi.fn(() => []),
 }));
 
 describe('CharacterVitalsBanner', () => {
