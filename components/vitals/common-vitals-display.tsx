@@ -169,6 +169,10 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
     updateVitals('hit_points_current', character.vitals.hit_points_current - 1);
   }, [updateVitals, character.vitals.hit_points_current]);
 
+  const handleHPMarkAmount = useCallback((amount: number) => {
+    updateVitals('hit_points_current', Math.max(0, character.vitals.hit_points_current - amount));
+  }, [updateVitals, character.vitals.hit_points_current]);
+
   const handleStressIncrement = useCallback(() => {
     updateVitals('stress_current', character.vitals.stress_current + 1);
   }, [updateVitals, character.vitals.stress_current]);
@@ -255,7 +259,9 @@ const CommonVitalsDisplay = React.memo(function CommonVitalsDisplay({ character 
         variant="rectangle"
         onIncrement={handleHPIncrement}
         onDecrement={handleHPDecrement}
+        onMarkAmount={handleHPMarkAmount}
         isCriticalCondition={character.vitals.hit_points_current === 0}
+        thresholds={character.damage_thresholds}
         trackType="mark-bad"
         modifiers={hpDetails.allMods}
         onUpdateModifiers={handleUpdateHPMods}

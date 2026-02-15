@@ -11,13 +11,46 @@
  * "During the GM's turn, the GM can activate their Adversaries."
  */
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { AppIcons } from '@/lib/icon-utils';
 import { MarkdownText } from '@/components/shared/markdown-text';
 import { AdversaryFeatureButton } from './adversary-feature-button';
 import { classifyAndSortFeatures } from '@/lib/card-parser';
 import type { PinnedAdversary } from '@/types/campaign';
 import clsx from 'clsx';
+
+/**
+ * Parse adversary thresholds string "major/severe" into numeric values.
+ * SRD: "The numbers listed after 'Threshold' are the adversary's Major and Severe Thresholds."
+ * Example: "9/17" → { major: 9, severe: 17 }
+ */
+function parseThresholds(thresholds: string): { major: number; severe: number } {
+    const parts = thresholds.split('/');
+    return {
+        major: parseInt(parts[0], 10) || 0,
+        severe: parseInt(parts[1], 10) || 0,
+    };
+}
+
+/**
+ * Convert raw damage to HP marks based on SRD damage thresholds.
+ * SRD Reference: content/public/srd/markdown/contents/Combat.md
+ * - If damage >= severe threshold → mark 3 HP
+ * - If damage >= major threshold → mark 2 HP
+ * - If damage < major threshold → mark 1 HP
+ */
+function damageToHpMarks(
+    damage: number,
+    thresholds: { major: number; severe: number }
+): { hpLoss: number; severity: 'minor' | 'major' | 'severe' } {
+    if (thresholds.severe > 0 && damage >= thresholds.severe) {
+        return { hpLoss: 3, severity: 'severe' };
+    }
+    if (thresholds.major > 0 && damage >= thresholds.major) {
+        return { hpLoss: 2, severity: 'major' };
+    }
+    return { hpLoss: 1, severity: 'minor' };
+}
 
 interface PinnedAdversaryCardProps {
     adversary: PinnedAdversary;
@@ -53,6 +86,9 @@ export function PinnedAdversaryCard({
 }: PinnedAdversaryCardProps) {
     const [damageInput, setDamageInput] = useState('');
     const [stressDamageInput, setStressDamageInput] = useState('');
+    const [lastHit, setLastHit] = useState<{ hpLoss: number; severity: string } | null>(null);
+
+    const thresholds = useMemo(() => parseThresholds(adversary.thresholds), [adversary.thresholds]);
 
     const hpPercent = adversary.hp_max > 0
         ? (adversary.hp_current / adversary.hp_max) * 100
@@ -72,13 +108,25 @@ export function PinnedAdversaryCard({
         ? classifyAndSortFeatures(adversary.feats)
         : [];
 
-    const handleDamageSubmit = () => {
+    // Preview what threshold would be hit for current input
+    const damagePreview = useMemo(() => {
         const amount = parseInt(damageInput);
-        if (!isNaN(amount) && amount > 0) {
-            onDamage(amount);
-            setDamageInput('');
-        }
-    };
+        if (isNaN(amount) || amount <= 0) return null;
+        return damageToHpMarks(amount, thresholds);
+    }, [damageInput, thresholds]);
+
+    const handleDamageSubmit = useCallback(() => {
+        const amount = parseInt(damageInput);
+        if (isNaN(amount) || amount <= 0) return;
+
+        const result = damageToHpMarks(amount, thresholds);
+        onDamage(result.hpLoss);
+        setDamageInput('');
+
+        // Show result briefly
+        setLastHit(result);
+        setTimeout(() => setLastHit(null), 1500);
+    }, [damageInput, thresholds, onDamage]);
 
     const handleStressDamageSubmit = () => {
         const amount = parseInt(stressDamageInput);
@@ -197,14 +245,35 @@ export function PinnedAdversaryCard({
                                     <button
                                         onClick={handleDamageSubmit}
                                         disabled={!damageInput}
-                                        className="px-2 py-1 bg-red-500/20 hover:bg-red-500/30 disabled:opacity-30 text-red-300 rounded text-xs font-bold transition-colors"
+                                        className={clsx(
+                                            'px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30',
+                                            damagePreview?.severity === 'severe'
+                                                ? 'bg-red-600/30 hover:bg-red-600/40 text-red-200'
+                                                : damagePreview?.severity === 'major'
+                                                    ? 'bg-orange-500/30 hover:bg-orange-500/40 text-orange-200'
+                                                    : 'bg-red-500/20 hover:bg-red-500/30 text-red-300'
+                                        )}
                                     >
-                                        Hit
+                                        {damagePreview
+                                            ? `−${damagePreview.hpLoss} ${damagePreview.severity[0].toUpperCase() + damagePreview.severity.slice(1)}`
+                                            : 'Hit'}
                                     </button>
                                 </div>
-                                <span className="text-xs text-gray-500 tabular-nums">
-                                    {adversary.hp_current}/{adversary.hp_max}
-                                </span>
+                                {/* Result flash or HP count */}
+                                {lastHit ? (
+                                    <span className={clsx(
+                                        'text-xs font-bold tabular-nums animate-pulse',
+                                        lastHit.severity === 'severe' ? 'text-red-400'
+                                            : lastHit.severity === 'major' ? 'text-orange-400'
+                                                : 'text-yellow-400'
+                                    )}>
+                                        −{lastHit.hpLoss} HP
+                                    </span>
+                                ) : (
+                                    <span className="text-xs text-gray-500 tabular-nums">
+                                        {adversary.hp_current}/{adversary.hp_max}
+                                    </span>
+                                )}
                             </div>
 
                             {/* Stress Damage Input */}
