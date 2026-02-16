@@ -94,9 +94,11 @@ You can try out a demo of the app here: [**daggerheart-cs-dev.onrender.com**](ht
 
 ### Installation
 
-1. Clone the repository:
+1. **Fork the repository** on GitHub to your own account.
+
+2. Clone **your fork** of the repository:
 ```bash
-git clone https://github.com/galacticeyecodex-debug/dh-cs.git
+git clone https://github.com/YOUR_USERNAME/dh-cs.git
 cd dh-cs
 ```
 
@@ -288,7 +290,7 @@ npm test
 
 ## Deployment
 
-This application can be easily deployed to [Render](https://render.com), a unified platform for cloud applications.
+This application can be easily deployed to [Render](https://render.com) or [Railway](https://railway.app), which are both excellent platforms for cloud applications.
 
 ### Deploying to Render
 
@@ -299,7 +301,7 @@ This application can be easily deployed to [Render](https://render.com), a unifi
 2.  **Connect to your Repository**:
     *   Select "Build and deploy from a Git repository".
     *   Connect your GitHub account if you haven't already.
-    *   Search for and select the `galacticeyecodex-debug/dh-cs` repository.
+    *   Search for and select your fork of the `dh-cs` repository.
 
 3.  **Configure Service Details**:
     *   **Name**: Choose a unique name (e.g., `my-daggerheart-companion`).
@@ -324,10 +326,28 @@ This application can be easily deployed to [Render](https://render.com), a unifi
     *   Render will start building your app. This process may take a few minutes.
     *   Once "Live", your app will be accessible at the URL provided (e.g., `https://your-app.onrender.com`).
 
-6.  **Post-Deployment**:
-    *   **Important**: Copy your new Render URL.
+### Deploying to Railway
+
+1.  **Create a New Project**:
+    *   Log in to your [Railway Dashboard](https://railway.app/).
+    *   Click "New Project" -> "Deploy from GitHub repo".
+    *   Search for and select your fork of the `dh-cs` repository.
+
+2.  **Configure Variables**:
+    *   Click on your service in the project view.
+    *   Navigate to the **Variables** tab.
+    *   Add the following environment variables:
+        *   `NEXT_PUBLIC_SUPABASE_URL`: *Your Supabase URL*
+        *   `NEXT_PUBLIC_SUPABASE_ANON_KEY`: *Your Publishable Key (sb_publishable_...)*
+
+3.  **Deployment**:
+    *   Railway will automatically detect that this is a Next.js project and begin the build and deployment process.
+    *   Once the build is complete, go to Settings and Networking to generate a domain (e.g., `your-app.up.railway.app`).
+
+4.  **Post-Deployment**:
+    *   **Important**: Copy your new Render or Railway URL.
     *   Go back to **Supabase > Authentication > URL Configuration**.
-    *   Update your **Site URL** to this new Render URL to ensure social login redirects work correctly in production.
+    *   Update your **Site URL** to this new URL to ensure social login redirects work correctly in production.
 
 ## License
 

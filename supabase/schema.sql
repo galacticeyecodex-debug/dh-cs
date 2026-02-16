@@ -902,6 +902,7 @@ CREATE TABLE IF NOT EXISTS public.campaign_activity (
     'gm_vital_adjust',-- GM adjusted a player's vitals
     'gm_announcement',-- GM broadcast message
     'gm_roll',        -- GM dice roll (can be private)
+    'gm_fear_move',   -- GM used a Fear move
     'player_joined',  -- Player joined campaign
     'player_left',    -- Player left campaign
     'character_switched', -- Player switched characters
@@ -913,7 +914,14 @@ CREATE TABLE IF NOT EXISTS public.campaign_activity (
     'project_created',    -- Player started a project
     'project_advanced',   -- Progress made on project
     'project_completed',  -- Project finished
-    'project_abandoned'   -- Project stopped
+    'project_abandoned',  -- Project stopped
+    'encounter_started',  -- GM started an encounter
+    'encounter_ended',    -- GM ended an encounter
+    'adversary_pinned',   -- Adversary pinned to encounter
+    'adversary_spotlighted', -- Adversary spotlighted
+    'adversary_feature_used', -- Adversary feature activated
+    'adversary_defeated', -- Adversary defeated
+    'npc_shared'          -- NPC shared with party
   )),
 
   -- Flexible payload (structure depends on activity_type)

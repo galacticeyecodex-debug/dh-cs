@@ -21,9 +21,11 @@ import { AppIcons } from '@/lib/icon-utils';
 
 interface QuickActionsBarProps {
     campaignId: string;
+    onOpenNotes?: () => void;
+    onOpenNPCs?: () => void;
 }
 
-export function QuickActionsBar({ campaignId }: QuickActionsBarProps) {
+export function QuickActionsBar({ campaignId, onOpenNotes, onOpenNPCs }: QuickActionsBarProps) {
     const [showDiceRoller, setShowDiceRoller] = useState(false);
     const [showAnnounce, setShowAnnounce] = useState(false);
     const [isPrivateRoll, setIsPrivateRoll] = useState(false);
@@ -51,7 +53,7 @@ export function QuickActionsBar({ campaignId }: QuickActionsBarProps) {
                 </div>
 
                 {/* Action Buttons Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
                     {/* Roll Dice */}
                     <button
                         onClick={() => {
@@ -95,14 +97,22 @@ export function QuickActionsBar({ campaignId }: QuickActionsBarProps) {
                         <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">Refresh</span>
                     </button>
 
-                    {/* Session Notes - Coming Soon */}
+                    {/* Session Notes */}
                     <button
-                        disabled
-                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-xl opacity-50 cursor-not-allowed"
+                        onClick={onOpenNotes}
+                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/30 rounded-xl transition-colors group"
                     >
-                        <AppIcons.campaign.note className="w-6 h-6 text-gray-600" />
-                        <span className="text-sm font-medium text-gray-500">Notes</span>
-                        <span className="text-[10px] text-gray-600 uppercase tracking-wider">Coming Soon</span>
+                        <AppIcons.campaign.note className="w-6 h-6 text-gray-400 group-hover:text-amber-400 transition-colors" />
+                        <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">Notes</span>
+                    </button>
+
+                    {/* Campaign NPCs */}
+                    <button
+                        onClick={onOpenNPCs}
+                        className="h-20 md:h-24 flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-pink-500/10 border border-white/10 hover:border-pink-500/30 rounded-xl transition-colors group"
+                    >
+                        <AppIcons.campaign.party className="w-6 h-6 text-gray-400 group-hover:text-pink-400 transition-colors" />
+                        <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">NPCs</span>
                     </button>
                 </div>
             </div>

@@ -60,6 +60,7 @@ export interface CardCosts {
   armor_slots?: number;
   hit_points?: number;
   tokens?: number;
+  fear?: number;
 }
 
 /**

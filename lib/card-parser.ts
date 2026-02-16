@@ -216,6 +216,7 @@
 
 
 import type { Character, CharacterCard } from '@/types/character';
+import type { AdversaryFeature } from '@/types/adversary';
 import type {
   ActionType,
   AdditionalDamage,
@@ -1012,6 +1013,26 @@ export function parseStressCost(text: string): number {
 }
 
 /**
+ * Parse Fear cost from card/feature text
+ * Matches patterns like "Spend Fear", "Spend a Fear", "Spend 2 Fear"
+ * Returns 0 if no Fear cost found.
+ *
+ * SRD Reference: content/public/srd/markdown/contents/The_GM.md
+ * "Spend Fear to activate Fear Features on adversary stat blocks."
+ */
+export function parseFearCost(text: string): number {
+  const cleanText = stripMarkdown(text);
+  const match = cleanText.match(/spend\s+(\d+)\s+fear/i);
+  if (match) {
+    return parseInt(match[1], 10);
+  }
+  if (/spend\s+(a\s+)?fear/i.test(cleanText)) {
+    return 1;
+  }
+  return 0;
+}
+
+/**
  * Parse hope cost from card text
  * Matches patterns like "spend a Hope", "spend 3 Hope", "**spend 2 Hope**"
  * Also handles "spend up to 3 Hope" and "spend any number of Hope"
@@ -1068,8 +1089,9 @@ export function parseCosts(text: string): CardCosts | undefined {
   const stress = parseStressCost(text);
   const hope = parseHopeCost(text);
   const hitPoints = parseHitPointCost(text);
+  const fear = parseFearCost(text);
 
-  if (stress === 0 && hope === 0 && hitPoints === 0) {
+  if (stress === 0 && hope === 0 && hitPoints === 0 && fear === 0) {
     return undefined;
   }
 
@@ -1077,6 +1099,7 @@ export function parseCosts(text: string): CardCosts | undefined {
   if (stress > 0) costs.stress = stress;
   if (hope > 0) costs.hope = hope;
   if (hitPoints > 0) costs.hit_points = hitPoints;
+  if (fear > 0) costs.fear = fear;
 
   return costs;
 }
@@ -1279,7 +1302,7 @@ export function parseCardDamage(text: string): string | undefined {
     /damage\s+is\s+(\d*d\d+(?:\+\d+)?)/i,
     // "roll ... d10s ... deal that much damage" (Unleash Chaos pattern)
     // Matches "roll a number of d10s" where "d10s" is plural, followed later by "deal that much ... damage"
-    /roll\s+(?:a\s+number\s+of\s+)?(\d*d\d+)s?\s+.*deal\s+that\s+much\s+(?:magic\s+|physical\s+)?damage/i,
+    /roll\s+(?:a\s+)?number\s+of\s+(\d*d\d+)s?\s+.*deal\s+that\s+much\s+(?:magic\s+|physical\s+)?damage/i,
   ];
 
   for (const pattern of damagePatterns) {
@@ -2104,7 +2127,7 @@ export function parseRoll(text: string): CardRoll | undefined {
     /\*\*spend\s+(?:a\s+|\d+\s+)?hope\*\*\s+to\s+(?:make|allow)/i.test(text) ||
     /\*\*mark\s+(?:a\s+|\d+\s+)?stress\*\*\s+to\s+(?:make|allow)/i.test(text) ||
     /spend\s+(?:a\s+|\d+\s+)?hope\s+to\s+(?:make|allow)/i.test(cleanText) ||
-    /mark\s+(?:a\s+|\d+\s+)?stress\s+to\s+(?:make|allow)/i.test(cleanText);
+    /mark\s+(?:a\s+)?stress\s+to\s+(?:make|allow)/i.test(cleanText);
 
   return {
     type: `${trait || 'Spellcast'} Roll`,
@@ -3026,4 +3049,83 @@ export function getLoadoutCombatAbilities(cards: CharacterCard[]): CombatAbility
   return loadoutCards
     .map(parseCombatAbility)
     .filter((ability): ability is CombatAbility => ability !== null);
+}
+
+// ============================================================================
+// ADVERSARY FEATURE CLASSIFICATION
+// ============================================================================
+// Functions to classify adversary features by type and extract costs.
+// Used by the GM Screen's Adversary Browser and Pinned Adversary Cards.
+//
+// SRD Reference: content/public/srd/markdown/contents/The_GM.md
+// "Spend Fear to activate Fear Features on adversary stat blocks."
+
+export type FeatureType = 'action' | 'reaction' | 'passive';
+
+export interface ClassifiedFeature {
+  feat: AdversaryFeature;
+  type: FeatureType;
+  fearCost: number;
+  stressCost: number;
+}
+
+/**
+ * Parse the feature type from the adversary feature name suffix.
+ * Convention: "Earth Eruption - Action", "Retaliatory Strike - Reaction"
+ * If no suffix, check text for "Passive" or default to "action".
+ */
+export function parseFeatureType(feat: AdversaryFeature): FeatureType {
+  const nameLower = feat.name.toLowerCase();
+
+  if (nameLower.includes('- reaction') || nameLower.includes('(reaction)')) {
+    return 'reaction';
+  }
+  if (nameLower.includes('- passive') || nameLower.includes('(passive)')) {
+    return 'passive';
+  }
+  if (nameLower.includes('- action') || nameLower.includes('(action)')) {
+    return 'action';
+  }
+
+  // Check text body for passive indicators
+  const textLower = feat.text.toLowerCase();
+  if (textLower.startsWith('passive') || textLower.includes('this creature always')) {
+    return 'passive';
+  }
+
+  return 'action';
+}
+
+/**
+ * Classify a single adversary feature with type and costs.
+ */
+export function classifyFeature(feat: AdversaryFeature): ClassifiedFeature {
+  return {
+    feat,
+    type: parseFeatureType(feat),
+    fearCost: parseFearCost(feat.text),
+    stressCost: parseStressCost(feat.text),
+  };
+}
+
+/**
+ * Classify and sort all features for an adversary.
+ * Sort order: Fear features first, then stress-cost actions, then free actions, then passives.
+ */
+export function classifyAndSortFeatures(feats: AdversaryFeature[]): ClassifiedFeature[] {
+  const classified = feats.map(classifyFeature);
+
+  return classified.sort((a, b) => {
+    const orderA = getFeatureSortOrder(a);
+    const orderB = getFeatureSortOrder(b);
+    return orderA - orderB;
+  });
+}
+
+function getFeatureSortOrder(feat: ClassifiedFeature): number {
+  if (feat.fearCost > 0) return 0;
+  if (feat.stressCost > 0) return 1;
+  if (feat.type === 'action') return 2;
+  if (feat.type === 'reaction') return 3;
+  return 4; // passive
 }

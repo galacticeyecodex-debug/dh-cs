@@ -51,9 +51,11 @@ export interface MiniVitalTrayProps {
   onIncrement?: () => void;
   /** Called when user wants to decrement */
   onDecrement?: () => void;
+  /** Called when user wants to mark multiple HP via thresholds */
+  onMarkAmount?: (amount: number) => void;
   /** Called to close the tray */
   onClose: () => void;
-  /** Damage thresholds (for Armor) */
+  /** Damage thresholds (for Armor and HP) */
   thresholds?: { minor: number, major: number, severe: number };
   /** Stat modifiers for the modifier sheet */
   modifiers?: { id: string; name: string; value: number; source: ModifierSourceType; type?: string }[];
@@ -84,6 +86,7 @@ export function MiniVitalTray({
   strokeColor,
   onIncrement,
   onDecrement,
+  onMarkAmount,
   onClose,
   thresholds,
   modifiers,
@@ -118,9 +121,9 @@ export function MiniVitalTray({
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           layout
           className="fixed left-0 right-0 bg-dagger-panel border-t border-white/10 rounded-t-xl shadow-lg"
-          style={{ 
+          style={{
             zIndex: Z_INDEX.VITAL_TRAY,
-            bottom: 'calc(4rem + env(safe-area-inset-bottom) + 3rem)' 
+            bottom: 'calc(4rem + env(safe-area-inset-bottom) + 3rem)'
           }}
         >
           {/* Handle - tap to close (matches modifier-sheet pattern) */}
@@ -134,9 +137,9 @@ export function MiniVitalTray({
 
           {/* VitalCard content - tray itself is the darker container, VitalCard provides the lighter nested card */}
           {/* motion.div with layout here handles height changes when switching between vitals (e.g. Armor vs Evasion) */}
-          <motion.div 
-            layout 
-            className="px-3 pb-6 overflow-hidden"
+          <motion.div
+            layout
+            className="px-3 pt-1 pb-6 overflow-hidden"
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           >
             <VitalCard
@@ -151,6 +154,7 @@ export function MiniVitalTray({
               trackType={trackType as any}
               onIncrement={onIncrement}
               onDecrement={onDecrement}
+              onMarkAmount={onMarkAmount}
               thresholds={thresholds}
               modifiers={modifiers as any}
               onUpdateModifiers={onUpdateModifiers as any}
@@ -159,6 +163,7 @@ export function MiniVitalTray({
               isModified={isModified}
               expectedValue={expectedValue}
               isNested={true}
+              isFlat={false}
               disableCritColor={label === 'Armor'}
             />
           </motion.div>

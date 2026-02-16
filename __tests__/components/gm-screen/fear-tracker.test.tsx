@@ -24,6 +24,7 @@ vi.mock('@/store/character-store', () => ({
     useCharacterStore: () => ({
         updateFear: mockUpdateFear,
         logActivity: mockLogActivity,
+        useGmFearMove: vi.fn(),
         user: { id: 'user-123', email: 'gm@test.com' },
         vitalIcons: {},
     }),
@@ -92,10 +93,10 @@ describe('FearTracker', () => {
             expect(screen.getByText('+3')).toBeInTheDocument();
         });
 
-        it('should display Fear spending guide', () => {
+        it('should display Fear Moves panel toggle', () => {
             render(<FearTracker campaignId="campaign-1" currentFear={5} />);
 
-            expect(screen.getByText(/spend fear to/i)).toBeInTheDocument();
+            expect(screen.getByText('Fear Moves')).toBeInTheDocument();
         });
     });
 

@@ -129,7 +129,7 @@ interface EnhancedCard extends EnhancedAbilityCard {
   [key: string]: unknown;
 }
 
-interface Feat {
+interface Feature {
   name: string;
   text: string;
   enhancement?: EnhancementBlock;
@@ -139,24 +139,24 @@ interface Feat {
 
 interface CharacterOption {
   name: string;
-  feats?: Feat[];
+  feats?: Feature[];
   [key: string]: unknown;
 }
 
 interface ClassEntry {
   name: string;
-  class_feats?: Feat[];
+  class_feats?: Feature[];
   hope_feat_name?: string;
   hope_feat_text?: string;
-  hope_feat_enhanced?: Feat;
+  hope_feat_enhanced?: Feature;
   [key: string]: unknown;
 }
 
 interface SubclassEntry {
   name: string;
-  foundations?: Feat[];
-  specializations?: Feat[];
-  masteries?: Feat[];
+  foundations?: Feature[];
+  specializations?: Feature[];
+  masteries?: Feature[];
   [key: string]: unknown;
 }
 
@@ -184,11 +184,11 @@ function loadExistingOverrides(outputPath: string): Map<string, EnhancementBlock
           overrides.set(item.name, item.enhancement_override);
         }
         // Also check nested feats
-        if (item.feats) extractFeatOverrides(item.feats, overrides);
-        if (item.class_feats) extractFeatOverrides(item.class_feats, overrides);
-        if (item.foundations) extractFeatOverrides(item.foundations, overrides);
-        if (item.specializations) extractFeatOverrides(item.specializations, overrides);
-        if (item.masteries) extractFeatOverrides(item.masteries, overrides);
+        if (item.feats) extractFeatureOverrides(item.feats, overrides);
+        if (item.class_feats) extractFeatureOverrides(item.class_feats, overrides);
+        if (item.foundations) extractFeatureOverrides(item.foundations, overrides);
+        if (item.specializations) extractFeatureOverrides(item.specializations, overrides);
+        if (item.masteries) extractFeatureOverrides(item.masteries, overrides);
         // Check hope_feat_enhanced
         if (item.hope_feat_enhanced?.enhancement_override) {
           // Use a composite key for hope feats to avoid collisions if they share names (though unlikely)
@@ -204,7 +204,7 @@ function loadExistingOverrides(outputPath: string): Map<string, EnhancementBlock
   return overrides;
 }
 
-function extractFeatOverrides(feats: Feat[] | undefined, overrides: Map<string, EnhancementBlock>): void {
+function extractFeatureOverrides(feats: Feature[] | undefined, overrides: Map<string, EnhancementBlock>): void {
   if (!feats) return;
   for (const feat of feats) {
     if (feat.name && feat.enhancement_override) {
@@ -217,7 +217,7 @@ function extractFeatOverrides(feats: Feat[] | undefined, overrides: Map<string, 
  * Enhance a single feat using the shared card parser
  * Returns feat with enhancement block (and preserved override if any)
  */
-function enhanceFeat(feat: Feat, overrides: Map<string, EnhancementBlock>): Feat {
+function enhanceFeature(feat: Feature, overrides: Map<string, EnhancementBlock>): Feature {
   // Convert feat to ability card format for parsing as an Ability
   const asCard = {
     name: feat.name,
@@ -261,7 +261,7 @@ function enhanceCharacterOption(
 
   return {
     ...entry,
-    feats: entry.feats.map(feat => enhanceFeat(feat, overrides)),
+    feats: entry.feats.map(feat => enhanceFeature(feat, overrides)),
   };
 }
 
@@ -276,12 +276,12 @@ function enhanceClass(
 
   // Enhance class_feats array
   if (entry.class_feats && Array.isArray(entry.class_feats)) {
-    result.class_feats = entry.class_feats.map(feat => enhanceFeat(feat, overrides));
+    result.class_feats = entry.class_feats.map(feat => enhanceFeature(feat, overrides));
   }
 
   // Enhance hope_feat (stored as separate name/text fields)
   if (entry.hope_feat_name && entry.hope_feat_text) {
-    result.hope_feat_enhanced = enhanceFeat({
+    result.hope_feat_enhanced = enhanceFeature({
       name: entry.hope_feat_name,
       text: entry.hope_feat_text,
     }, overrides);
@@ -300,15 +300,15 @@ function enhanceSubclass(
   const result: SubclassEntry = { ...entry };
 
   if (entry.foundations && Array.isArray(entry.foundations)) {
-    result.foundations = entry.foundations.map(feat => enhanceFeat(feat, overrides));
+    result.foundations = entry.foundations.map(feat => enhanceFeature(feat, overrides));
   }
 
   if (entry.specializations && Array.isArray(entry.specializations)) {
-    result.specializations = entry.specializations.map(feat => enhanceFeat(feat, overrides));
+    result.specializations = entry.specializations.map(feat => enhanceFeature(feat, overrides));
   }
 
   if (entry.masteries && Array.isArray(entry.masteries)) {
-    result.masteries = entry.masteries.map(feat => enhanceFeat(feat, overrides));
+    result.masteries = entry.masteries.map(feat => enhanceFeature(feat, overrides));
   }
 
   return result;
@@ -583,6 +583,13 @@ function main(): void {
       type: 'subclasses',
       input: path.join(projectRoot, 'content/private/playtest/json/subclasses.json'),
       output: path.join(projectRoot, 'content/private/playtest/json/subclasses_enhanced.json'),
+    },
+
+    // Adversaries
+    {
+      type: 'adversaries',
+      input: path.join(projectRoot, 'content/public/srd/json/adversaries.json'),
+      output: path.join(projectRoot, 'content/public/srd/json/adversaries_enhanced.json'),
     },
   ];
 

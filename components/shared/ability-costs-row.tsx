@@ -27,12 +27,24 @@ export function DomainCostsRow({
   className,
   disabled = false,
 }: DomainCostsRowProps) {
-  if (!costs || (!costs.hope && !costs.stress && !costs.hit_points)) {
+  if (!costs || (!costs.hope && !costs.stress && !costs.hit_points && !costs.fear)) {
     return null;
   }
 
   return (
     <div className={className || "flex flex-wrap gap-2 justify-center"}>
+      {costs.fear && (
+        <DomainAbilityButton
+          cardName={cardName}
+          displayName={displayName}
+          costType="fear"
+          costValue={costs.fear}
+          disabled={disabled}
+          isActiveOverride={isActiveOverride}
+          onActivate={onActivate}
+          onDeactivate={onDeactivate}
+        />
+      )}
       {costs.stress && (
         <DomainAbilityButton
           cardName={cardName}
