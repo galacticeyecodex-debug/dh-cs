@@ -21,12 +21,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { VitalId } from '@/lib/icon-utils';
 import VitalCard from './vital-card';
 import { Z_INDEX } from '@/constants/z-index';
-import { ModifierTab } from '@/components/shared/modifier-sheet';
 
 export type VitalTrackType = 'mark-bad' | 'fill-up-bad' | 'fill-up-good';
-
-// Modifier source types align with ModifierSourceType from modifier-aggregator
-type ModifierSourceType = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
 
 export interface MiniVitalTrayProps {
   /** Whether the tray is open */
@@ -36,9 +32,9 @@ export interface MiniVitalTrayProps {
   /** Current value of the vital */
   current: number;
   /** Maximum value for the track */
-  max?: number;
+  max: number;
   /** Vital track semantic type */
-  trackType?: VitalTrackType;
+  trackType: VitalTrackType;
   /** Icon component to render in the track */
   icon: React.ElementType;
   /** Vital ID for icon preference lookup */
@@ -48,19 +44,21 @@ export interface MiniVitalTrayProps {
   /** Stroke color class for filled icons (e.g., "stroke-red-900") */
   strokeColor?: string;
   /** Called when user wants to increment */
-  onIncrement?: () => void;
+  onIncrement: () => void;
   /** Called when user wants to decrement */
-  onDecrement?: () => void;
+  onDecrement: () => void;
+  /** Called when user wants to mark multiple HP via thresholds */
+  onMarkAmount?: (amount: number) => void;
   /** Called to close the tray */
   onClose: () => void;
-  /** Damage thresholds (for Armor) */
-  thresholds?: { minor: number, major: number, severe: number };
+  /** Damage thresholds (for HP card) */
+  thresholds?: { minor: number; major: number; severe: number };
   /** Stat modifiers for the modifier sheet */
-  modifiers?: { id: string; name: string; value: number; source: ModifierSourceType; type?: string }[];
+  modifiers?: { id: string; name: string; value: number; source: any; type?: string }[];
   /** Callback to update modifiers */
-  onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: ModifierSourceType; type?: string }[]) => void;
+  onUpdateModifiers?: (modifiers: any[]) => void;
   /** Tabbed sub-stats for the modifier sheet (for Armor thresholds) */
-  subStats?: ModifierTab[];
+  subStats?: any[];
   /** Flag for critical condition (low HP, etc.) */
   isCriticalCondition?: boolean;
   /** Whether the base value has been modified */
@@ -84,6 +82,7 @@ export function MiniVitalTray({
   strokeColor,
   onIncrement,
   onDecrement,
+  onMarkAmount,
   onClose,
   thresholds,
   modifiers,
@@ -106,21 +105,19 @@ export function MiniVitalTray({
   }, [isOpen, onClose]);
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       {isOpen && (
         <motion.div
-          key="vital-tray"
           role="dialog"
           aria-label={`${label} controls`}
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          layout
           className="fixed left-0 right-0 bg-dagger-panel border-t border-white/10 rounded-t-xl shadow-lg"
-          style={{ 
+          style={{
             zIndex: Z_INDEX.VITAL_TRAY,
-            bottom: 'calc(4rem + env(safe-area-inset-bottom) + 3rem)' 
+            bottom: 'calc(4rem + env(safe-area-inset-bottom) + 3rem)'
           }}
         >
           {/* Handle - tap to close (matches modifier-sheet pattern) */}
@@ -132,15 +129,9 @@ export function MiniVitalTray({
             <div className="w-12 h-1.5 bg-white/20 rounded-full" />
           </button>
 
-          {/* VitalCard content - tray itself is the darker container, VitalCard provides the lighter nested card */}
-          {/* motion.div with layout here handles height changes when switching between vitals (e.g. Armor vs Evasion) */}
-          <motion.div 
-            layout 
-            className="px-3 pb-6 overflow-hidden"
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          >
+          {/* VitalCard content */}
+          <div className="px-3 pb-2">
             <VitalCard
-              key={label} // Ensure unique key per vital type to trigger fresh layout/content
               label={label}
               current={current}
               max={max}
@@ -148,20 +139,20 @@ export function MiniVitalTray({
               strokeColor={strokeColor}
               icon={icon}
               vitalId={vitalId}
-              trackType={trackType as any}
+              trackType={trackType}
               onIncrement={onIncrement}
               onDecrement={onDecrement}
+              onMarkAmount={onMarkAmount}
               thresholds={thresholds}
-              modifiers={modifiers as any}
-              onUpdateModifiers={onUpdateModifiers as any}
+              modifiers={modifiers}
+              onUpdateModifiers={onUpdateModifiers}
               subStats={subStats}
               isCriticalCondition={isCriticalCondition}
               isModified={isModified}
               expectedValue={expectedValue}
-              isNested={true}
-              disableCritColor={label === 'Armor'}
+              isFlat={true}
             />
-          </motion.div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

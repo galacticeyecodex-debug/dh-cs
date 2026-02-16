@@ -20,7 +20,7 @@
  * - Re-renders only when display values or state actually changes
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useCharacterStore } from '@/store/character-store';
 import { getIconByName, VitalId, AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
@@ -32,6 +32,26 @@ import { getValueColor, getPanelBorder, PANEL } from '@/lib/styles';
 type ModifierSourceType = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
 
 // Props interface for VitalCard
+/**
+ * Convert raw damage to HP marks based on SRD damage thresholds.
+ * SRD Reference: content/public/srd/markdown/contents/Combat.md
+ * - If damage >= severe threshold → mark 3 HP
+ * - If damage >= major threshold → mark 2 HP
+ * - If damage < major threshold → mark 1 HP (minor)
+ */
+function damageToHpMarks(
+  damage: number,
+  thresholds: { minor: number; major: number; severe: number }
+): { hpLoss: number; severity: 'minor' | 'major' | 'severe' } {
+  if (thresholds.severe > 0 && damage >= thresholds.severe) {
+    return { hpLoss: 3, severity: 'severe' };
+  }
+  if (thresholds.major > 0 && damage >= thresholds.major) {
+    return { hpLoss: 2, severity: 'major' };
+  }
+  return { hpLoss: thresholds.minor || 1, severity: 'minor' };
+}
+
 interface VitalCardProps {
   label: string;
   current: number;
@@ -41,6 +61,7 @@ interface VitalCardProps {
   vitalId?: VitalId;
   onIncrement?: () => void;
   onDecrement?: () => void;
+  onMarkAmount?: (amount: number) => void;
   isCriticalCondition?: boolean;
   isModified?: boolean;
   expectedValue?: number;
@@ -57,6 +78,70 @@ interface VitalCardProps {
   isFlat?: boolean;
 }
 
+import Image from 'next/image';
+
+/**
+ * VISUAL THRESHOLDS COMPONENT
+ * ----------------------------------------------------------------------------
+ * Replicates the Daggerheart SRD visual style for damage thresholds.
+ * For Hit Points, it uses the themed damage-thresholds.webp asset.
+ * For other stats, it uses a simpler visual layout.
+ */
+function VisualThresholds({
+  thresholds,
+  label
+}: {
+  thresholds: { minor: number; major: number; severe: number };
+  label: string;
+}) {
+  const isHP = label === 'Hit Points';
+
+  if (isHP) {
+    return (
+      <div className="w-full pt-1 pb-2">
+        <div
+          className="relative flex items-center mx-auto"
+          style={{ height: 42, width: '100%', maxWidth: 300 }}
+        >
+          <Image
+            src="/assets/card/damage-thresholds.webp"
+            alt="damage-thresholds"
+            className="absolute inset-0 w-full h-full"
+            width={300}
+            height={42}
+            style={{ objectFit: 'contain' }}
+          />
+
+          <div className="z-10 flex flex-col justify-center text-center pb-1" style={{ width: '23%' }}>
+            <div className="text-[8px] font-bold text-gray-400 uppercase leading-none">Minor</div>
+            <div className="text-[6px] text-white/70 font-medium leading-none mt-0.5">Mark 1 HP</div>
+          </div>
+
+          <div className="z-10 text-center font-bold text-gray-400 text-sm pr-1" style={{ width: '15%' }}>
+            {thresholds.major}
+          </div>
+
+          <div className="z-10 flex flex-col justify-center text-center pb-1" style={{ width: '24%' }}>
+            <div className="text-[8px] font-bold text-gray-400 uppercase leading-none">Major</div>
+            <div className="text-[6px] text-white/70 font-medium leading-none mt-0.5">Mark 2 HP</div>
+          </div>
+
+          <div className="z-10 text-center font-bold text-gray-400 text-sm pr-1" style={{ width: '15%' }}>
+            {thresholds.severe}
+          </div>
+
+          <div className="z-10 flex flex-col justify-center text-center pb-1" style={{ width: '23%' }}>
+            <div className="text-[8px] font-bold text-gray-400 uppercase leading-none">Severe</div>
+            <div className="text-[6px] text-white/70 font-medium leading-none mt-0.5">Mark 3 HP</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 const VitalCard = React.memo(function VitalCard({
   label,
   current,
@@ -66,6 +151,7 @@ const VitalCard = React.memo(function VitalCard({
   vitalId,
   onIncrement,
   onDecrement,
+  onMarkAmount,
   isCriticalCondition = false,
   isModified = false,
   expectedValue,
@@ -82,6 +168,31 @@ const VitalCard = React.memo(function VitalCard({
   isFlat = false
 }: VitalCardProps) {
   const [showModifierSheet, setShowModifierSheet] = useState(false);
+  const [damageInput, setDamageInput] = useState('');
+  const [lastHit, setLastHit] = useState<{ hpLoss: number; severity: string } | null>(null);
+
+  // Live preview of threshold result while typing damage
+  const damagePreview = useMemo(() => {
+    if (!thresholds || !onMarkAmount) return null;
+    const amount = parseInt(damageInput);
+    if (isNaN(amount) || amount <= 0) return null;
+    return damageToHpMarks(amount, thresholds);
+  }, [damageInput, thresholds, onMarkAmount]);
+
+  // Submit damage through thresholds
+  const handleDamageSubmit = useCallback(() => {
+    if (!thresholds || !onMarkAmount) return;
+    const amount = parseInt(damageInput);
+    if (isNaN(amount) || amount <= 0) return;
+
+    const result = damageToHpMarks(amount, thresholds);
+    onMarkAmount(result.hpLoss);
+    setDamageInput('');
+
+    // Show result briefly
+    setLastHit(result);
+    setTimeout(() => setLastHit(null), 1500);
+  }, [damageInput, thresholds, onMarkAmount]);
 
   // Resolve icon: Prop > dynamic from store > Heart fallback
   const iconPreference = useCharacterStore(state => vitalId ? state.vitalIcons[vitalId] : null);
@@ -177,11 +288,7 @@ const VitalCard = React.memo(function VitalCard({
           </div>
           <div className="text-sm text-gray-400 italic my-2">Unarmored</div>
           {thresholds && (
-            <div className="w-full px-1 text-[9px] uppercase tracking-wider text-gray-500 flex justify-between">
-              <span>Min: {thresholds.minor}</span>
-              <span>Maj: {thresholds.major}</span>
-              <span>Sev: {thresholds.severe}</span>
-            </div>
+            <VisualThresholds thresholds={thresholds} label={label} />
           )}
         </div>
         {showModifierSheet && onUpdateModifiers && (
@@ -293,10 +400,47 @@ const VitalCard = React.memo(function VitalCard({
         </div>
 
         {thresholds && (
-          <div className="w-full px-1 text-[9px] uppercase tracking-wider text-gray-500 flex justify-between">
-            <span>Min: {thresholds.minor}</span>
-            <span>Maj: {thresholds.major}</span>
-            <span>Sev: {thresholds.severe}</span>
+          <VisualThresholds thresholds={thresholds} label={label} />
+        )}
+
+        {/* Threshold-based damage calculator (HP only) */}
+        {thresholds && onMarkAmount && (
+          <div className="w-full flex items-center gap-1 mt-1">
+            <input
+              type="number"
+              value={damageInput}
+              onChange={(e) => setDamageInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleDamageSubmit()}
+              placeholder="Dmg"
+              min={1}
+              className="w-14 px-1.5 py-1 bg-black/40 border border-white/10 rounded text-[10px] text-white text-center placeholder:text-gray-400 focus:outline-none focus:border-red-500/50"
+            />
+            <button
+              onClick={handleDamageSubmit}
+              disabled={!damageInput}
+              className={clsx(
+                'flex-1 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors disabled:opacity-30',
+                damagePreview?.severity === 'severe'
+                  ? 'bg-red-600/40 hover:bg-red-600/50 text-red-100 border border-red-500/30'
+                  : damagePreview?.severity === 'major'
+                    ? 'bg-orange-500/40 hover:bg-orange-500/50 text-orange-100 border border-orange-400/30'
+                    : 'bg-red-500/30 hover:bg-red-500/40 text-red-100 border border-red-400/20'
+              )}
+            >
+              {damagePreview
+                ? `−${damagePreview.hpLoss} ${damagePreview.severity[0].toUpperCase() + damagePreview.severity.slice(1)}`
+                : 'HIT POINTS MARKED'}
+            </button>
+            {lastHit && (
+              <span className={clsx(
+                'text-[10px] font-bold animate-pulse',
+                lastHit.severity === 'severe' ? 'text-red-400'
+                  : lastHit.severity === 'major' ? 'text-orange-400'
+                    : 'text-yellow-400'
+              )}>
+                −{lastHit.hpLoss}
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -351,6 +495,7 @@ const VitalCard = React.memo(function VitalCard({
   // Note: Parent should wrap these in useCallback for best performance
   if (prevProps.onIncrement !== nextProps.onIncrement) return false;
   if (prevProps.onDecrement !== nextProps.onDecrement) return false;
+  if (prevProps.onMarkAmount !== nextProps.onMarkAmount) return false;
   if (prevProps.onUpdateModifiers !== nextProps.onUpdateModifiers) return false;
 
   // All props are equal, skip re-render

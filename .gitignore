@@ -52,10 +52,13 @@ next-env.d.ts
 
 # AI & Tooling
 .*/
-.agents
 !.github/
-CLAUDE.md
-GEMINI.md
+!.conductor/
+!.agent/
+!.claude/
+!.gemini/
+!CLAUDE.md
+!GEMINI.md
 
 # GitHub App credentials
 gha-creds-*.json

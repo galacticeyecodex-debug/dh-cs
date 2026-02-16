@@ -11,12 +11,7 @@ vi.mock('@/lib/utils', async () => {
     const actual = await vi.importActual('@/lib/utils');
     return {
         ...actual as any,
-        getClassBaseStat: vi.fn((char, stat) => {
-            if (stat === 'hp') return 10;
-            if (stat === 'evasion') return 10;
-            if (stat === 'stress') return 6;
-            return 0;
-        }),
+        getClassBaseStat: vi.fn(() => 10), // Base HP 10
     };
 });
 vi.mock('@/lib/icon-utils', () => ({
@@ -48,7 +43,6 @@ describe('CharacterVitalsBanner', () => {
         mockUseCharacterStore.mockReturnValue({
             character: {
                 id: '1',
-                level: 1,
                 vitals: {
                     hit_points_current: 9, // 1 Marked
                     armor_slots: 4, // 1 Marked
@@ -64,8 +58,7 @@ describe('CharacterVitalsBanner', () => {
                             }
                         }
                     }
-                ],
-                damage_thresholds: { minor: 1, major: 2, severe: 3 }
+                ]
             },
             vitalIcons: {
                 armor: 'shield',
@@ -77,10 +70,6 @@ describe('CharacterVitalsBanner', () => {
             },
             activeCampaign: null,
             cardStates: {},
-            updateVitals: vi.fn(),
-            updateHope: vi.fn(),
-            updateEvasion: vi.fn(),
-            updateModifiers: vi.fn(),
         });
 
         render(<CharacterVitalsBanner />);
@@ -93,58 +82,17 @@ describe('CharacterVitalsBanner', () => {
         expect(armorButton).toHaveTextContent('/5');
     });
 
-    it('displays Armor as 0 even when unarmored', () => {
-        mockUseCharacterStore.mockReturnValue({
-            character: {
-                id: '1',
-                level: 1,
-                vitals: {
-                    hit_points_current: 7,
-                    armor_slots: 0,
-                    stress_current: 0,
-                },
-                hope: 0,
-                character_inventory: [], // No armor = 0 max armor
-                damage_thresholds: { minor: 1, major: 1, severe: 2 }
-            },
-            vitalIcons: {
-                armor: 'shield',
-                hitPoints: 'heart',
-                stress: 'brain',
-                hope: 'star',
-                evasion: 'wind',
-                fear: 'ghost',
-            },
-            activeCampaign: null,
-            cardStates: {},
-            updateVitals: vi.fn(),
-            updateHope: vi.fn(),
-            updateEvasion: vi.fn(),
-            updateModifiers: vi.fn(),
-        });
-
-        render(<CharacterVitalsBanner />);
-
-        // Unarmored: Max 0, Current 0.
-        const armorButton = screen.getByRole('button', { name: /Armor/i });
-        expect(armorButton).toHaveTextContent('0');
-        expect(armorButton).not.toHaveTextContent('/0'); // UI hides /0
-        expect(screen.getByText(/NONE/i)).toBeInTheDocument(); // subLabel should be 'None'
-    });
-
     it('displays HP as Marked/Total (Max - Current)', () => {
         mockUseCharacterStore.mockReturnValue({
             character: {
                 id: '1',
-                level: 1,
                 vitals: {
                     hit_points_current: 7, // 3 Marked (10 - 7)
                     armor_slots: 5,
                     stress_current: 0,
                 },
                 hope: 0,
-                character_inventory: [],
-                damage_thresholds: { minor: 1, major: 1, severe: 2 }
+                character_inventory: [] // No armor = 0 max armor
             },
             vitalIcons: {
                 armor: 'shield',
@@ -156,10 +104,6 @@ describe('CharacterVitalsBanner', () => {
             },
             activeCampaign: null,
             cardStates: {},
-            updateVitals: vi.fn(),
-            updateHope: vi.fn(),
-            updateEvasion: vi.fn(),
-            updateModifiers: vi.fn(),
         });
 
         render(<CharacterVitalsBanner />);

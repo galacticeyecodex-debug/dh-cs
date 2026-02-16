@@ -11,8 +11,10 @@ import MemberList from '@/components/campaign/member-list';
 import CampaignSettingsModal from '@/components/campaign/campaign-settings-modal';
 import AssignCharacterModal from '@/components/campaign/assign-character-modal';
 import { ActivityFeed, BroadcastNotification } from '@/components/activity';
+import { PlayerEncounterBoard } from '@/components/campaign/player-encounter-board';
 import { realtimeManager } from '@/lib/realtime';
 import { CampaignActivity } from '@/types/activity';
+import type { Encounter } from '@/types/campaign';
 
 export default function CampaignDetailPage() {
     const params = useParams();
@@ -236,6 +238,19 @@ export default function CampaignDetailPage() {
                         })}
                     </div>
                 </div>
+
+                {/* Active Encounter Board (visible to players when GM enables it) */}
+                {(() => {
+                    const encounter = (activeCampaign.settings as Record<string, unknown>)?.active_encounter as Encounter | undefined;
+                    if (encounter && encounter.is_visible_to_players) {
+                        return (
+                            <div className="mb-6">
+                                <PlayerEncounterBoard encounter={encounter} />
+                            </div>
+                        );
+                    }
+                    return null;
+                })()}
 
                 {/* Content Grid - 3 columns */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

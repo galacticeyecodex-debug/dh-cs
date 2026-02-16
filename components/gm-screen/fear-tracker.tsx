@@ -21,6 +21,7 @@
 
 import { useCharacterStore } from '@/store/character-store';
 import { getIconByName, AppIcons } from '@/lib/icon-utils';
+import { GmFearMoves } from './gm-fear-moves';
 import { toast } from 'sonner';
 import clsx from 'clsx';
 
@@ -35,7 +36,7 @@ interface FearTrackerProps {
 }
 
 export function FearTracker({ campaignId, currentFear }: FearTrackerProps) {
-    const { updateFear, logActivity, user, vitalIcons } = useCharacterStore();
+    const { updateFear, logActivity, user, vitalIcons, useGmFearMove: activateGmFearMove } = useCharacterStore();
 
     // Resolve dynamic icon for Fear
     const FearIcon = getIconByName(vitalIcons.fear, AppIcons.vitals.fear);
@@ -185,6 +186,13 @@ export function FearTracker({ campaignId, currentFear }: FearTrackerProps) {
                     Spend Fear to: interrupt, make extra moves, use Fear Features
                 </p>
             </div>
+
+            {/* Fear Moves Panel */}
+            <GmFearMoves
+                campaignId={campaignId}
+                currentFear={currentFear}
+                onUseMove={(moveName, fearCost) => activateGmFearMove(campaignId, moveName, fearCost)}
+            />
         </div>
     );
 }
