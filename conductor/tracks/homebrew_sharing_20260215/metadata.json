@@ -1,8 +1,0 @@
-{
-  "track_id": "homebrew_sharing_20260215",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-02-15T12:00:00Z",
-  "updated_at": "2026-02-15T12:00:00Z",
-  "description": "Implement infrastructure and UI to allow players to share custom homebrew items with campaign members."
-}

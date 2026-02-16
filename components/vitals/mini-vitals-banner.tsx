@@ -35,7 +35,9 @@ export interface VitalEntry {
     onIncrement?: () => void;
     /** Called when user decrements (Clear/Spend) - required if trackType is set */
     onDecrement?: () => void;
-    /** Damage thresholds (for Armor) */
+    /** Called when user wants to mark multiple HP via thresholds */
+    onMarkAmount?: (amount: number) => void;
+    /** Damage thresholds (for Armor and HP) */
     thresholds?: { minor: number, major: number, severe: number };
     /** Stat modifiers for the modifier sheet */
     modifiers?: { id: string; name: string; value: number; source: ModifierSourceType; type?: string }[];
@@ -71,9 +73,9 @@ export function MiniVitalsPanel({
 
     const handleVitalClick = useCallback((index: number, vital: VitalEntry) => {
         // If vital is interactive, toggle the tray
-        const isInteractive = (vital.trackType && vital.onIncrement && vital.onDecrement) || 
-                            (vital.onUpdateModifiers);
-        
+        const isInteractive = (vital.trackType && vital.onIncrement && vital.onDecrement) ||
+            (vital.onUpdateModifiers);
+
         if (isInteractive) {
             // Toggle: close if already open, open if closed
             setSelectedVitalIndex(prev => prev === index ? null : index);
@@ -88,7 +90,7 @@ export function MiniVitalsPanel({
 
     const selectedVital = selectedVitalIndex !== null ? vitals[selectedVitalIndex] : null;
     const isValidTrayVital = !!selectedVital && (
-        (!!selectedVital.trackType && !!selectedVital.onIncrement && !!selectedVital.onDecrement) || 
+        (!!selectedVital.trackType && !!selectedVital.onIncrement && !!selectedVital.onDecrement) ||
         (!!selectedVital.onUpdateModifiers)
     );
 
@@ -99,14 +101,15 @@ export function MiniVitalsPanel({
                 isOpen={!!isValidTrayVital}
                 label={selectedVital?.label ?? ''}
                 current={selectedVital?.rawCurrent ?? selectedVital?.current ?? 0}
-                max={selectedVital?.max}
-                trackType={selectedVital?.trackType}
+                max={selectedVital?.max ?? 0}
+                trackType={selectedVital?.trackType ?? 'mark-bad'}
                 icon={selectedVital?.icon ?? (() => null)}
                 vitalId={selectedVital?.vitalId}
                 color={selectedVital?.color ?? ''}
                 strokeColor={selectedVital?.strokeColor}
-                onIncrement={selectedVital?.onIncrement}
-                onDecrement={selectedVital?.onDecrement}
+                onIncrement={selectedVital?.onIncrement ?? (() => { })}
+                onDecrement={selectedVital?.onDecrement ?? (() => { })}
+                onMarkAmount={selectedVital?.onMarkAmount}
                 onClose={handleCloseTray}
                 thresholds={selectedVital?.thresholds}
                 modifiers={selectedVital?.modifiers}
@@ -118,20 +121,20 @@ export function MiniVitalsPanel({
             />
 
             {/* Mini vitals bar */}
-                    <div
-                        className={cn(
-                            "fixed left-0 right-0 bg-dagger-panel backdrop-blur-lg border-t border-white/10 transition-all",
-                            className
-                        )}
-                        style={{
-                            bottom: bottomOffset,
-                            zIndex: Z_INDEX.NAV_BAR
-                        }}
-                    >
+            <div
+                className={cn(
+                    "fixed left-0 right-0 bg-dagger-panel backdrop-blur-lg border-t border-white/10 transition-all",
+                    className
+                )}
+                style={{
+                    bottom: bottomOffset,
+                    zIndex: Z_INDEX.NAV_BAR
+                }}
+            >
                 <div className="flex items-center justify-around px-2 py-2">
                     {vitals.map((vital, index) => {
-                        const isInteractive = (vital.trackType && vital.onIncrement && vital.onDecrement) || 
-                                           (vital.onUpdateModifiers);
+                        const isInteractive = (vital.trackType && vital.onIncrement && vital.onDecrement) ||
+                            (vital.onUpdateModifiers);
                         const hasClickHandler = isInteractive || vital.onClick;
 
                         return (
@@ -184,12 +187,12 @@ export function MiniVitalsPanel({
  * Provides handlers for Mark/Clear actions on interactive vitals.
  */
 export default function CharacterVitalsBanner() {
-    const { 
-        character, 
-        cardStates, 
-        activeCampaign, 
-        vitalIcons: iconPreferences, 
-        updateVitals, 
+    const {
+        character,
+        cardStates,
+        activeCampaign,
+        vitalIcons: iconPreferences,
+        updateVitals,
         updateHope,
         updateEvasion,
         updateModifiers
@@ -299,7 +302,7 @@ export default function CharacterVitalsBanner() {
             hp_marked: hpDetails.total - character.vitals.hit_points_current,
             hp_modifiers: hpDetails.allMods,
             hp_base: classBaseHP,
-            
+
             // Stress
             stressMax: stressDetails.total,
             stress_current: character.vitals.stress_current,
@@ -337,6 +340,11 @@ export default function CharacterVitalsBanner() {
     const handleHpDecrement = useCallback(() => {
         if (!character) return;
         updateVitals('hit_points_current', character.vitals.hit_points_current - 1);
+    }, [character, updateVitals]);
+
+    const handleHpMarkAmount = useCallback((amount: number) => {
+        if (!character) return;
+        updateVitals('hit_points_current', Math.max(0, character.vitals.hit_points_current - amount));
     }, [character, updateVitals]);
 
     const handleArmorIncrement = useCallback(() => {
@@ -449,6 +457,8 @@ export default function CharacterVitalsBanner() {
         trackType: 'mark-bad',
         onIncrement: handleHpIncrement,
         onDecrement: handleHpDecrement,
+        onMarkAmount: handleHpMarkAmount,
+        thresholds: vitalData.thresholds,
         modifiers: vitalData.hp_modifiers as any,
         onUpdateModifiers: handleUpdateHPMods,
         isCriticalCondition: vitalData.hp_current === 0,

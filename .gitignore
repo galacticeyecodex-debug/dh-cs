@@ -52,11 +52,10 @@ next-env.d.ts
 
 # AI & Tooling
 .*/
-.agents
 !.github/
-!.conductor/
-!.agent/
-!.claude/
+.conductor/
+.agent/
+.claude/
 CLAUDE.md
 GEMINI.md
 

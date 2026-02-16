@@ -47,8 +47,24 @@ export interface MiniVitalTrayProps {
   onIncrement: () => void;
   /** Called when user wants to decrement */
   onDecrement: () => void;
+  /** Called when user wants to mark multiple HP via thresholds */
+  onMarkAmount?: (amount: number) => void;
   /** Called to close the tray */
   onClose: () => void;
+  /** Damage thresholds (for HP card) */
+  thresholds?: { minor: number; major: number; severe: number };
+  /** Stat modifiers for the modifier sheet */
+  modifiers?: { id: string; name: string; value: number; source: any; type?: string }[];
+  /** Callback to update modifiers */
+  onUpdateModifiers?: (modifiers: any[]) => void;
+  /** Tabbed sub-stats for the modifier sheet (for Armor thresholds) */
+  subStats?: any[];
+  /** Flag for critical condition (low HP, etc.) */
+  isCriticalCondition?: boolean;
+  /** Whether the base value has been modified */
+  isModified?: boolean;
+  /** The expected base value for comparison */
+  expectedValue?: number;
 }
 
 /**
@@ -66,7 +82,15 @@ export function MiniVitalTray({
   strokeColor,
   onIncrement,
   onDecrement,
+  onMarkAmount,
   onClose,
+  thresholds,
+  modifiers,
+  onUpdateModifiers,
+  subStats,
+  isCriticalCondition,
+  isModified,
+  expectedValue,
 }: MiniVitalTrayProps) {
   // Close on Escape key
   useEffect(() => {
@@ -91,9 +115,9 @@ export function MiniVitalTray({
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           className="fixed left-0 right-0 bg-dagger-panel border-t border-white/10 rounded-t-xl shadow-lg"
-          style={{ 
+          style={{
             zIndex: Z_INDEX.VITAL_TRAY,
-            bottom: 'calc(4rem + env(safe-area-inset-bottom) + 3rem)' 
+            bottom: 'calc(4rem + env(safe-area-inset-bottom) + 3rem)'
           }}
         >
           {/* Handle - tap to close (matches modifier-sheet pattern) */}
@@ -118,6 +142,14 @@ export function MiniVitalTray({
               trackType={trackType}
               onIncrement={onIncrement}
               onDecrement={onDecrement}
+              onMarkAmount={onMarkAmount}
+              thresholds={thresholds}
+              modifiers={modifiers}
+              onUpdateModifiers={onUpdateModifiers}
+              subStats={subStats}
+              isCriticalCondition={isCriticalCondition}
+              isModified={isModified}
+              expectedValue={expectedValue}
               isFlat={true}
             />
           </div>

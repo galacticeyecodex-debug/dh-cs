@@ -256,7 +256,7 @@ export function PinnedAdversaryCard({
                                     >
                                         {damagePreview
                                             ? `−${damagePreview.hpLoss} ${damagePreview.severity[0].toUpperCase() + damagePreview.severity.slice(1)}`
-                                            : 'Hit'}
+                                            : 'HIT POINTS MARKED'}
                                     </button>
                                 </div>
                                 {/* Result flash or HP count */}

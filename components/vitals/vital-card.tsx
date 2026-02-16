@@ -78,6 +78,70 @@ interface VitalCardProps {
   isFlat?: boolean;
 }
 
+import Image from 'next/image';
+
+/**
+ * VISUAL THRESHOLDS COMPONENT
+ * ----------------------------------------------------------------------------
+ * Replicates the Daggerheart SRD visual style for damage thresholds.
+ * For Hit Points, it uses the themed damage-thresholds.webp asset.
+ * For other stats, it uses a simpler visual layout.
+ */
+function VisualThresholds({
+  thresholds,
+  label
+}: {
+  thresholds: { minor: number; major: number; severe: number };
+  label: string;
+}) {
+  const isHP = label === 'Hit Points';
+
+  if (isHP) {
+    return (
+      <div className="w-full pt-1 pb-2">
+        <div
+          className="relative flex items-center mx-auto"
+          style={{ height: 42, width: '100%', maxWidth: 300 }}
+        >
+          <Image
+            src="/assets/card/damage-thresholds.webp"
+            alt="damage-thresholds"
+            className="absolute inset-0 w-full h-full"
+            width={300}
+            height={42}
+            style={{ objectFit: 'contain' }}
+          />
+
+          <div className="z-10 flex flex-col justify-center text-center pb-1" style={{ width: '23%' }}>
+            <div className="text-[8px] font-bold text-gray-400 uppercase leading-none">Minor</div>
+            <div className="text-[6px] text-white/70 font-medium leading-none mt-0.5">Mark 1 HP</div>
+          </div>
+
+          <div className="z-10 text-center font-bold text-gray-400 text-sm pr-1" style={{ width: '15%' }}>
+            {thresholds.major}
+          </div>
+
+          <div className="z-10 flex flex-col justify-center text-center pb-1" style={{ width: '24%' }}>
+            <div className="text-[8px] font-bold text-gray-400 uppercase leading-none">Major</div>
+            <div className="text-[6px] text-white/70 font-medium leading-none mt-0.5">Mark 2 HP</div>
+          </div>
+
+          <div className="z-10 text-center font-bold text-gray-400 text-sm pr-1" style={{ width: '15%' }}>
+            {thresholds.severe}
+          </div>
+
+          <div className="z-10 flex flex-col justify-center text-center pb-1" style={{ width: '23%' }}>
+            <div className="text-[8px] font-bold text-gray-400 uppercase leading-none">Severe</div>
+            <div className="text-[6px] text-white/70 font-medium leading-none mt-0.5">Mark 3 HP</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 const VitalCard = React.memo(function VitalCard({
   label,
   current,
@@ -224,11 +288,7 @@ const VitalCard = React.memo(function VitalCard({
           </div>
           <div className="text-sm text-gray-400 italic my-2">Unarmored</div>
           {thresholds && (
-            <div className="w-full px-1 text-[9px] uppercase tracking-wider text-gray-500 flex justify-between">
-              <span>Min: {thresholds.minor}</span>
-              <span>Maj: {thresholds.major}</span>
-              <span>Sev: {thresholds.severe}</span>
-            </div>
+            <VisualThresholds thresholds={thresholds} label={label} />
           )}
         </div>
         {showModifierSheet && onUpdateModifiers && (
@@ -340,11 +400,7 @@ const VitalCard = React.memo(function VitalCard({
         </div>
 
         {thresholds && (
-          <div className="w-full px-1 text-[9px] uppercase tracking-wider text-gray-500 flex justify-between">
-            <span>Min: {thresholds.minor}</span>
-            <span>Maj: {thresholds.major}</span>
-            <span>Sev: {thresholds.severe}</span>
-          </div>
+          <VisualThresholds thresholds={thresholds} label={label} />
         )}
 
         {/* Threshold-based damage calculator (HP only) */}
@@ -357,7 +413,7 @@ const VitalCard = React.memo(function VitalCard({
               onKeyDown={(e) => e.key === 'Enter' && handleDamageSubmit()}
               placeholder="Dmg"
               min={1}
-              className="w-14 px-1.5 py-1 bg-black/40 border border-white/10 rounded text-[10px] text-white text-center placeholder:text-gray-600 focus:outline-none focus:border-red-500/50"
+              className="w-14 px-1.5 py-1 bg-black/40 border border-white/10 rounded text-[10px] text-white text-center placeholder:text-gray-400 focus:outline-none focus:border-red-500/50"
             />
             <button
               onClick={handleDamageSubmit}
@@ -365,15 +421,15 @@ const VitalCard = React.memo(function VitalCard({
               className={clsx(
                 'flex-1 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors disabled:opacity-30',
                 damagePreview?.severity === 'severe'
-                  ? 'bg-red-600/30 hover:bg-red-600/40 text-red-200'
+                  ? 'bg-red-600/40 hover:bg-red-600/50 text-red-100 border border-red-500/30'
                   : damagePreview?.severity === 'major'
-                    ? 'bg-orange-500/30 hover:bg-orange-500/40 text-orange-200'
-                    : 'bg-red-500/20 hover:bg-red-500/30 text-red-300'
+                    ? 'bg-orange-500/40 hover:bg-orange-500/50 text-orange-100 border border-orange-400/30'
+                    : 'bg-red-500/30 hover:bg-red-500/40 text-red-100 border border-red-400/20'
               )}
             >
               {damagePreview
                 ? `−${damagePreview.hpLoss} ${damagePreview.severity[0].toUpperCase() + damagePreview.severity.slice(1)}`
-                : 'Hit'}
+                : 'HIT POINTS MARKED'}
             </button>
             {lastHit && (
               <span className={clsx(
