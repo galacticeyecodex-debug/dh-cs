@@ -55,6 +55,8 @@ next-env.d.ts
 .agents
 !.github/
 !.conductor/
+!.agent/
+!.claude/
 CLAUDE.md
 GEMINI.md
 
