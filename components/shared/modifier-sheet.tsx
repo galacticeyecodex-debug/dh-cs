@@ -11,9 +11,11 @@
  * - Quick Adjustments: Provides a stepper interface to quickly add/remove temporary modifiers.
  * - Modifier Management: Allows users to rename or delete their manual adjustments.
  * - Source tracking: Visually distinguishes between 'System' (read-only) and 'User' (editable) modifiers.
+ * - Uses React Portal: Renders at document.body level for consistent z-index across layouts.
  */
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plus, Trash2, Check, Pencil, Shield, ShieldOff, Users, AlertCircle } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -62,6 +64,13 @@ export default function ModifierSheet({
   onUpdateModifiers,
   tabs
 }: ModifierSheetProps) {
+  const [mounted, setMounted] = useState(false);
+
+  // Portal needs to wait for client-side hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // If tabs are provided, use them. Otherwise, create a single "virtual" tab from props.
   const effectiveTabs: ModifierTab[] = tabs && tabs.length > 0
     ? tabs
@@ -76,7 +85,6 @@ export default function ModifierSheet({
   const [activeTabId, setActiveTabId] = useState<string>(effectiveTabs[0].id);
   const activeTab = effectiveTabs.find(t => t.id === activeTabId) || effectiveTabs[0];
 
-  const [newModifierValue, setNewModifierValue] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
 
@@ -102,16 +110,12 @@ export default function ModifierSheet({
       source: 'user'
     };
     // CRITICAL FIX: Only spread USER modifiers, not system modifiers
-    // currentModifiers includes equipment, ancestry, domain cards, etc.
-    // We should only save user-editable modifiers back to the database
     const userModsOnly = activeTab.currentModifiers.filter(m => m.source === 'user');
     activeTab.onUpdateModifiers([...userModsOnly, newMod]);
     setPendingValue(0); // Reset after apply
   };
 
   const handleDelete = (id: string) => {
-    // CRITICAL FIX: Only operate on USER modifiers when deleting
-    // System modifiers should not be deleted from the user modifiers list
     const userModsOnly = activeTab.currentModifiers.filter(m => m.source === 'user');
     activeTab.onUpdateModifiers(userModsOnly.filter(m => m.id !== id));
   };
@@ -123,7 +127,6 @@ export default function ModifierSheet({
 
   const saveEdit = () => {
     if (!editingId) return;
-    // CRITICAL FIX: Only save to user modifiers, not all modifiers
     const userModsOnly = activeTab.currentModifiers.filter(m => m.source === 'user');
     const updated = userModsOnly.map(m =>
       m.id === editingId ? { ...m, name: editName } : m
@@ -168,7 +171,9 @@ export default function ModifierSheet({
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -178,7 +183,7 @@ export default function ModifierSheet({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm shadow-2xl"
             style={{ zIndex: Z_INDEX.MODIFIER_SHEET }}
           />
 
@@ -188,11 +193,11 @@ export default function ModifierSheet({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 bg-dagger-panel border-t border-white/10 rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col font-sans normal-case"
             style={{ zIndex: Z_INDEX.MODIFIER_SHEET }}
           >
             {/* Handle */}
-            <div className="flex justify-center p-3" onClick={onClose}>
+            <div className="flex justify-center p-3 cursor-pointer" onClick={onClose}>
               <div className="w-12 h-1.5 bg-white/20 rounded-full" />
             </div>
 
@@ -225,12 +230,12 @@ export default function ModifierSheet({
               <div className="text-6xl font-serif font-black text-white flex items-center justify-center gap-2">
                 {total}
                 {total !== activeTab.baseValue && (
-                  <span className="text-sm bg-dagger-gold text-black px-2 py-0.5 rounded-full font-bold align-top -mt-4">
+                  <span className="text-sm bg-dagger-gold text-black px-2 py-0.5 rounded-full font-bold align-top -mt-4 uppercase tracking-tighter">
                     MOD
                   </span>
                 )}
               </div>
-              <div className="text-xs text-gray-500 mt-1">Base Value: {activeTab.baseValue}</div>
+              <div className="text-xs text-gray-500 mt-1 font-sans">Base Value: {activeTab.baseValue}</div>
             </div>
 
             {/* Stepper / Quick Actions */}
@@ -245,7 +250,7 @@ export default function ModifierSheet({
                 </button>
 
                 <div className={clsx(
-                  "w-16 text-center text-3xl font-bold",
+                  "w-16 text-center text-3xl font-bold font-serif",
                   pendingValue > 0 ? "text-green-400" : pendingValue < 0 ? "text-red-400" : "text-gray-500"
                 )}>
                   {pendingValue > 0 ? `+${pendingValue}` : pendingValue}
@@ -263,16 +268,16 @@ export default function ModifierSheet({
               <button
                 onClick={handleApplyPending}
                 disabled={pendingValue === 0}
-                className="w-full py-3 bg-dagger-gold text-black font-bold rounded-full shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full py-3 bg-dagger-gold text-black font-bold uppercase tracking-widest rounded-full shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 Apply Adjustment
               </button>
             </div>
 
             {/* List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar">
               {activeTab.currentModifiers.length === 0 && (
-                <div className="text-center text-gray-600 italic py-4">No modifiers active.</div>
+                <div className="text-center text-gray-600 italic py-4 font-sans">No modifiers active.</div>
               )}
 
               {activeTab.currentModifiers.map(mod => {
@@ -292,27 +297,27 @@ export default function ModifierSheet({
                             autoFocus
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
-                            className="bg-black/40 border border-white/20 rounded px-2 py-1 text-sm w-full focus:border-dagger-gold outline-none"
+                            className="bg-black/40 border border-white/20 rounded px-2 py-1 text-sm w-full focus:border-dagger-gold outline-none text-white font-sans"
                             onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
                           />
                           <button onClick={saveEdit} aria-label="Save edit" className="p-1 text-green-400 hover:bg-white/10 rounded"><Check size={16} /></button>
                         </div>
                       ) : (
                         <div>
-                          <div onClick={() => mod.source === 'user' && startEdit(mod)} className={clsx("font-bold flex items-center gap-2", mod.source === 'user' ? "text-white cursor-pointer" : "text-gray-400")}>
+                          <div onClick={() => mod.source === 'user' && startEdit(mod)} className={clsx("font-bold flex items-center gap-2 font-sans", mod.source === 'user' ? "text-white cursor-pointer" : "text-gray-400")}>
                             {mod.name}
                             {mod.source === 'user' && <Pencil size={12} className="text-gray-600 opacity-50" />}
-                            {isInactive && <span className="text-[10px] bg-red-900/50 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded">INACTIVE</span>}
+                            {isInactive && <span className="text-[10px] bg-red-900/50 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-bold uppercase">INACTIVE</span>}
                           </div>
                           {conditionText && (
-                            <div className="text-[10px] text-gray-500 italic flex items-center gap-1 mt-0.5">
+                            <div className="text-[10px] text-gray-500 italic flex items-center gap-1 mt-0.5 font-sans">
                               {conditionIcon}
                               {conditionText}
                             </div>
                           )}
                         </div>
                       )}
-                      <div className="text-xs text-gray-500 uppercase flex items-center gap-1 mt-1">
+                      <div className="text-xs text-gray-500 uppercase flex items-center gap-1 mt-1 font-bold tracking-tighter">
                         {mod.type === 'equipment' && <span className="bg-dagger-gold/20 text-dagger-gold px-1.5 rounded text-[10px] border border-dagger-gold/30">EQUIPMENT</span>}
                         {mod.type === 'domain_card' && <span className="bg-purple-900/50 text-purple-300 px-1.5 rounded text-[10px] border border-purple-500/30">DOMAIN CARD</span>}
                         {mod.source === 'system' && !mod.type && <span className="bg-blue-900/50 text-blue-300 px-1.5 rounded text-[10px]">SYSTEM</span>}
@@ -321,7 +326,7 @@ export default function ModifierSheet({
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className={clsx("text-xl font-bold", isInactive ? "text-gray-600" : mod.value >= 0 ? "text-green-400" : "text-red-400")}>
+                      <div className={clsx("text-xl font-bold font-serif", isInactive ? "text-gray-600" : mod.value >= 0 ? "text-green-400" : "text-red-400")}>
                         {mod.value >= 0 ? `+${mod.value}` : mod.value}
                       </div>
                       {mod.source === 'user' && (
@@ -337,6 +342,7 @@ export default function ModifierSheet({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

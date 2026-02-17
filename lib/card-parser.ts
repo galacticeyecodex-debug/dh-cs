@@ -995,10 +995,10 @@ export function parseStressCost(text: string): number {
 
   // Match "mark X Stress" or "mark a Stress"
   const patterns = [
-    /\*\*mark (\d+) Stress\*\*/i,
-    /mark (\d+) Stress/i,
-    /\*\*mark a Stress\*\*/i,
-    /mark a Stress/i,
+    /\*\*marks? (\d+) Stress\*\*/i,
+    /marks? (\d+) Stress/i,
+    /\*\*marks? a Stress\*\*/i,
+    /marks? a Stress/i,
   ];
 
   for (const pattern of patterns) {

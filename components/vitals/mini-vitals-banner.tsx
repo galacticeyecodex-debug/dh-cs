@@ -5,7 +5,7 @@ import { useCharacterStore } from '@/store/character-store';
 import { getClassBaseStat, cn } from '@/lib/utils';
 import { getStatModifierTotal, getStatModifiers } from '@/lib/modifier-aggregator';
 import { getIconByName, AppIcons, VitalId } from '@/lib/icon-utils';
-import { MiniVitalTray, VitalTrackType } from './mini-vital-tray';
+import { MiniVitalTray, VitalTrackType, SecondaryVitalProps } from './mini-vital-tray';
 import { Z_INDEX } from '@/constants/z-index';
 import { ModifierTab } from '@/components/shared/modifier-sheet';
 
@@ -57,32 +57,149 @@ export interface MiniVitalsBannerProps {
     vitals: VitalEntry[];
     bottomOffset?: string;
     className?: string;
+    /** When true, paired vitals (Armor+HP, Stress+Hope) open together and share a visual group. Default: true */
+    groupVitalPairs?: boolean;
 }
+
+/**
+ * Vital group definitions: [secondary (top), primary (bottom)]
+ * The first entry in each tuple is rendered on top in the tray.
+ */
+const VITAL_GROUPS: [string, string][] = [
+    ['Armor', 'Hit Points'],
+    ['Stress', 'Hope'],
+];
+
+/** Find which group a vital label belongs to, if any */
+function findGroup(label: string): [string, string] | undefined {
+    return VITAL_GROUPS.find(g => g[0] === label || g[1] === label);
+}
+
+/** Build a SecondaryVitalProps from a VitalEntry */
+function buildSecondaryProps(vital: VitalEntry): SecondaryVitalProps {
+    return {
+        label: vital.label,
+        current: vital.rawCurrent ?? vital.current,
+        max: vital.max,
+        trackType: vital.trackType,
+        icon: vital.icon,
+        vitalId: vital.vitalId,
+        color: vital.color,
+        strokeColor: vital.strokeColor,
+        onIncrement: vital.onIncrement,
+        onDecrement: vital.onDecrement,
+        onMarkAmount: vital.onMarkAmount,
+        thresholds: vital.thresholds,
+        modifiers: vital.modifiers,
+        onUpdateModifiers: vital.onUpdateModifiers,
+        subStats: vital.subStats,
+        isCriticalCondition: vital.isCriticalCondition,
+        isModified: vital.isModified,
+        expectedValue: vital.expectedValue,
+    };
+}
+
+/**
+ * A single vital button used both standalone and inside groups.
+ */
+function VitalButton({
+    vital,
+    index,
+    onClick,
+    standalone = true,
+}: {
+    vital: VitalEntry;
+    index: number;
+    onClick: (index: number, vital: VitalEntry) => void;
+    standalone?: boolean;
+}) {
+    const isInteractive = (vital.trackType && vital.onIncrement && vital.onDecrement) ||
+        (vital.onUpdateModifiers);
+    const hasClickHandler = isInteractive || vital.onClick;
+
+    return (
+        <button
+            key={vital.label}
+            onClick={() => onClick(index, vital)}
+            disabled={!hasClickHandler}
+            aria-label={`${vital.label}: ${vital.current}${vital.max !== undefined ? ` of ${vital.max}` : ''}${isInteractive ? ' (tap to edit)' : ''}`}
+            className={cn(
+                "flex flex-col items-center gap-0.5 min-w-[48px] transition-transform",
+                hasClickHandler ? "cursor-pointer" : "cursor-default",
+                // Only add individual active:scale on standalone (ungrouped) items
+                standalone && hasClickHandler ? "active:scale-95" : ""
+            )}
+        >
+            <div className="flex items-center gap-1">
+                <vital.icon size={12} className={vital.color} />
+                <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tighter">
+                    {vital.label.substring(0, 3)}
+                </span>
+            </div>
+            <div className="flex flex-col items-center gap-0">
+                <div className="flex items-baseline gap-0.5">
+                    <span className={cn("text-sm font-bold leading-none", vital.color)}>
+                        {vital.current}
+                    </span>
+                    {vital.max !== undefined && vital.max > 0 && (
+                        <span className="text-[10px] text-gray-500 leading-none">
+                            /{vital.max}
+                        </span>
+                    )}
+                </div>
+                {vital.subLabel && (
+                    <span className="text-[8px] text-gray-500 font-medium uppercase tracking-wider">
+                        {vital.subLabel}
+                    </span>
+                )}
+            </div>
+        </button>
+    );
+}
+
+/** A segment is either a single vital or a pair of vitals rendered together */
+type Segment =
+    | { type: 'single'; vital: VitalEntry; index: number }
+    | { type: 'pair'; vitals: [{ vital: VitalEntry; index: number }, { vital: VitalEntry; index: number }] };
 
 /**
  * MINI VITALS PANEL (UI Only)
  * A pure presentation component that renders a row of vitals.
  * When a vital with a trackType or modifiers is tapped, opens an expandable tray.
+ * Paired vitals (Armor+HP, Stress+Hope) are grouped: tapping either shows both.
  */
 export function MiniVitalsPanel({
     vitals,
     bottomOffset = "calc(4rem + env(safe-area-inset-bottom))",
-    className
+    className,
+    groupVitalPairs = true
 }: MiniVitalsBannerProps) {
     const [selectedVitalIndex, setSelectedVitalIndex] = useState<number | null>(null);
 
     const handleVitalClick = useCallback((index: number, vital: VitalEntry) => {
-        // If vital is interactive, toggle the tray
         const isInteractive = (vital.trackType && vital.onIncrement && vital.onDecrement) ||
             (vital.onUpdateModifiers);
 
         if (isInteractive) {
-            // Toggle: close if already open, open if closed
-            setSelectedVitalIndex(prev => prev === index ? null : index);
+            setSelectedVitalIndex(prev => {
+                if (prev === index) return null; // Same button = close
+
+                // If grouping is enabled and both vitals are in the same group, close
+                if (groupVitalPairs && prev !== null) {
+                    const prevVital = vitals[prev];
+                    const prevGroup = prevVital && findGroup(prevVital.label);
+                    const clickedGroup = findGroup(vital.label);
+                    if (prevGroup && clickedGroup && prevGroup === clickedGroup) {
+                        return null;
+                    }
+                }
+
+                return index;
+            });
         } else if (vital.onClick) {
             vital.onClick();
         }
-    }, []);
+    }, [vitals, groupVitalPairs]);
 
     const handleCloseTray = useCallback(() => {
         setSelectedVitalIndex(null);
@@ -94,30 +211,84 @@ export function MiniVitalsPanel({
         (!!selectedVital.onUpdateModifiers)
     );
 
+    // Determine if the selected vital is in a group, and resolve primary/secondary
+    const selectedGroup = groupVitalPairs && selectedVital ? findGroup(selectedVital.label) : undefined;
+    const partnerVital = selectedGroup
+        ? vitals.find(v => selectedGroup.includes(v.label) && v.label !== selectedVital!.label)
+        : undefined;
+
+    // In a group, the first label is always the secondary (top), second is primary (bottom)
+    const isSelectedSecondary = selectedGroup && selectedVital?.label === selectedGroup[0];
+    const primaryVital = isSelectedSecondary ? partnerVital ?? selectedVital : selectedVital;
+    const secondaryData: SecondaryVitalProps | undefined = (() => {
+        if (!selectedGroup || !partnerVital) return undefined;
+        const secondaryVital = isSelectedSecondary ? selectedVital! : partnerVital;
+        return buildSecondaryProps(secondaryVital);
+    })();
+
+    // Use the resolved primary vital for tray props
+    const trayVital = selectedGroup ? primaryVital : selectedVital;
+
+    // Build segments: group paired vitals into shared containers
+    const segments = useMemo((): Segment[] => {
+        const result: Segment[] = [];
+        const consumed = new Set<number>();
+
+        for (let i = 0; i < vitals.length; i++) {
+            if (consumed.has(i)) continue;
+
+            if (groupVitalPairs) {
+                const group = findGroup(vitals[i].label);
+                if (group) {
+                    // Find the partner in the vitals array
+                    const partnerLabel = group[0] === vitals[i].label ? group[1] : group[0];
+                    const partnerIdx = vitals.findIndex((v, j) => j !== i && v.label === partnerLabel);
+                    if (partnerIdx >= 0) {
+                        consumed.add(i);
+                        consumed.add(partnerIdx);
+                        result.push({
+                            type: 'pair',
+                            vitals: [
+                                { vital: vitals[i], index: i },
+                                { vital: vitals[partnerIdx], index: partnerIdx },
+                            ]
+                        });
+                        continue;
+                    }
+                }
+            }
+
+            result.push({ type: 'single', vital: vitals[i], index: i });
+        }
+
+        return result;
+    }, [vitals, groupVitalPairs]);
+
     return (
         <>
             {/* Tray (animated open/close via isOpen prop) */}
             <MiniVitalTray
                 isOpen={!!isValidTrayVital}
-                label={selectedVital?.label ?? ''}
-                current={selectedVital?.rawCurrent ?? selectedVital?.current ?? 0}
-                max={selectedVital?.max}
-                trackType={selectedVital?.trackType}
-                icon={selectedVital?.icon ?? (() => null)}
-                vitalId={selectedVital?.vitalId}
-                color={selectedVital?.color ?? ''}
-                strokeColor={selectedVital?.strokeColor}
-                onIncrement={selectedVital?.onIncrement}
-                onDecrement={selectedVital?.onDecrement}
-                onMarkAmount={selectedVital?.onMarkAmount}
+                label={trayVital?.label ?? ''}
+                current={trayVital?.rawCurrent ?? trayVital?.current ?? 0}
+                max={trayVital?.max}
+                trackType={trayVital?.trackType}
+                icon={trayVital?.icon ?? (() => null)}
+                vitalId={trayVital?.vitalId}
+                color={trayVital?.color ?? ''}
+                strokeColor={trayVital?.strokeColor}
+                onIncrement={trayVital?.onIncrement}
+                onDecrement={trayVital?.onDecrement}
+                onMarkAmount={trayVital?.onMarkAmount}
                 onClose={handleCloseTray}
-                thresholds={selectedVital?.thresholds}
-                modifiers={selectedVital?.modifiers}
-                onUpdateModifiers={selectedVital?.onUpdateModifiers}
-                subStats={selectedVital?.subStats}
-                isCriticalCondition={selectedVital?.isCriticalCondition}
-                isModified={selectedVital?.isModified}
-                expectedValue={selectedVital?.expectedValue}
+                thresholds={trayVital?.thresholds}
+                modifiers={trayVital?.modifiers}
+                onUpdateModifiers={trayVital?.onUpdateModifiers}
+                subStats={trayVital?.subStats}
+                isCriticalCondition={trayVital?.isCriticalCondition}
+                isModified={trayVital?.isModified}
+                expectedValue={trayVital?.expectedValue}
+                secondaryVital={secondaryData}
             />
 
             {/* Mini vitals bar */}
@@ -132,48 +303,40 @@ export function MiniVitalsPanel({
                 }}
             >
                 <div className="flex items-center justify-around px-2 py-2">
-                    {vitals.map((vital, index) => {
-                        const isInteractive = (vital.trackType && vital.onIncrement && vital.onDecrement) ||
-                            (vital.onUpdateModifiers);
-                        const hasClickHandler = isInteractive || vital.onClick;
+                    {segments.map((segment, segIdx) => (
+                        <React.Fragment key={segIdx}>
+                            {/* Divider between segments (not before first) */}
+                            {segIdx > 0 && (
+                                <div className="w-px h-8 bg-white/10 flex-shrink-0" />
+                            )}
 
-                        return (
-                            <button
-                                key={vital.label}
-                                onClick={() => handleVitalClick(index, vital)}
-                                disabled={!hasClickHandler}
-                                aria-label={`${vital.label}: ${vital.current}${vital.max !== undefined ? ` of ${vital.max}` : ''}${isInteractive ? ' (tap to edit)' : ''}`}
-                                className={cn(
-                                    "flex flex-col items-center gap-0.5 min-w-[60px] transition-transform",
-                                    hasClickHandler ? "active:scale-95 cursor-pointer" : "cursor-default"
-                                )}
-                            >
-                                <div className="flex items-center gap-1">
-                                    <vital.icon size={12} className={vital.color} />
-                                    <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tighter">
-                                        {vital.label.substring(0, 3)}
-                                    </span>
+                            {segment.type === 'single' ? (
+                                <VitalButton
+                                    vital={segment.vital}
+                                    index={segment.index}
+                                    onClick={handleVitalClick}
+                                    standalone={true}
+                                />
+                            ) : (
+                                /* Paired group: shared background pill, container-level active:scale */
+                                <div className="flex items-center bg-white/5 rounded-lg px-1 py-0.5 active:scale-95 transition-transform">
+                                    {segment.vitals.map((entry, entryIdx) => (
+                                        <React.Fragment key={entry.vital.label}>
+                                            {entryIdx > 0 && (
+                                                <div className="w-px h-6 bg-white/5 flex-shrink-0 mx-0.5" />
+                                            )}
+                                            <VitalButton
+                                                vital={entry.vital}
+                                                index={entry.index}
+                                                onClick={handleVitalClick}
+                                                standalone={false}
+                                            />
+                                        </React.Fragment>
+                                    ))}
                                 </div>
-                                <div className="flex flex-col items-center gap-0">
-                                    <div className="flex items-baseline gap-0.5">
-                                        <span className={cn("text-sm font-bold leading-none", vital.color)}>
-                                            {vital.current}
-                                        </span>
-                                        {vital.max !== undefined && vital.max > 0 && (
-                                            <span className="text-[10px] text-gray-500 leading-none">
-                                                /{vital.max}
-                                            </span>
-                                        )}
-                                    </div>
-                                    {vital.subLabel && (
-                                        <span className="text-[8px] text-gray-500 font-medium uppercase tracking-wider">
-                                            {vital.subLabel}
-                                        </span>
-                                    )}
-                                </div>
-                            </button>
-                        );
-                    })}
+                            )}
+                        </React.Fragment>
+                    ))}
                 </div>
             </div>
         </>
@@ -329,7 +492,7 @@ export default function CharacterVitalsBanner() {
             armor_subStats: armorSubStats,
             thresholds: character.damage_thresholds,
         };
-    }, [character, cardStates, getStatDetails, updateModifiers]);
+    }, [character, getStatDetails, updateModifiers]);
 
     // --- VITAL HANDLERS ---
     const handleHpIncrement = useCallback(() => {
@@ -439,7 +602,7 @@ export default function CharacterVitalsBanner() {
         onUpdateModifiers: handleUpdateArmorMods,
         subStats: vitalData.armor_subStats,
         isCriticalCondition: vitalData.armor_slots === 0 && vitalData.armorMax > 0,
-        isModified: vitalData.armorMax !== vitalData.armor_base,
+        isModified: false, // Match Character View - no modified border/color for Armor
         expectedValue: vitalData.armor_base,
     });
 
@@ -462,7 +625,7 @@ export default function CharacterVitalsBanner() {
         modifiers: vitalData.hp_modifiers as any,
         onUpdateModifiers: handleUpdateHPMods,
         isCriticalCondition: vitalData.hp_current === 0,
-        isModified: vitalData.hpMax !== vitalData.hp_base,
+        isModified: false, // Match Character View - no modified border/color for HP
         expectedValue: vitalData.hp_base,
     });
 
@@ -482,7 +645,7 @@ export default function CharacterVitalsBanner() {
         modifiers: vitalData.stress_modifiers as any,
         onUpdateModifiers: handleUpdateStressMods,
         isCriticalCondition: vitalData.stress_current >= vitalData.stressMax && vitalData.stressMax > 0,
-        isModified: vitalData.stressMax !== vitalData.stress_base,
+        isModified: false, // Match Character View - no modified border/color for Stress
         expectedValue: vitalData.stress_base,
     });
 
@@ -501,7 +664,7 @@ export default function CharacterVitalsBanner() {
         onDecrement: handleHopeDecrement,
         modifiers: vitalData.hope_modifiers as any,
         onUpdateModifiers: handleUpdateHopeMods,
-        isModified: vitalData.hopeMax !== vitalData.hope_base,
+        isModified: false, // Match Character View - no modified border/color for Hope
         expectedValue: vitalData.hope_base,
     });
 

@@ -28,6 +28,28 @@ export type VitalTrackType = 'mark-bad' | 'fill-up-bad' | 'fill-up-good';
 // Modifier source types align with ModifierSourceType from modifier-aggregator
 type ModifierSourceType = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
 
+/** Props for a secondary vital displayed alongside the primary */
+export interface SecondaryVitalProps {
+  label: string;
+  current: number;
+  max?: number;
+  trackType?: VitalTrackType;
+  icon: React.ElementType;
+  vitalId?: VitalId;
+  color: string;
+  strokeColor?: string;
+  onIncrement?: () => void;
+  onDecrement?: () => void;
+  onMarkAmount?: (amount: number) => void;
+  thresholds?: { minor: number, major: number, severe: number };
+  modifiers?: { id: string; name: string; value: number; source: ModifierSourceType; type?: string }[];
+  onUpdateModifiers?: (modifiers: { id: string; name: string; value: number; source: ModifierSourceType; type?: string }[]) => void;
+  subStats?: ModifierTab[];
+  isCriticalCondition?: boolean;
+  isModified?: boolean;
+  expectedValue?: number;
+}
+
 export interface MiniVitalTrayProps {
   /** Whether the tray is open */
   isOpen: boolean;
@@ -69,10 +91,13 @@ export interface MiniVitalTrayProps {
   isModified?: boolean;
   /** The expected base value for comparison */
   expectedValue?: number;
+  /** Optional secondary vital to display above the primary (e.g., Armor + HP together) */
+  secondaryVital?: SecondaryVitalProps;
 }
 
 /**
  * MiniVitalTray renders a full-width expandable tray using VitalCard.
+ * When a secondaryVital is provided, it renders two VitalCards stacked vertically.
  */
 export function MiniVitalTray({
   isOpen,
@@ -95,6 +120,7 @@ export function MiniVitalTray({
   isCriticalCondition,
   isModified,
   expectedValue,
+  secondaryVital,
 }: MiniVitalTrayProps) {
   // Close on Escape key
   useEffect(() => {
@@ -139,11 +165,40 @@ export function MiniVitalTray({
           {/* motion.div with layout here handles height changes when switching between vitals (e.g. Armor vs Evasion) */}
           <motion.div
             layout
-            className="px-3 pt-1 pb-6 overflow-hidden"
+            className="px-3 pt-1 pb-6 overflow-hidden flex flex-col gap-2"
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           >
+            {/* Secondary vital (rendered first = on top, e.g. Armor above HP) */}
+            {secondaryVital && (
+              <VitalCard
+                key={secondaryVital.label}
+                label={secondaryVital.label}
+                current={secondaryVital.current}
+                max={secondaryVital.max}
+                color={secondaryVital.color}
+                strokeColor={secondaryVital.strokeColor}
+                icon={secondaryVital.icon}
+                vitalId={secondaryVital.vitalId}
+                trackType={secondaryVital.trackType as any}
+                onIncrement={secondaryVital.onIncrement}
+                onDecrement={secondaryVital.onDecrement}
+                onMarkAmount={secondaryVital.onMarkAmount}
+                thresholds={secondaryVital.thresholds}
+                modifiers={secondaryVital.modifiers as any}
+                onUpdateModifiers={secondaryVital.onUpdateModifiers as any}
+                subStats={secondaryVital.subStats}
+                isCriticalCondition={secondaryVital.isCriticalCondition}
+                isModified={secondaryVital.isModified}
+                expectedValue={secondaryVital.expectedValue}
+                isNested={true}
+                isFlat={false}
+                disableCritColor={secondaryVital.label === 'Armor'}
+              />
+            )}
+
+            {/* Primary vital */}
             <VitalCard
-              key={label} // Ensure unique key per vital type to trigger fresh layout/content
+              key={label}
               label={label}
               current={current}
               max={max}

@@ -27,6 +27,7 @@ import clsx from 'clsx';
 import ModifierSheet, { ModifierTab } from '@/components/shared/modifier-sheet';
 import SRDInfoButton from '@/components/shared/srd-info-button';
 import { getValueColor, getPanelBorder, PANEL } from '@/lib/styles';
+import { Z_INDEX } from '@/constants/z-index';
 
 // Modifier source types align with ModifierSourceType from modifier-aggregator
 type ModifierSourceType = 'equipment' | 'domain_card' | 'user' | 'ancestry' | 'community' | 'class' | 'subclass' | 'system';
@@ -76,6 +77,7 @@ interface VitalCardProps {
   subStats?: ModifierTab[];
   isNested?: boolean;
   isFlat?: boolean;
+  showDamageCalculator?: boolean;
 }
 
 import Image from 'next/image';
@@ -84,15 +86,17 @@ import Image from 'next/image';
  * VISUAL THRESHOLDS COMPONENT
  * ----------------------------------------------------------------------------
  * Replicates the Daggerheart SRD visual style for damage thresholds.
- * For Hit Points, it uses the themed damage-thresholds.webp asset.
+ * For Hit Points, it uses the themed damage-thresholds.svg asset.
  * For other stats, it uses a simpler visual layout.
  */
 function VisualThresholds({
   thresholds,
-  label
+  label,
+  onMarkAmount
 }: {
   thresholds: { minor: number; major: number; severe: number };
   label: string;
+  onMarkAmount?: (amount: number) => void;
 }) {
   const isHP = label === 'Hit Points';
 
@@ -104,7 +108,7 @@ function VisualThresholds({
           style={{ height: 42, width: '100%', maxWidth: 300 }}
         >
           <Image
-            src="/assets/card/damage-thresholds.webp"
+            src="/assets/card/damage-thresholds.svg"
             alt="damage-thresholds"
             className="absolute inset-0 w-full h-full"
             width={300}
@@ -112,28 +116,43 @@ function VisualThresholds({
             style={{ objectFit: 'contain' }}
           />
 
-          <div className="z-10 flex flex-col justify-center text-center pb-1" style={{ width: '23%' }}>
-            <div className="text-[8px] font-bold text-gray-400 uppercase leading-none">Minor</div>
-            <div className="text-[6px] text-gray-400 font-medium leading-none mt-0.5">Mark 1 HP</div>
-          </div>
+          <button
+            onClick={() => onMarkAmount?.(1)}
+            disabled={!onMarkAmount}
+            className="group z-10 flex flex-col justify-center text-center cursor-pointer hover:bg-white/10 active:scale-95 rounded transition-all disabled:opacity-100 disabled:pointer-events-none disabled:cursor-default"
+            style={{ width: '23%' }}
+          >
+            <div className="text-[8px] font-bold text-gray-400 group-hover:text-white uppercase leading-none transition-colors">Minor</div>
+            <div className="text-[6px] text-gray-400 group-hover:text-gray-200 font-medium leading-none mt-0.5 transition-colors">Mark 1 HP</div>
+          </button>
 
-          <div className="z-10 text-center font-bold text-gray-400 text-sm pr-1" style={{ width: '15%' }}>
+          <div className="z-10 text-center font-bold text-gray-400 text-sm" style={{ width: '15%' }}>
             {thresholds.major}
           </div>
 
-          <div className="z-10 flex flex-col justify-center text-center pb-1" style={{ width: '24%' }}>
-            <div className="text-[8px] font-bold text-gray-400 uppercase leading-none">Major</div>
-            <div className="text-[6px] text-gray-400 font-medium leading-none mt-0.5">Mark 2 HP</div>
-          </div>
+          <button
+            onClick={() => onMarkAmount?.(2)}
+            disabled={!onMarkAmount}
+            className="group z-10 flex flex-col justify-center text-center cursor-pointer hover:bg-white/10 active:scale-95 rounded transition-all disabled:opacity-100 disabled:pointer-events-none disabled:cursor-default"
+            style={{ width: '24%' }}
+          >
+            <div className="text-[8px] font-bold text-gray-400 group-hover:text-white uppercase leading-none transition-colors">Major</div>
+            <div className="text-[6px] text-gray-400 group-hover:text-gray-200 font-medium leading-none mt-0.5 transition-colors">Mark 2 HP</div>
+          </button>
 
-          <div className="z-10 text-center font-bold text-gray-400 text-sm pr-1" style={{ width: '15%' }}>
+          <div className="z-10 text-center font-bold text-gray-400 text-sm" style={{ width: '15%' }}>
             {thresholds.severe}
           </div>
 
-          <div className="z-10 flex flex-col justify-center text-center pb-1" style={{ width: '23%' }}>
-            <div className="text-[8px] font-bold text-gray-400 uppercase leading-none">Severe</div>
-            <div className="text-[6px] text-gray-400 font-medium leading-none mt-0.5">Mark 3 HP</div>
-          </div>
+          <button
+            onClick={() => onMarkAmount?.(3)}
+            disabled={!onMarkAmount}
+            className="group z-10 flex flex-col justify-center text-center cursor-pointer hover:bg-white/10 active:scale-95 rounded transition-all disabled:opacity-100 disabled:pointer-events-none disabled:cursor-default"
+            style={{ width: '23%' }}
+          >
+            <div className="text-[8px] font-bold text-gray-400 group-hover:text-white uppercase leading-none transition-colors">Severe</div>
+            <div className="text-[6px] text-gray-400 group-hover:text-gray-200 font-medium leading-none mt-0.5 transition-colors">Mark 3 HP</div>
+          </button>
         </div>
       </div>
     );
@@ -165,7 +184,8 @@ const VitalCard = React.memo(function VitalCard({
   strokeColor,
   subStats,
   isNested = false,
-  isFlat = false
+  isFlat = false,
+  showDamageCalculator = false
 }: VitalCardProps) {
   const [showModifierSheet, setShowModifierSheet] = useState(false);
   const [damageInput, setDamageInput] = useState('');
@@ -265,26 +285,31 @@ const VitalCard = React.memo(function VitalCard({
             "p-1.5 sm:p-2 flex flex-col items-center justify-start gap-1 relative transition-all rounded-xl",
             !isFlat && "border",
             "w-full",
-            getPanelBorder({ isModified }),
+            getPanelBorder({ isModified: false }), // Match Vitals consistency
             className
           )}>
-          <div className="relative flex items-center justify-center w-full">
-            <div className={clsx("flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide", color)}>
-              <Icon size={12} />
-              {label}
-            </div>
+          <div
+            className="absolute top-1 right-1 flex items-center gap-0.5"
+            style={{ zIndex: Z_INDEX.DECORATIVE }}
+          >
             {onUpdateModifiers && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowModifierSheet(true);
                 }}
-                className="absolute right-0 text-gray-500 hover:text-gray-300 transition-colors"
+                className="p-0.5 text-gray-500 hover:text-gray-300 transition-colors rounded hover:bg-white/10"
                 aria-label={`Manage ${label} modifiers`}
               >
                 <AppIcons.ui.settings size={12} />
               </button>
             )}
+          </div>
+          <div className="flex items-center justify-center w-full">
+            <div className={clsx("flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide", color)}>
+              <Icon size={12} />
+              {label}
+            </div>
           </div>
           <div className="text-sm text-gray-400 italic my-2">Unarmored</div>
           {thresholds && (
@@ -318,29 +343,34 @@ const VitalCard = React.memo(function VitalCard({
           // Hide modified border for Evasion specifically
           getPanelBorder({
             isCritical: isCriticalCondition,
-            isModified: label === 'Evasion' ? false : isModified
+            isModified: false // Vitals in Character View do not show the modified border to reduce noise
           }),
           className
         )}>
-        <div className="relative flex items-center justify-center w-full">
+        {/* Header Buttons - Positioned in top-right like StatButton for consistency */}
+        <div
+          className="absolute top-1 right-1 flex items-center gap-0.5"
+          style={{ zIndex: Z_INDEX.DECORATIVE }}
+        >
+          {srdRuleKey && <SRDInfoButton ruleKey={srdRuleKey} size={12} title={label} />}
+          {onUpdateModifiers && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowModifierSheet(true);
+              }}
+              className="p-0.5 text-gray-500 hover:text-gray-300 transition-colors rounded hover:bg-white/10"
+              aria-label={`Manage ${label} modifiers`}
+            >
+              <AppIcons.ui.settings size={12} />
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center justify-center w-full">
           <div className={clsx("flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide", color)}>
             <Icon size={12} />
             {label}
-          </div>
-          <div className="absolute right-0 flex items-center gap-0.5">
-            {srdRuleKey && <SRDInfoButton ruleKey={srdRuleKey} size={12} title={label} />}
-            {onUpdateModifiers && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowModifierSheet(true);
-                }}
-                className="p-0.5 text-gray-500 hover:text-gray-300 transition-colors rounded hover:bg-white/10"
-                aria-label={`Manage ${label} modifiers`}
-              >
-                <AppIcons.ui.settings size={12} />
-              </button>
-            )}
           </div>
         </div>
 
@@ -400,11 +430,11 @@ const VitalCard = React.memo(function VitalCard({
         </div>
 
         {thresholds && (
-          <VisualThresholds thresholds={thresholds} label={label} />
+          <VisualThresholds thresholds={thresholds} label={label} onMarkAmount={onMarkAmount} />
         )}
 
         {/* Threshold-based damage calculator (HP only) */}
-        {thresholds && onMarkAmount && (
+        {showDamageCalculator && thresholds && onMarkAmount && (
           <div className="w-full flex items-center gap-1 mt-1">
             <input
               type="number"
@@ -443,7 +473,7 @@ const VitalCard = React.memo(function VitalCard({
             )}
           </div>
         )}
-      </div>
+      </div >
       {showModifierSheet && onUpdateModifiers && (
         <ModifierSheet
           isOpen={showModifierSheet}
@@ -454,7 +484,8 @@ const VitalCard = React.memo(function VitalCard({
           onUpdateModifiers={onUpdateModifiers}
           tabs={subStats}
         />
-      )}
+      )
+      }
     </>
   );
 }, (prevProps, nextProps) => {
@@ -470,6 +501,7 @@ const VitalCard = React.memo(function VitalCard({
   // Check state flags
   if (prevProps.isCriticalCondition !== nextProps.isCriticalCondition) return false;
   if (prevProps.isModified !== nextProps.isModified) return false;
+  if (prevProps.showDamageCalculator !== nextProps.showDamageCalculator) return false;
   if (prevProps.expectedValue !== nextProps.expectedValue) return false;
   if (prevProps.disableCritColor !== nextProps.disableCritColor) return false;
 
