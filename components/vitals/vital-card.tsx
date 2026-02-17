@@ -121,37 +121,37 @@ function VisualThresholds({
 
             {/* Rounded rectangle borders */}
             <rect x="-5" y="-4" width="110" height="54" rx="6" ry="6"
-              fill="none" stroke='#f6c928' strokeWidth="1" />
+              fill="none" stroke="var(--vital-hope)" strokeWidth="0" />
             <rect x="148" y="-4" width="110" height="54" rx="6" ry="6"
-              fill="none" stroke='#f6c928' strokeWidth="1" />
+              fill="none" stroke="var(--vital-hope)" strokeWidth="0" />
             <rect x="301" y="-4" width="110" height="54" rx="6" ry="6"
-              fill="none" stroke='#f6c928' strokeWidth="1" />
+              fill="none" stroke="var(--vital-hope)" strokeWidth="0" />
 
             {/* Labels — positioned at rectangle centers */}
-            <text x="50" y="21" textAnchor="middle" fill="#9ca3af" fontSize="14" fontWeight="bold" style={{ textTransform: 'uppercase' }}>Minor</text>
-            <text x="50" y="36" textAnchor="middle" fill="#9ca3af" fontSize="13" fontWeight="500">Mark 1 HP</text>
+            <text x="50" y="21" textAnchor="middle" fill="var(--color-gray-400)" fontSize="14" fontWeight="bold" style={{ textTransform: 'uppercase' }}>Minor</text>
+            <text x="50" y="36" textAnchor="middle" fill="var(--color-gray-400)" fontSize="13" fontWeight="500">Mark 1 HP</text>
 
-            <text x="203" y="21" textAnchor="middle" fill="#9ca3af" fontSize="14" fontWeight="bold" style={{ textTransform: 'uppercase' }}>Major</text>
-            <text x="203" y="36" textAnchor="middle" fill="#9ca3af" fontSize="13" fontWeight="500">Mark 2 HP</text>
+            <text x="203" y="21" textAnchor="middle" fill="var(--color-gray-400)" fontSize="14" fontWeight="bold" style={{ textTransform: 'uppercase' }}>Major</text>
+            <text x="203" y="36" textAnchor="middle" fill="var(--color-gray-400)" fontSize="13" fontWeight="500">Mark 2 HP</text>
 
-            <text x="356" y="21" textAnchor="middle" fill="#9ca3af" fontSize="14" fontWeight="bold" style={{ textTransform: 'uppercase' }}>Severe</text>
-            <text x="356" y="36" textAnchor="middle" fill="#9ca3af" fontSize="13" fontWeight="500">Mark 3 HP</text>
+            <text x="356" y="21" textAnchor="middle" fill="var(--color-gray-400)" fontSize="14" fontWeight="bold" style={{ textTransform: 'uppercase' }}>Severe</text>
+            <text x="356" y="36" textAnchor="middle" fill="var(--color-gray-400)" fontSize="13" fontWeight="500">Mark 3 HP</text>
 
             {/* Threshold numbers — positioned at gap centers */}
-            <text x="124" y="31" textAnchor="middle" fill="#9ca3af" fontSize="22" fontWeight="bold">{thresholds.major}</text>
-            <text x="279.5" y="31" textAnchor="middle" fill="#9ca3af" fontSize="22" fontWeight="bold">{thresholds.severe}</text>
+            <text x="124" y="31" textAnchor="middle" fill="var(--color-gray-400)" fontSize="22" fontWeight="bold">{thresholds.major}</text>
+            <text x="279.5" y="31" textAnchor="middle" fill="var(--color-gray-400)" fontSize="22" fontWeight="bold">{thresholds.severe}</text>
 
             {/* Click targets — invisible rects over each section */}
             {onMarkAmount && (
               <>
                 <rect x="-5" y="-4" width="110" height="54" rx="6" ry="6"
-                  fill="transparent" className="cursor-pointer hover:fill-white/10 active:fill-white/20 transition-colors" style={{ transition: 'fill 0.15s' }}
+                  fill="transparent" className="cursor-pointer hover:fill-red-500/10 active:fill-red-500/10 transition-colors" style={{ transition: 'fill 0.15s' }}
                   onClick={() => onMarkAmount(1)} />
                 <rect x="148" y="-4" width="110" height="54" rx="6" ry="6"
-                  fill="transparent" className="cursor-pointer hover:fill-white/10 active:fill-white/20 transition-colors" style={{ transition: 'fill 0.15s' }}
+                  fill="transparent" className="cursor-pointer hover:fill-red-500/10 active:fill-red-500/30 transition-colors" style={{ transition: 'fill 0.15s' }}
                   onClick={() => onMarkAmount(2)} />
                 <rect x="301" y="-4" width="110" height="54" rx="6" ry="6"
-                  fill="transparent" className="cursor-pointer hover:fill-white/10 active:fill-white/20 transition-colors" style={{ transition: 'fill 0.15s' }}
+                  fill="transparent" className="cursor-pointer hover:fill-red-500/10 active:fill-red-500/40 transition-colors" style={{ transition: 'fill 0.15s' }}
                   onClick={() => onMarkAmount(3)} />
               </>
             )}
