@@ -15,6 +15,7 @@ import { Character, CharacterCard, CharacterInventoryItem, LibraryItem, Homebrew
 import { calculateBaseEvasion } from '@/lib/utils';
 import { getStatModifiers } from '@/lib/modifier-aggregator';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
+import { guardImpersonation } from '@/lib/impersonation-guard';
 import { CharacterStore } from '@/types/store';
 import ModifierService from '@/lib/modifier-service';
 import { Modifier } from '@/types/modifiers';
@@ -66,6 +67,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     // ... (existing code)
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -90,6 +92,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     // ... (existing code)
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -114,6 +117,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     // ... (existing code)
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -138,6 +142,7 @@ export const createCharacterSlice: StateCreator<CharacterStore, [], [], Characte
     // ... (existing code)
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 

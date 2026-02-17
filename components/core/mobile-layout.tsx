@@ -24,6 +24,7 @@ import DiceOverlay from '../dice/dice-overlay';
 import MoreMenu from './more-menu';
 import UserMenu from './user-menu';
 import MiniVitalsBanner from '../vitals/mini-vitals-banner';
+import ImpersonationBanner from '../shared/impersonation-banner';
 import HeaderMenuButton from './header-menu-button';
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
@@ -39,7 +40,7 @@ interface NavButtonProps {
 }
 
 export default function MobileLayout({ children }: { children: React.ReactNode }) {
-  const { activeTab, setActiveTab, openDiceOverlay, isDiceOverlayOpen, openMoreMenu, isMoreMenuOpen, character, campaigns, activeCampaign } = useCharacterStore();
+  const { activeTab, setActiveTab, openDiceOverlay, isDiceOverlayOpen, openMoreMenu, isMoreMenuOpen, character, campaigns, activeCampaign, impersonation } = useCharacterStore();
   const router = useRouter();
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
@@ -94,6 +95,9 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="flex flex-col h-[100dvh] bg-dagger-dark text-white overflow-hidden">
+      {/* Impersonation Banner */}
+      <ImpersonationBanner />
+
       {/* Header with context switcher */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-dagger-panel min-w-0">
         <div className="relative min-w-0 flex-1" ref={contextMenuRef}>
@@ -115,7 +119,8 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
               role="menu"
               aria-orientation="vertical"
             >
-              {/* Characters Section */}
+              {/* Characters Section (hidden during impersonation) */}
+              {!impersonation && (
               <div className="py-1">
                 <button
                   onClick={() => handleNavigateTo('/client/characters')}
@@ -135,10 +140,12 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
                   </div>
                 </button>
               </div>
+              )}
 
-              <div className="border-t border-white/10" />
+              {!impersonation && <div className="border-t border-white/10" />}
 
-              {/* Campaigns Section */}
+              {/* Campaigns Section (hidden during impersonation) */}
+              {!impersonation && (
               <div className="py-1">
                 <button
                   onClick={() => handleNavigateTo('/campaigns')}
@@ -187,6 +194,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
                   </div>
                 )}
               </div>
+              )}
             </div>
           )}
         </div>

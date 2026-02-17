@@ -39,6 +39,15 @@ import type { CampaignActivity, CampaignActivityInsert } from '@/types/activity'
 import { toast } from 'sonner';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
 
+export interface ImpersonationState {
+    originalCharacterId: string | null;
+    originalCharacterData: Character | null;
+    characterId: string;
+    characterName: string;
+    playerName: string;
+    campaignId: string;
+}
+
 export interface CampaignSlice {
     // State
     campaigns: Campaign[];
@@ -46,6 +55,11 @@ export interface CampaignSlice {
     campaignMembers: EnrichedCampaignMember[];
     isLoadingCampaigns: boolean;
     campaignError: string | null;
+
+    // Impersonation state
+    impersonation: ImpersonationState | null;
+    startImpersonation: (character: Character, playerName: string) => void;
+    stopImpersonation: () => Promise<void>;
 
     // Phase 2: GM Screen state
     partyCharacters: Character[];
@@ -154,6 +168,45 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     campaignMembers: [],
     isLoadingCampaigns: false,
     campaignError: null,
+
+    // Impersonation state
+    impersonation: null,
+
+    startImpersonation: (character: Character, playerName: string) => {
+        const state = get() as CharacterStore;
+        const activeCampaign = state.activeCampaign;
+        if (!activeCampaign) {
+            toast.error('No active campaign');
+            return;
+        }
+
+        // Snapshot the GM's current character before replacing
+        const originalCharacter = state.character;
+
+        set({
+            impersonation: {
+                originalCharacterId: originalCharacter?.id ?? null,
+                originalCharacterData: originalCharacter,
+                characterId: character.id,
+                characterName: character.name,
+                playerName,
+                campaignId: activeCampaign.id,
+            },
+            character: character,
+        });
+    },
+
+    stopImpersonation: async () => {
+        const state = get() as CharacterStore;
+        const impersonation = state.impersonation;
+        if (!impersonation) return;
+
+        // Restore the GM's original character
+        set({
+            character: impersonation.originalCharacterData,
+            impersonation: null,
+        });
+    },
 
     // Phase 2: GM Screen state
     partyCharacters: [],

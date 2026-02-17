@@ -23,6 +23,7 @@ import { Character } from '@/types/character';
 import { useCharacterStore } from '@/store/character-store';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Project } from '@/types/downtime';
 import { ProjectFormModal } from '@/components/views/downtime/project-modals';
 import { getIconByName, VitalId, AppIcons } from '@/lib/icon-utils';
@@ -59,7 +60,10 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
         deleteProject: gmDeleteProject,
         createProject: gmCreateProject,
         vitalIcons,
+        startImpersonation,
+        activeCampaign,
     } = useCharacterStore();
+    const router = useRouter();
     const isUnlocked = unlockedVitalsCards.has(character.id);
     const isProjectsUnlocked = unlockedProjectSections.has(character.id);
 
@@ -343,22 +347,39 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
                         {ancestryDisplay} {classDisplay} (Lvl {character.level})
                     </p>
                 </div>
-                <button
-                    onClick={() => toggleVitalsLock(character.id)}
-                    className={clsx(
-                        'p-2 rounded-lg transition-colors flex-shrink-0',
-                        isUnlocked
-                            ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                            : 'bg-white/5 text-gray-500 hover:bg-white/10'
-                    )}
-                    aria-label={isUnlocked ? 'Lock vitals card' : 'Unlock vitals card'}
-                >
-                    {isUnlocked ? (
-                        <AppIcons.ui.unlock className="w-4 h-4" />
-                    ) : (
-                        <AppIcons.ui.lock className="w-4 h-4" />
-                    )}
-                </button>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                        onClick={() => {
+                            const member = activeCampaign?.members?.find(
+                                (m) => m.character_id === character.id
+                            );
+                            const playerName = member?.nickname || member?.profile?.username || 'Player';
+                            startImpersonation(character, playerName);
+                            router.push('/client');
+                        }}
+                        className="p-2 rounded-lg transition-colors bg-white/5 text-gray-500 hover:bg-amber-500/20 hover:text-amber-400"
+                        aria-label="View as player"
+                        title="View full character sheet"
+                    >
+                        <AppIcons.campaign.impersonate className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={() => toggleVitalsLock(character.id)}
+                        className={clsx(
+                            'p-2 rounded-lg transition-colors',
+                            isUnlocked
+                                ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                                : 'bg-white/5 text-gray-500 hover:bg-white/10'
+                        )}
+                        aria-label={isUnlocked ? 'Lock vitals card' : 'Unlock vitals card'}
+                    >
+                        {isUnlocked ? (
+                            <AppIcons.ui.unlock className="w-4 h-4" />
+                        ) : (
+                            <AppIcons.ui.lock className="w-4 h-4" />
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Vitals Grid - 2x2 layout */}

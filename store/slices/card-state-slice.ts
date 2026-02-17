@@ -12,6 +12,7 @@
 import { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
+import { guardImpersonation } from '@/lib/impersonation-guard';
 import type { CharacterStore } from '@/types/store';
 import type { Frequency } from '@/types/cards';
 
@@ -68,6 +69,7 @@ export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStat
   setCardTokens: async (cardName: string, tokens: number) => {
     const state = get() as CharacterStore;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
     const currentCardStates = state.cardStates || {};
@@ -111,6 +113,7 @@ export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStat
   markCardUsed: async (cardName: string, frequency: Frequency) => {
     const state = get() as CharacterStore;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
     const currentCardStates = state.cardStates || {};
@@ -148,6 +151,7 @@ export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStat
   resetCardUsed: async (cardName: string, frequency: Frequency) => {
     const state = get() as CharacterStore;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
     const currentCardStates = state.cardStates || {};
@@ -185,6 +189,7 @@ export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStat
   resetAllCardsByFrequency: async (frequency: Frequency) => {
     const state = get() as CharacterStore;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
     const currentCardStates = state.cardStates || {};
@@ -230,6 +235,7 @@ export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStat
   toggleCardActive: async (cardName: string) => {
     const state = get() as CharacterStore;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
     const currentCardStates = state.cardStates || {};
@@ -257,6 +263,7 @@ export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStat
   setCardNote: async (cardName: string, noteKey: string, text: string) => {
     const state = get() as CharacterStore;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
     const currentCardStates = state.cardStates || {};
@@ -283,6 +290,7 @@ export const createCardStateSlice: StateCreator<CharacterStore, [], [], CardStat
   toggleModifierActive: async (cardName: string, modifierKey: string) => {
     const state = get() as CharacterStore;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
     const currentCardStates = state.cardStates || {};

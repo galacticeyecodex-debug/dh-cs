@@ -61,11 +61,15 @@ export default function DaggerheartApp({ clientUser }: { clientUser: AppUser | n
       if (clientUser) {
         setUser(clientUser);
 
-        // Check if we already have a character loaded (from character selection page)
+        // Check if we already have a character loaded (from character selection page or impersonation)
         const currentCharacter = useCharacterStore.getState().character;
         const selectedId = useCharacterStore.getState().selectedCharacterId;
+        const isImpersonating = useCharacterStore.getState().impersonation !== null;
 
-        if (currentCharacter && selectedId && currentCharacter.id === selectedId) {
+        if (isImpersonating && currentCharacter) {
+          // GM is impersonating a player character - don't re-fetch
+          setInitialLoad(false);
+        } else if (currentCharacter && selectedId && currentCharacter.id === selectedId) {
           // Character was already loaded by the selection page - don't re-fetch
           setInitialLoad(false);
         } else {

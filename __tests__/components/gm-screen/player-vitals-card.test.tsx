@@ -21,10 +21,21 @@ const mockFetchProjectsForCharacter = vi.fn().mockResolvedValue(undefined);
 const mockGmSetProjectProgress = vi.fn().mockResolvedValue(undefined);
 const mockGmDeleteProject = vi.fn().mockResolvedValue(undefined);
 const mockGmCreateProject = vi.fn().mockResolvedValue(undefined);
+const mockStartImpersonation = vi.fn();
+const mockRouterPush = vi.fn();
 
 let mockUnlockedCards = new Set<string>();
 let mockUnlockedProjectSections = new Set<string>();
 let mockCharacterProjects: Record<string, any[]> = {};
+
+vi.mock('next/navigation', () => ({
+    useRouter: () => ({
+        push: mockRouterPush,
+        replace: vi.fn(),
+        back: vi.fn(),
+        prefetch: vi.fn(),
+    }),
+}));
 
 vi.mock('@/store/character-store', () => ({
     useCharacterStore: () => ({
@@ -39,6 +50,8 @@ vi.mock('@/store/character-store', () => ({
         deleteProject: mockGmDeleteProject,
         gmAdjustVital: mockGmAdjustVital,
         vitalIcons: {},
+        startImpersonation: mockStartImpersonation,
+        activeCampaign: { id: 'campaign-1', members: [] },
     }),
 }));
 

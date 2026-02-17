@@ -133,6 +133,7 @@ import {
     Frown,
     Meh,
     Smile,
+    ScanEye,
     type LucideIcon
 } from 'lucide-react';
 
@@ -258,6 +259,7 @@ export {
     Frown,
     Meh,
     Smile,
+    ScanEye,
     type LucideIcon
 };
 
@@ -317,6 +319,7 @@ export const ICON_MAP: Record<string, LucideIcon> = {
     'Sliders': Sliders,
     'Copy': Copy,
     'ExternalLink': ExternalLink,
+    'ScanEye': ScanEye,
     'Box': Box,
     'Monitor': Monitor,
     'Code': Code2,
@@ -464,6 +467,7 @@ export const AppIcons = {
         party: Users,
         player: User,
         companion: PawPrint,
+        impersonate: ScanEye,
         invite: UserPlus,
         kick: UserMinus,
         leave: LogOut,

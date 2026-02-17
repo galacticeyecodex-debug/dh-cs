@@ -13,6 +13,7 @@ import { dataService } from '@/lib/data-service';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
 import { LibraryItem, CharacterCard, CharacterInventoryItem, HomebrewItem } from '@/types/character';
 import { toast } from 'sonner';
+import { guardImpersonation } from '@/lib/impersonation-guard';
 import { CharacterStore } from '@/types/store';
 
 export interface InventorySlice {
@@ -34,6 +35,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
   moveCard: async (cardId, destination) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const cards = [...(state.character.character_cards || [])];
     const cardIndex = cards.findIndex((c: any) => c.id === cardId);
@@ -74,6 +76,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
   addCardToCollection: async (item) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     try {
       // CRITICAL: Check if loadout has space (max 5 cards)
@@ -102,6 +105,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
   removeCard: async (cardId) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     try {
       await dataService.card.remove(cardId);
@@ -123,6 +127,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
   updateCardImage: async (cardId, imageUrl, imageType = 'artwork', position) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const cards = [...(state.character.character_cards || [])];
     const cardIndex = cards.findIndex((c: any) => c.id === cardId);
@@ -176,6 +181,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
   updateCardImagePosition: async (cardId, position) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const cards = [...(state.character.character_cards || [])];
     const cardIndex = cards.findIndex((c: any) => c.id === cardId);
@@ -215,6 +221,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
   addItemToInventory: async (item: LibraryItem) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     // Check if this is a homebrew item (ID starts with 'homebrew-')
     const isHomebrew = item.id.startsWith('homebrew-');
@@ -257,6 +264,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
   equipItem: async (itemId, slot) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const inventory = [...(state.character.character_inventory || [])];
     const itemIndex = inventory.findIndex((i: any) => i.id === itemId);
@@ -320,6 +328,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
   deleteItemFromInventory: async (inventoryItemId) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     await withOptimisticUpdate(
       () => {
@@ -349,6 +358,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
   useConsumable: async (inventoryItemId) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const inventory = [...(state.character.character_inventory || [])];
     const itemIndex = inventory.findIndex((i: any) => i.id === inventoryItemId);
@@ -514,6 +524,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
   updateInventoryItemImage: async (itemId, imageUrl, position) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const inventory = [...(state.character.character_inventory || [])];
     const itemIndex = inventory.findIndex((i: any) => i.id === itemId);
@@ -567,6 +578,7 @@ export const createInventorySlice: StateCreator<CharacterStore, [], [], Inventor
   updateInventoryItemImagePosition: async (itemId, position) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const inventory = [...(state.character.character_inventory || [])];
     const itemIndex = inventory.findIndex((i: any) => i.id === itemId);

@@ -19,6 +19,7 @@ import {
     getMovesForRestType,
 } from '@/types/downtime';
 import { dataService } from '@/lib/data-service';
+import { guardImpersonation } from '@/lib/impersonation-guard';
 
 export interface DowntimeSlice {
     // Rest state
@@ -122,8 +123,10 @@ export const createDowntimeSlice: StateCreator<
     },
 
     createProject: async (input: CreateProjectInput) => {
-        const { character, fetchProjects } = get();
+        const state = get();
+        const { character, fetchProjects } = state;
         if (!character?.id) return null;
+        if (guardImpersonation(state)) return null;
 
         try {
             const data = await dataService.character.createCharacterProject(character.id, input);
@@ -138,7 +141,9 @@ export const createDowntimeSlice: StateCreator<
     },
 
     advanceProject: async (projectId: string, segments: number = 1) => {
-        const { projects, fetchProjects } = get();
+        const state = get();
+        if (guardImpersonation(state)) return;
+        const { projects, fetchProjects } = state;
         const project = projects.find(p => p.id === projectId);
         if (!project) return;
 
@@ -164,6 +169,7 @@ export const createDowntimeSlice: StateCreator<
     },
 
     setProjectProgress: async (projectId: string, progress: number) => {
+        if (guardImpersonation(get())) return;
         const { projects, fetchProjects } = get();
         const project = projects.find(p => p.id === projectId);
         if (!project) return;
@@ -190,6 +196,7 @@ export const createDowntimeSlice: StateCreator<
     },
 
     completeProject: async (projectId: string) => {
+        if (guardImpersonation(get())) return;
         const { fetchProjects } = get();
 
         try {
@@ -206,6 +213,7 @@ export const createDowntimeSlice: StateCreator<
     },
 
     updateProject: async (projectId: string, updates: Partial<CreateProjectInput>) => {
+        if (guardImpersonation(get())) return;
         const { fetchProjects } = get();
 
         try {
@@ -223,6 +231,7 @@ export const createDowntimeSlice: StateCreator<
     },
 
     deleteProject: async (projectId: string) => {
+        if (guardImpersonation(get())) return;
         const { fetchProjects } = get();
 
         try {

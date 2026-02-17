@@ -11,6 +11,7 @@
 import { StateCreator } from 'zustand';
 import { dataService } from '@/lib/data-service';
 import { withOptimisticUpdate } from '@/lib/state-helpers';
+import { guardImpersonation } from '@/lib/impersonation-guard';
 import { Experience, RangerCompanion, SeraphPrayerDice, BardRallyDice, GuardianUnstoppable, WizardStrangePatterns, DruidBeastform, RangerFocus, WarriorSlayerDice, SorcererElement, DruidElementalIncarnation } from '@/types/character';
 import { CharacterStore } from '@/types/store';
 
@@ -40,6 +41,25 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateVitals: async (type, value) => {
     const state = get() as any;
     if (!state.character) return;
+
+    // Route through GM pathway when impersonating
+    if (state.impersonation) {
+      const vitalTypeMap: Record<string, 'hp' | 'stress' | 'armor'> = {
+        hit_points_current: 'hp',
+        stress_current: 'stress',
+        armor_slots: 'armor',
+      };
+      const vitalType = vitalTypeMap[type];
+      if (vitalType) {
+        await state.gmAdjustVital(state.character.id, vitalType, value);
+        // Sync local character state
+        const updatedVitals = { ...state.character.vitals, [type]: value };
+        set((s: any) => ({
+          character: s.character ? { ...s.character, vitals: updatedVitals } : null,
+        }));
+      }
+      return;
+    }
 
     const newVitals = { ...state.character.vitals };
     const previousValue = newVitals[type]; // Capture previous value before change
@@ -109,6 +129,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateGold: async (denomination, value) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const newValue = Math.max(0, value); // Ensure no negative gold
     const newGold = { ...state.character.gold, [denomination]: newValue };
@@ -135,6 +156,15 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
     const state = get() as any;
     if (!state.character) return;
 
+    // Route through GM pathway when impersonating
+    if (state.impersonation) {
+      await state.gmAdjustVital(state.character.id, 'hope', value);
+      set((s: any) => ({
+        character: s.character ? { ...s.character, hope: value } : null,
+      }));
+      return;
+    }
+
     const newHope = Math.min(6, Math.max(0, value)); // Clamp between 0 and 6
     const characterId = state.character.id;
 
@@ -158,6 +188,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateEvasion: async (value) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     // Evasion can theoretically be negative (though unlikely), but let's clamp to 0 for sanity?
     // Daggerheart doesn't explicitly forbid negative, but 0 is a safe floor.
@@ -184,6 +215,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateModifiers: async (stat, modifiers) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     // Clone existing modifiers object or create new
     const currentModifiers = { ...(state.character.modifiers || {}) };
@@ -215,6 +247,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateExperiences: async (experiences) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -238,6 +271,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateCompanion: async (companion) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -261,6 +295,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updatePrayerDice: async (prayerDice) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -284,6 +319,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateBardRallyDice: async (rallyDice: BardRallyDice) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -307,6 +343,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateGuardianUnstoppable: async (unstoppable: GuardianUnstoppable) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -330,6 +367,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateWizardStrangePatterns: async (patterns: WizardStrangePatterns) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -353,6 +391,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateDruidBeastform: async (data: DruidBeastform) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -376,6 +415,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateRangerFocus: async (data: RangerFocus) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -399,6 +439,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateWarriorSlayerDice: async (slayerDice: WarriorSlayerDice) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -422,6 +463,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateSorcererElement: async (element: SorcererElement) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
@@ -445,6 +487,7 @@ export const createVitalsSlice: StateCreator<CharacterStore, [], [], VitalsSlice
   updateDruidElementalIncarnation: async (data: DruidElementalIncarnation) => {
     const state = get() as any;
     if (!state.character) return;
+    if (guardImpersonation(state)) return;
 
     const characterId = state.character.id;
 
