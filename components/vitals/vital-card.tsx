@@ -80,7 +80,7 @@ interface VitalCardProps {
   showDamageCalculator?: boolean;
 }
 
-import Image from 'next/image';
+
 
 /**
  * VISUAL THRESHOLDS COMPONENT
@@ -107,52 +107,55 @@ function VisualThresholds({
           className="relative flex items-center mx-auto"
           style={{ height: 42, width: '100%', maxWidth: 300 }}
         >
-          <Image
-            src="/assets/card/damage-thresholds.svg"
-            alt="damage-thresholds"
-            className="absolute inset-0 w-full h-full"
-            width={300}
-            height={42}
-            style={{ objectFit: 'contain' }}
-          />
-
-          <button
-            onClick={() => onMarkAmount?.(1)}
-            disabled={!onMarkAmount}
-            className="group z-10 flex flex-col justify-center text-center cursor-pointer hover:bg-white/10 active:scale-95 rounded transition-all disabled:opacity-100 disabled:pointer-events-none disabled:cursor-default"
-            style={{ width: '23%' }}
+          <svg
+            viewBox="-8 -8 421 62"
+            className="w-full h-full"
+            preserveAspectRatio="xMidYMid meet"
           >
-            <div className="text-[8px] font-bold text-gray-400 group-hover:text-white uppercase leading-none transition-colors">Minor</div>
-            <div className="text-[6px] text-gray-400 group-hover:text-gray-200 font-medium leading-none mt-0.5 transition-colors">Mark 1 HP</div>
-          </button>
+            {/* Original artwork */}
+            <g transform="translate(0,46) scale(0.1,-0.1)" fill="rgba(255,255,255, 0.05)" stroke="none">
+              <path d="M7 453 c-13 -12 -7 -81 8 -93 22 -18 22 -242 0 -260 -11 -9 -15 -27 -13 -54 3 -40 4 -41 44 -44 27 -2 45 2 54 13 11 13 62 15 395 15 333 0 384 -2 395 -15 9 -11 27 -15 54 -13 38 3 41 5 44 36 l3 32 269 0 269 0 3 -32 c3 -31 6 -33 44 -36 27 -2 45 2 54 13 11 13 62 15 395 15 333 0 384 -2 395 -15 9 -11 27 -15 54 -13 38 3 41 5 44 36 l3 32 269 0 269 0 3 -32 c3 -31 6 -33 44 -36 27 -2 45 2 54 13 11 13 62 15 395 15 333 0 384 -2 395 -15 9 -11 27 -15 54 -13 40 3 41 4 44 44 2 27 -2 45 -13 54 -22 18 -22 242 0 260 11 9 15 27 13 54 -3 40 -4 41 -44 44 -27 2 -45 -2 -54 -13 -11 -13 -62 -15 -395 -15 -333 0 -384 2 -395 15 -9 11 -27 15 -54 13 -38 -3 -41 -5 -44 -35 l-3 -33 -269 0 -269 0 -3 33 c-3 30 -6 32 -44 35 -27 2 -45 -2 -54 -13 -11 -13 -62 -15 -395 -15 -333 0 -384 2 -395 15 -9 11 -27 15 -54 13 -38 -3 -41 -5 -44 -35 l-3 -33 -269 0 -269 0 -3 33 c-3 30 -6 32 -44 35 -27 2 -45 -2 -54 -13 -19 -22 -771 -23 -790 0 -12 15 -81 21 -93 8z m1598 -153 l69 -70 -69 -70 -69 -70 -276 0 c-201 0 -279 3 -288 12 -17 17 -17 239 0 256 9 9 87 12 288 12 l276 0 69 -70z m1530 0 l69 -70 -69 -70 -69 -70 -276 0 c-201 0 -279 3 -288 12 -8 8 -12 51 -12 128 0 77 4 120 12 128 9 9 87 12 288 12 l276 0 69 -70z" />
+              <path d="M1550 230 l0 -65 32 33 33 32 -33 32 -32 33 0 -65z" />
+              <path d="M3080 230 l0 -65 32 33 33 32 -33 32 -32 33 0 -65z" />
+            </g>
 
-          <div className="z-10 text-center font-bold text-gray-400 text-sm" style={{ width: '15%' }}>
-            {thresholds.major}
-          </div>
+            {/* Rounded rectangle borders */}
+            <rect x="-5" y="-4" width="110" height="54" rx="6" ry="6"
+              fill="none" stroke='#f6c928' strokeWidth="1" />
+            <rect x="148" y="-4" width="110" height="54" rx="6" ry="6"
+              fill="none" stroke='#f6c928' strokeWidth="1" />
+            <rect x="301" y="-4" width="110" height="54" rx="6" ry="6"
+              fill="none" stroke='#f6c928' strokeWidth="1" />
 
-          <button
-            onClick={() => onMarkAmount?.(2)}
-            disabled={!onMarkAmount}
-            className="group z-10 flex flex-col justify-center text-center cursor-pointer hover:bg-white/10 active:scale-95 rounded transition-all disabled:opacity-100 disabled:pointer-events-none disabled:cursor-default"
-            style={{ width: '24%' }}
-          >
-            <div className="text-[8px] font-bold text-gray-400 group-hover:text-white uppercase leading-none transition-colors">Major</div>
-            <div className="text-[6px] text-gray-400 group-hover:text-gray-200 font-medium leading-none mt-0.5 transition-colors">Mark 2 HP</div>
-          </button>
+            {/* Labels — positioned at rectangle centers */}
+            <text x="50" y="21" textAnchor="middle" fill="#9ca3af" fontSize="14" fontWeight="bold" style={{ textTransform: 'uppercase' }}>Minor</text>
+            <text x="50" y="36" textAnchor="middle" fill="#9ca3af" fontSize="13" fontWeight="500">Mark 1 HP</text>
 
-          <div className="z-10 text-center font-bold text-gray-400 text-sm" style={{ width: '15%' }}>
-            {thresholds.severe}
-          </div>
+            <text x="203" y="21" textAnchor="middle" fill="#9ca3af" fontSize="14" fontWeight="bold" style={{ textTransform: 'uppercase' }}>Major</text>
+            <text x="203" y="36" textAnchor="middle" fill="#9ca3af" fontSize="13" fontWeight="500">Mark 2 HP</text>
 
-          <button
-            onClick={() => onMarkAmount?.(3)}
-            disabled={!onMarkAmount}
-            className="group z-10 flex flex-col justify-center text-center cursor-pointer hover:bg-white/10 active:scale-95 rounded transition-all disabled:opacity-100 disabled:pointer-events-none disabled:cursor-default"
-            style={{ width: '23%' }}
-          >
-            <div className="text-[8px] font-bold text-gray-400 group-hover:text-white uppercase leading-none transition-colors">Severe</div>
-            <div className="text-[6px] text-gray-400 group-hover:text-gray-200 font-medium leading-none mt-0.5 transition-colors">Mark 3 HP</div>
-          </button>
+            <text x="356" y="21" textAnchor="middle" fill="#9ca3af" fontSize="14" fontWeight="bold" style={{ textTransform: 'uppercase' }}>Severe</text>
+            <text x="356" y="36" textAnchor="middle" fill="#9ca3af" fontSize="13" fontWeight="500">Mark 3 HP</text>
+
+            {/* Threshold numbers — positioned at gap centers */}
+            <text x="124" y="31" textAnchor="middle" fill="#9ca3af" fontSize="22" fontWeight="bold">{thresholds.major}</text>
+            <text x="279.5" y="31" textAnchor="middle" fill="#9ca3af" fontSize="22" fontWeight="bold">{thresholds.severe}</text>
+
+            {/* Click targets — invisible rects over each section */}
+            {onMarkAmount && (
+              <>
+                <rect x="-5" y="-4" width="110" height="54" rx="6" ry="6"
+                  fill="transparent" className="cursor-pointer hover:fill-white/10 active:fill-white/20 transition-colors" style={{ transition: 'fill 0.15s' }}
+                  onClick={() => onMarkAmount(1)} />
+                <rect x="148" y="-4" width="110" height="54" rx="6" ry="6"
+                  fill="transparent" className="cursor-pointer hover:fill-white/10 active:fill-white/20 transition-colors" style={{ transition: 'fill 0.15s' }}
+                  onClick={() => onMarkAmount(2)} />
+                <rect x="301" y="-4" width="110" height="54" rx="6" ry="6"
+                  fill="transparent" className="cursor-pointer hover:fill-white/10 active:fill-white/20 transition-colors" style={{ transition: 'fill 0.15s' }}
+                  onClick={() => onMarkAmount(3)} />
+              </>
+            )}
+          </svg>
         </div>
       </div>
     );
