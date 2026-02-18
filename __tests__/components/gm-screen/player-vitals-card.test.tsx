@@ -21,7 +21,7 @@ const mockFetchProjectsForCharacter = vi.fn().mockResolvedValue(undefined);
 const mockGmSetProjectProgress = vi.fn().mockResolvedValue(undefined);
 const mockGmDeleteProject = vi.fn().mockResolvedValue(undefined);
 const mockGmCreateProject = vi.fn().mockResolvedValue(undefined);
-const mockStartImpersonation = vi.fn();
+const mockStartImpersonation = vi.fn().mockResolvedValue(undefined);
 const mockRouterPush = vi.fn();
 
 let mockUnlockedCards = new Set<string>();

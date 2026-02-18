@@ -28,6 +28,7 @@ vi.mock('@/lib/data-service', () => ({
         },
         character: {
             update: vi.fn().mockResolvedValue(undefined),
+            getById: vi.fn().mockResolvedValue(null),
         },
     },
 }));
@@ -173,11 +174,11 @@ describe('GM Character Impersonation', () => {
     });
 
     describe('startImpersonation', () => {
-        it('should save the original character and inject the player character', () => {
+        it('should save the original character and inject the player character', async () => {
             const store = useCharacterStore.getState();
             const playerChar = createPlayerCharacter();
 
-            store.startImpersonation(playerChar, 'TestPlayer');
+            await store.startImpersonation(playerChar, 'TestPlayer');
 
             const state = useCharacterStore.getState();
             expect(state.impersonation).not.toBeNull();
@@ -190,13 +191,43 @@ describe('GM Character Impersonation', () => {
             expect(state.character!.name).toBe('Player Character');
         });
 
-        it('should not start impersonation without an active campaign', () => {
+        it('should fetch enriched character via getById', async () => {
+            const store = useCharacterStore.getState();
+            const playerChar = createPlayerCharacter();
+            const enrichedChar = createPlayerCharacter();
+            enrichedChar.character_cards = [{ id: 'card-1', card_id: 'lib-1' }] as any;
+            enrichedChar.class_data = { id: 'class-test', name: 'Test Class' } as any;
+
+            mockDataService.character.getById.mockResolvedValueOnce(enrichedChar);
+
+            await store.startImpersonation(playerChar, 'TestPlayer');
+
+            expect(mockDataService.character.getById).toHaveBeenCalledWith('player-char-1');
+            const state = useCharacterStore.getState();
+            expect(state.character!.character_cards).toHaveLength(1);
+            expect(state.character!.class_data).toBeDefined();
+        });
+
+        it('should fall back to passed-in character if getById fails', async () => {
+            const store = useCharacterStore.getState();
+            const playerChar = createPlayerCharacter();
+
+            mockDataService.character.getById.mockRejectedValueOnce(new Error('Network error'));
+
+            await store.startImpersonation(playerChar, 'TestPlayer');
+
+            const state = useCharacterStore.getState();
+            expect(state.character!.id).toBe('player-char-1');
+            expect(state.impersonation).not.toBeNull();
+        });
+
+        it('should not start impersonation without an active campaign', async () => {
             useCharacterStore.setState({ activeCampaign: null });
 
             const store = useCharacterStore.getState();
             const playerChar = createPlayerCharacter();
 
-            store.startImpersonation(playerChar, 'TestPlayer');
+            await store.startImpersonation(playerChar, 'TestPlayer');
 
             const state = useCharacterStore.getState();
             expect(state.impersonation).toBeNull();
@@ -209,7 +240,7 @@ describe('GM Character Impersonation', () => {
             const store = useCharacterStore.getState();
             const playerChar = createPlayerCharacter();
 
-            store.startImpersonation(playerChar, 'TestPlayer');
+            await store.startImpersonation(playerChar, 'TestPlayer');
             expect(useCharacterStore.getState().character!.id).toBe('player-char-1');
 
             await useCharacterStore.getState().stopImpersonation();
@@ -242,7 +273,7 @@ describe('GM Character Impersonation', () => {
             const store = useCharacterStore.getState();
             const playerChar = createPlayerCharacter();
 
-            store.startImpersonation(playerChar, 'TestPlayer');
+            await store.startImpersonation(playerChar, 'TestPlayer');
 
             await useCharacterStore.getState().updateVitals('hit_points_current', 5);
 
@@ -257,7 +288,7 @@ describe('GM Character Impersonation', () => {
             const store = useCharacterStore.getState();
             const playerChar = createPlayerCharacter();
 
-            store.startImpersonation(playerChar, 'TestPlayer');
+            await store.startImpersonation(playerChar, 'TestPlayer');
 
             await useCharacterStore.getState().updateHope(2);
 
@@ -269,41 +300,41 @@ describe('GM Character Impersonation', () => {
     });
 
     describe('non-vital mutations blocked while impersonating', () => {
-        const setupImpersonation = () => {
+        const setupImpersonation = async () => {
             const store = useCharacterStore.getState();
-            store.startImpersonation(createPlayerCharacter(), 'TestPlayer');
+            await store.startImpersonation(createPlayerCharacter(), 'TestPlayer');
         };
 
         it('should block updateGold with toast', async () => {
-            setupImpersonation();
+            await setupImpersonation();
             await useCharacterStore.getState().updateGold('handfuls', 10);
             expect(mockToast.info).toHaveBeenCalledWith('View-only while impersonating a character');
             expect(mockDataService.character.update).not.toHaveBeenCalled();
         });
 
         it('should block updateModifiers with toast', async () => {
-            setupImpersonation();
+            await setupImpersonation();
             await useCharacterStore.getState().updateModifiers('agility', []);
             expect(mockToast.info).toHaveBeenCalledWith('View-only while impersonating a character');
             expect(mockDataService.character.update).not.toHaveBeenCalled();
         });
 
         it('should block updateExperiences with toast', async () => {
-            setupImpersonation();
+            await setupImpersonation();
             await useCharacterStore.getState().updateExperiences([]);
             expect(mockToast.info).toHaveBeenCalledWith('View-only while impersonating a character');
             expect(mockDataService.character.update).not.toHaveBeenCalled();
         });
 
         it('should block updateLore with toast', async () => {
-            setupImpersonation();
+            await setupImpersonation();
             await useCharacterStore.getState().updateLore({ appearance: 'test' });
             expect(mockToast.info).toHaveBeenCalledWith('View-only while impersonating a character');
             expect(mockDataService.character.update).not.toHaveBeenCalled();
         });
 
         it('should block updateEvasion with toast', async () => {
-            setupImpersonation();
+            await setupImpersonation();
             await useCharacterStore.getState().updateEvasion(15);
             expect(mockToast.info).toHaveBeenCalledWith('View-only while impersonating a character');
             expect(mockDataService.character.update).not.toHaveBeenCalled();

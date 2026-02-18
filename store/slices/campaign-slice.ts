@@ -58,7 +58,7 @@ export interface CampaignSlice {
 
     // Impersonation state
     impersonation: ImpersonationState | null;
-    startImpersonation: (character: Character, playerName: string) => void;
+    startImpersonation: (character: Character, playerName: string) => Promise<void>;
     stopImpersonation: () => Promise<void>;
 
     // Phase 2: GM Screen state
@@ -172,7 +172,7 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
     // Impersonation state
     impersonation: null,
 
-    startImpersonation: (character: Character, playerName: string) => {
+    startImpersonation: async (character: Character, playerName: string) => {
         const state = get() as CharacterStore;
         const activeCampaign = state.activeCampaign;
         if (!activeCampaign) {
@@ -183,16 +183,27 @@ export const createCampaignSlice: StateCreator<CharacterStore, [], [], CampaignS
         // Snapshot the GM's current character before replacing
         const originalCharacter = state.character;
 
+        // Fetch fully enriched character (with cards, inventory, class/subclass data)
+        let enrichedCharacter = character;
+        try {
+            const fetched = await dataService.character.getById(character.id);
+            if (fetched) {
+                enrichedCharacter = fetched;
+            }
+        } catch {
+            // Fall back to the passed-in character if enrichment fails
+        }
+
         set({
             impersonation: {
                 originalCharacterId: originalCharacter?.id ?? null,
                 originalCharacterData: originalCharacter,
-                characterId: character.id,
-                characterName: character.name,
+                characterId: enrichedCharacter.id,
+                characterName: enrichedCharacter.name,
                 playerName,
                 campaignId: activeCampaign.id,
             },
-            character: character,
+            character: enrichedCharacter,
         });
     },
 

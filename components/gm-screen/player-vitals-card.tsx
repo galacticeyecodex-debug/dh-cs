@@ -349,12 +349,12 @@ export function PlayerVitalsCard({ character }: PlayerVitalsCardProps) {
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                     <button
-                        onClick={() => {
+                        onClick={async () => {
                             const member = activeCampaign?.members?.find(
                                 (m) => m.character_id === character.id
                             );
                             const playerName = member?.nickname || member?.profile?.username || 'Player';
-                            startImpersonation(character, playerName);
+                            await startImpersonation(character, playerName);
                             router.push('/client');
                         }}
                         className="p-2 rounded-lg transition-colors bg-white/5 text-gray-500 hover:bg-amber-500/20 hover:text-amber-400"

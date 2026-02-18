@@ -5,6 +5,95 @@ import type { Campaign, CampaignWithMembers } from '@/types/campaign';
 import type { CampaignActivity, CampaignActivityInsert } from '@/types/activity';
 import { hydrateCharacter } from '@/lib/data-helpers';
 
+/**
+ * Enriches a raw character row with cards, inventory, library items, and class/subclass data.
+ * Shared by character.get and character.getById to avoid duplication.
+ */
+async function enrichCharacter(charData: any): Promise<Character> {
+  const supabase = createClient();
+
+  const { data: cardsData } = await supabase
+    .from('character_cards')
+    .select('*')
+    .eq('character_id', charData.id);
+
+  const { data: inventoryData } = await supabase
+    .from('character_inventory')
+    .select('*')
+    .eq('character_id', charData.id);
+
+  const libraryIds = new Set<string>();
+  const homebrewIds = new Set<string>();
+
+  cardsData?.forEach((c: any) => libraryIds.add(c.card_id));
+  inventoryData?.forEach((i: any) => {
+    if (i.item_id) libraryIds.add(i.item_id);
+    if (i.homebrew_item_id) homebrewIds.add(i.homebrew_item_id);
+  });
+
+  if (charData.class_id) {
+    libraryIds.add(`class-${charData.class_id.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')}`);
+  }
+  if (charData.subclass_id) {
+    libraryIds.add(`subclass-${charData.subclass_id.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')}`);
+  }
+
+  const libraryMap = new Map<string, LibraryItem>();
+  if (libraryIds.size > 0) {
+    const { data: libData } = await supabase
+      .from('library')
+      .select('*')
+      .in('id', Array.from(libraryIds));
+
+    libData?.forEach((item: LibraryItem) => libraryMap.set(item.id, item));
+  }
+
+  const homebrewMap = new Map<string, HomebrewItem>();
+  if (homebrewIds.size > 0) {
+    const { data: hbData } = await supabase
+      .from('homebrew_items')
+      .select('*')
+      .in('id', Array.from(homebrewIds));
+
+    hbData?.forEach((item: HomebrewItem) => homebrewMap.set(item.id, item));
+  }
+
+  const enrichedCards = cardsData?.map((card: any) => ({
+    ...card,
+    library_item: libraryMap.get(card.card_id)
+  })) || [];
+
+  const enrichedInventory = inventoryData?.map((item: any) => {
+    let libraryItem = item.item_id ? libraryMap.get(item.item_id) : undefined;
+    const homebrewItem = item.homebrew_item_id ? homebrewMap.get(item.homebrew_item_id) : undefined;
+
+    if (homebrewItem && !libraryItem) {
+      libraryItem = {
+        id: `homebrew-${homebrewItem.id}`,
+        type: homebrewItem.type,
+        name: homebrewItem.name,
+        data: homebrewItem.data
+      };
+    }
+
+    return {
+      ...item,
+      library_item: libraryItem,
+      homebrew_item: homebrewItem
+    };
+  }) || [];
+
+  const hydratedChar = hydrateCharacter(charData);
+
+  return {
+    ...hydratedChar,
+    character_cards: enrichedCards,
+    character_inventory: enrichedInventory,
+    class_data: charData.class_id ? libraryMap.get(`class-${charData.class_id.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')}`) : undefined,
+    subclass_data: charData.subclass_id ? libraryMap.get(`subclass-${charData.subclass_id.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')}`) : undefined,
+  } as Character;
+}
+
 // Helper to construct the service
 export const dataService: DataClient = {
   character: {
@@ -36,87 +125,21 @@ export const dataService: DataClient = {
 
       if (!charData) return null;
 
-      // Manual Join Logic (replicated from original slice)
-      const { data: cardsData } = await supabase
-        .from('character_cards')
+      return enrichCharacter(charData);
+    },
+
+    getById: async (characterId: string) => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('characters')
         .select('*')
-        .eq('character_id', charData.id);
+        .eq('id', characterId)
+        .maybeSingle();
 
-      const { data: inventoryData } = await supabase
-        .from('character_inventory')
-        .select('*')
-        .eq('character_id', charData.id);
+      if (error) throw error;
+      if (!data) return null;
 
-      const libraryIds = new Set<string>();
-      const homebrewIds = new Set<string>();
-
-      cardsData?.forEach((c: any) => libraryIds.add(c.card_id));
-      inventoryData?.forEach((i: any) => {
-        if (i.item_id) libraryIds.add(i.item_id);
-        if (i.homebrew_item_id) homebrewIds.add(i.homebrew_item_id);
-      });
-
-      if (charData.class_id) {
-        libraryIds.add(`class-${charData.class_id.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')}`);
-      }
-      if (charData.subclass_id) {
-        libraryIds.add(`subclass-${charData.subclass_id.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')}`);
-      }
-
-      const libraryMap = new Map<string, LibraryItem>();
-      if (libraryIds.size > 0) {
-        const { data: libData } = await supabase
-          .from('library')
-          .select('*')
-          .in('id', Array.from(libraryIds));
-
-        libData?.forEach((item: LibraryItem) => libraryMap.set(item.id, item));
-      }
-
-      const homebrewMap = new Map<string, HomebrewItem>();
-      if (homebrewIds.size > 0) {
-        const { data: hbData } = await supabase
-          .from('homebrew_items')
-          .select('*')
-          .in('id', Array.from(homebrewIds));
-
-        hbData?.forEach((item: HomebrewItem) => homebrewMap.set(item.id, item));
-      }
-
-      const enrichedCards = cardsData?.map((card: any) => ({
-        ...card,
-        library_item: libraryMap.get(card.card_id)
-      })) || [];
-
-      const enrichedInventory = inventoryData?.map((item: any) => {
-        let libraryItem = item.item_id ? libraryMap.get(item.item_id) : undefined;
-        const homebrewItem = item.homebrew_item_id ? homebrewMap.get(item.homebrew_item_id) : undefined;
-
-        if (homebrewItem && !libraryItem) {
-          libraryItem = {
-            id: `homebrew-${homebrewItem.id}`,
-            type: homebrewItem.type,
-            name: homebrewItem.name,
-            data: homebrewItem.data
-          };
-        }
-
-        return {
-          ...item,
-          library_item: libraryItem,
-          homebrew_item: homebrewItem
-        };
-      }) || [];
-
-      const hydratedChar = hydrateCharacter(charData);
-
-      return {
-        ...hydratedChar,
-        character_cards: enrichedCards,
-        character_inventory: enrichedInventory,
-        class_data: charData.class_id ? libraryMap.get(`class-${charData.class_id.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')}`) : undefined,
-        subclass_data: charData.subclass_id ? libraryMap.get(`subclass-${charData.subclass_id.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')}`) : undefined,
-      } as Character;
+      return enrichCharacter(data);
     },
 
     update: async (characterId, data) => {

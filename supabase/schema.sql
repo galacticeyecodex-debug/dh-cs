@@ -824,6 +824,32 @@ CREATE POLICY "GM can view member characters"
     )
   );
 
+-- GM can view cards of their campaign member characters (for impersonation)
+CREATE POLICY "GM can view member character cards"
+  ON public.character_cards FOR SELECT
+  USING (
+    character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
+    OR EXISTS (
+      SELECT 1 FROM campaign_members cm
+      JOIN campaigns c ON c.id = cm.campaign_id
+      WHERE cm.character_id = character_cards.character_id
+      AND c.gm_user_id = auth.uid()
+    )
+  );
+
+-- GM can view inventory of their campaign member characters (for impersonation)
+CREATE POLICY "GM can view member character inventory"
+  ON public.character_inventory FOR SELECT
+  USING (
+    character_id IN (SELECT id FROM public.characters WHERE user_id = auth.uid())
+    OR EXISTS (
+      SELECT 1 FROM campaign_members cm
+      JOIN campaigns c ON c.id = cm.campaign_id
+      WHERE cm.character_id = character_inventory.character_id
+      AND c.gm_user_id = auth.uid()
+    )
+  );
+
 -- Campaign members can view basic info of party characters
 -- This is needed for the member list and party overview to display character names
 CREATE POLICY "Campaign members can view party characters"

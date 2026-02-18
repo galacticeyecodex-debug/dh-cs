@@ -28,6 +28,7 @@ export interface LibraryFilterOptions {
 export interface DataClient {
   character: {
     get: (userId: string, characterId?: string) => Promise<Character | null>;
+    getById: (characterId: string) => Promise<Character | null>;
     list: (userId: string) => Promise<Character[]>;
     create: (character: any) => Promise<string>;
     delete: (characterId: string) => Promise<void>;
