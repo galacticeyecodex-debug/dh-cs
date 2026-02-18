@@ -90,8 +90,8 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 800 },
         // WSL2 FIX: Point to Windows Chrome and use custom user data dir
-        executablePath: '/mnt/c/Program Files/Google/Chrome/Application/chrome.exe',
         launchOptions: {
+          executablePath: '/mnt/c/Program Files/Google/Chrome/Application/chrome.exe',
           args: ['--user-data-dir=/tmp/chrome-agent-data'],
         },
       },
@@ -112,8 +112,8 @@ export default defineConfig({
         viewport: { width: 1280, height: 800 },
         // No storageState - runs without authentication
         // WSL2 FIX: Point to Windows Chrome and use custom user data dir
-        executablePath: '/mnt/c/Program Files/Google/Chrome/Application/chrome.exe',
         launchOptions: {
+          executablePath: '/mnt/c/Program Files/Google/Chrome/Application/chrome.exe',
           args: ['--user-data-dir=/tmp/chrome-agent-data'],
         },
       },
@@ -137,8 +137,8 @@ export default defineConfig({
         storageState: authFile,
         // WSL2 FIX: Point to Windows Chrome and use custom user data dir
         // Ensure networking is set to 'mirrored' in %USERPROFILE%\.wslconfig
-        executablePath: '/mnt/c/Program Files/Google/Chrome/Application/chrome.exe',
         launchOptions: {
+          executablePath: '/mnt/c/Program Files/Google/Chrome/Application/chrome.exe',
           args: ['--user-data-dir=/tmp/chrome-agent-data'],
         },
       },

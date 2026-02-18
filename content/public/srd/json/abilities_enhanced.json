@@ -990,12 +990,12 @@
     }
   },
   {
-    "name": "A Soldier’s Bond",
+    "name": "A Soldier's Bond",
     "level": "2",
     "domain": "Blade",
     "type": "Ability",
     "recall": "1",
-    "text": "Once per long rest, when you compliment someone or ask them about something they’re good at, you can both gain 3 Hope.",
+    "text": "Once per long rest, when you compliment someone or ask them about something they're good at, you can both gain 3 Hope.",
     "enhancement": {
       "timing": "action",
       "frequency": "once_per_long_rest",
@@ -1003,6 +1003,17 @@
         "hope_gain",
         "ability"
       ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_long_rest",
+      "keywords": [
+        "hope_gain",
+        "ability"
+      ],
+      "gains": {
+        "hope": 3
+      }
     }
   },
   {
