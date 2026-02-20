@@ -216,6 +216,7 @@
 
 
 import type { Character, CharacterCard } from '@/types/character';
+import { getEnhancement } from '@/lib/enhancement-utils';
 import type { AdversaryFeature } from '@/types/adversary';
 import type {
   ActionType,
@@ -350,7 +351,11 @@ export function stripMarkdown(text: string): string {
 }
 
 /**
- * Main parsing function - extracts all passive modifiers from a card
+ * Main parsing function - extracts all passive modifiers from a card.
+ *
+ * When library_item.data contains pre-computed enhancement/enhancement_override
+ * with a modifiers array (seeded from abilities_enhanced.json), those values take
+ * precedence over NLU regex re-parsing of the raw description text.
  */
 export function parseCardPassiveModifiers(
   card: CharacterCard,
@@ -359,6 +364,25 @@ export function parseCardPassiveModifiers(
 ): PassiveModifier[] {
   const description = card.library_item?.data?.description || card.library_item?.data?.text || '';
   const cardName = card.library_item?.name || 'Unknown Card';
+
+  // Prefer pre-computed modifiers from Supabase enhancement data.
+  const precomputed = getEnhancement(card.library_item?.data || {});
+  if (precomputed?.modifiers && precomputed.modifiers.length > 0) {
+    const defaultCondition: ModifierCondition = { type: 'always' };
+    return precomputed.modifiers.map((mod: CardModifier) => {
+      const condition = (mod.condition as ModifierCondition | undefined) ?? defaultCondition;
+      return {
+        stat: mod.stat,
+        value: mod.formula ? calculateDynamicValue(mod.formula, character) : (mod.value ?? 0),
+        formula: mod.formula,
+        condition,
+        isActive: evaluateModifierCondition(condition, character, isCardActive),
+        source: cardName,
+      };
+    });
+  }
+
+  // Fallback: NLU re-parsing from raw description text.
   const modifiers: PassiveModifier[] = [];
 
   // Parse condition context first
@@ -2993,33 +3017,74 @@ function extractCosts(description: string): CombatAbility['costs'] {
 /**
  * Parse a domain card to extract combat abilities
  * (Unified replacement for combat-spell-parser.ts parseCombatAbility)
+ *
+ * When library_item.data contains pre-computed enhancement/enhancement_override
+ * (seeded from abilities_enhanced.json), those values take precedence over
+ * NLU regex re-parsing of the raw description text.
  */
 export function parseCombatAbility(card: CharacterCard): CombatAbility | null {
-  const description = card.library_item?.data?.description || '';
+  const description = card.library_item?.data?.description || card.library_item?.data?.text || '';
   const cardName = card.library_item?.name || 'Unknown';
-  const recallCost = parseInt(card.library_item?.data?.recall || '0');
+  const recallCost = card.library_item?.data?.recall_cost ?? parseInt(card.library_item?.data?.recall || '0');
 
-  // Check if this card has combat mechanics
+  // Prefer pre-computed enhancement data from Supabase over NLU re-parsing.
+  const precomputed = getEnhancement(card.library_item?.data || {});
+  if (precomputed) {
+    const attack = precomputed.attack;
+    const roll = precomputed.roll;
+
+    // Only return if there is something combat-relevant to show
+    if (!attack && !roll && !precomputed.costs) {
+      return null;
+    }
+
+    // Map rollType from enhancement data
+    let rollType: CombatAbility['rollType'] = 'none';
+    if (precomputed.action_type === 'attack') {
+      rollType = 'attack';
+    } else if (roll?.trait?.toLowerCase() === 'spellcast') {
+      rollType = 'spellcast';
+    } else if (roll?.trait) {
+      rollType = 'trait_check';
+    }
+
+    // Map damageScaling from enhancement attack
+    let damageScaling: DamageScaling | undefined;
+    if (attack?.damage_scaling) {
+      damageScaling = attack.damage_scaling as DamageScaling;
+    }
+
+    return {
+      cardId: card.id,
+      name: cardName,
+      rollType,
+      trait: roll?.trait || attack?.trait,
+      range: attack?.range,
+      damage: attack?.damage,
+      damageType: attack?.damage_type as 'magic' | 'physical' | 'special' | undefined,
+      usesProficiency: attack?.damage_scaling === 'proficiency',
+      damageScaling,
+      resourceType: undefined,
+      costs: precomputed.costs ? {
+        hope: precomputed.costs.hope,
+        stress: precomputed.costs.stress,
+      } : undefined,
+      effects: undefined,
+      description,
+      recallCost,
+    };
+  }
+
+  // Fallback: NLU re-parsing from raw description text
   if (!hasCombatMechanics(description)) {
     return null;
   }
 
-  // Determine roll type
   const rollType = extractRollType(description);
-
-  // Extract trait for attack rolls or trait checks
   const trait = extractTrait(description, rollType);
-
-  // Extract range
   const range = extractRange(description);
-
-  // Extract damage
   const { damage, damageType, usesProficiency, damageScaling, resourceType } = extractDamage(description);
-
-  // Extract costs
   const costs = extractCosts(description);
-
-  // Extract effects
   const effects = parseStatusEffects(description);
 
   return {
@@ -3030,7 +3095,7 @@ export function parseCombatAbility(card: CharacterCard): CombatAbility | null {
     range,
     damage,
     damageType,
-    usesProficiency, // Deprecated, kept for backwards compatibility
+    usesProficiency,
     damageScaling,
     resourceType,
     costs,

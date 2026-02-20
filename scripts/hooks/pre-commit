@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+# pre-commit hook: regenerate SQL seed files when enhanced JSON changes
+#
+# Triggers when any *_enhanced.json file under content/ is staged.
+# Runs the appropriate seed script(s) and re-stages the SQL output so the
+# seed file is always in sync with the enhanced JSON in the same commit.
+#
+# Install: npm run hooks:install
+# Source:  scripts/hooks/pre-commit (checked in)
+
+set -e
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Check if any enhanced JSON files are staged
+STAGED_ENHANCED=$(git diff --cached --name-only | grep 'content/.*_enhanced\.json' || true)
+
+if [ -z "$STAGED_ENHANCED" ]; then
+  exit 0
+fi
+
+echo ""
+echo "🔄 Enhanced JSON changed — regenerating seed SQL..."
+echo ""
+
+# Regenerate public SRD seed
+echo "  Running seed:public..."
+(cd "$REPO_ROOT" && node content/public/seed-public-library.js)
+git add "$REPO_ROOT/supabase/seed_library.sql"
+echo "  ✓ supabase/seed_library.sql updated and staged"
+
+# Regenerate private seed only if the private script exists
+PRIVATE_SCRIPT="$REPO_ROOT/content/private/seed-private-library.js"
+PRIVATE_SQL="$REPO_ROOT/content/private/sql/seed_private-library.sql"
+if [ -f "$PRIVATE_SCRIPT" ]; then
+  echo "  Running seed:private..."
+  (cd "$REPO_ROOT" && node content/private/seed-private-library.js)
+  # Only stage if the file is tracked (not gitignored — content/private is ignored in public clones)
+  if [ -f "$PRIVATE_SQL" ] && ! git check-ignore -q "$PRIVATE_SQL"; then
+    git add "$PRIVATE_SQL"
+    echo "  ✓ content/private/sql/seed_private-library.sql updated and staged"
+  fi
+fi
+
+echo ""
+echo "✅ Seed SQL regenerated and staged."
+echo ""

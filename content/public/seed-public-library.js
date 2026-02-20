@@ -116,6 +116,19 @@ function readJsonFile(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, ''));
 }
 
+/**
+ * Prefer *_enhanced.json over plain *.json when available.
+ * Mirrors the same helper in content/private/seed-private-library.js.
+ */
+function readJsonSource(dir, baseName) {
+  const enhanced = path.join(dir, `${baseName}_enhanced.json`);
+  const standard = path.join(dir, `${baseName}.json`);
+  if (fs.existsSync(enhanced)) {
+    return { items: readJsonFile(enhanced), isEnhanced: true };
+  }
+  return { items: readJsonFile(standard), isEnhanced: false };
+}
+
 function processClasses(jsonDir, source) {
   const filePath = path.join(jsonDir, 'classes.json');
   const items = readJsonFile(filePath);
@@ -211,8 +224,7 @@ function processCommunities(jsonDir, source) {
 }
 
 function processAbilities(jsonDir, source) {
-  const filePath = path.join(jsonDir, 'abilities.json');
-  const items = readJsonFile(filePath);
+  const { items } = readJsonSource(jsonDir, 'abilities');
   if (!items) return;
 
   items.forEach(item => {
@@ -221,7 +233,10 @@ function processAbilities(jsonDir, source) {
     const id = `${type}-${slugify(domain)}-${slugify(item.name)}`;
     const tier = parseInt(item.level) || 1;
 
+    // Spread the full item so enhancement and enhancement_override are preserved.
+    // These are the authoritative pre-computed mechanics used by getEnhancement().
     const data = {
+      ...item,
       description: item.text,
       recall_cost: parseInt(item.recall) || 0,
       level: tier

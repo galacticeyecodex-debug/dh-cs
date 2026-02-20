@@ -35,7 +35,7 @@ import { hasCombatRelevance, enhanceFeature } from '@/lib/card-parser';
 import { getEnhancement } from '@/lib/enhancement-utils';
 import type { EnhancedAbilityCard, EnhancedAncestry, EnhancedCommunity, EnhancedFeature, Frequency } from '@/types/cards';
 
-import { srdAncestries, srdCommunities, getAllAbilities } from '@/lib/content-loaders';
+import { srdAncestries, srdCommunities } from '@/lib/content-loaders';
 
 export default function CombatView() {
   const { character, prepareRoll, updateModifiers, cardStates, updateHope, updateVitals } = useCharacterStore();
@@ -51,12 +51,6 @@ export default function CombatView() {
   const [transformationCard, setTransformationCard] = useState<any>(null);
   const [showFeatures, setShowFeatures] = useState(true);
   const [showSpellcastModifiers, setShowSpellcastModifiers] = useState(false);
-
-  // Memoize enhanced abilities based on playtest setting
-  const enhancedAbilities = useMemo(() => {
-    const abilities = getAllAbilities(includePlaytest);
-    return abilities;
-  }, [includePlaytest]);
 
   // Fetch transformation data from library
   useEffect(() => {
@@ -97,26 +91,27 @@ export default function CombatView() {
     return srdData.find(c => c.name === character.community) || null;
   }, [character?.community]);
 
-  // Map character loadout cards to enhanced ability data
+  // Map character loadout cards to enhanced ability data.
+  // Reads enhancement/enhancement_override from library_item.data (Supabase) as the source
+  // of truth, rather than name-matching against bundled JSON.
   // NOTE: This hook must be called before any early returns
   const combatAbilities = useMemo(() => {
-    if (!character?.character_cards || enhancedAbilities.length === 0) return [];
+    if (!character?.character_cards) return [];
 
     const loadoutCards = character.character_cards.filter(card => card.location === 'loadout');
 
     return loadoutCards
       .map(card => {
-        const cardName = card.library_item?.name || '';
-        // Find enhanced data for this card
-        const enhanced = enhancedAbilities.find(a => a.name === cardName);
+        const data = card.library_item?.data as EnhancedAbilityCard | undefined;
+        if (!data) return null;
 
-        if (enhanced && hasCombatRelevance(getEnhancement(enhanced))) {
-          return enhanced;
+        if (hasCombatRelevance(getEnhancement(data))) {
+          return data;
         }
         return null;
       })
       .filter((ability): ability is EnhancedAbilityCard => ability !== null);
-  }, [character?.character_cards, enhancedAbilities]);
+  }, [character?.character_cards]);
 
   // Filter combat-relevant ancestry, community, class, and subclass features
   const combatFeatures = useMemo(() => {
@@ -340,7 +335,7 @@ export default function CombatView() {
                   const totalTraitValue = baseTraitValue + traitModifierSum;
 
                   // Weapons always make attack rolls per SRD
-                  const attackModifier = calculateAttackBonus(character, cardStates, enhancedAbilities,
+                  const attackModifier = calculateAttackBonus(character, cardStates, undefined,
                     { rollType: 'weapon' });
                   const damageModifier = calculateDamageBonus(character, cardStates);
                   const totalAttackBonus = totalTraitValue + attackModifier;
@@ -382,7 +377,7 @@ export default function CombatView() {
               {character.ranger_companion && (() => {
                 const companion = character.ranger_companion;
                 // Companion attacks are weapon-based
-                const companionAttackMod = calculateAttackBonus(character, cardStates, enhancedAbilities,
+                const companionAttackMod = calculateAttackBonus(character, cardStates, undefined,
                   { rollType: 'weapon' });
                 const companionDamageMod = calculateDamageBonus(character, cardStates);
                 const calculatedDamage = calculateWeaponDamage(companion.damage_die, totalProficiency, companionDamageMod);
@@ -440,7 +435,7 @@ export default function CombatView() {
                     const totalTraitValue = baseTraitValue + traitModifierSum;
 
                     // Transformation attacks are weapon-type
-                    const attackModifier = calculateAttackBonus(character, cardStates, enhancedAbilities,
+                    const attackModifier = calculateAttackBonus(character, cardStates, undefined,
                       { rollType: 'weapon' });
                     const damageModifier = calculateDamageBonus(character, cardStates);
                     const totalAttackBonus = totalTraitValue + attackModifier;
@@ -505,7 +500,7 @@ export default function CombatView() {
 
                   // Feature may use physical or spellcast trait
                   const featureRollType = (attack?.trait?.toLowerCase() === 'spellcast') ? 'spellcast' as const : 'weapon' as const;
-                  const attackModifier = calculateAttackBonus(character, cardStates, enhancedAbilities,
+                  const attackModifier = calculateAttackBonus(character, cardStates, undefined,
                     { rollType: featureRollType, actionType: feature.action_type as 'attack' | undefined });
                   const damageModifier = calculateDamageBonus(character, cardStates);
                   const totalAttackBonus = totalTraitValue + attackModifier;
@@ -652,7 +647,7 @@ export default function CombatView() {
                   }
 
                   const abilityRollType = rollLabel === 'Spellcast' ? 'spellcast' as const : 'weapon' as const;
-                  const attackModifier = calculateAttackBonus(character, cardStates, enhancedAbilities,
+                  const attackModifier = calculateAttackBonus(character, cardStates, undefined,
                     { rollType: abilityRollType, actionType: enhancement.action_type as 'attack' | undefined });
                   const damageModifier = calculateDamageBonus(character, cardStates);
                   const finalAttackBonus = rollBonus + attackModifier;

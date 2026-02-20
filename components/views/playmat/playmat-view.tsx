@@ -40,7 +40,6 @@ import { getStatModifiers, getAllActiveModifiers } from '@/lib/modifier-aggregat
 import Image from 'next/image';
 import PlaymatCard from './playmat-card';
 import type { EnhancedAbilityCard, ModifierCondition } from '@/types/cards';
-import { getAllAbilities, srdAncestries, srdCommunities } from '@/lib/content-loaders';
 import { getAttack, getRoll } from '@/lib/enhancement-utils';
 import useContentAccess from '@/hooks/useContentAccess';
 import { useLibraryItems, LibraryPresets } from '@/hooks/useLibraryItems';
@@ -93,18 +92,6 @@ export default function PlaymatView() {
   const [domainFilter, setDomainFilter] = useState<string>('all');
   const [levelFilter, setLevelFilter] = useState<string>('all');
 
-  // Memoize enhanced abilities based on playtest setting
-  // Also include ancestry and community features as they can appear on the playmat
-  const enhancedAbilities = useMemo(() => {
-    const abilities = getAllAbilities(includePlaytest);
-
-    // Get ancestry and community features from static imports
-    const ancestryFeats = (srdAncestries as any[]).flatMap(a => a.feats || []);
-    const communityFeats = (srdCommunities as any[]).flatMap(c => c.feats || []);
-
-    const all = [...abilities, ...ancestryFeats, ...communityFeats];
-    return all;
-  }, [includePlaytest]);
 
   // Use centralized library hook instead of duplicated fetch logic
   const {
@@ -365,8 +352,8 @@ export default function PlaymatView() {
             <div className="flex flex-col gap-4">
               {loadoutCards.length > 0 ? (
                 loadoutCards.map((charCard) => {
-                  const normalizedLibraryName = normalizeCardName(charCard.library_item?.name || '');
-                  const enhancedData = enhancedAbilities.find(a => normalizeCardName(a.name) === normalizedLibraryName);
+                  // Use enhancement data from library_item.data (Supabase) as source of truth.
+                  const enhancedData = charCard.library_item?.data as EnhancedAbilityCard | undefined;
                   // Check if card has attack or roll (which means it has modifiers to manage)
                   const hasModifiers = !!(enhancedData && (getAttack(enhancedData) || getRoll(enhancedData)));
                   return (
@@ -430,8 +417,8 @@ export default function PlaymatView() {
             {vaultCards.length > 0 ? (
               <div className="flex flex-col items-center gap-4">
                 {vaultCards.map((charCard) => {
-                  const normalizedLibraryName = normalizeCardName(charCard.library_item?.name || '');
-                  const enhancedData = enhancedAbilities.find(a => normalizeCardName(a.name) === normalizedLibraryName);
+                  // Use enhancement data from library_item.data (Supabase) as source of truth.
+                  const enhancedData = charCard.library_item?.data as EnhancedAbilityCard | undefined;
                   // Check if card has attack or roll (which means it has modifiers to manage)
                   const hasModifiers = !!(enhancedData && (getAttack(enhancedData) || getRoll(enhancedData)));
                   return (
@@ -482,7 +469,11 @@ export default function PlaymatView() {
 
         {/* Ability Modifier Sheet */}
         {activeAbilityId && (() => {
-          const ability = enhancedAbilities.find(a => normalizeCardName(a.name) === normalizeCardName(activeAbilityId));
+          // Find card in character's collection and read enhancement from Supabase data.
+          const activeCard = character.character_cards?.find(
+            c => normalizeCardName(c.library_item?.name || '') === normalizeCardName(activeAbilityId)
+          );
+          const ability = activeCard?.library_item?.data as EnhancedAbilityCard | undefined;
           if (!ability) return null;
 
           const tabs = [];
