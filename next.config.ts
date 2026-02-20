@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 /**
  * Security Headers Configuration
@@ -57,7 +58,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   turbopack: {
-    root: './',
+    root: path.resolve(__dirname),
   },
 
   // Add security headers to all routes
