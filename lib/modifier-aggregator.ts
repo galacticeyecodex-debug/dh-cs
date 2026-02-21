@@ -318,8 +318,8 @@ export function getAllActiveModifiers(
         const cardName = card.library_item?.name || '';
         const isCardActive = cardStates[cardName]?.is_active ?? false;
 
-        // Check for enhanced JSON modifiers
-        const enhancedData = cachedEnhancedAbilities.find(a => normalizeCardName(a.name) === normalizeCardName(cardName));
+        // Use Supabase library_item.data as the source of truth for enhancement data
+        const enhancedData = card.library_item?.data;
         if (enhancedData) {
             const jsonModifiers = getModifiers(enhancedData);
             if (jsonModifiers.length > 0) {
@@ -423,17 +423,20 @@ function calculateTraitsWithTotals(
     const traitsWithTotals: Record<string, number> = { ...character.stats };
     const traitNames = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
 
-    // Only calculate totals if we're not directly querying a trait
-    // (to avoid circular dependency)
-    const needsTotalStats = !traitNames.includes(targetStat.toLowerCase()) || targetStat === 'all';
+    // Only skip the target trait to avoid circular dependency.
+    // All OTHER traits should still get their user modifiers applied so that
+    // formulas like "spellcast_minus_presence" can resolve the spellcast trait
+    // (e.g., Knowledge) with its full modified value.
+    const skipTrait = traitNames.includes(targetStat.toLowerCase()) && targetStat !== 'all'
+        ? targetStat.toLowerCase()
+        : null;
 
-    if (needsTotalStats) {
-        for (const trait of traitNames) {
-            const baseStat = character.stats?.[trait as keyof typeof character.stats] || 0;
-            const userMods = (character.modifiers?.[trait] || []) as any[];
-            const userTotal = userMods.reduce((sum: number, mod: any) => sum + (mod.value || 0), 0);
-            traitsWithTotals[trait] = baseStat + userTotal;
-        }
+    for (const trait of traitNames) {
+        if (trait === skipTrait) continue; // Skip only the target trait to avoid circularity
+        const baseStat = character.stats?.[trait as keyof typeof character.stats] || 0;
+        const userMods = (character.modifiers?.[trait] || []) as any[];
+        const userTotal = userMods.reduce((sum: number, mod: any) => sum + (mod.value || 0), 0);
+        traitsWithTotals[trait] = baseStat + userTotal;
     }
 
     return traitsWithTotals;
@@ -880,10 +883,8 @@ function getDomainCardModifiers(
 
         const isCardActive = cardStates[cardName]?.is_active ?? false;
 
-        // Check enhanced JSON modifiers first
-        const enhancedData = cachedEnhancedAbilities.find(
-            (a: EnhancedAbilityCard) => normalizeCardName(a.name) === normalizeCardName(cardName)
-        );
+        // Use Supabase library_item.data as the source of truth for enhancement data
+        const enhancedData = card.library_item?.data;
 
         if (enhancedData) {
             const jsonModifiers = getModifiers(enhancedData);
@@ -959,7 +960,11 @@ export function getCardModifiersForDisplay(
 ): PassiveModifier[] {
     if (!character) return [];
 
-    const enhancedData = cachedEnhancedAbilities.find(a => normalizeCardName(a.name) === normalizeCardName(cardName));
+    // Find the card in character_cards to get Supabase library_item.data
+    const card = character.character_cards?.find(
+        (c: any) => normalizeCardName(c.library_item?.name) === normalizeCardName(cardName)
+    );
+    const enhancedData = card?.library_item?.data;
     if (!enhancedData) return [];
 
     const traitsWithTotals = calculateTraitsWithTotals(character, 'all');

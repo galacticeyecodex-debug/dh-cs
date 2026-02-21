@@ -136,6 +136,7 @@ export default function CardEnhancementPanel({
           cardName={card.name}
           maxTokens={enhancement.tokens?.max_tokens ?? null}
           tokenSource={enhancement.tokens?.token_source}
+          tokenLabel={enhancement.tokens?.token_label}
         />
       )}
 
@@ -150,11 +151,13 @@ export default function CardEnhancementPanel({
           if (!condition) return undefined;
           switch (condition.type) {
             case 'when_active':
-              return 'Activate to apply this bonus';
+              return undefined;
             case 'when_armored':
               return 'While wearing armor';
             case 'when_unarmored':
               return 'While not wearing armor';
+            case 'when_stress_maxed':
+              return 'When all Stress slots are marked';
             case 'loadout_domain_count':
               return `With ${condition.minCount}+ ${condition.domain} cards`;
             case 'always':
@@ -198,7 +201,8 @@ export default function CardEnhancementPanel({
               const isActivatableCondition = mod.condition?.type === 'when_active' ||
                 mod.condition?.type === 'loadout_domain_count' ||
                 mod.condition?.type === 'when_armored' ||
-                mod.condition?.type === 'when_unarmored';
+                mod.condition?.type === 'when_unarmored' ||
+                mod.condition?.type === 'when_stress_maxed';
 
               if (isActivatableCondition) {
                 return (

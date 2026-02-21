@@ -109,6 +109,17 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         it('should be action_type passive', () => {
             expect(enhanced.enhancement.action_type).toBeUndefined();
         });
+
+        // Parser deficiency: does not extract gains (stress_clear / hit_points_clear).
+        // The enhancement_override in abilities_enhanced.json adds:
+        //   gains: { stress_clear: 3, hit_points_clear: 1 }
+        it('KNOWN DEFICIENCY: parser does not extract stress_clear gain', () => {
+            expect(enhanced.enhancement.gains?.stress_clear).toBeUndefined();
+        });
+
+        it('KNOWN DEFICIENCY: parser does not extract hit_points_clear gain', () => {
+            expect(enhanced.enhancement.gains?.hit_points_clear).toBeUndefined();
+        });
     });
 
     describe('Voice of Reason', () => {
@@ -123,6 +134,14 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         it('should have modifier for proficiency +1', () => {
             const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'proficiency');
             expect(mod?.value).toBe(1);
+        });
+
+        // Parser deficiency: condition defaults to "always" — cannot infer
+        // "when all Stress slots are marked" from text. The enhancement_override
+        // in abilities_enhanced.json fixes this to condition: when_stress_maxed.
+        it('KNOWN DEFICIENCY: parser sets condition to always instead of when_stress_maxed', () => {
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'proficiency');
+            expect(mod?.condition?.type).toBe('always');
         });
     });
 
@@ -208,6 +227,17 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         it('should have roll.difficulty = 16', () => {
             expect(enhanced.enhancement.roll?.difficulty).toBe(16);
         });
+
+        // Parser deficiency: does not model the escalating d6 mechanic as a
+        // bounded token track. The enhancement_override in abilities_enhanced.json
+        // adds: tokens: { has_tokens: true, max_tokens: 6, initial_tokens: 1 }
+        it('KNOWN DEFICIENCY: parser sets max_tokens to null instead of 6', () => {
+            expect(enhanced.enhancement.tokens?.max_tokens).toBeNull();
+        });
+
+        it('KNOWN DEFICIENCY: parser does not set initial_tokens = 1', () => {
+            expect(enhanced.enhancement.tokens?.initial_tokens).toBeUndefined();
+        });
     });
 
     describe('Healing Strike', () => {
@@ -267,6 +297,18 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
         it('should have attack.targets = all_in_range', () => {
             expect(enhanced.enhancement.attack?.targets).toBe('all_in_range');
         });
+
+        it('should have primary damage 3d20+3', () => {
+            expect(enhanced.enhancement.attack?.damage).toBe('3d20+3');
+        });
+
+        // Parser deficiency: cannot parse two damage values from success/fail
+        // branching on a Reaction Roll. The enhancement_override in
+        // abilities_enhanced.json adds 4d20+5 as additional_damage with
+        // label "Fail" for targets who fail the Reaction Roll (14).
+        it('KNOWN DEFICIENCY: parser does not extract additional_damage for fail outcome', () => {
+            expect(enhanced.enhancement.attack?.additional_damage).toBeUndefined();
+        });
     });
 
     describe('Overwhelming Aura', () => {
@@ -282,9 +324,26 @@ describe('Abilities Schema Validation - Splendor Domain', () => {
             expect(enhanced.enhancement.roll?.difficulty).toBe(15);
         });
 
-        it('should have modifier for presence with formula', () => {
+        it('should have modifier for presence with formula spellcast', () => {
             const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'presence');
             expect(mod?.formula).toBe('spellcast');
+        });
+
+        // Parser deficiency: "until your next long rest" is a duration phrase,
+        // not a frequency phrase — parser cannot infer once_per_long_rest from it.
+        // The enhancement_override in abilities_enhanced.json fixes frequency and
+        // changes the presence modifier condition from "always" to "when_active".
+        it('KNOWN DEFICIENCY: parser sets frequency to at_will instead of once_per_long_rest', () => {
+            expect(enhanced.enhancement.frequency).toBe('at_will');
+        });
+
+        it('KNOWN DEFICIENCY: parser sets presence modifier condition to always instead of when_active', () => {
+            const mod = enhanced.enhancement.modifiers?.find(m => m.stat === 'presence');
+            expect(mod?.condition?.type).toBe('always');
+        });
+
+        it('KNOWN DEFICIENCY: parser adds erroneous stress cost from passive adversary effect', () => {
+            expect(enhanced.enhancement.costs?.stress).toBe(1);
         });
     });
 

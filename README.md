@@ -611,33 +611,33 @@ This section tracks the implementation status of all domain cards and class feat
 | Eclipse | 10 | ✅ | Roll DC 16, once per long rest (no player cost - targets mark Stress). Activate button implemented. |
 | Specter of the Dark | 10 | ✅ | Stress cost |
 
-### Sage (21 cards) ⚠️
+### Sage (21 cards) ✅
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
-| Gifted Tracker | 1 | ✅ | +1 Evasion modifier, Hope cost |
-| Nature's Tongue | 1 | ✅ | Hope cost, roll DC |
+| Gifted Tracker | 1 | ✅ | +1 Evasion (when_active), variable Hope spend for tracking questions |
+| Nature's Tongue | 1 | ✅ | Instinct Roll DC 12. The +2 Spellcast bonus is recorded as a "Nature's Tongue +2" Experience entry by the player via the Experience Manager — no linked Hope cost on card. |
 | Vicious Entangle | 1 | ✅ | Hope cost, attack + damage |
 | Conjure Swarm | 2 | ✅ | Hope + Stress cost, damage |
 | Natural Familiar | 2 | ✅ | Hope + Stress cost, roll |
-| Corrosive Projectile | 3 | ✅ | Attack + damage |
-| Towering Stalk | 3 | ✅ | Stress cost, Proficiency-scaled damage |
+| Corrosive Projectile | 3 | ✅ | Spellcast Roll, d6+4 magic damage (Proficiency-scaled), Mark 2+ Stress linked cost, Activate button for Corroded condition. |
+| Towering Stalk | 3 | ✅ | Stress cost, Proficiency-scaled damage; the damage button says 6d4 instead of d6+4 scaling with Proficiency. |
 | Death Grip | 4 | ✅ | 2 Stress cost, damage, roll DC |
 | Healing Field | 4 | ✅ | 2 Hope cost, once per long rest |
-| Thorn Skin | 5 | ✅ | Token tracking (Spellcast), Hope cost |
-| Wild Fortress | 5 | ✅ | Token tracking, Hope cost, roll DC |
+| Thorn Skin | 5 | ✅ | Token tracking (Spellcast), Hope cost, spend tokens to roll d6s for damage reduction |
+| Wild Fortress | 5 | ✅ | Token tracking ("Hit Points", max 3), Spellcast Roll DC 13, Hope cost |
 | Conjured Steeds | 6 | ✅ | +2 damage modifier, Hope cost |
-| Forager | 6 | ✅ | Roll |
+| Forager | 6 | ✅ | d6 forage roll, downtime timing, cleaned up keywords |
 | Sage-Touched | 7 | ✅ | +2 Spellcast (4+ Sage cards, natural environment) |
-| Wild Surge | 7 | ✅ | Token tracking, Stress cost, once per long rest |
-| Forest Sprites | 8 | ✅ | +3 attack modifier, Hope cost |
-| Rejuvenation Barrier | 8 | ✅ | Roll DC, once per rest |
-| Fane of the Wilds | 9 | ✅ | Token tracking, roll |
-| Plant Dominion | 9 | ✅ | Roll DC, once per long rest |
+| Wild Surge | 7 | ✅ | Token tracking ("Wild Surge Value", max 6, starts at 1), Stress cost, once per long rest |
+| Forest Sprites | 8 | ✅ | Spellcast Roll DC 13, variable Hope spend to create Sprites tokens |
+| Rejuvenation Barrier | 8 | ✅ | Spellcast Roll DC 15, Activate button for "Resistance to Physical Damage" (flag modifier — no +0 prefix), 1d4 damage reduction roll, Clear HP, once per rest. |
+| Fane of the Wilds | 9 | ✅ | Token tracking (label "Tokens", no source), Spellcast Roll. |
+| Plant Dominion | 9 | ✅ | Spellcast Roll DC 18, once per long rest. |
 | Force of Nature | 10 | ✅ | +10 damage (when_active), Hope + Stress cost |
-| Tempest | 10 | ✅ | High damage roll |
+| Tempest | 10 | ✅ | Spellcast Roll, 3 labeled damage rolls: Blizzard (2d20+8), Hurricane (3d10+10), Sandstorm (5d6+9) |
 
-### Splendor (21 cards) ⚠️
+### Splendor (21 cards) ✅
 
 | Card | Tier | Status | Notes |
 |------|------|--------|-------|
@@ -646,8 +646,8 @@ This section tracks the implementation status of all domain cards and class feat
 | Reassurance | 1 | ✅ | Once per rest |
 | Final Words | 2 | ✅ | Roll DC |
 | Healing Hands | 2 | ✅ | Stress cost, roll DC |
-| Second Wind | 3 | ✅ | Once per rest |
-| Voice of Reason | 3 | ✅ | +1 Proficiency modifier |
+| Second Wind | 3 | ✅ | Once per rest, Clear 3 Stress and Clear 1 Hit Point |
+| Voice of Reason | 3 | ✅ | Conditional +1 Proficiency modifier |
 | Divination | 4 | ✅ | 3 Hope cost, once per long rest |
 | Life Ward | 4 | ✅ | 3 Hope cost |
 | Shape Material | 5 | ✅ | Hope cost |
@@ -660,8 +660,8 @@ This section tracks the implementation status of all domain cards and class feat
 | Stunning Sunlight | 8 | ✅ | Hope cost, high damage |
 | Overwhelming Aura | 9 | ✅ | Presence = Spellcast modifier, 2 Hope + Stress cost |
 | Salvation Beam | 9 | ✅ | Roll DC |
-| Invigoration | 10 | ✅ | Hope cost, once per session |
-| Resurrection | 10 | ✅ | Roll DC 20 |
+| Invigoration | 10 | ✅ | Hope cost, once per session; linked Hope and d6s rolls |
+| Resurrection | 10 | ✅ | Roll DC 20; Roll d6 |
 
 ### Valor (21 cards) ⚠️
 
@@ -735,9 +735,9 @@ This section tracks the implementation status of all domain cards and class feat
 ## Summary
 
 **Domain Cards:** 231 total (189 SRD + 21 Blood playtest + 21 Dread playtest)
-- ✅ Fully Implemented: ~221 cards (95%)
-- ⚠️ Partial: ~8 cards (4%)
-- ❌ Manual Only: 2 cards (1%)
+- ✅ Fully Implemented: ~229 cards (99%)
+- ⚠️ Partial: ~2 cards (1%)
+- ❌ Manual Only: 0 cards (0%)
 
 **Playtest Content:**
 - Blood domain (21 cards) - 21 fully implemented (including Power Through Pain and Blood-Touched dynamic formulas)

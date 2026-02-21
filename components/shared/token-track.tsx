@@ -25,6 +25,7 @@ export default function CardTokenTrack({
   maxTokens,
   initialTokens,
   tokenSource,
+  tokenLabel,
   currentTokens: propTokens,
   onTokenChange,
   className,
@@ -128,7 +129,7 @@ export default function CardTokenTrack({
       {/* Token label */}
       <div className="flex items-center justify-between text-xs text-gray-400">
         <span>
-          Tokens{tokenSource ? ` (${tokenSource.charAt(0).toUpperCase() + tokenSource.slice(1)})` : ''}
+          {tokenLabel || (tokenSource ? `Tokens (${tokenSource.charAt(0).toUpperCase() + tokenSource.slice(1)})` : 'Tokens')}
         </span>
         <span>
           {currentTokens}/{calculatedMax}

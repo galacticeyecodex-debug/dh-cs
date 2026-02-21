@@ -20,6 +20,7 @@
     "enhance-json": "npx tsx scripts/enhance_json.ts",
     "seed:public": "node content/public/seed-public-library.js",
     "seed:private": "node content/private/seed-private-library.js",
+    "db:seed": "node scripts/db-seed.js",
     "hooks:install": "bash scripts/install-hooks.sh",
     "e2e": "playwright test --project=chromium",
     "e2e:all": "playwright test",

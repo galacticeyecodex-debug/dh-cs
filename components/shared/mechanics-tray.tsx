@@ -37,7 +37,7 @@ function getConditionText(condition?: ModifierCondition): string | undefined {
   if (!condition) return undefined;
   switch (condition.type) {
     case 'when_active':
-      return 'Activate to apply this bonus';
+      return undefined;
     case 'when_active_permanent':
       return 'Permanent bonus (choose to apply)';
     case 'when_armored':
@@ -48,6 +48,8 @@ function getConditionText(condition?: ModifierCondition): string | undefined {
       return condition.minMarked && condition.minMarked > 1
         ? `With ${condition.minMarked}+ HP marked`
         : 'While HP is marked';
+    case 'when_stress_maxed':
+      return 'When all Stress slots are marked';
     case 'loadout_domain_count':
       return `With ${condition.minCount}+ ${condition.domain} cards`;
     case 'always':
@@ -157,6 +159,7 @@ export default function MechanicsTray({
     mod.condition?.type === 'when_active' ||
     mod.condition?.type === 'when_active_permanent' ||
     mod.condition?.type === 'when_hp_marked' ||
+    mod.condition?.type === 'when_stress_maxed' ||
     mod.condition?.type === 'loadout_domain_count'
   );
   const hasModifiers = whenActiveModifiers.length > 0;
@@ -243,6 +246,7 @@ export default function MechanicsTray({
             maxTokens={tokens?.max_tokens ?? null}
             initialTokens={tokens?.initial_tokens}
             tokenSource={tokens?.token_source}
+            tokenLabel={tokens?.token_label}
           />
         </div>
       )}

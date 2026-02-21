@@ -171,7 +171,7 @@ export default function CharacterView() {
   const traitTabs = useMemo(() => {
     if (!character) return [];
     return Object.entries(character.stats).map(([key, value]) => {
-      const allMods = getStatModifiers(character, key);
+      const allMods = getStatModifiers(character, key, cardStates);
 
       return {
         id: key,
@@ -181,7 +181,7 @@ export default function CharacterView() {
         onUpdateModifiers: (mods: any[]) => updateModifiers(key, mods)
       };
     });
-  }, [character, updateModifiers]);
+  }, [character, cardStates, updateModifiers]);
 
   // Debounced save handler for lore fields
   const handleLoreChange = (field: string, value: string) => {
@@ -419,7 +419,7 @@ export default function CharacterView() {
 
   // Helper to calculate totals and combine modifiers for Traits
   const getStatDetails = (stat: string, base: number) => {
-    const allMods = getStatModifiers(character, stat);
+    const allMods = getStatModifiers(character, stat, cardStates);
     const total = base + allMods.reduce((acc, mod) => acc + mod.value, 0);
     return { total, allMods };
   };
@@ -453,7 +453,7 @@ export default function CharacterView() {
           <div className="absolute inset-0 bg-gradient-to-r from-dagger-dark/40 via-transparent to-transparent hidden md:block" />
 
           {/* Top Right Controls */}
-          <div 
+          <div
             className="absolute top-4 right-4 flex items-center gap-2"
             style={{ zIndex: Z_INDEX.VIEW_CONTROLS }}
           >
@@ -499,7 +499,7 @@ export default function CharacterView() {
                 </div>
 
                 {/* Artwork Edit Button (Art Icon style) */}
-                <div 
+                <div
                   className="absolute top-2 right-2"
                   style={{ zIndex: Z_INDEX.BASE + 1 }}
                 >
@@ -610,7 +610,7 @@ export default function CharacterView() {
         </div> {/* Closes Social Profile Header */}
 
         {/* Segmented Control (Sticky Tab Bar) */}
-        <div 
+        <div
           className="sticky top-0 bg-dagger-dark/95 backdrop-blur border-b border-white/10 px-4 py-2 flex justify-between items-center shadow-sm"
           style={{ zIndex: Z_INDEX.HEADER }}
         >

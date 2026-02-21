@@ -4198,6 +4198,36 @@
           "source": "Gifted Tracker"
         }
       ]
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "hope_cost",
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "evasion",
+          "value": 1,
+          "condition": {
+            "type": "when_active"
+          },
+          "source": "Gifted Tracker"
+        }
+      ],
+      "linked_costs": [
+        {
+          "resource": "hope",
+          "amount": "X",
+          "label": "Track Creatures",
+          "cost_label": "Spend {n} Hope",
+          "benefit_label": "Ask {n} Questions",
+          "action": {
+            "type": "custom"
+          }
+        }
+      ]
     }
   },
   {
@@ -4216,6 +4246,19 @@
       "keywords": [
         "hope_gain",
         "hope_cost",
+        "ability"
+      ],
+      "roll": {
+        "type": "Instinct Roll",
+        "trait": "Instinct",
+        "difficulty": 12,
+        "target_reaction": false
+      }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
         "ability"
       ],
       "roll": {
@@ -4349,7 +4392,7 @@
     "domain": "Sage",
     "type": "Spell",
     "recall": "1",
-    "text": "Make a **Spellcast Roll** against a target within Far range. On a success, deal **6d4** magic damage using your Proficiency. Additionally, **mark 2 or more Stress** to make them permanently Corroded. While a target is Corroded, they gain a –1 penalty to their Difficulty for every 2 Stress you spent. This condition can stack.",
+    "text": "Make a **Spellcast Roll** against a target within Far range. On a success, deal **d6+4** magic damage using your Proficiency. Additionally, **mark 2 or more Stress** to make them permanently Corroded. While a target is Corroded, they gain a –1 penalty to their Difficulty for every 2 Stress you spent. This condition can stack.",
     "enhancement": {
       "action_type": "attack",
       "timing": "action",
@@ -4374,6 +4417,52 @@
         "trait": "Spellcast",
         "target_reaction": false
       }
+    },
+    "enhancement_override": {
+      "action_type": "attack",
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "magic",
+        "stress_cost",
+        "spell"
+      ],
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Far",
+        "combat_category": "standalone_attack",
+        "damage": "d6+4",
+        "damage_type": "magic",
+        "damage_scaling": "proficiency",
+        "targets": "single"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false
+      },
+      "linked_costs": [
+        {
+          "resource": "stress",
+          "amount": "X",
+          "cost_label": "Mark 2+ Stress",
+          "benefit_label": "Corrode target",
+          "action": {
+            "type": "custom"
+          }
+        }
+      ],
+      "modifiers": [
+        {
+          "stat": "corroded_condition",
+          "value": 0,
+          "condition": {
+            "type": "when_active"
+          },
+          "source": "Corroded"
+        }
+      ]
     }
   },
   {
@@ -4418,7 +4507,7 @@
     "domain": "Sage",
     "type": "Spell",
     "recall": "1",
-    "text": "Make a **Spellcast Roll** against a target within Close range and choose one of the following options:\n\n- You pull the target into Melee range or pull yourself into Melee range of them.\n- You constrict the target and force them to **mark 2 Stress**.\n- All adversaries between you and the target must succeed on a **Reaction Roll (13)** or be hit by vines, taking **3d6+2** physical damage.\n\nOn a success, vines reach out from your hands, causing the chosen effect and temporarily Restraining the target.",
+    "text": "Make a **Spellcast Roll** against a target within Close range and choose one of the following options:\n\n- You pull the target into Melee range or pull yourself into Melee range of them.\n- You constrict the target and force them to mark 2 Stress.\n- All adversaries between you and the target must succeed on a **Reaction Roll (13)** or be hit by vines, taking **3d6+2** physical damage.\n\nOn a success, vines reach out from your hands, causing the chosen effect and temporarily Restraining the target.",
     "enhancement": {
       "action_type": "attack",
       "timing": "reaction",
@@ -4505,6 +4594,37 @@
       "attack": {
         "range": "Melee"
       }
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "once_per_rest",
+      "costs": {
+        "hope": 1
+      },
+      "keywords": [
+        "damage",
+        "hope_cost",
+        "tokens",
+        "spell"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_source": "spellcast"
+      },
+      "linked_costs": [
+        {
+          "resource": "tokens",
+          "amount": "X",
+          "label": "Reduce Damage",
+          "cost_label": "Spend {n} Tokens",
+          "benefit_label": "Roll {n}d6 Reduction",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d6"
+          }
+        }
+      ]
     }
   },
   {
@@ -4538,6 +4658,30 @@
         "combat_category": "roll_only",
         "difficulty": 13,
         "damage_scaling": "none"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 13,
+        "target_reaction": false
+      }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "costs": {
+        "hope": 2
+      },
+      "keywords": [
+        "hope_cost",
+        "tokens",
+        "spell"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": 3,
+        "initial_tokens": 0,
+        "token_label": "Barricade Hit Points"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -4608,6 +4752,19 @@
         "trait": "Spellcast",
         "target_reaction": false
       }
+    },
+    "enhancement_override": {
+      "timing": "downtime",
+      "frequency": "at_will",
+      "keywords": [
+        "healing",
+        "stress_relief",
+        "hope_gain",
+        "ability"
+      ],
+      "gains": {
+        "damage_reduction_roll": "1d6"
+      }
     }
   },
   {
@@ -4659,6 +4816,24 @@
         "has_tokens": true,
         "max_tokens": null
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_long_rest",
+      "costs": {
+        "stress": 1
+      },
+      "keywords": [
+        "stress_cost",
+        "tokens",
+        "spell"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": 6,
+        "initial_tokens": 1,
+        "token_label": "Wild Surge Value"
+      }
     }
   },
   {
@@ -4704,6 +4879,40 @@
         "difficulty": 13,
         "target_reaction": false
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "hope_cost",
+        "tokens",
+        "spell"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": 12,
+        "initial_tokens": 0,
+        "token_label": "Sprites"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 13,
+        "target_reaction": false
+      },
+      "linked_costs": [
+        {
+          "resource": "hope",
+          "amount": "X",
+          "label": "Summon Sprites",
+          "cost_label": "Spend {n} Hope",
+          "benefit_label": "Create {n} Sprites",
+          "action": {
+            "type": "gain_tokens",
+            "amount_per_resource": 1
+          }
+        }
+      ]
     }
   },
   {
@@ -4734,6 +4943,34 @@
       "attack": {
         "range": "Very Close"
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_rest",
+      "keywords": [
+        "healing",
+        "spell"
+      ],
+      "modifiers": [
+        {
+          "stat": "physical_resistance",
+          "value": 0,
+          "condition": {
+            "type": "when_active"
+          },
+          "source": "Resistance to Physical Damage"
+        }
+      ],
+      "gains": {
+        "damage_reduction_roll": "1d4",
+        "hit_points_clear": 1
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 15,
+        "target_reaction": false
+      }
     }
   },
   {
@@ -4754,6 +4991,24 @@
         "has_tokens": true,
         "max_tokens": null,
         "token_source": "the"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false
+      }
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "at_will",
+      "keywords": [
+        "tokens",
+        "ability"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": null,
+        "token_label": "Tokens"
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -4896,6 +5151,48 @@
           "vulnerable"
         ],
         "damage_scaling": "none"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "target_reaction": false
+      }
+    },
+    "enhancement_override": {
+      "action_type": "attack",
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "magic",
+        "aoe",
+        "debuff",
+        "spell"
+      ],
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Far",
+        "combat_category": "standalone_attack",
+        "damage_type": "magic",
+        "targets": "all_in_range",
+        "damage_scaling": "none",
+        "additional_damage": [
+          {
+            "damage": "2d20+8",
+            "damage_type": "magic",
+            "label": "Blizzard"
+          },
+          {
+            "damage": "3d10+10",
+            "damage_type": "magic",
+            "label": "Hurricane"
+          },
+          {
+            "damage": "5d6+9",
+            "damage_type": "magic",
+            "label": "Sandstorm"
+          }
+        ]
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -5055,6 +5352,22 @@
       "attack": {
         "range": "Close"
       }
+    },
+    "enhancement_override": {
+      "timing": "reaction",
+      "frequency": "once_per_rest",
+      "keywords": [
+        "healing",
+        "stress_relief",
+        "ability"
+      ],
+      "gains": {
+        "stress_clear": 3,
+        "hit_points_clear": 1
+      },
+      "attack": {
+        "range": "Close"
+      }
     }
   },
   {
@@ -5063,7 +5376,7 @@
     "domain": "Splendor",
     "type": "Ability",
     "recall": "1",
-    "text": "You speak with an unmatched power and authority. You have advantage on **action rolls** to de-escalate violent situations or convince someone to follow your lead.\n\nAdditionally, you’re emboldened in moments of duress. When all of your Stress slots are marked, you gain a +1 bonus to your Proficiency for damage rolls.",
+    "text": "You speak with an unmatched power and authority. You have advantage on **action rolls** to de-escalate violent situations or convince someone to follow your lead.\n\nAdditionally, you're emboldened in moments of duress. When all of your Stress slots are marked, you gain a +1 bonus to your Proficiency for damage rolls.",
     "enhancement": {
       "timing": "free",
       "frequency": "at_will",
@@ -5078,6 +5391,25 @@
           "value": 1,
           "condition": {
             "type": "always"
+          },
+          "source": "Voice of Reason"
+        }
+      ]
+    },
+    "enhancement_override": {
+      "timing": "free",
+      "frequency": "at_will",
+      "keywords": [
+        "damage",
+        "buff",
+        "ability"
+      ],
+      "modifiers": [
+        {
+          "stat": "proficiency",
+          "value": 1,
+          "condition": {
+            "type": "when_stress_maxed"
           },
           "source": "Voice of Reason"
         }
@@ -5227,6 +5559,30 @@
       "attack": {
         "range": "Far"
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_long_rest",
+      "keywords": [
+        "damage",
+        "buff",
+        "spell"
+      ],
+      "tokens": {
+        "has_tokens": true,
+        "max_tokens": 6,
+        "initial_tokens": 1,
+        "tokens_per_use": 1
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 16,
+        "target_reaction": false
+      },
+      "attack": {
+        "range": "Far"
+      }
     }
   },
   {
@@ -5316,7 +5672,7 @@
     "domain": "Splendor",
     "type": "Spell",
     "recall": "2",
-    "text": "Make a **Spellcast Roll** to unleash powerful rays of burning sunlight against all adversaries in front of you within Far range. On a success, **spend any number of Hope** and force that many targets you succeeded against to make a **Reaction Roll (14)**.\n\nTargets who succeed take **3d20+3** magic damage. Targets who fail take **4d20+5** magic damage and are temporarily Stunned. While Stunned, they can’t use reactions and can’t take any other actions until they clear this condition.",
+    "text": "Make a **Spellcast Roll** to unleash powerful rays of burning sunlight against all adversaries in front of you within Far range. On a success, **spend any number of Hope** and force that many targets you succeeded against to make a Reaction Roll (14).\n\nTargets who succeed take **3d20+3** magic damage. Targets who fail take **4d20+5** magic damage and are temporarily Stunned. While Stunned, they can’t use reactions and can’t take any other actions until they clear this condition.",
     "enhancement": {
       "action_type": "attack",
       "timing": "reaction",
@@ -5340,6 +5696,44 @@
         "targets": "all_in_range",
         "difficulty": 14,
         "damage_scaling": "none"
+      },
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 14,
+        "target_reaction": true
+      }
+    },
+    "enhancement_override": {
+      "action_type": "attack",
+      "timing": "action",
+      "frequency": "at_will",
+      "costs": {
+        "hope": 1
+      },
+      "keywords": [
+        "damage",
+        "magic",
+        "aoe",
+        "hope_cost",
+        "spell"
+      ],
+      "attack": {
+        "trait": "Spellcast",
+        "range": "Far",
+        "combat_category": "standalone_attack",
+        "damage": "3d20+3",
+        "damage_type": "magic",
+        "targets": "all_in_range",
+        "damage_scaling": "none",
+        "additional_damage": [
+          {
+            "damage": "4d20+5",
+            "damage_type": "magic",
+            "condition": "Target fails Reaction Roll (14)",
+            "label": "Damage"
+          }
+        ]
       },
       "roll": {
         "type": "Spellcast Roll",
@@ -5386,6 +5780,35 @@
         "difficulty": 15,
         "target_reaction": false,
         "requires_cost_for_roll": true
+      }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_long_rest",
+      "costs": {
+        "hope": 2
+      },
+      "keywords": [
+        "buff",
+        "hope_cost",
+        "spell"
+      ],
+      "modifiers": [
+        {
+          "stat": "presence",
+          "value": 0,
+          "formula": "spellcast_minus_presence",
+          "condition": {
+            "type": "when_active"
+          },
+          "source": "Overwhelming Aura"
+        }
+      ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 15,
+        "target_reaction": false
       }
     }
   },
@@ -5438,6 +5861,27 @@
       "attack": {
         "range": "Close"
       }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "once_per_session",
+      "keywords": [
+        "hope_cost",
+        "spell"
+      ],
+      "linked_costs": [
+        {
+          "resource": "hope",
+          "amount": "X",
+          "label": "Invigorate",
+          "cost_label": "Spend {n} Hope",
+          "benefit_label": "Roll {n}d6",
+          "action": {
+            "type": "variable_roll",
+            "dice": "d6"
+          }
+        }
+      ]
     }
   },
   {
@@ -5458,6 +5902,27 @@
         "trait": "Spellcast",
         "difficulty": 20,
         "target_reaction": false
+      }
+    },
+    "enhancement_override": {
+      "timing": "action",
+      "frequency": "at_will",
+      "keywords": [
+        "spell"
+      ],
+      "roll": {
+        "type": "Spellcast Roll",
+        "trait": "Spellcast",
+        "difficulty": 20,
+        "target_reaction": false
+      },
+      "attack": {
+        "additional_damage": [
+          {
+            "damage": "1d6",
+            "label": "Fate"
+          }
+        ]
       }
     }
   },

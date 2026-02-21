@@ -885,6 +885,36 @@ export function calculateDynamicValue(formula: string, character: Character): nu
     return character.proficiency || 1;
   }
 
+  // Handle spellcast reference — resolved via spellcast_trait (e.g., Presence for Bard)
+  if (formula === 'spellcast') {
+    const spellcastTraitName = (character as any).spellcast_trait ||
+      (character as any).subclass_data?.data?.spellcast_trait;
+    if (spellcastTraitName) {
+      const traitKey = spellcastTraitName.toLowerCase();
+      return character.stats?.[traitKey as keyof typeof character.stats] || 0;
+    }
+    return (character as any).spellcast || 0;
+  }
+
+  // Handle "spellcast_minus_[stat]" pattern (e.g., "spellcast_minus_presence")
+  // Used for "set stat equal to spellcast" mechanics — computes the delta needed.
+  // SRD Reference: Overwhelming Aura — "make your Presence equal to your Spellcast trait"
+  const spellcastMinusMatch = formula.match(/^spellcast_minus_([a-z]+)$/);
+  if (spellcastMinusMatch) {
+    const targetStat = spellcastMinusMatch[1];
+    const spellcastTraitName = (character as any).spellcast_trait ||
+      (character as any).subclass_data?.data?.spellcast_trait;
+    let spellcastValue: number;
+    if (spellcastTraitName) {
+      const traitKey = spellcastTraitName.toLowerCase();
+      spellcastValue = character.stats?.[traitKey as keyof typeof character.stats] || 0;
+    } else {
+      spellcastValue = (character as any).spellcast || 0;
+    }
+    const statValue = character.stats?.[targetStat as keyof typeof character.stats] || 0;
+    return spellcastValue - statValue;
+  }
+
   // Handle direct stat reference
   const statValue = character.stats?.[formula as keyof typeof character.stats];
   if (typeof statValue === 'number') {

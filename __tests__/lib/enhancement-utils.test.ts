@@ -741,6 +741,87 @@ describe('Enhancement Utils', () => {
             });
         });
 
+        describe('condition: when_stress_maxed', () => {
+            it('should return true when all stress slots are marked (Voice of Reason)', () => {
+                const modifier: CardModifier = {
+                    stat: 'proficiency',
+                    value: 1,
+                    condition: { type: 'when_stress_maxed' },
+                };
+
+                const character = {
+                    vitals: {
+                        stress_max: 4,
+                        stress_current: 4, // all slots marked
+                    },
+                };
+
+                expect(isModifierActive(modifier, false, character)).toBe(true);
+            });
+
+            it('should return false when stress is not fully marked', () => {
+                const modifier: CardModifier = {
+                    stat: 'proficiency',
+                    value: 1,
+                    condition: { type: 'when_stress_maxed' },
+                };
+
+                const character = {
+                    vitals: {
+                        stress_max: 4,
+                        stress_current: 3, // one slot remaining
+                    },
+                };
+
+                expect(isModifierActive(modifier, false, character)).toBe(false);
+            });
+
+            it('should return false when stress is zero', () => {
+                const modifier: CardModifier = {
+                    stat: 'proficiency',
+                    value: 1,
+                    condition: { type: 'when_stress_maxed' },
+                };
+
+                const character = {
+                    vitals: {
+                        stress_max: 4,
+                        stress_current: 0,
+                    },
+                };
+
+                expect(isModifierActive(modifier, false, character)).toBe(false);
+            });
+
+            it('should return false when no character vitals provided', () => {
+                const modifier: CardModifier = {
+                    stat: 'proficiency',
+                    value: 1,
+                    condition: { type: 'when_stress_maxed' },
+                };
+
+                expect(isModifierActive(modifier, false)).toBe(false);
+                expect(isModifierActive(modifier, false, {})).toBe(false);
+            });
+
+            it('should return false when stress_max is 0 to avoid false positives', () => {
+                const modifier: CardModifier = {
+                    stat: 'proficiency',
+                    value: 1,
+                    condition: { type: 'when_stress_maxed' },
+                };
+
+                const character = {
+                    vitals: {
+                        stress_max: 0,
+                        stress_current: 0,
+                    },
+                };
+
+                expect(isModifierActive(modifier, false, character)).toBe(false);
+            });
+        });
+
         describe('condition: environment', () => {
             it('should return false (not implemented)', () => {
                 const modifier: CardModifier = {

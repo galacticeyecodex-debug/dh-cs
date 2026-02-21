@@ -171,7 +171,7 @@ export function isModifierActive(
     character?: {
         character_inventory?: Array<{ location: string }>;
         character_cards?: Array<{ location: string; library_item?: { domain?: string; data?: { domain?: string } } }>;
-        vitals?: { hit_points_max?: number; hit_points_current?: number };
+        vitals?: { hit_points_max?: number; hit_points_current?: number; stress_max?: number; stress_current?: number };
     }
 ): boolean {
     const condition = modifier.condition;
@@ -204,6 +204,14 @@ export function isModifierActive(
             const currentHp = character.vitals.hit_points_current || 0;
             const markedHp = maxHp - currentHp;
             return markedHp >= (condition.minMarked || 1);
+
+        case 'when_stress_maxed':
+            // Active when all Stress slots are marked
+            // Stress uses "fill-up-bad" semantics: current = amount accumulated
+            if (!character?.vitals) return false;
+            const stressMax = character.vitals.stress_max || 0;
+            const stressCurrent = character.vitals.stress_current || 0;
+            return stressMax > 0 && stressCurrent >= stressMax;
 
         case 'loadout_domain_count':
             if (!character?.character_cards) return false;

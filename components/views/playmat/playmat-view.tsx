@@ -198,7 +198,7 @@ export default function PlaymatView() {
         />
 
         {/* Sticky Toggle Bar - Compact Design */}
-        <div 
+        <div
           className="sticky top-0 bg-dagger-dark/95 backdrop-blur border-b border-white/10 -mx-4 px-4 py-2 shadow-sm"
           style={{ zIndex: Z_INDEX.VIEW_CONTROLS }}
         >
@@ -492,13 +492,13 @@ export default function PlaymatView() {
               let traitModSum = 0;
               if (spellcastTraitName) {
                 const tKey = spellcastTraitName.toLowerCase();
-                const tSystem = getStatModifiers(character, tKey);
+                const tSystem = getStatModifiers(character, tKey, cardStates);
                 const tUser = character.modifiers?.[tKey] || [];
                 traitModSum = [...tSystem, ...tUser].reduce((acc, m) => acc + m.value, 0);
               }
 
               const spellcastBase = rawTraitValue + traitModSum;
-              const allSpellcastMods = getStatModifiers(character, 'spellcast');
+              const allSpellcastMods = getStatModifiers(character, 'spellcast', cardStates);
 
               tabs.push({
                 id: 'spellcast',
@@ -510,7 +510,7 @@ export default function PlaymatView() {
             } else {
               const traitKey = rollTrait.toLowerCase();
               const baseTraitValue = character.stats[traitKey as keyof typeof character.stats] || 0;
-              const allTraitMods = getStatModifiers(character, traitKey);
+              const allTraitMods = getStatModifiers(character, traitKey, cardStates);
 
               tabs.push({
                 id: traitKey,
@@ -524,7 +524,7 @@ export default function PlaymatView() {
 
           // 2. Damage Tab
           if (attack?.damage) {
-            const allDamageMods = getStatModifiers(character, 'damage');
+            const allDamageMods = getStatModifiers(character, 'damage', cardStates);
 
             tabs.push({
               id: 'damage',
@@ -693,8 +693,8 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
   const isFull = mode === 'full';
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm" 
+    <div
+      className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm"
       onClick={onClose}
       style={{ zIndex: Z_INDEX.MODAL }}
     >
@@ -706,7 +706,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
         {isFull && (
           <>
             {/* Top Header Section */}
-            <div 
+            <div
               className="absolute top-0 left-0 w-full flex justify-between items-center p-3"
               style={{ zIndex: Z_INDEX.BASE + 1 }}
             >
@@ -738,7 +738,7 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
             </div>
 
             {/* Card Type Banner */}
-            <div 
+            <div
               className="mt-16 pt-2 pb-1 text-center"
               style={{ zIndex: Z_INDEX.BASE + 1 }}
             >
@@ -770,9 +770,9 @@ function CardDetailModal({ charCard, onClose, mode = 'full' }: { charCard: Chara
         )}
 
         {isFull && (
-          <button 
-            onClick={onClose} 
-            aria-label="Close" 
+          <button
+            onClick={onClose}
+            aria-label="Close"
             className="absolute top-2 right-2 text-white/70 hover:text-white bg-black/50 rounded-full p-1"
             style={{ zIndex: Z_INDEX.DECORATIVE }}
           >

@@ -560,6 +560,7 @@ export default function CombatView() {
                           cardName={`heritage-${feature.source}-${feature.name}`}
                           maxTokens={feature.tokens.max_tokens ?? null}
                           tokenSource={feature.tokens.token_source}
+                          tokenLabel={feature.tokens.token_label}
                         />
                       ) : undefined}
                       variant="feature"
@@ -713,6 +714,7 @@ export default function CombatView() {
                           cardName={ability.name}
                           maxTokens={enhancement.tokens.max_tokens ?? null}
                           tokenSource={enhancement.tokens.token_source}
+                          tokenLabel={enhancement.tokens?.token_label}
                         />
                       ) : undefined}
                       frequency={enhancement.frequency && enhancement.frequency !== 'at_will' ? (

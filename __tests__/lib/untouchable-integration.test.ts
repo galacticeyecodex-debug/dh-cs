@@ -57,15 +57,21 @@ function createCharacterWithUntouchable(
             domain: 'Bone',
             tier: 1,
             recall: '1',
-            modifiers: [
-              {
-                stat: 'evasion',
-                value: 0,
-                formula: 'half_agility',
-                condition: { type: 'always' },
-                source: 'Untouchable'
-              }
-            ]
+            // Enhancement block matches real Supabase library_item.data structure
+            // (modifiers must be nested under enhancement or enhancement_override)
+            enhancement: {
+              timing: 'action',
+              frequency: 'at_will',
+              modifiers: [
+                {
+                  stat: 'evasion',
+                  value: 0,
+                  formula: 'half_agility',
+                  condition: { type: 'always' },
+                  source: 'Untouchable'
+                }
+              ]
+            }
           }
         }
       } as CharacterCard

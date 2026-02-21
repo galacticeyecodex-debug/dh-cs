@@ -20,7 +20,7 @@ import React from 'react';
 import { AppIcons } from '@/lib/icon-utils';
 import clsx from 'clsx';
 import { useCharacterStore } from '@/store/character-store';
-import { getStatModifiers } from '@/lib/modifier-aggregator';
+import { getStatModifiers, getSpellcastBonus } from '@/lib/modifier-aggregator';
 import { isModifierActive } from '@/lib/enhancement-utils';
 import type { CardModifier, CardStates } from '@/types/cards';
 import type { Character } from '@/types/character';
@@ -95,6 +95,31 @@ function calculateFormulaWithModifiedStats(
     return character.proficiency || 1;
   }
 
+  // Handle spellcast reference — resolved via spellcast_trait (e.g., Presence for Bard)
+  if (formula === 'spellcast') {
+    return getSpellcastBonus(character, cardStates);
+  }
+
+  // Handle "spellcast_minus_[stat]" pattern (e.g., "spellcast_minus_presence")
+  // Used for "set stat equal to spellcast" mechanics — shows the delta needed.
+  // SRD Reference: Overwhelming Aura — "make your Presence equal to your Spellcast trait"
+  //
+  // IMPORTANT: We use only the BASE stat value for the target stat here (no domain card
+  // modifiers). If we called getStatModifiers() it would include this modifier's own
+  // contribution (via getDomainCardModifiers → calculateDynamicValue), creating a circular
+  // dependency where the delta always cancels to 0.
+  // User-added manual modifiers are included since they represent external adjustments.
+  const spellcastMinusMatch = formula.match(/^spellcast_minus_([a-z]+)$/);
+  if (spellcastMinusMatch) {
+    const targetStat = spellcastMinusMatch[1];
+    const spellcastTotal = getSpellcastBonus(character, cardStates);
+    const baseValue = character.stats?.[targetStat as keyof typeof character.stats] || 0;
+    // Only include user-added modifiers, NOT domain card modifiers (avoids self-reference)
+    const userMods = (character.modifiers?.[targetStat] || []) as Array<{ value: number }>;
+    const userModTotal = userMods.reduce((sum, m) => sum + (m.value || 0), 0);
+    return spellcastTotal - (baseValue + userModTotal);
+  }
+
   // Handle direct stat reference
   const statValue = character.stats?.[formula as keyof typeof character.stats];
   if (typeof statValue === 'number') {
@@ -133,6 +158,7 @@ export default function ModifierActivationRow({
     modifier.condition?.type === 'when_armored' ||
     modifier.condition?.type === 'when_unarmored' ||
     modifier.condition?.type === 'when_hp_marked' ||
+    modifier.condition?.type === 'when_stress_maxed' ||
     modifier.condition?.type === 'always';
 
   // For auto-activate conditions, check if the condition is met
@@ -157,6 +183,9 @@ export default function ModifierActivationRow({
   }, [modifier.formula, modifier.value, character, cardStates]);
 
   const isPositive = value > 0;
+  // A value of 0 means this is a flag/boolean modifier (e.g., "Resistance to Physical Damage")
+  // rather than a numeric bonus. Show only the source label, no +0 prefix.
+  const isFlag = value === 0;
 
   // Format the stat name nicely
   const statLabel = modifier.stat
@@ -167,10 +196,10 @@ export default function ModifierActivationRow({
 
   // Standardize to white/10 border like other buttons
   const borderColor = isActive
-    ? (isPositive ? 'border-green-500/30' : 'border-red-500/30')
+    ? (isFlag ? 'border-cyan-500/30' : isPositive ? 'border-green-500/30' : 'border-red-500/30')
     : 'border-white/10';
   const bgColor = isActive
-    ? (isPositive ? 'bg-green-500/10' : 'bg-red-500/10')
+    ? (isFlag ? 'bg-cyan-500/10' : isPositive ? 'bg-green-500/10' : 'bg-red-500/10')
     : 'bg-white/5';
 
   const handleToggle = () => {
@@ -189,12 +218,21 @@ export default function ModifierActivationRow({
       {/* Modifier Info */}
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className={clsx('text-xs font-black', isPositive ? 'text-green-400' : 'text-red-400')}>
-            {value >= 0 ? '+' : ''}{value}
-          </span>
-          <span className="text-xs font-bold text-white uppercase tracking-tight">
-            {statLabel}
-          </span>
+          {isFlag ? (
+            /* Flag modifiers (value === 0): show source/label only, no numeric prefix */
+            <span className="text-xs font-bold text-cyan-400 uppercase tracking-tight">
+              {modifier.source ?? statLabel}
+            </span>
+          ) : (
+            <>
+              <span className={clsx('text-xs font-black', isPositive ? 'text-green-400' : 'text-red-400')}>
+                {value >= 0 ? '+' : ''}{value}
+              </span>
+              <span className="text-xs font-bold text-white uppercase tracking-tight">
+                {statLabel}
+              </span>
+            </>
+          )}
         </div>
         {conditionText && (
           <div className="text-[10px] text-gray-400 leading-none">

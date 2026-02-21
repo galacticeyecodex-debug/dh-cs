@@ -14,6 +14,7 @@ import fs from 'fs';
 import path from 'path';
 import { describe, it, expect } from 'vitest';
 import type { EnhancedAbilityCard } from '@/types/cards';
+import { getEnhancement } from '@/lib/enhancement-utils';
 
 // Load the enhanced JSON files
 const srdAbilities: EnhancedAbilityCard[] = JSON.parse(
@@ -228,12 +229,20 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
                 'when_armored',
                 'when_unarmored',
                 'when_active',
+                'when_active_permanent',
+                'when_hp_marked',
+                'when_stress_maxed',
                 'loadout_domain_count',
                 'environment'
             ];
 
             allAbilities.forEach((card) => {
-                card.enhancement?.modifiers?.forEach((modifier) => {
+                // Check both enhancement and enhancement_override modifiers
+                const modifiers = [
+                    ...(card.enhancement?.modifiers ?? []),
+                    ...(card.enhancement_override?.modifiers ?? []),
+                ];
+                modifiers.forEach((modifier) => {
                     if (modifier.condition) {
                         expect(validConditionTypes).toContain(modifier.condition.type);
                     }
@@ -241,6 +250,531 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
             });
         });
     });
+});
+
+describe('Enhanced Abilities JSON - Override Validation', () => {
+    describe('Second Wind (Splendor)', () => {
+        const card = srdAbilities.find(c => c.name === 'Second Wind');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: frequency once_per_rest', () => {
+            expect(enhancement?.frequency).toBe('once_per_rest');
+        });
+
+        it('should use override: gains.stress_clear = 3', () => {
+            expect(enhancement?.gains?.stress_clear).toBe(3);
+        });
+
+        it('should use override: gains.hit_points_clear = 1', () => {
+            expect(enhancement?.gains?.hit_points_clear).toBe(1);
+        });
+
+        it('should use override: no duplicate keywords', () => {
+            const keywords = enhancement?.keywords ?? [];
+            const unique = new Set(keywords);
+            expect(keywords.length).toBe(unique.size);
+        });
+    });
+
+    describe('Voice of Reason (Splendor)', () => {
+        const card = srdAbilities.find(c => c.name === 'Voice of Reason');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: proficiency modifier +1', () => {
+            const mod = enhancement?.modifiers?.find(m => m.stat === 'proficiency');
+            expect(mod?.value).toBe(1);
+        });
+
+        it('should use override: proficiency modifier condition when_stress_maxed', () => {
+            const mod = enhancement?.modifiers?.find(m => m.stat === 'proficiency');
+            expect(mod?.condition?.type).toBe('when_stress_maxed');
+        });
+    });
+
+    describe('Zone of Protection (Splendor)', () => {
+        const card = srdAbilities.find(c => c.name === 'Zone of Protection');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: frequency once_per_long_rest', () => {
+            expect(enhancement?.frequency).toBe('once_per_long_rest');
+        });
+
+        it('should use override: tokens.max_tokens = 6', () => {
+            expect(enhancement?.tokens?.max_tokens).toBe(6);
+        });
+
+        it('should use override: tokens.initial_tokens = 1', () => {
+            expect(enhancement?.tokens?.initial_tokens).toBe(1);
+        });
+
+        it('should use override: tokens.tokens_per_use = 1', () => {
+            expect(enhancement?.tokens?.tokens_per_use).toBe(1);
+        });
+
+        it('should use override: roll.difficulty = 16', () => {
+            expect(enhancement?.roll?.difficulty).toBe(16);
+        });
+    });
+
+    describe('Stunning Sunlight (Splendor)', () => {
+        const card = srdAbilities.find(c => c.name === 'Stunning Sunlight');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: primary damage 3d20+3', () => {
+            expect(enhancement?.attack?.damage).toBe('3d20+3');
+        });
+
+        it('should use override: has additional_damage for fail outcome', () => {
+            expect(enhancement?.attack?.additional_damage).toBeDefined();
+            expect(enhancement?.attack?.additional_damage?.length).toBe(1);
+        });
+
+        it('should use override: additional_damage is 4d20+5 magic', () => {
+            const extra = enhancement?.attack?.additional_damage?.[0];
+            expect(extra?.damage).toBe('4d20+5');
+            expect(extra?.damage_type).toBe('magic');
+        });
+
+        it('should use override: additional_damage label is Damage', () => {
+            const extra = enhancement?.attack?.additional_damage?.[0];
+            expect(extra?.label).toBe('Damage');
+        });
+
+        it('should use override: roll.target_reaction = true', () => {
+            expect(enhancement?.roll?.target_reaction).toBe(true);
+        });
+    });
+
+    describe('Overwhelming Aura (Splendor)', () => {
+        const card = srdAbilities.find(c => c.name === 'Overwhelming Aura');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: frequency once_per_long_rest', () => {
+            expect(enhancement?.frequency).toBe('once_per_long_rest');
+        });
+
+        it('should use override: costs.hope = 2', () => {
+            expect(enhancement?.costs?.hope).toBe(2);
+        });
+
+        it('should use override: no stress cost', () => {
+            expect(enhancement?.costs?.stress).toBeUndefined();
+        });
+
+        it('should use override: presence modifier with formula spellcast_minus_presence (sets Presence equal to Spellcast)', () => {
+            const mod = enhancement?.modifiers?.find(m => m.stat === 'presence');
+            expect(mod?.formula).toBe('spellcast_minus_presence');
+        });
+
+        it('should use override: presence modifier condition when_active', () => {
+            const mod = enhancement?.modifiers?.find(m => m.stat === 'presence');
+            expect(mod?.condition?.type).toBe('when_active');
+        });
+
+        it('should use override: roll.difficulty = 15', () => {
+            expect(enhancement?.roll?.difficulty).toBe(15);
+        });
+    });
+
+    describe('Invigoration (Splendor)', () => {
+        const card = srdAbilities.find(c => c.name === 'Invigoration');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: frequency once_per_session', () => {
+            expect(enhancement?.frequency).toBe('once_per_session');
+        });
+
+        it('should use override: linked_costs with variable Hope spend', () => {
+            const linked = enhancement?.linked_costs?.[0];
+            expect(linked?.resource).toBe('hope');
+            expect(linked?.amount).toBe('X');
+        });
+
+        it('should use override: linked_cost action is variable_roll with d6', () => {
+            const linked = enhancement?.linked_costs?.[0];
+            expect(linked?.action?.type).toBe('variable_roll');
+            expect(linked?.action?.dice).toBe('d6');
+        });
+
+        it('should use override: no static hope cost (variable spend only)', () => {
+            expect(enhancement?.costs?.hope).toBeUndefined();
+        });
+    });
+
+    describe('Resurrection (Splendor)', () => {
+        const card = srdAbilities.find(c => c.name === 'Resurrection');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: Spellcast Roll with difficulty 20', () => {
+            expect(enhancement?.roll?.type).toBe('Spellcast Roll');
+            expect(enhancement?.roll?.difficulty).toBe(20);
+        });
+
+        it('should use override: attack block with Fate d6 additional damage', () => {
+            const fateRoll = enhancement?.attack?.additional_damage?.find(d => d.label === 'Fate');
+            expect(fateRoll).toBeDefined();
+            expect(fateRoll?.damage).toBe('1d6');
+        });
+    });
+
+    describe('Gifted Tracker (Sage)', () => {
+        const card = srdAbilities.find(c => c.name === 'Gifted Tracker');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: evasion modifier with when_active condition', () => {
+            const mod = enhancement?.modifiers?.find(m => m.stat === 'evasion');
+            expect(mod?.value).toBe(1);
+            expect(mod?.condition?.type).toBe('when_active');
+        });
+
+        it('should use override: linked_costs for variable Hope spend', () => {
+            const linked = enhancement?.linked_costs?.[0];
+            expect(linked?.resource).toBe('hope');
+            expect(linked?.amount).toBe('X');
+            expect(linked?.action?.type).toBe('custom');
+        });
+
+        it('should use override: no static hope cost', () => {
+            expect(enhancement?.costs?.hope).toBeUndefined();
+        });
+    });
+
+    describe("Nature\u2019s Tongue (Sage)", () => {
+        const card = srdAbilities.find(c => c.name === "Nature\u2019s Tongue");
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: Instinct Roll DC 12', () => {
+            expect(enhancement?.roll?.trait).toBe('Instinct');
+            expect(enhancement?.roll?.difficulty).toBe(12);
+        });
+
+        it('should use override: no linked Hope cost (player adds Experience manually)', () => {
+            expect(enhancement?.linked_costs).toBeUndefined();
+        });
+
+        it('should use override: no static hope cost', () => {
+            expect(enhancement?.costs?.hope).toBeUndefined();
+        });
+    });
+
+    describe('Corrosive Projectile (Sage)', () => {
+        const card = srdAbilities.find(c => c.name === 'Corrosive Projectile');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: combat_category standalone_attack', () => {
+            expect(enhancement?.attack?.combat_category).toBe('standalone_attack');
+        });
+
+        it('should use override: damage d6+4 magic', () => {
+            expect(enhancement?.attack?.damage).toBe('d6+4');
+            expect(enhancement?.attack?.damage_type).toBe('magic');
+        });
+
+        it('should use override: damage_scaling proficiency', () => {
+            expect(enhancement?.attack?.damage_scaling).toBe('proficiency');
+        });
+
+        it('should use override: Spellcast Roll', () => {
+            expect(enhancement?.roll?.trait).toBe('Spellcast');
+        });
+
+        it('should use override: linked_costs with variable stress spend', () => {
+            const linked = enhancement?.linked_costs?.[0];
+            expect(linked?.resource).toBe('stress');
+            expect(linked?.amount).toBe('X');
+        });
+
+        it('should use override: when_active modifier for Corroded condition', () => {
+            const mod = enhancement?.modifiers?.find(m => m.stat === 'corroded_condition');
+            expect(mod).toBeDefined();
+            expect(mod?.value).toBe(0);
+            expect(mod?.condition?.type).toBe('when_active');
+            expect(mod?.source).toBe('Corroded');
+        });
+    });
+
+    describe('Fane of the Wilds (Sage)', () => {
+        const card = srdAbilities.find(c => c.name === 'Fane of the Wilds');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: token_label "Tokens" (not "Tokens (The)")', () => {
+            expect(enhancement?.tokens?.token_label).toBe('Tokens');
+        });
+
+        it('should use override: no token_source (avoids label bug)', () => {
+            expect(enhancement?.tokens?.token_source).toBeUndefined();
+        });
+
+        it('should use override: has_tokens = true', () => {
+            expect(enhancement?.tokens?.has_tokens).toBe(true);
+        });
+
+        it('should use override: Spellcast Roll', () => {
+            expect(enhancement?.roll?.trait).toBe('Spellcast');
+        });
+    });
+
+    describe('Thorn Skin (Sage)', () => {
+        const card = srdAbilities.find(c => c.name === 'Thorn Skin');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: token tracking with spellcast source', () => {
+            expect(enhancement?.tokens?.has_tokens).toBe(true);
+            expect(enhancement?.tokens?.token_source).toBe('spellcast');
+        });
+
+        it('should use override: linked_costs for token-spending d6 rolls', () => {
+            const linked = enhancement?.linked_costs?.[0];
+            expect(linked?.resource).toBe('tokens');
+            expect(linked?.amount).toBe('X');
+            expect(linked?.action?.type).toBe('variable_roll');
+            expect(linked?.action?.dice).toBe('d6');
+        });
+
+        it('should use override: hope cost of 1', () => {
+            expect(enhancement?.costs?.hope).toBe(1);
+        });
+
+        it('should use override: frequency once_per_rest', () => {
+            expect(enhancement?.frequency).toBe('once_per_rest');
+        });
+    });
+
+    describe('Wild Fortress (Sage)', () => {
+        const card = srdAbilities.find(c => c.name === 'Wild Fortress');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: tokens.max_tokens = 3', () => {
+            expect(enhancement?.tokens?.max_tokens).toBe(3);
+        });
+
+        it('should use override: tokens.initial_tokens = 0', () => {
+            expect(enhancement?.tokens?.initial_tokens).toBe(0);
+        });
+
+        it('should use override: tokens.token_label = Barricade Hit Points', () => {
+            expect(enhancement?.tokens?.token_label).toBe('Barricade Hit Points');
+        });
+
+        it('should use override: Spellcast Roll DC 13', () => {
+            expect(enhancement?.roll?.difficulty).toBe(13);
+        });
+
+        it('should use override: costs.hope = 2', () => {
+            expect(enhancement?.costs?.hope).toBe(2);
+        });
+    });
+
+    describe('Forager (Sage)', () => {
+        const card = srdAbilities.find(c => c.name === 'Forager');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: timing downtime', () => {
+            expect(enhancement?.timing).toBe('downtime');
+        });
+
+        it('should use override: d6 roll via damage_reduction_roll', () => {
+            expect(enhancement?.gains?.damage_reduction_roll).toBe('1d6');
+        });
+
+        it('should use override: no Spellcast roll', () => {
+            expect(enhancement?.roll).toBeUndefined();
+        });
+
+        it('should use override: deduplicated keywords', () => {
+            const keywords = enhancement?.keywords ?? [];
+            const unique = new Set(keywords);
+            expect(keywords.length).toBe(unique.size);
+        });
+    });
+
+    describe('Wild Surge (Sage)', () => {
+        const card = srdAbilities.find(c => c.name === 'Wild Surge');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: tokens.max_tokens = 6', () => {
+            expect(enhancement?.tokens?.max_tokens).toBe(6);
+        });
+
+        it('should use override: tokens.initial_tokens = 1', () => {
+            expect(enhancement?.tokens?.initial_tokens).toBe(1);
+        });
+
+        it('should use override: tokens.token_label = Wild Surge Value', () => {
+            expect(enhancement?.tokens?.token_label).toBe('Wild Surge Value');
+        });
+
+        it('should use override: frequency once_per_long_rest', () => {
+            expect(enhancement?.frequency).toBe('once_per_long_rest');
+        });
+
+        it('should use override: costs.stress = 1', () => {
+            expect(enhancement?.costs?.stress).toBe(1);
+        });
+    });
+
+    describe('Forest Sprites (Sage)', () => {
+        const card = srdAbilities.find(c => c.name === 'Forest Sprites');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: token tracking with Sprites label', () => {
+            expect(enhancement?.tokens?.has_tokens).toBe(true);
+            expect(enhancement?.tokens?.token_label).toBe('Sprites');
+        });
+
+        it('should use override: Spellcast Roll DC 13', () => {
+            expect(enhancement?.roll?.difficulty).toBe(13);
+        });
+
+        it('should use override: linked_costs for Hope -> Sprites', () => {
+            const linked = enhancement?.linked_costs?.[0];
+            expect(linked?.resource).toBe('hope');
+            expect(linked?.amount).toBe('X');
+            expect(linked?.action?.type).toBe('gain_tokens');
+        });
+
+        it('should use override: no permanent +3 attack modifier', () => {
+            const mod = enhancement?.modifiers?.find(m => m.stat === 'attack' && m.condition?.type === 'always');
+            expect(mod).toBeUndefined();
+        });
+    });
+
+    describe('Rejuvenation Barrier (Sage)', () => {
+        const card = srdAbilities.find(c => c.name === 'Rejuvenation Barrier');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: when_active modifier for physical resistance display', () => {
+            const mod = enhancement?.modifiers?.find(m => m.condition?.type === 'when_active');
+            expect(mod).toBeDefined();
+            expect(mod?.source).toBe('Resistance to Physical Damage');
+        });
+
+        it('should use override: gains.damage_reduction_roll = 1d4', () => {
+            expect(enhancement?.gains?.damage_reduction_roll).toBe('1d4');
+        });
+
+        it('should use override: gains.hit_points_clear = 1', () => {
+            expect(enhancement?.gains?.hit_points_clear).toBe(1);
+        });
+
+        it('should use override: Spellcast Roll DC 15', () => {
+            expect(enhancement?.roll?.difficulty).toBe(15);
+        });
+
+        it('should use override: frequency once_per_rest', () => {
+            expect(enhancement?.frequency).toBe('once_per_rest');
+        });
+    });
+
+    describe('Tempest (Sage)', () => {
+        const card = srdAbilities.find(c => c.name === 'Tempest');
+        const enhancement = card ? getEnhancement(card) : undefined;
+
+        it('should have enhancement_override', () => {
+            expect(card?.enhancement_override).toBeDefined();
+        });
+
+        it('should use override: 3 additional_damage entries', () => {
+            expect(enhancement?.attack?.additional_damage?.length).toBe(3);
+        });
+
+        it('should use override: Blizzard 2d20+8 magic', () => {
+            const blizzard = enhancement?.attack?.additional_damage?.find(d => d.label === 'Blizzard');
+            expect(blizzard?.damage).toBe('2d20+8');
+            expect(blizzard?.damage_type).toBe('magic');
+        });
+
+        it('should use override: Hurricane 3d10+10 magic', () => {
+            const hurricane = enhancement?.attack?.additional_damage?.find(d => d.label === 'Hurricane');
+            expect(hurricane?.damage).toBe('3d10+10');
+            expect(hurricane?.damage_type).toBe('magic');
+        });
+
+        it('should use override: Sandstorm 5d6+9 magic', () => {
+            const sandstorm = enhancement?.attack?.additional_damage?.find(d => d.label === 'Sandstorm');
+            expect(sandstorm?.damage).toBe('5d6+9');
+            expect(sandstorm?.damage_type).toBe('magic');
+        });
+
+        it('should use override: Spellcast Roll', () => {
+            expect(enhancement?.roll?.trait).toBe('Spellcast');
+        });
+
+        it('should use override: deduplicated keywords', () => {
+            const keywords = enhancement?.keywords ?? [];
+            const unique = new Set(keywords);
+            expect(keywords.length).toBe(unique.size);
+        });
+    });
+});
 
     describe('Enhanced Abilities JSON - Attack Parsing', () => {
         it('should have attack data for attack-type cards', () => {
@@ -341,4 +875,4 @@ describe('Enhanced Abilities JSON - Known Cards Validation', () => {
             expect(withTokens.length).toBeGreaterThan(10); // Should have at least 10 cards with tokens
         });
     });
-});
+

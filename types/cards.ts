@@ -77,6 +77,19 @@ export interface CardGains {
 }
 
 /**
+ * Structured gains from using an ability (e.g., "gain 3 Hope", "clear a Hit Point")
+ */
+export interface CardGains {
+  hope?: number;
+  stress_clear?: number;    // Clear X Stress
+  hit_points_clear?: number; // Clear X Hit Points (heal)
+  armor_slots_clear?: number; // Clear X Armor Slots (restore armor)
+  damage_reduction_roll?: string; // Roll for damage reduction (e.g., "1d8")
+  replenish_tokens?: boolean; // If true, provides a button to replenish tokens to max
+  vault?: boolean; // If true, provides a button to return card to vault
+}
+
+/**
  * Attack mechanics for combat abilities
  */
 export interface CardAttack {
@@ -159,6 +172,7 @@ export interface TierScaling {
  * - 'when_active_permanent': Like when_active, but applies even from vault (e.g., Vitality)
  * - 'cost_activated': DEPRECATED - use 'when_active' instead
  * - 'when_hp_marked': Active when HP is marked (Power Through Pain); minMarked defaults to 1
+ * - 'when_stress_maxed': Active when all Stress slots are marked (Voice of Reason)
  * - 'loadout_domain_count': Active when loadout has enough cards from a domain
  * - 'environment': Active based on environment (future feature)
  */
@@ -170,6 +184,7 @@ export type ModifierCondition =
   | { type: 'when_active_permanent' }  // Applies even from vault once activated (e.g., Vitality)
   | { type: 'cost_activated' }  // DEPRECATED: Use 'when_active' instead
   | { type: 'when_hp_marked'; minMarked?: number }  // Active when HP is marked (e.g., Power Through Pain)
+  | { type: 'when_stress_maxed' }  // Active when all Stress slots are marked (e.g., Voice of Reason)
   | { type: 'loadout_domain_count'; domain: string; minCount: number }
   | { type: 'environment'; requirement: string };
 
@@ -193,6 +208,7 @@ export interface CardTokens {
   max_tokens?: number | null; // null = dynamic based on trait
   initial_tokens?: number; // Starting token count
   token_source?: string; // Which trait determines token count (e.g., "Agility")
+  token_label?: string; // Custom label for the token track (e.g., "Hit Points", "Sprites")
   token_replenish?: TokenReplenish;
   tokens_per_use?: number; // How many tokens spent per use
 }
@@ -357,6 +373,7 @@ export interface CardTokenTrackProps {
   maxTokens: number | null;
   initialTokens?: number;
   tokenSource?: string;
+  tokenLabel?: string;
   currentTokens?: number;
   onTokenChange?: (tokens: number) => void;
   className?: string;
